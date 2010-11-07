@@ -23,11 +23,11 @@
 
 aiml_call(Ctx,_ - Calls):- !,aiml_call(Ctx,Calls),!.
 
-aiml_call(Ctx,[Atomic|Rest]):- atom(Atomic),!,trace, 
+aiml_call(Ctx,[Atomic|Rest]):- atom(Atomic),!, %%trace, 
             aiml_eval(Ctx,[Atomic|Rest],Output),!,
             debugFmt(resultOf(aiml_call(Ctx,[Atomic|Rest]),Output)),!.
 
-aiml_call(Ctx,[Atomic|Rest]):- !,trace, 
+aiml_call(Ctx,[Atomic|Rest]):- !, %%trace, 
             aiml_eval(Ctx,[Atomic|Rest],Output),!,
             debugFmt(resultOf(aiml_call(Ctx,[Atomic|Rest]),Output)),!.
 
@@ -295,7 +295,7 @@ getItemValue(Name,Ctx,Value):-findTagValue(Ctx,[],Name,Value,'$current_value').%
 %%   withAttributes(Ctx,ATTRIBS,aiml_call_list(Ctx,LIST)),!.
 
 tag_eval(Ctx,element('testsuite',ATTRIBS,LIST),PCALL):- PCALL = prologCall(maplist_safe(call,RESULT)),
-   trace,
+   %%trace,
    withAttributes(Ctx,ATTRIBS,aiml_eval_each(Ctx,LIST,RESULT)),!.
 
 tag_eval(Ctx,Current,prologCall(TESTCALL)):- Current=element(TC,ATTRIBS,_LIST), member(TC,['testcase','TestCase']),     

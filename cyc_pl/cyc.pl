@@ -128,7 +128,14 @@
          debugFmt/1,
 	 debugFmt/2,
 	 debugFmtFast/1,
-	 logOnFailureIgnore/1,
+
+         loggerFmt/1,
+         loggerFmt/2,
+         loggerFmt/3,
+         %%logLevel/2,
+         setLogLevel/2,
+
+         logOnFailureIgnore/1,
 	 sendNote/1,
 	 sendNote/4,
 	 writeFailureLog/2,
@@ -3731,8 +3738,37 @@ debugFmt(T):-!,
 indent_e(X):- catch((X < 2),_,true),write(' '),!.
 indent_e(X):-XX is X -1,!,write(' '), indent_e(XX).
 
+
+:-dynamic(user:logLevel/2).
+:-module_transparent(user:logLevel/2).
+:-multifile(user:user:logLevel/2).
+
+setLogLevel(M,L):-retractall(user:logLevel(M,_)),(nonvar(L)->asserta(user:logLevel(M,L));true).
+
+user:logLevel(debug,user_error).
+user:logLevel(error,user_error).
+user:logLevel(private,none).
+user:logLevel(S,Z):-current_stream(X,write,Z),stream_property(Z,alias(S)).
+
+loggerReFmt(L,LR):-user:logLevel(L,LR),L \==LR,!,loggerReFmt(LR,LRR),!.
+loggerReFmt(L,L).
+
+loggerFmt(LF):-functor(LF,F,_),loggerReFmt(F,LR),
+  LR==F->loggerFmtReal(F,LF,[]);loggerFmt(LR,LF,[]).
+
+loggerFmt(L,F):-loggerReFmt(L,LR),loggerFmtReal(LR,F,[]).
+loggerFmt(L,F,A):-loggerReFmt(L,LR),loggerFmtReal(LR,F,A).
+
+loggerFmtReal(none,F,A):-!.
+loggerFmtReal(S,F,A):-
+   current_stream(_,write,S),
+        writeFmtFlushed(S,F,A),
+        flush_output_safe(S),!.
+
+
 %debugFmt(C,T):- isCycOption(opt_debug=off),!.
 debugFmt(_,F):-F==[-1];F==[[-1]].
+
 debugFmt(F,A):-
         nl(user_error),
         writeFmtFlushed(user_error,F,A),

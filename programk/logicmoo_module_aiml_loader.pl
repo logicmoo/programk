@@ -59,9 +59,7 @@ with_files(Verb,File):-debugOnFailureAiml(call(Verb,File)).
 aiml_files(File,Files):-atom(File),sub_atom(File,_Before,_Len,_After,'*'),!,expand_file_name(File,Files),!.
 aiml_files(File,Files):-atom_concat_safe(WithOutSlashes,'/',File),!,aiml_files(WithOutSlashes,Files).
 aiml_files(File,Files):-exists_directory(File),absolute_file_name(File,WithOneSlash),
-      atom_concat_safe(WithOneSlash,'*.aiml',Mask),expand_file_name(Mask,Files),!.
-aiml_files(File,Files):-atom_concat_safe(File,'/',WithSlashes),absolute_file_name(WithSlashes,[relative_to('./')],WithOneSlash),
-                 aiml_files(WithOneSlash,Files).
+      atom_concat_safe(File,'/*.aiml',Mask),aiml_files(Mask,Files),!.
                     
 
 aimlOption(rebuild_Aiml_Files,false).
@@ -633,8 +631,9 @@ each_pattern(Ctx,ATTRIBS,TAGS,element(TAG,ALIST,PATTERN)):-  innerTagLikeThat(Th
    takeout(element(That,WA,WP),PATTERN,NOPATTERNS),
    each_pattern(Ctx,ATTRIBS,[element(That,WA,WP)|TAGS],element(TAG,ALIST,NOPATTERNS)),!.
 
-each_pattern(Ctx,ATTRIBS,NOPATTERNS,element(TAG,ALIST,PATTERN)):-
+each_pattern(Ctx,ATTRIBS,NOPATTERNS,element(TAG,ALIST,PATTERNA)):-
   debugOnFailureAiml(( 
+   convert_text(PATTERNA,PATTERN),
    replaceAttribute(Ctx,name,TAG,ALIST,PATTRIBS),
    appendAttributes(Ctx,PATTRIBS,ATTRIBS,NEWATTRIBS),
    gatherEach(Ctx,[TAG=PATTERN|NEWATTRIBS],NOPATTERNS,Results),

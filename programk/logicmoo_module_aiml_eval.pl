@@ -118,8 +118,8 @@ aiml_eval0(_Ctx,A,B):-atomic(A),!,B=A.
 
 aiml_eval0(Ctx,element(Srai,ATTRIBS,DOIT),RETURN):- memberchk(Srai,[srai,template]),
       withAttributes(Ctx,ATTRIBS,
-         (hotrace(aiml_eval_each(Ctx,DOIT,INNER)),
-          computeAnswer(Ctx,1,element(Srai,ATTRIBS,INNER),RMID,_Votes))),!,
+         (hotrace(aiml_eval_each(Ctx,DOIT,INNER),
+          computeAnswer(Ctx,1,element(Srai,ATTRIBS,INNER),RMID,_Votes)))),
        RMID=RETURN.
 
 aiml_eval0(Ctx,element(A, B, C), XML):-tagType(A, immediate),
@@ -192,7 +192,7 @@ systemCall_Bot(_Ctx,['eval'|DONE],template([evaled,DONE])):-!.
 systemCall_Bot(Ctx,['set'],template([setted,Ctx])):-!,listing(dict).
 %systemCall_Bot(Ctx,['ctx'],template([ctxed,Ctx])):-!,showCtx.
 systemCall_Bot(Ctx,['load'|REST],OUT):-!,debugOnFailure(systemCall_Load(Ctx,REST,OUT)),!.
-systemCall_Bot(Ctx,['chgraph',Graph],['chgraph',Graph]):-  set_current_value(Ctx,graph,Graph),!.
+systemCall_Bot(Ctx,['chgraph',Graph],['chgraph',Graph]):- trace, set_current_value(Ctx,graph,Graph),!.
 
 
 systemCall_Load(Ctx,[],template([loaded,Ctx])):-!.
@@ -232,10 +232,10 @@ graph_or_file(Ctx,ATTRIBS, [Filename], XML):-atomic(Filename),!,graph_or_file(Ct
 
 graph_or_file(Ctx,ATTRIBS,Filename,XML):-graph_or_file_or_dir(Ctx,ATTRIBS,Filename,XML).
 graph_or_file(Ctx,ATTRIBS, Filename, XML):- 
-     getCurrentFileDir(Ctx, ATTRIBS, CurrentDir),join_path(CurrentDir,Filename,Name),
-     graph_or_file_or_dir(Ctx,[currentDir=CurrentDir|ATTRIBS],Name,XML),!.
+     prolog_must((getCurrentFileDir(Ctx, ATTRIBS, CurrentDir),join_path(CurrentDir,Filename,Name))),
+     prolog_must(graph_or_file_or_dir(Ctx,[currentDir=CurrentDir|ATTRIBS],Name,XML)),!.
 
-graph_or_file(_Ctx,ATTRIBS, Filename, [nosuchfile(Filename,ATTRIBS)]).
+graph_or_file(_Ctx,ATTRIBS, Filename, [nosuchfile(Filename,ATTRIBS)]):-trace.
 
 join_path(CurrentDir,Filename,Name):-
          atom_ensure_endswtih(CurrentDir,'/',Out),atom_ensure_endswtih('./',Right,Filename),
@@ -254,17 +254,19 @@ graph_or_file_or_dir(Ctx,ATTRIBS, F, [element(aiml,DIRTRIBS,OUT)]):- DIRTRIBS = 
                    graph_or_file_or_dir(Ctx,[srcfile=FF|DIRTRIBS],FF,X))), OUT),!.
 
 
-getCurrentFile(Ctx,_ATTRIBS,CurrentFile):-getItemValue(proof,Ctx,Proof),getItemValue(lastArg,Proof,CurrentFile0),
-            getItemValue(lastArg,CurrentFile0,CurrentFile1),getItemValue(arg(1),CurrentFile1,CurrentFile2),!,
-            absolute_file_name(CurrentFile2,CurrentFile).
+getCurrentFile(Ctx,_ATTRIBS,CurrentFile):-getItemValue(proof,Ctx,Proof),nonvar(Proof),            
+            getItemValue(lastArg,Proof,CurrentFile1),getItemValue(lastArg,CurrentFile1,CurrentFile2),
+            getItemValue(arg(1),CurrentFile2,CurrentFile3),!,
+            absolute_file_name(CurrentFile3,CurrentFile).
 
-getCurrentFileDir(Ctx,ATTRIBS,Dir):-getCurrentFile(Ctx, ATTRIBS, CurrentFile),prolog_must(atom(CurrentFile)),
-      file_directory_name(CurrentFile,Dir0),absolute_file_name(Dir0,Dir).
+getCurrentFileDir(Ctx,ATTRIBS,Dir):- prolog_must((getCurrentFile(Ctx, ATTRIBS, CurrentFile),atom(CurrentFile),
+      file_directory_name(CurrentFile,Dir0),absolute_file_name(Dir0,Dir))).
 
-getItemValue(Name,Ctx,Value):-Name==lastArg,compound(Ctx),functor(Ctx,_F,A),arg(A,Ctx,Value),!.
-getItemValue(Name,Ctx,Ctx):-Name==lastArg,!.
-getItemValue(arg(N),Ctx,Value):-integer(N),compound(Ctx),arg(N,Ctx,Value),!.
-getItemValue(Name,Ctx,Value):-getCtxValue(Name,Ctx,Value),!.
+getItemValue(Name,Ctx,Value):-nonvar(Ctx),getCtxValue(Name,Ctx,Value),!.
+getItemValue(Name,Ctx,Value):-current_value(Ctx,Name,Value),!.
+getItemValue(Name,Ctx,Value):-getAliceMem(Ctx,_,Name,Value),!.
+getItemValue(Name,Ctx,Value):-findTagValue(Ctx,[],Name,Value,'$current_value').%%current_value(Ctx,Name,Value),!.
+
 % ============================================
 % Test Suite 
 % ============================================

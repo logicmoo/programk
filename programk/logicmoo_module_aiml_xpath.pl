@@ -119,7 +119,12 @@ pushAttributes0(_Ctx,_Scope,[]).
 peekAttributes(Ctx,[Name|SList],Scope,[Name=Value|Results]):- peekNameValue(Ctx,Scope,Name,Value),peekAttributes(Ctx,SList,Scope,Results),!.
 peekAttributes(_Ctx,[],_Scope,[]):-!.
 
-current_value(Ctx,Name,ValueI):-peekNameValue(Ctx,_,Name,ValueI).
+current_value(Ctx,arg(N),Value):-integer(N), N = -1,!,getItemValue(lastArg,Ctx,Value),!.
+current_value(Ctx,Name,Value):-Name==lastArg,compound(Ctx),functor(Ctx,_F,A),arg(A,Ctx,Value),!.
+current_value(Ctx,Name,Ctx):-Name==lastArg,!.
+current_value(Ctx,arg(N),Value):-integer(N),prolog_must(compound(Ctx)),arg(N,Ctx,Value),!.
+current_value(Ctx,Name,Value):-peekNameValue(Ctx,_,Name,Value).
+
 
 peekNameValue(Ctx,Scope,Name,Value):-peekNameValue(Ctx,Scope,Name,Value,Failed),ignore((Value==Failed,trace,Value = '*')),!.
 
@@ -260,6 +265,8 @@ cateNodes2a(Scope,Tag,DCGO):-peekNameValue(_Ctx,Other,Tag,DCG),Other\==Scope,!,D
 cateNodes2a(Scope,Tag,DCGO):-aiml_error(peekNameValue(_Ctx,Scope,Tag,DCG)),!,DCG=DCGO.
 
 defaultPredicates(N,V):-member(N,[username,botname]),V='*'.
+
+defaultPredicates(N,V):-member(N,[input,pattern]),V='*'.
 defaultPredicates(N,V):-defaultPredicatesS(S),member(N=V,S).
 defaultPredicatesS([topic='*',
              precall='true',
@@ -326,7 +333,7 @@ unwrapValue1(Value,Value):-!.
 bestSetterFn(v(_,Setter,_),_OuterSetter,Setter):-!.
 bestSetterFn(_Value,OuterSetter,OuterSetter).
 
-getCtxValue(Name,Ctx,Value):-checkCtx(Ctx),hotrace(get_ctx_holder(Ctx,Holder)),get_o_value(Name,Holder,HValue,_Setter),!, unwrapValue(HValue,Value).
+getCtxValue(Name,Ctx,Value):-checkCtx(Ctx), hotrace(( get_ctx_holder(Ctx,Holder),get_o_value(Name,Holder,HValue,_Setter),!, unwrapValue(HValue,Value))).
 
 setCtxValue(Name,Ctx,Value):-checkCtx(Ctx),get_ctx_holder(Ctx,Holder),get_o_value(Name,Holder,HValue,Setter),unwrapValue(HValue,CurrentValue),!,(CurrentValue=Value;call(Setter,Value)),!.
 setCtxValue(Name,Ctx,Value):-checkCtx(Ctx),addCtxValue1(Name,Ctx,Value),!.
@@ -374,7 +381,7 @@ get_ctx_holder1(Ctx,Ctx).
 %%%%% get_ctx_holderFreeSpot(+Ctx, -Put_NV, -CallToRemoveNV)
 
 get_ctx_holderFreeSpot(Ctx,NamedValue,no_destructor(holder)):-no_cyclic_terms,!,get_ctx_holderFreeSpot0(Ctx,NamedValue,_NO_Destruct),!.
-get_ctx_holderFreeSpot(Ctx,NamedValue,Destruct):-hotrace(get_ctx_holderFreeSpot0(Ctx,NamedValue,Destruct)).
+get_ctx_holderFreeSpot(Ctx,NamedValue,Destruct):-get_ctx_holderFreeSpot0(Ctx,NamedValue,Destruct).
 
 get_ctx_holderFreeSpot0(Ctx,NamedValue,Destruct):-compound(Ctx),get_ctx_holderFreeSpot1(Ctx,NamedValue,Destruct).
 

@@ -27,8 +27,7 @@ throw_safe(Exc):-trace,throw(Exc).
 
 :-op(1150,fx,meta_predicate_transparent).
 
-prolog_must(Call):-var(Call),!,trace,randomVars(Call).
-prolog_must(Call):-tracing,!,prolog_must_tracing(Call).
+prolog_must(Call):-tracing,!,Call. %%prolog_must_tracing(Call).
 prolog_must(Call):-prolog_must0(Call).
 
 prolog_must0(Call):-var(Call),!,trace,randomVars(Call).
@@ -41,7 +40,8 @@ prolog_must_tracing((X,Y)):-!,prolog_must_tracing(X),prolog_must_tracing(Y).
 prolog_must_tracing(prolog_must(Call)):-!,prolog_must_tracing(Call).
 prolog_must_tracing(Call):-atLeastOne(Call,hotrace(aiml_error(Call))).
 
-atLeastOne(OneA):- atLeastOne(OneA,debugFmt(failed(OneA))).
+
+atLeastOne(OneA):- atLeastOne(OneA,(trace,OneA)).
 atLeastOne(OneA,Else):-atLeastOne0(OneA,Else).
 
 atLeastOne0(OneA,_Else):-copy_term(OneA,One),findall(One,call(One),OneL),[_|_]=OneL,!,member(OneA,OneL).

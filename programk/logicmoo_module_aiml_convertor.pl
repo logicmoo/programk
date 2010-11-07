@@ -21,18 +21,20 @@
 % ===================================================================
 % ===================================================================
 
-convert_text('',''):-!.
-convert_text([],''):-!.
+convert_text('',[]):-!.
+convert_text([],[]):-!.
 convert_text(C,D):-is_list(C),!,convert_text_list(C,D),!.
-convert_text(A,O):-atom(A),!,convert_atom(A,O).
-convert_text(A,''):-ignore_aiml(A),!.
+convert_text(A,L):-atom(A),!,convert_atom(A,O),convert_text_list(O,L).
+convert_text(A,[]):-ignore_aiml(A),!.
 convert_text(E,File):-aiml_error(convert_text(E,File)),!,E=File.
 
 
 convert_text_list([],[]):-!.
-convert_text_list([A],B):-!,convert_text(A,B).
+convert_text_list([A],B):-!,convert_text_list(A,B).
 convert_text_list(M,C):-delete(M,'',B), (M == B -> C=B ; convert_text_list(B,C)).
 convert_text_list([A|AA],BBB):-convert_text(A,B),convert_text_list(AA,BB),!,flattem_append(B,BB,BBB0),!,BBB=BBB0.
+convert_text_list(A,C):-atom(A),atomSplit(A,M),([A]==M->C=M;convert_text(M,C)),!.
+convert_text_list(A,A):-trace.
 
 convert_atom(A,Z):-convert_atom0(A,Y),!,Y=Z.
 convert_atom(E,File):-aiml_error(convert_atom(E,File)),!,E=File.
@@ -61,7 +63,7 @@ convert_template(Ctx,P,PO):-convert_element(Ctx,P,PO),!.
 
 toAtomList(A,O):-delete(A,'',O),!.
 
-convert_element(_Ctx,Input,Out):-atomic(Input),!,Out=Input.
+convert_element(_Ctx,Input,Out):-atomic(Input),!,convert_text_list(Input,Out).
 convert_element(Ctx,Input,Out):-convert_ele(Ctx,Input,M),!,M=Out,!.
 %%%,convert_ele(Ctx,M,OutO),!,OutO=Out.
 
@@ -246,10 +248,10 @@ formatterMethod(NamedMethod,NamedMethod):-formatterProc(NamedMethod).
 evaluatorsDicts(Dict):-member(Dict,[system,javascript,eval,
                                      cycquery,cycsystem,cycassert,
                                      fortunecookie,substitute,learn,aiml,genlMt,think,
-                                     substitute,srai,testsuite,testcase,template]).
+                                     substitute,srai,testsuite,testcase,template,set]).
 
 
-%substitutionDictsName(input,pattern).
+substitutionDictsName(pattern,input).
 substitutionDictsName(N,N):-substitutionDicts(N).
 
 substitutionDicts(input).

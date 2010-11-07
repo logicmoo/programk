@@ -254,10 +254,16 @@ graph_or_file_or_dir(Ctx,ATTRIBS, F, [element(aiml,DIRTRIBS,OUT)]):- DIRTRIBS = 
                    graph_or_file_or_dir(Ctx,[srcfile=FF|DIRTRIBS],FF,X))), OUT),!.
 
 
-getCurrentFile(Ctx,_ATTRIBS,CurrentFile):-getItemValue(proof,Ctx,Proof),getItemValue(lastArg,Proof,CurrentFile).
-getCurrentFileDir(Ctx,ATTRIBS,Dir):-getCurrentFile(Ctx, ATTRIBS, CurrentFile),file_directory_name(CurrentFile,Dir).
+getCurrentFile(Ctx,_ATTRIBS,CurrentFile):-getItemValue(proof,Ctx,Proof),getItemValue(lastArg,Proof,CurrentFile0),
+            getItemValue(lastArg,CurrentFile0,CurrentFile1),getItemValue(arg(1),CurrentFile1,CurrentFile2),!,
+            absolute_file_name(CurrentFile2,CurrentFile).
+
+getCurrentFileDir(Ctx,ATTRIBS,Dir):-getCurrentFile(Ctx, ATTRIBS, CurrentFile),prolog_must(atom(CurrentFile)),
+      file_directory_name(CurrentFile,Dir0),absolute_file_name(Dir0,Dir).
 
 getItemValue(Name,Ctx,Value):-Name==lastArg,compound(Ctx),functor(Ctx,_F,A),arg(A,Ctx,Value),!.
+getItemValue(Name,Ctx,Ctx):-Name==lastArg,!.
+getItemValue(arg(N),Ctx,Value):-integer(N),compound(Ctx),arg(N,Ctx,Value),!.
 getItemValue(Name,Ctx,Value):-getCtxValue(Name,Ctx,Value),!.
 % ============================================
 % Test Suite 

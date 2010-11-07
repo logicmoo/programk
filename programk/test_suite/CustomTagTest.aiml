@@ -513,12 +513,12 @@ Found the hyphen+done. star= 1
   <category>
     <pattern>QT</pattern>
     <template>
-      <learn graph="ProgramD" filename="aiml\test_suite\ProgramD\AIML.aiml" />
-      <learn graph="ProgramD" filename="aiml\test_suite\ProgramD\predicates.xml" />
-      <learn graph="ProgramD" filename="aiml\test_suite\ProgramD\properties.xml" />
-      <learn graph="ProgramD" filename="aiml\test_suite\ProgramD\substitutions.xml" />
+      <learn graph="ProgramD" filename="ProgramD\AIML.aiml" />
+      <learn graph="ProgramD" filename="ProgramD\predicates.xml" />
+      <learn graph="ProgramD" filename="ProgramD\properties.xml" />
+      <learn graph="ProgramD" filename="ProgramD\substitutions.xml" />
       <system>@chgraph programd</system>
-      <pre> now @load aiml\test_suite\ProgramD\AIML.xml </pre>
+      <pre> now @load ProgramD\AIML.xml </pre>
     </template>
   </category>
 
@@ -526,7 +526,7 @@ Found the hyphen+done. star= 1
     <category>
       <pattern>QT1</pattern>
       <template graph="ProgramD">
-        <system>@load aiml\test_suite\ProgramD\AIML.xml</system>
+        <system>@load ProgramD\AIML.xml</system>
       </template>
     </category>
   </aiml>
@@ -535,10 +535,10 @@ Found the hyphen+done. star= 1
   <category>
     <pattern>QT2</pattern>
     <template>
-      <learn graph="ProgramQ" filename="aiml\test_suite\ProgramQ\TestSuite.aiml" />
-      <learn graph="ProgramQ" filename="aiml\test_suite\ProgramQ\bot.xml" />
-      <learn graph="ProgramQ" filename="aiml\test_suite\ProgramQ\vars.xml" />
-      <learn graph="ProgramQ" filename="aiml\test_suite\ProgramQ\substitutions.xml" />
+      <learn graph="ProgramQ" filename="ProgramQ\TestSuite.aiml" />
+      <learn graph="ProgramQ" filename="ProgramQ\bot.xml" />
+      <learn graph="ProgramQ" filename="ProgramQ\vars.xml" />
+      <learn graph="ProgramQ" filename="ProgramQ\substitutions.xml" />
       <system>@chgraph programq</system>
     </template>
   </category>
@@ -546,7 +546,7 @@ Found the hyphen+done. star= 1
     <category>
       <pattern>QT3</pattern>
       <template graph="ProgramQ">
-        <system>@load aiml\test_suite\ProgramQ\TestSuite.xml</system>
+        <system>@load ProgramQ\TestSuite.xml</system>
       </template>
     </category>
   </aiml>
@@ -563,7 +563,7 @@ Found the hyphen+done. star= 1
     <template>
       <learn graph="ProgramD" dir="ProgramD/"/>
       <srai>@chgraph programd</srai>
-      <srai>@load aiml\test_suite\ProgramD\AIML.xml</srai>
+      <srai>@load ProgramD\AIML.xml</srai>
     </template>
   </category>
 

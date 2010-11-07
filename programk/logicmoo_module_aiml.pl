@@ -506,38 +506,31 @@ computeSRAI0(_Ctx,Votes,Orig,Input,Result,VotesO,Proof):- !, VotesO is Votes * 0
 computeSRAI0(Ctx,Votes,Orig,[B|Flat],[B|Result],VotesO,Proof):-
    computeSRAI2(Ctx,Votes,Orig,Flat,Result,VotesO,Proof),prolog_must(nonvar(Result)).
 
-computeSRAI222(Ctx,Votes,Orig,Pattern,Out,VotesO,ProofOut):-
-         Proof = __,
-   getCategoryArg(Ctx,'template',Out, _Out_ ,CateSig),!,   
+computeSRAI222(Ctx,Votes,Orig,Pattern,Out,VotesO,ProofOut):-          
+         getCategoryArg(Ctx,'template',Out, _Out_ ,CateSig),!,
          getAliceMem(Ctx,_User,'topic',Topic),
-         prolog_must(get_matchit_cate(Ctx,'topic',Topic,CateSig,FindTopic,CommitTopic,Out,MinedCates,Proof)),
+         get_matchit_cate_preconds(Ctx,'topic',Topic,CateSig,true,AfterTopic,Out,MinedCates,Proof),
          must_be_openCate(CateSig),
          prolog_must(getLastSaidAsInput(That)),
-         prolog_must(get_matchit_cate(Ctx,'that',That,CateSig,FindThat,CommitThat,Out,MinedCates,Proof)),
+         get_matchit_cate_preconds(Ctx,'that',That,CateSig,AfterTopic,AfterThat,Out,MinedCates,Proof),
          must_be_openCate(CateSig),
-         get_matchit_cate(Ctx,'pattern',Pattern,CateSig,FindPattern,CommitPattern,Out,MinedCates,Proof),!,
-         %%ignore(FindTopic=true),ignore(FindThat=true),ignore(FindPattern=true),
-         FindAll = (FindTopic,FindThat,FindPattern),
-         CommitAll = (CommitThat, CommitTopic, CommitPattern),!,
-         atLeastOne(computeSRAI333(Ctx,Votes,Orig,Pattern,FindAll,CateSig,Proof,MinedCates,CommitAll,Out,VotesO,ProofOut)).
+         get_matchit_cate_preconds(Ctx,'pattern',Pattern,CateSig,AfterThat,AfterPattern,Out,MinedCates,Proof),!,
+         atLeastOne(computeSRAI333(Ctx,Votes,Orig,Pattern,true,CateSig,Proof,MinedCates,AfterPattern,Out,VotesO,ProofOut)).
 
-computeSRAI333(_Ctx,Votes,_Orig,_Pattern,FindAll,CateSig,Proof,_MinedCates,CommitAll,Out,VotesO,ProofOut):- 
+computeSRAI333(_Ctx,Votes,_Orig,Pattern,FindAll,CateSig,Proof,_MinedCates,CommitAll,Out,VotesO,ProofOut):- 
          prolog_must(var(Out)),
          FindAll,
-         once((
-         %%CommitAll = (CommitThat, CommitTopic, CommitPattern),
-         %%ignore(CommitTopic=true),ignore(CommitThat=true),ignore(CommitPattern=true),
-         must_be_openCate(CateSig))),
+         must_be_openCate(CateSig),
          CommitAll,
          once((
-         CateSig,
-         prolog_must(nonvar(Out)),
-         cateStrength(CateSig,Mult),
-         VotesO is Votes * Mult,
-         append([Out],Proof,FinalProof),
-         append(FinalProof,[],FinalProofClosed),
-         debugFmt(result(Out,CateSig,FinalProofClosed)),
-         ProofOut=..[proof|FinalProofClosed])).
+            CateSig,
+            prolog_must(nonvar(Out)),
+            cateStrength(CateSig,Mult),
+            VotesO is Votes * Mult,
+            append([Out],Proof,FinalProof),
+            append(FinalProof,[CateSig],FinalProofClosed),
+            debugFmt(result(out(Out),from(Pattern),FinalProofClosed)),
+            ProofOut=..[proof|FinalProofClosed])).
 
 
 cateStrength(_CateSig,1.1):-!.
@@ -582,6 +575,11 @@ meansNothing(InputNothing,InputPattern):-prolog_must((ground(InputNothing),var(I
 meansNothing0([Atom],Out):-!,meansNothing0(Atom,Out).
 meansNothing0('_',['*']).
 meansNothing0('*',['*']).
+
+get_matchit_cate_preconds(Ctx,StarName,InputNothing,MinCateSig,Preconds,Postconds,Out,_MinedCates,ProofOut):-
+   get_matchit_cate(Ctx,StarName,InputNothing,MinCateSig,FindPattern,CommitResult,Out,_MinedCates,ProofOut),
+   Postconds = (FindPattern,Preconds,CommitResult).
+  
 
 get_matchit_cate(Ctx,StarName,InputNothing,MinCateSig,FindPattern,prolog_must(CommitPattern),Out,_MinedCates,ProofOut):- 
   notrace(meansNothing(InputNothing,InputPattern)),!,   

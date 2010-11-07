@@ -1,0 +1,17 @@
+
+ProgramK:
+ here in jellyfish/programk/
+
+ swipl -f logicmoo_module_aiml_main.pl
+ halt
+
+
+After making changes:
+
+
+
+
+[root@titan programk]# git config --global user.name "DouglasRMiles"
+[root@titan programk]# git config --global user.email "dmiles@daxtron.com"
+[root@titan programk]# git commit . -m 'ProgramK - fixed syntax error that seems to be Linux SWI only'
+

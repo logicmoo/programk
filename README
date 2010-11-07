@@ -8,8 +8,7 @@ NotAIML:
 
 ProgramK:
  cd jellyfish/programk/
- swipl -f [logicmoo_module_aiml_main].
-
+ cat README
 
 After making changes:
 

@@ -28,7 +28,7 @@ reloadAimlFiles:-withCurrentContext(reloadAimlFiles).
 reloadAimlFiles(Ctx):-forall(retract(loaded_aiml_file(A,P)),assert(pending_aiml_file(A,P))),do_pending_loads(Ctx).
 
 %%load_aiml_files:- aimlCateSig(CateSig),retractall(CateSig),fail.
-load_aiml_files:-once(load_aiml_files('aiml/test_suite/*.aiml')),fail.
+%load_aiml_files:-once(load_aiml_files('programk/test_suite/*.aiml')),fail.
 %%load_aiml_files:-once(load_aiml_files(Ctx,'*.aiml')),fail.
 %load_aiml_files:-aimlCateSig(CateSig),pp_listing(CateSig).
 load_aiml_files.

@@ -31,6 +31,7 @@ hotrace(X):-call(X).
 :-ensure_loaded(library('programk/logicmoo_module_aiml_shared.pl')).
 :-ensure_loaded(library('programk/logicmoo_module_aiml_xpath.pl')).
 :-ensure_loaded(library('programk/logicmoo_module_aiml_loader.pl')).
+:-ensure_loaded(library('programk/logicmoo_module_aiml_convertor.pl')).
 :-ensure_loaded(library('programk/logicmoo_module_aiml_eval.pl')).
 
 run_chat_tests:-

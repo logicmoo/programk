@@ -45,7 +45,7 @@ dttt:-time(consult(aimlCate_checkpoint)),alicebot.
 %:-load_aiml_files.
 %:-debug,run_chat_tests.
 %:-main_loop.
-:-once(load_aiml_files('programk/test_suite/*.aiml')).
+%:-once(load_aiml_files('programk/test_suite/*.aiml')).
 
 
 run_chat_tests_here:-

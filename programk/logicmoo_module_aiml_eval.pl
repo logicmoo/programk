@@ -286,9 +286,17 @@ getItemValue(Name,Ctx,Value):-findTagValue(Ctx,[],Name,Value,'$current_value').%
 % ============================================
 % Test Suite 
 % ============================================
-tag_eval(Ctx,element('testsuite',ATTRIBS,LIST),prologCall(maplist_safe(call,RESULT))):- 
+
+%%aiml_call_list(Ctx,List):-maplist_safe(aiml_call(Ctx),List).
+
+%% NOW USES CALL FOR UNIT TESTS
+%%tag_eval(Ctx,element('testsuite',ATTRIBS,LIST),prologCall(maplist_safe(call,RESULT))):- 
+%%   withAttributes(Ctx,ATTRIBS,aiml_call_list(Ctx,LIST)),!.
+
+tag_eval(Ctx,element('testsuite',ATTRIBS,LIST),PCALL):- PCALL = prologCall(maplist_safe(call,RESULT)),
+   trace,
    withAttributes(Ctx,ATTRIBS,aiml_eval_each(Ctx,LIST,RESULT)),!.
-   
+
 tag_eval(Ctx,Current,prologCall(TESTCALL)):- Current=element(TC,ATTRIBS,_LIST), member(TC,['testcase','TestCase']),     
  debugOnFailureAiml((
      attributeOrTagValue(Ctx,Current,['name'],Name,'SomeName'),

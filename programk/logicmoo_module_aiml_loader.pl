@@ -16,8 +16,8 @@
 :- style_check(-string).
 
 
-:-ensure_loaded('cynd/logicmoo_module_aiml_convertor.pl').
-:-ensure_loaded('cynd/logicmoo_module_aiml_xpath.pl').
+:-ensure_loaded(library('programk/logicmoo_module_aiml_convertor.pl')).
+:-ensure_loaded(library('programk/logicmoo_module_aiml_xpath.pl')).
 :-discontiguous(load_dict_structure/2).
 
 

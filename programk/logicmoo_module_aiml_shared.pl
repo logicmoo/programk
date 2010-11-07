@@ -9,6 +9,13 @@
 % ===================================================================
 :-dynamic(lineInfoElement/4).
 
+
+hideIfNeeded(I,I):- (var(I);atomic(I)),!.
+hideIfNeeded([I|_],ctx):-nonvar(I),I=frame(_,_,_),!.
+hideIfNeeded([I|N],[I0|N0]):-!,hideIfNeeded(I,I0),hideIfNeeded(N,N0),!.
+hideIfNeeded(Comp,Comp2):-compound(Comp),Comp=..[L,I|ST],hideIfNeeded(I,II),Comp2=..[L,II|ST].
+hideIfNeeded(I,I):-!.
+
 %:-module()
 %:-include('logicmoo_utils_header.pl'). %<?
 %:- style_check(-singleton).
@@ -41,7 +48,7 @@ prolog_must(Var):-var(Var),!,trace,vvvvvvvvvvv=Var,aiml_error(prolog_must_var(Va
 prolog_must(Var):-prolog_must0(Var),randomVars(Var).
 prolog_must0((X,Y)):-!,prolog_must0(X),prolog_must0(Y).
 prolog_must0(Call):-localCall(Call),!,Call.
-prolog_must0(Call):-noaimltrace(Call),!.
+prolog_must0(Call):-hotrace(Call),!.
 prolog_must0(Call):-tracing,!,Call,!,aiml_error(Call).
 prolog_must0(Call):-trace,Call,!,aiml_error(Call).
 
@@ -84,7 +91,7 @@ revappend([X|Xs], Ys, Zs) :- revappend(Xs, [X|Ys], Zs).
 
 reverseA(Xs,Ys) :- revappend(Xs,[],Ys).
 
-appendAttributes(_Ctx,L,R,AA):-noaimltrace((mergeAppend0(L,R,A),list_to_set_safe(A,AA))),!.
+appendAttributes(_Ctx,L,R,AA):-hotrace((mergeAppend0(L,R,A),list_to_set_safe(A,AA))),!.
 mergeAppend0(L,R,R):-var(L),!,var(R),!.
 mergeAppend0(L,R,A):-var(R),append(L,R,A),!.
 mergeAppend0(L,R,A):-var(L),append(L,R,A),!.
@@ -261,7 +268,7 @@ all_upper_atom(X):-toUppercase(X,N),!,N=X.
 
 atom_concat_safe(L,R,A):- ((atom(A),(atom(L);atom(R))) ; ((atom(L),atom(R)))), !, atom_concat(L,R,A),!.
 
-concat_atom_safe(List,Sep,[Atom]):-atom(Atom),!,debugOnError(concat_atom(List,Sep,Atom)),!.
+concat_atom_safe(List,Sep,[Atom]):-atom(Atom),!,concat_atom(List,Sep,Atom),!.
 concat_atom_safe(List,Sep,Atom):-atom(Atom),!,concat_atom(ListM,Sep,Atom),!,List = ListM.
 concat_atom_safe(List,Sep,Atom):- concat_atom(List,Sep,Atom),!.
 

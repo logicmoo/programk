@@ -24,13 +24,13 @@
 % attribute searching
 % ===================================================================
 
-attributeOrTagValue(Ctx,ATTRIBS,NameS,ValueO,_Else):- noaimltrace((attributeValue(Ctx,ATTRIBS,NameS,ValueO,'$failure'))),!.
-attributeOrTagValue(Ctx,XML,NameS,ValueO,_Else):- noaimltrace((findTagValue(Ctx,XML,NameS,ValueO,'$failure'))),!.
+attributeOrTagValue(Ctx,ATTRIBS,NameS,ValueO,_Else):- hotrace((attributeValue(Ctx,ATTRIBS,NameS,ValueO,'$failure'))),!.
+attributeOrTagValue(Ctx,XML,NameS,ValueO,_Else):- hotrace((findTagValue(Ctx,XML,NameS,ValueO,'$failure'))),!.
 attributeOrTagValue(Ctx,ATTRIBS,NameS,ValueO,_Else):-compound(ATTRIBS),ATTRIBS=..[_|LIST],member(E,LIST),
    attributeOrTagValue(Ctx,E,NameS,ValueO,'$failure'),!.
 attributeOrTagValue(Ctx,_,NameS,ValueO,ElseVar):-ElseVar\=='$failure',makeParamFallback(Ctx,NameS,ValueO,ElseVar),!.
 
-attributeValue(Ctx,ATTRIBS,NameS,ValueO,Else):- noaimltrace((attributeValue0(Ctx,ATTRIBS,NameS,ValueI,Else), aiml_eval_to_unit(Ctx,ValueI,ValueO))),!.
+attributeValue(Ctx,ATTRIBS,NameS,ValueO,Else):- hotrace((attributeValue0(Ctx,ATTRIBS,NameS,ValueI,Else), aiml_eval_to_unit(Ctx,ValueI,ValueO))),!.
 attributeValue(Ctx,ATTRIBS,NameS,ValueO,Else):-   Else\=='$failure',debugOnFailure((attributeValue0(Ctx,ATTRIBS,NameS,ValueI,Else), aiml_eval_to_unit(Ctx,ValueI,ValueO))),!.
 
 attributeValue0(_Ctx,ATTRIBS,NameS,ValueO,_Else):- member(Name,NameS), lastMember(NameE=ValueO,ATTRIBS), atomsSameCI(Name,NameE),!.
@@ -374,7 +374,7 @@ get_ctx_holder1(Ctx,Ctx).
 %%%%% get_ctx_holderFreeSpot(+Ctx, -Put_NV, -CallToRemoveNV)
 
 get_ctx_holderFreeSpot(Ctx,NamedValue,no_destructor(holder)):-no_cyclic_terms,!,get_ctx_holderFreeSpot0(Ctx,NamedValue,_NO_Destruct),!.
-get_ctx_holderFreeSpot(Ctx,NamedValue,Destruct):-noaimltrace(get_ctx_holderFreeSpot0(Ctx,NamedValue,Destruct)).
+get_ctx_holderFreeSpot(Ctx,NamedValue,Destruct):-hotrace(get_ctx_holderFreeSpot0(Ctx,NamedValue,Destruct)).
 
 get_ctx_holderFreeSpot0(Ctx,NamedValue,Destruct):-compound(Ctx),get_ctx_holderFreeSpot1(Ctx,NamedValue,Destruct).
 

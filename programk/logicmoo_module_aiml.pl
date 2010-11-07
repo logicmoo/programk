@@ -15,6 +15,7 @@
 :- style_check(-atom).
 :- style_check(-string).
 
+
 :-multifile(what/3).
 :-multifile(response/2).
 :-dynamic(dict/3).
@@ -27,7 +28,10 @@ hotrace(X):-call(X).
 
 :-dynamic(lineInfoElement/4).
 
-:-ensure_loaded('cynd/logicmoo_module_aiml_shared.pl').
+:-ensure_loaded(library('programk/logicmoo_module_aiml_shared.pl')).
+:-ensure_loaded(library('programk/logicmoo_module_aiml_xpath.pl')).
+:-ensure_loaded(library('programk/logicmoo_module_aiml_loader.pl')).
+:-ensure_loaded(library('programk/logicmoo_module_aiml_eval.pl')).
 
 run_chat_tests:-
    test_call(alicebot('Hi')),
@@ -229,6 +233,8 @@ still_computeElement(Ctx,Votes, Tag, ATTRIBS, [DO|IT], OUT, VotesO) :- recursive
         NOUT=..[Tag,ATTRIBS,INNERDONE]))),!,
          withAttributes(Ctx,ATTRIBS,computeAnswer(Ctx,Votes,NOUT,OUT,VotesO)).
 
+:-discontiguous(computeElement/7).
+
 computeElement(_Ctx,Votes,Tag,ATTRIBS,InnerXml,Output,VotesO):- G=a(Votes,Tag,ATTRIBS,InnerXml),
    (prolog_must(ground(G)),not(var(Output);var(VotesO))),!,trace,throw(G).
 
@@ -385,6 +391,7 @@ computeGetSetVar(_Ctx,_Votes,_Get,_,_,_,_):-!,fail.
 % ===============================================================================================
 % Compute Answer Probilities
 % ===============================================================================================
+:-discontiguous(computeAnswer/5).
 
 computeAnswer(Ctx,Votes,IN,Result,VotesOut):- prolog_must((number(Votes),nonvar(IN),var(Result),var(VotesOut))),
       debugFmt(computeAnswer(Ctx,Votes,IN,Result,VotesOut)),fail.
@@ -814,7 +821,7 @@ choose_randomsentence(X):-
 		4 is random(10),!,
 		Y=X.
 
-setAliceMem(Ctx,Dict,X,[E]):-nonvar(E),!,getAliceMem(Ctx,Dict,X,E),!.
+getAliceMem(Ctx,Dict,X,[E]):-nonvar(E),!,getAliceMem(Ctx,Dict,X,E),!.
 getAliceMem(_Ctx,Dict,X,E):-dict(Dict,X,E),!.
 getAliceMem(_Ctx,_Dict,_X,OM):-'OM'==OM,!.
 getAliceMem(_Ctx,Dict,X,[unknown,Dict,X]):-!.
@@ -880,41 +887,7 @@ deleteAll(A,[L|List],AA):-delete(A,L,AAA),deleteAll(AAA,List,AA),!.
 
 degrade(_-OR):-!,degrade(OR).
 degrade(OR):-asserta(degraded(OR)).
-   
-:- exists_file('logicmoo_module_aiml_eval.pl')-> cd('..') ; true.
-
-
 
 aimlDebugFmt(X):-debugFmt(X),!.
 
-:-ensure_loaded('cynd/logicmoo_module_aiml_shared.pl').
-%% :-ensure_loaded('cynd/logicmoo_module_aiml_shared.pl').
-:-ensure_loaded('cynd/logicmoo_module_aiml_xpath.pl').
-
-:-traceAll.
-
-:-ensure_loaded('cynd/logicmoo_module_aiml_loader.pl').
-:-ensure_loaded('cynd/logicmoo_module_aiml_eval.pl').
-
-
-%:-ensure_loaded('bootstrap.aiml.pl').
-
-%:-load_aiml_files.
-
-%:-debug,run_chat_tests.
-
-%:-main_loop.
-
-% :- tell(listing1),listing,told.
-
-:- guitracer.
-
-dtt:- time(dt),statistics,alicebot.
-
-dttt:-time(consult(aimlCate_checkpoint)),alicebot.
-
-:-list_undefined.
-%:-dttt.
-
-:-do.
 

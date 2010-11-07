@@ -118,7 +118,7 @@ aiml_eval0(_Ctx,A,B):-atomic(A),!,B=A.
 
 aiml_eval0(Ctx,element(Srai,ATTRIBS,DOIT),RETURN):- memberchk(Srai,[srai,template]),
       withAttributes(Ctx,ATTRIBS,
-         (noaimltrace(aiml_eval_each(Ctx,DOIT,INNER)),
+         (hotrace(aiml_eval_each(Ctx,DOIT,INNER)),
           computeAnswer(Ctx,1,element(Srai,ATTRIBS,INNER),RMID,_Votes))),!,
        RMID=RETURN.
 
@@ -292,10 +292,10 @@ preserveTag(In,Out):- member(Out,['input','description',expectedAnswer,'Name']),
 
 runUnitTest(Call,Req,Result):-runUnitTest1(Call,Result1),!,runUnitTest2(Req,Result2),!,Result=unit(Result1,Result2),debugFmt(Result),!.
 
-runUnitTest1(Req,Result):-noaimltrace(catch((Req-> Result=passed(Req); Result=failed(Req)),E,Result=error(E,Req))).
-runUnitTest2(Req,Result):-noaimltrace(catch((Req-> Result=passed(Req); Result=failed(Req)),E,Result=error(E,Req))).
+runUnitTest1(Req,Result):-hotrace(catch((Req-> Result=passed(Req); Result=failed(Req)),E,Result=error(E,Req))).
+runUnitTest2(Req,Result):-hotrace(catch((Req-> Result=passed(Req); Result=failed(Req)),E,Result=error(E,Req))).
 
-sameBinding(X,Y):-noaimltrace((sameBinding1(X,X1),sameBinding1(Y,Y1),sameBinding1(X1,Y1))),!.
+sameBinding(X,Y):-hotrace((sameBinding1(X,X1),sameBinding1(Y,Y1),sameBinding1(X1,Y1))),!.
 
 sameBinding1(X,X):-var(X),!.
 sameBinding1(_-X,Y):-nonvar(X),!,sameBinding1(X,Y).

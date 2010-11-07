@@ -33,6 +33,15 @@ hotrace(X):-call(X).
 :-ensure_loaded(library('programk/logicmoo_module_aiml_loader.pl')).
 :-ensure_loaded(library('programk/logicmoo_module_aiml_convertor.pl')).
 :-ensure_loaded(library('programk/logicmoo_module_aiml_eval.pl')).
+%%:-ensure_loaded(library('notaiml/tokenize.pl')).
+:-dynamic(aiml_directory_search/1).
+:-multifile(aiml_directory_search/1).
+:-module_transparent(aiml_directory_search/1).
+
+aiml_directory_search('programk').
+aiml_directory_search('programk/test_suite').
+
+
 
 :- abolish(cyc:debugFmt/1).
 

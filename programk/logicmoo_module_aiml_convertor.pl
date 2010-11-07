@@ -54,7 +54,10 @@ convert_template(_Ctx,X,_Y):-var(X),throw_safe(var(X)).
 convert_template(_Ctx,_X,Y):-nonvar(Y),throw_safe(nonvar(Y)).
 convert_template(_Ctx,[],[]):-!.
 convert_template(_Ctx,[ATOM],O):-atom(ATOM),!,atomSplit(ATOM,LIST),!,toAtomList(LIST,O),!.
-convert_template(Ctx,[I|P],GOOD):- atom(I),atomSplit(I,LIST),!,toAtomList(LIST,O),!,convert_template(Ctx,P,L),!,flatten([O,L],GOOD),!.
+convert_template(Ctx,[I|P],GOOD):- atom(I),atomSplit(I,LIST),toAtomList(LIST,O),[I] \== O,!,
+    convert_template(Ctx,P,L),!,append(I,L,GOOD).
+convert_template(Ctx,[I|P],GOOD):-convert_template(Ctx,P,L),!,flatten([I,P],GOOD).
+
 convert_template(Ctx,[I|P],L):- ignore_aiml(I),!,convert_template(Ctx,P,L),!.
 convert_template(Ctx,[I|P],GOOD):- convert_template(Ctx,I,O),!,convert_template(Ctx,P,L),!,flatten([O,L],GOOD),!.
 convert_template(Ctx,element(TAG,ATTRIBS,P),element(TAG,ATTRIBS,PO)):-convert_template(Ctx,P,PO),!.

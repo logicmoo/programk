@@ -2139,19 +2139,22 @@ sterm_to_pterm_list([S|STERM],[P|PTERM]):-!,
 sterm_to_pterm_list(VAR,[VAR]).
 
 
-atomSplit(Atom,WordsO):- atomSplit(Atom,WordsO,[' ','\'',';',',','"','`',':','?','!','.','\n','\t','\r','\\','*','%','(',')']),!.
+atomSplit(Atom,WordsO):- atomSplit(Atom,WordsO,[' ','\t','\n','\v','\f','\r',' ','!','"','#','$','%','&','\'',
+    '(',')','*','+',',','-','.','/',':',';','<','=','>','?','@','[',\,']','^','_',`,'{','|','}','~']).
+   
+%%atomSplit(Atom,WordsO):- atomSplit(Atom,WordsO,[' ','\'',';',',','"','`',':','?','!','.','\n','\t','\r','\\','*','%','(',')','#']),!.
 
-atomSplit(Atom,WordsO,List):- atom(Atom), concat_atom(Words1,' ',Atom),!, atomSplit2(Words1,Words,List),!,Words=WordsO.
-atomSplit(Atom,Words,[Space|List]):-var(Atom),ground(Words),!,concat_atom(Words,Space,AtomO),!,Atom=AtomO.
-
+atomSplit(Atom,WordsO,List):- notrace((atom(Atom), atomic_list_concat(Words1,' ',Atom),!, atomSplit2(Words1,Words,List),!,Words=WordsO)).
+atomSplit(Atom,Words,[Space|List]):-notrace((var(Atom),ground(Words),!,atomic_list_concat(Words,Space,AtomO),!,Atom=AtomO)).
 
 atomSplit2([],[],_List):-!.
 atomSplit2([Mark|S],[Mark|Words],List):- member(Mark,List),!,atomSplit2(S,Words,List),!.
-atomSplit2([W|S],[A,Mark|Words],List):- member(Mark,List),atom_concat(A,Mark,W),!,atomSplit2(S,Words,List).
-atomSplit2([W|S],[Mark,A|Words],List):- member(Mark,List),atom_concat(Mark,A,W),!,atomSplit2(S,Words,List).
-atomSplit2([Word|S],Words,List):- member(Space,List),concat_atom(Atoms,Space,Word),Atoms=[_,_|_],interleave(Atoms,Space,Left),
+atomSplit2([W|S],[A,Mark|Words],List):- member(Mark,List),atom_concat(A,Mark,W),!,atomSplit2(S,Words,List),!.
+atomSplit2([W|S],[Mark,A|Words],List):- member(Mark,List),atom_concat(Mark,A,W),!,atomSplit2(S,Words,List),!.
+atomSplit2([Word|S],Words,List):- member(Space,List),Atoms=[_,_|_],atomic_list_concat(Atoms,Space,Word),!,
+                  interleave(Atoms,Space,Left),
                   atomSplit2(S,Right,List),append(Left,Right,WordsM),!,atomSplit2(WordsM,Words,List),!.
-atomSplit2([W|S],[W|Words],List):-atomSplit2(S,Words,List).
+atomSplit2([W|S],[W|Words],List):-atomSplit2(S,Words,List),!.
 
 interleave([''],Space,[Space]):-!.
 interleave([Atom],_Space,[Atom]):-!.

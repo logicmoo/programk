@@ -333,7 +333,8 @@ unwrapValue1(Value,Value):-!.
 bestSetterFn(v(_,Setter,_),_OuterSetter,Setter):-!.
 bestSetterFn(_Value,OuterSetter,OuterSetter).
 
-getCtxValue(Name,Ctx,Value):-checkCtx(Ctx), hotrace(( get_ctx_holder(Ctx,Holder),get_o_value(Name,Holder,HValue,_Setter),!, unwrapValue(HValue,Value))).
+getCtxValue(Name,Ctx,Value):-checkCtx(Ctx), hotrace(( get_ctx_holder(Ctx,Holder),get_o_value(Name,Holder,HValue,_Setter),!, unwrapValue(HValue,Value))),!.
+getCtxValue(Name,CtxI,Value):-checkCtx(CtxI),lastMember(Ctx,CtxI),hotrace(( get_ctx_holder(Ctx,Holder),get_o_value(Name,Holder,HValue,_Setter),!, unwrapValue(HValue,Value))),!.
 
 setCtxValue(Name,Ctx,Value):-checkCtx(Ctx),get_ctx_holder(Ctx,Holder),get_o_value(Name,Holder,HValue,Setter),unwrapValue(HValue,CurrentValue),!,(CurrentValue=Value;call(Setter,Value)),!.
 setCtxValue(Name,Ctx,Value):-checkCtx(Ctx),addCtxValue1(Name,Ctx,Value),!.

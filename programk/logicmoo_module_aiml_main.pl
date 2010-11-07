@@ -46,7 +46,7 @@ dttt:-time(consult(aimlCate_checkpoint)),alicebot.
 %:-debug,run_chat_tests.
 %:-main_loop.
 :-once(load_aiml_files('programk/test_suite/*.aiml')).
-%:-alicebot.
+
 
 run_chat_tests_here:-
    test_call(alicebot('Hi')),
@@ -60,5 +60,7 @@ run_chat_tests_here:-
 annie:-run_chat_tests_here.
 
 :-time(annie).
+
+:-alicebot.
 
 %%:-time(load_aiml_files('programk/test_suite/special/*.aiml')).

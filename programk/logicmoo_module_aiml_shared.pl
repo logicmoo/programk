@@ -268,7 +268,7 @@ clean_codes(X,X).
 %clean_out_atom(X,Y):-atomSplit(X,C),delete(C,'',O),concat_atom_safe(C,' ',Y).
 clean_out_atom(X,Y):-atom_codes(X,C),clean_codes(C,D),!,atom_codes(X,D),!,Y=X.
 
-atomSplit(A,B):-notrace((cyc:atomSplit(A,BB),!,BB=B)).
+atomSplit(A,B):- notrace((cyc:atomSplit(A,BB),!,BB=B)).
 
 %%atomSplit(A,B):-token_stream_of(A,AA),findall(B0,arg(1,AA,B),B).
 

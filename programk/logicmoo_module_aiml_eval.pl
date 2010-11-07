@@ -84,7 +84,7 @@ aiml_eval_to_unit(Ctx,ValueI,ValueO):-aiml_eval0(Ctx,ValueI,ValueO),!.
 
 render_value(template,ListOut,Render):-aiml_eval(_Ctx,ListOut,Render),!.
 
-aiml_eval_each(Ctx,In,Out):-prolog_must((ground(In),var(Out))),aiml_eval_each_l(Ctx,In,Out).
+aiml_eval_each(Ctx,In,Out):-prolog_must((prolog_mostly_ground(In),var(Out))),aiml_eval_each_l(Ctx,In,Out).
 aiml_eval_each_l(Ctx,[A|ATTRXML],Output):-aiml_eval0(Ctx,A,R),!,aiml_eval_each_l(Ctx,ATTRXML,RESULT),prolog_must(Output=[R|RESULT]).
 aiml_eval_each_l(_Ctx,[],[]):-!.
 
@@ -96,7 +96,7 @@ aiml_eval_now(Ctx,TAGATTRXML):-aiml_eval(Ctx,TAGATTRXML,RESULT),!,debugFmt(aiml_
 immediateCall(Ctx,:-(Call)):-!,immediateCall0(Ctx,:-(Call)),!.
 immediateCall(Ctx,Call):-immediateCall0(Ctx,:-(Call)),!.
 immediateCall0(Ctx,C):-hideIfNeeded(C,Call),immediateCall1(Ctx,Call),!.
-immediateCall1(_Ctx,C):- prolog_must(ground(C)),fail.
+%%immediateCall1(_Ctx,C):- prolog_mostly_ground((C)),fail.
 immediateCall1(_Ctx,Call):- (format('~q.~n',[Call])),debugFmt(Call),!.
 
 

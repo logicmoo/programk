@@ -238,13 +238,16 @@ isAimlTag(proof):-!,fail.
 isAimlTag(get).
 isAimlTag(_).
 
+prolog_mostly_ground(Out):-ground(Out),!.
+prolog_mostly_ground(Out):-prolog_must(nonvar(Out)),!.
+
 computeInner(_Ctx, _Votes, In, Out) :- atom(In),!,Out=In.
 computeInner(Ctx,Votes, In, Out) :- not(Out=(_-_)),!,computeAnswer(Ctx,Votes, In, Out, _VoteMid),!.
 computeInner(Ctx,Votes, In, VoteMid-Out) :-trace, computeAnswer(Ctx,Votes, In, Out, VoteMid),!,prolog_must(nonvar(Out)),prolog_must(nonvar(VoteMid)).
 
-computeInnerEach(_Ctx, _Votes, In, Out) :- atom(In), !, Out=In , prolog_must(ground(Out)).
-computeInnerEach(Ctx, Votes, In, Out) :- debugOnFailureAiml(computeAnswer(Ctx,Votes, In, Out, _VoteMid)),!, prolog_must(ground(Out)).
-computeInnerEach(_Ctx, _Votes, In, Out) :- !, Out=In,  prolog_must(ground(Out)).
+computeInnerEach(_Ctx, _Votes, In, Out) :- atom(In), !, Out=In , prolog_mostly_ground((Out)).
+computeInnerEach(Ctx, Votes, In, Out) :- debugOnFailureAiml(computeAnswer(Ctx,Votes, In, Out, _VoteMid)),!, prolog_mostly_ground((ground(Out)).
+computeInnerEach(_Ctx, _Votes, In, Out) :- !, Out=In,  prolog_mostly_ground((Out)).
 
 
 % ===============================================================================================
@@ -473,7 +476,7 @@ computeAnswer_1_disabled(Ctx,Votes, element(Tag, ATTRIBS, [DO|IT]), OUT, VotesO)
 computeAnswer(Ctx,Votes, element(Tag, ATTRIBS, [DO|IT]), OUT, VotesO) :- recursiveTag(Tag),not(DO=(_-_)),!,
      appendAttributes(Ctx,ATTRIBS, [computeAnswer=[side_effects_allow=[transform],intag=Tag]], ATTRIBS_NEW),
          withAttributes(Ctx,ATTRIBS_NEW, maplist_safe(computeInnerEach(Ctx, Votes),[DO|IT],INNERDONE)),
-       prolog_must(ground(INNERDONE)),
+       prolog_mostly_ground((INNERDONE)),
        computeElementMust(Ctx,Votes,Tag, ATTRIBS, INNERDONE, OUT, VotesO).
 
 computeAnswer(Ctx,Votes,element(Tag,Attribs,List),Out,VotesO):-computeElement(Ctx,Votes,Tag,Attribs,List,Out,VotesO),!.

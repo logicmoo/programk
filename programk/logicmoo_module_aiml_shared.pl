@@ -13,7 +13,7 @@
 hideIfNeeded(I,I):- (var(I);atomic(I)),!.
 hideIfNeeded([I|_],ctx):-nonvar(I),I=frame(_,_,_),!.
 hideIfNeeded([I|N],[I0|N0]):-!,hideIfNeeded(I,I0),hideIfNeeded(N,N0),!.
-hideIfNeeded(Comp,Comp2):-compound(Comp),Comp=..[L,I|ST],hideIfNeeded(I,II),Comp2=..[L,II|ST].
+hideIfNeeded(Comp,Comp2):-compound(Comp),Comp=..[L,I|ST],hideIfNeeded([I|ST],[OI|OIST]),Comp2=..[L,OI|OIST],!.
 hideIfNeeded(I,I):-!.
 
 %:-module()
@@ -27,19 +27,25 @@ throw_safe(Exc):-trace,throw(Exc).
 
 :-op(1150,fx,meta_predicate_transparent).
 
+prolog_must(Call):-var(Call),!,trace,randomVars(Call).
 prolog_must(Call):-tracing,!,prolog_must_tracing(Call).
-prolog_must(Call):-prolog_must0(Call),!.
+prolog_must(Call):-prolog_must0(Call).
 
 prolog_must0(Call):-var(Call),!,trace,randomVars(Call).
-prolog_must0(prolog_must(Call)):- !,Call,!.
-prolog_must0((X,Y)):-!, prolog_must0(X),prolog_must0(Y).
-prolog_must0(Call):- Call,!.
-prolog_must0(Call):- debugFmt(faileD(Call)),trace,Call,!.
+prolog_must0((X,Y)):-!,prolog_must0(X),prolog_must0(Y).
+prolog_must0(prolog_must(Call)):-!,atLeastOne(call(Call),(trace,Call)).
+prolog_must0(Call):- atLeastOne((Call),(trace,Call)).
 
-prolog_must_tracing(prolog_must(Call)):- !,Call,!.
-prolog_must_tracing(Call):- Call,!.
-prolog_must_tracing(Call):- hotrace(aiml_error(Call)).
+prolog_must_tracing(Call):-var(Call),!,trace,randomVars(Call).
+prolog_must_tracing((X,Y)):-!,prolog_must_tracing(X),prolog_must_tracing(Y).
+prolog_must_tracing(prolog_must(Call)):-!,prolog_must_tracing(Call).
+prolog_must_tracing(Call):-atLeastOne(Call,hotrace(aiml_error(Call))).
 
+atLeastOne(OneA):- atLeastOne(OneA,debugFmt(failed(OneA))).
+atLeastOne(OneA,Else):-atLeastOne0(OneA,Else).
+
+atLeastOne0(OneA,_Else):-copy_term(OneA,One),findall(One,call(One),OneL),[_|_]=OneL,!,member(OneA,OneL).
+atLeastOne0(OneA,Else):-debugFmt(failed(OneA)),!,Else,!,fail.
 
 
 /*

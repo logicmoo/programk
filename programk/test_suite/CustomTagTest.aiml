@@ -653,16 +653,17 @@ Found the hyphen+done. star= 1
 
 
   <!--
-  <category>
-    <pattern>*</pattern>
-    <template>
-      <srai>STDCATCHALL-NEXVER</srai>
-    </template>
-  </category>
+
 
   <learn path="aiml/nephrael_rae/ZZ_Stu.aiml" />
   <learn path="aiml\bina_v1\ZZ_Stu.aiml" />
    -->
+  <category>
+    <pattern>*</pattern>
+    <template>
+      STDCATCHALL-NEXVER
+    </template>
+  </category>
 
   <category>
     <pattern>I LIKE *</pattern>

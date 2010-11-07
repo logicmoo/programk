@@ -59,7 +59,7 @@ with_files(Verb,File):-debugOnFailureAiml(call(Verb,File)).
 aiml_files(File,Files):-atom(File),sub_atom(File,_Before,_Len,_After,'*'),!,expand_file_name(File,Files),!.
 aiml_files(File,Files):-atom_concat_safe(WithOutSlashes,'/',File),!,aiml_files(WithOutSlashes,Files).
 aiml_files(File,Files):-exists_directory(File),absolute_file_name(File,FileDir),
-      atom_concat_safe(FileDir,'/*.aiml',Mask),aiml_files(Mask,Files),!.
+      atom_concat_safe(File,'/*.aiml',Mask),aiml_files(Mask,Files),!.
                     
 
 aimlOption(rebuild_Aiml_Files,false).
@@ -691,7 +691,6 @@ save:-tell(aimlCate),
 dt:- withAttributes(Ctx,[graph='ChomskyAIML'],load_aiml_files(Ctx,'aiml/chomskyAIML/*.aiml')).
 
 do:-load_aiml_files,alicebot.
-
 
 
 

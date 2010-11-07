@@ -23,11 +23,11 @@
 
 aiml_call(Ctx,_ - Calls):- !,aiml_call(Ctx,Calls),!.
 
-aiml_call(Ctx,[Atomic|Rest]):- atom(Atomic),!,trace, 
+aiml_call(Ctx,[Atomic|Rest]):- atom(Atomic),!, %%trace, 
             aiml_eval(Ctx,[Atomic|Rest],Output),!,
             debugFmt(resultOf(aiml_call(Ctx,[Atomic|Rest]),Output)),!.
 
-aiml_call(Ctx,[Atomic|Rest]):- !,trace, 
+aiml_call(Ctx,[Atomic|Rest]):- !, %%trace, 
             aiml_eval(Ctx,[Atomic|Rest],Output),!,
             debugFmt(resultOf(aiml_call(Ctx,[Atomic|Rest]),Output)),!.
 
@@ -151,7 +151,7 @@ aiml_eval0(Ctx,element(A, B, C), XML):-tagType(A, immediate),
 
 
 aiml_eval0(_Ctx,element(In, ATTRIBS, Value),element(In, ATTRIBS, Value)):- preserveTag(In,_Out),!.
-aiml_eval0(Ctx,element(Learn, ATTRIBS, Value),RESULT):-tag_eval(Ctx,element(Learn, ATTRIBS, Value),RESULT),!.
+aiml_eval0(Ctx,element(Learn, ATTRIBS, Value),RESULT):- tag_eval(Ctx,element(Learn, ATTRIBS, Value),RESULT),!.
 
 aiml_eval0(Ctx,TAGATTRXML,RESULT):-TAGATTRXML=..[TAG,ATTR,[]],isAimlTag(TAG),!,tag_eval(Ctx,element(TAG,ATTR,[]),RESULT),!.
 aiml_eval0(Ctx,TAGATTRXML,RESULT):-TAGATTRXML=..[TAG,ATTR,[X|ML]],isAimlTag(TAG),!,tag_eval(Ctx,element(TAG,ATTR,[X|ML]),RESULT),!.
@@ -185,8 +185,8 @@ systemCall(Ctx,Lang,[Eval],Out):-systemCall(Ctx,Lang,Eval,Out).
 systemCall(Ctx,Lang,Eval,Out):-once((atom(Eval),atomSplit(Eval,Atoms))),Atoms=[_,_|_],!,trace,systemCall(Ctx,Lang,Atoms,Out).
 systemCall(_Ctx,Lang,Eval,writeq(evaled(Lang,Eval))):- aiml_error(evaled(Lang,Eval)).
 
-systemCall_Bot(_Ctx,['@'|REST],DONE):-systemCall_Bot(Ctx,REST,DONE).
-systemCall_Bot(_Ctx,[''|REST],DONE):-systemCall_Bot(Ctx,REST,DONE).
+systemCall_Bot(Ctx,['@'|REST],DONE):-systemCall_Bot(Ctx,REST,DONE).
+systemCall_Bot(Ctx,[''|REST],DONE):-systemCall_Bot(Ctx,REST,DONE).
 systemCall_Bot(Ctx,[FIRST|REST],DONE):-atom_concat_safe('@',CMD,FIRST),CMD\=='',!,systemCall_Bot(Ctx,['@',CMD|REST],DONE).
 systemCall_Bot(_Ctx,['eval'|DONE],template([evaled,DONE])):-!.
 systemCall_Bot(Ctx,['set'],template([setted,Ctx])):-!,listing(dict).
@@ -276,7 +276,8 @@ getCurrentFile(Ctx,_ATTRIBS,CurrentFile):-getItemValue(proof,Ctx,Proof),nonvar(P
 
 getCurrentFileDir(Ctx,ATTRIBS,Dir):- prolog_must((getCurrentFile(Ctx, ATTRIBS, CurrentFile),atom(CurrentFile),
       file_directory_name(CurrentFile,Dir0),absolute_file_name(Dir0,Dir))).
-getCurrentFileDir(Ctx,ATTRIBS,Dir):- aiml_directory_search(Dir).
+
+getCurrentFileDir(_Ctx,_ATTRIBS,Dir):- aiml_directory_search(Dir).
 
 getItemValue(Name,Ctx,Value):-nonvar(Ctx),getCtxValue(Name,Ctx,Value),!.
 getItemValue(Name,Ctx,Value):-current_value(Ctx,Name,Value),!.
@@ -294,7 +295,7 @@ getItemValue(Name,Ctx,Value):-findTagValue(Ctx,[],Name,Value,'$current_value').%
 %%   withAttributes(Ctx,ATTRIBS,aiml_call_list(Ctx,LIST)),!.
 
 tag_eval(Ctx,element('testsuite',ATTRIBS,LIST),PCALL):- PCALL = prologCall(maplist_safe(call,RESULT)),
-   trace,
+   %%trace,
    withAttributes(Ctx,ATTRIBS,aiml_eval_each(Ctx,LIST,RESULT)),!.
 
 tag_eval(Ctx,Current,prologCall(TESTCALL)):- Current=element(TC,ATTRIBS,_LIST), member(TC,['testcase','TestCase']),     

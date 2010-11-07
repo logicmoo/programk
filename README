@@ -1,0 +1,16 @@
+
+Checkout with:
+  git clone -b master -v "https://DouglasRMiles@github.com/logicmoo/jellyfish.git" jellyfish
+
+NotAIML: 
+ cd jellyfish/notaiml/
+ cat README
+
+ProgramK:
+ cd jellyfish/programk/
+ swipl -f [logicmoo_module_aiml_main].
+
+
+After making changes:
+
+

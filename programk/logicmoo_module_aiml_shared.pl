@@ -54,8 +54,8 @@ prolog_must0(Call):-trace,Call,!,aiml_error(Call).
 
 */
 
-randomVars(Term):- random(R),Start is ( round(R * 1000000) div 2),!,
-    numbervars(Term, Start, _End, [attvar(skip),functor_name('$VAR')]).
+randomVars(Term):- random(R), Start is ( div(round('*'(R,1000000)), 2)), !,
+  numbervars(Term, Start, _End, [attvar(skip),functor_name('$VAR')]).
 
 prolog_must_not(Call):-Call,!,trace,!,aiml_error(prolog_must_not(Call)).
 prolog_must_not(_Call):-!.

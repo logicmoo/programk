@@ -1,4 +1,4 @@
-:- module(tokenize, [token_stream_of/2]).
+:- module(tokenize, [token_stream_of/2, detokenize/2]).
 /*
              A tokenizer
 	     converts an input string into a list of tokens.
@@ -86,6 +86,29 @@ token_stream_of(Intext, InTokens) :-
 	atom_chars(Intext, Chars),
 	tokenize(not_in_word, Chars, [] , [] , InTokensBackwards),
 	reverse(InTokensBackwards, InTokens).
+
+% -TokenList, +Atom   turn a list of tokens into an atom
+detokenize([], '').
+detokenize(TokenList, Atom) :- detokenize(TokenList, '', Atom).
+detokenize(List, AtomSoFar, Atom) :-
+	elements_to_atoms(List, [], ListOfAtoms),
+	atom_concat(ListOfAtoms, ' ',  Atom).
+
+elements_to_atoms([] , A, A).
+elements_to_atoms([word(X)|T], [X|SoFar], Final) :-
+	atom(X),
+	elements_to_atoms(T, SoFar, Final).
+elements_to_atoms([nt(_)|T], SoFar, Final) :-
+	elements_to_atoms(T, SoFar, Final).
+elements_to_atoms([special(X)|T], [X|SoFar], Final) :-
+	atom(X),
+	elements_to_atoms(T, [X|SoFar], Final).
+
+
+
+
+
+
 
 
 

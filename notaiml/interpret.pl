@@ -43,26 +43,44 @@ category([nt('#$THAT'), star(0), nt('#$TOPIC'), star(0), nt('#$IN'), star(0)], [
 		     word('default'), word('catagory'),special('.')], star(0)).
 
 % match patterns per the spec
+%
+% Annie - note, NEVER write a header comment like that again!
+% You've spent too much time debugging this because you weren't clear
+% what it was supposed to do when you started.
+% and the code's not clear
+%
 % Patt is the tokenized pattern
 % In is the tokenized input
 % PartStar is a reversed, partially accumulated * match
 % InStars is a reversed list of stars
 % Stars is the final list of * matches in reversed order
-pattern_match([A|T], [A|TA], [] , IS, Stars) :-
+%
+% Direct matches
+pattern_match([word(A)|T], [word(A)|TA], [] , IS, Stars) :-
+	pattern_match(T, TA, [], IS , Stars).
+pattern_match([nt(A)|T], [nt(A)|TA], [] , IS, Stars) :-
 	pattern_match(T, TA, [], IS , Stars).
 
+% termination matches
 pattern_match([], [], [], Stars, Stars).
 pattern_match([], [], PartStar, [RP|Stars], Stars) :-
 	reverse(PartStar, RP).
+
+% star matches
+% stop creeping
 pattern_match([star(0)|T], Raw, PartStar, InStars, Stars)  :-
 	reverse(PartStar, RP),
 	pattern_match(T, Raw, [], [RP|InStars], Stars).
+pattern_match(Pattern, [star(0)|TRaw], PartStar, InStars, Stars)  :-
+	reverse(PartStar, RP),
+	pattern_match(Pattern, TRaw, [], [RP|InStars], Stars).
+% this handles star(0) on both sides without special case
+
+% continue creeping
 pattern_match([star(0)|T], [HA|TA], PartStar, InStars, Stars) :-
 	pattern_match([star(0)|T], TA, [HA|PartStar], InStars, Stars).
-pattern_match(Patt, In, PartStar, InStars, Stars) :-
-	reverse(PartStar, RP),
-	pattern_match(Patt, In, [], [RP|InStars], Stars).
-
+pattern_match([word(_)|TP], [star(0)|TA], PartStar, InStars, Stars) :-
+	pattern_match(TP, [star(0)|TA], PartStar, InStars, Stars).
 
 expand_template([], _, []).
 expand_template([star(0)|T], [Star|TStars], [Star|RT]) :-
@@ -82,7 +100,8 @@ match(Tokens, memory(That, Topic), Response, NewTopic) :-
 chatterbot(memory(That, Topic), Intext, Response, NewTopic) :-
 	token_stream_of(Intext, InTokens),
 	% TODO preprocess token stream
-	match(InTokens, memory(That, Topic), Response, NewTopic).
+	match(InTokens, memory(That, Topic), ResponseTokens, NewTopic),
+       	detokenize(ResponseTokens , Response).
 %	swritef(Response, 'InTokens is %q', [InTokens]),
 %	NewTopic=Topic.  % temporary
 /*	catagory(AnInPattern, AThatPattern, ATopicPattern, Template),

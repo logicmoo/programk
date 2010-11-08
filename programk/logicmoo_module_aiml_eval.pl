@@ -164,9 +164,14 @@ aiml_eval0(_Ctx,RESULT,RESULT):-!.
 
 
 % ===================================================================
+%  eval tag impl
+% ===================================================================
+tag_eval(Ctx,element(eval,ATTRIBS,INNER_XML),Rendered):-!,
+   withAttributes(Ctx,ATTRIBS,aiml_eval_each(Ctx,INNER_XML,Rendered)),!.
+
+% ===================================================================
 %  system tag impl
 % ===================================================================
-
 tag_eval(Ctx,I,R):- nonvar(R),throw_safe(var(R=tag_eval(Ctx,I,R))),!.
 tag_eval(Ctx,_ - Calls,_):- var(Calls),throw_safe(var(tag_eval(Ctx=Calls))),!.
 
@@ -192,6 +197,7 @@ systemCall_Bot(_Ctx,['eval'|DONE],template([evaled,DONE])):-!.
 systemCall_Bot(Ctx,['set'],template([setted,Ctx])):-!,listing(dict).
 %systemCall_Bot(Ctx,['ctx'],template([ctxed,Ctx])):-!,showCtx.
 systemCall_Bot(Ctx,['load'|REST],OUT):- !, debugOnFailure(systemCall_Load(Ctx,REST,OUT)),!.
+systemCall_Bot(Ctx,['find'|REST],OUT):- !, debugOnFailure(systemCall_Find(Ctx,REST,OUT)),!.
 systemCall_Bot(Ctx,['chgraph',Graph],['chgraph',Graph]):- set_current_value(Ctx,graph,Graph),!.
 systemCall_Bot(_Ctx,DONE,template([delayed,DONE])):-!.
 
@@ -203,6 +209,13 @@ systemCall_Load(Ctx,[Filename],template([loaded,Filename])):-
     ATTRIBS=[srcfile=Filename,graph=Graph],
     gather_aiml_graph(Ctx,ATTRIBS,Graph,Filename,AIML),
     withAttributes(Ctx,ATTRIBS,load_aiml_structure(Ctx,AIML)),!.
+
+systemCall_Find(_Ctx,REST,proof(CateSig,REST)):-
+         findall(U,(member(L,REST),upcase_atom(L,U)),UUs),
+         functor(CateSig,aimlCate,13),
+         findall(CateSig,
+             (CateSig,once((term_to_atom(CateSig,Atom),upcase_atom(Atom,U1),member(U2,UUs),sub_atom(U1,_,_,_,U2),
+              debugFmt(CateSig)))),_List),!.
 
 % ===================================================================
 %  learn tag impl
@@ -247,23 +260,24 @@ atom_ensure_endswtih(A,E,O):-atom(A),atom(O),atom_concat(A,E,O),!.
 atom_ensure_endswtih(A,O,O):-atom(A),atom(O),!.
 
 
-os_to_prolog_filename(OS,PL):-exists_file(OS),!,PL=OS.
-os_to_prolog_filename(OS,PL):-exists_directory(OS),!,PL=OS.
-os_to_prolog_filename(OS,PL):-aiml_directory_search(CurrentDir),join_path(CurrentDir,OS,PL),exists_file(PL),!.
-os_to_prolog_filename(OS,PL):-aiml_directory_search(CurrentDir),join_path(CurrentDir,OS,PL),exists_directory(PL),!.
+os_to_prolog_filename(OS,_PL):-prolog_must(atom(OS)),fail.
+os_to_prolog_filename(OS,PL):-exists_file_safe(OS),!,PL=OS.
+os_to_prolog_filename(OS,PL):-exists_directory_safe(OS),!,PL=OS.
+os_to_prolog_filename(OS,PL):-aiml_directory_search(CurrentDir),join_path(CurrentDir,OS,PL),exists_file_safe(PL),!.
+os_to_prolog_filename(OS,PL):-aiml_directory_search(CurrentDir),join_path(CurrentDir,OS,PL),exists_directory_safe(PL),!.
 
-os_to_prolog_filename(OS,PL):-atomic_list_concat([X,Y|Z],'\\',OS),atomic_list_concat([X,Y|Z],'/',OPS),!,os_to_prolog_filename(OPS,PL).
+os_to_prolog_filename(OS,PL):-atom(OS),atomic_list_concat([X,Y|Z],'\\',OS),atomic_list_concat([X,Y|Z],'/',OPS),!,os_to_prolog_filename(OPS,PL).
 os_to_prolog_filename(OS,PL):-atom_concat_safe(BeforeSlash,'/',OS),os_to_prolog_filename(BeforeSlash,PL).
 os_to_prolog_filename(OS,PL):-absolute_file_name(OS,OSP),OS \= OSP,!,os_to_prolog_filename(OSP,PL).
 
 
 
 graph_or_file_or_dir(_Ctx,_ATTRIBS, Filename, XML):- os_to_prolog_filename(Filename,AFName),
-               exists_file(AFName),!,load_structure(AFName,XML,[dialect(xml),space(remove)]),!.
+               exists_file_safe(AFName),!,load_structure(AFName,XML,[dialect(xml),space(remove)]),!.
 
 graph_or_file_or_dir(Ctx,ATTRIBS, F, [element(aiml,DIRTRIBS,OUT)]):- DIRTRIBS = [srcdir=F|ATTRIBS],
       os_to_prolog_filename(F,ADName),
-      exists_directory(ADName),
+      exists_directory_safe(ADName),
       aiml_files(ADName,Files),!, 
       findall(X, ((member(FF,Files), 
                    graph_or_file_or_dir(Ctx,[srcfile=FF|DIRTRIBS],FF,X))), OUT),!.

@@ -49,16 +49,16 @@ translate_aiml_files(Ctx,File):-with_files(translate_single_aiml_file(Ctx),File)
 
 with_files(_Verb,[]):-!.
 with_files(Verb,[File|Rest]):-!,maplist_safe(Verb,[File|Rest]),!,do_pending_loads.
-with_files(Verb,File):-exists_directory(File),!,aiml_files(File,Files),!,with_files(Verb,Files),!.
-with_files(Verb,File):-exists_file(File),!,with_files(Verb,[File]).
-with_files(Verb,File):-file_name_extension(File,'aiml',Aiml), exists_file(Aiml),!,with_files(Verb,[File]).
+with_files(Verb,File):-exists_directory(File),!,prolog_must(atomic(File)),aiml_files(File,Files),!,with_files(Verb,Files),!.
+with_files(Verb,File):-exists_file_safe(File),!,with_files(Verb,[File]).
+with_files(Verb,File):-file_name_extension(File,'aiml',Aiml), exists_file_safe(Aiml),!,with_files(Verb,[File]).
 with_files(Verb,File):-expand_file_name(File,FILES),not([File]=FILES),!,with_files(Verb,FILES),!.
 with_files(Verb,File):-debugOnFailureAiml(call(Verb,File)).
 %%with_files(Verb,File):-throw_safe(error(existence_error(source_sink, File),functor(Verb,F,A),context(F/A, 'No such file or directory'))).
 
 aiml_files(File,Files):-atom(File),sub_atom(File,_Before,_Len,_After,'*'),!,expand_file_name(File,Files),!.
 aiml_files(File,Files):-atom_concat_safe(WithOutSlashes,'/',File),!,aiml_files(WithOutSlashes,Files).
-aiml_files(File,Files):-exists_directory(File),absolute_file_name(File,FileDir),
+aiml_files(File,Files):-exists_directory_safe(File), %absolute_file_name(File,_FileDir),
       atom_concat_safe(File,'/*.aiml',Mask),aiml_files(Mask,Files),!.
                     
 
@@ -111,7 +111,7 @@ create_aiml_file2(_Ctx,File,PLNAME,FileMatch,_Load):- creating_aiml_file(File,PL
 create_aiml_file2(_Ctx,File,PLNAME,FileMatch,_Load):- loaded_aiml_file(File,PLNAME),!, throw_safe(already(loaded_aiml_file(File,PLNAME),FileMatch)).
 
 create_aiml_file2(_Ctx,File,PLNAME,_FileMatch,Load):- fail,
-   exists_file(PLNAME),
+   exists_file_safe(PLNAME),
    time_file_safe(PLNAME,PLTime), % fails on non-existent
    time_file_safe(File,FTime),
    %not(aimlOption(rebuild_Aiml_Files,true)),
@@ -513,7 +513,7 @@ varize(Find,Replace,FindO,ReplaceO):-
       subst((FindM,ReplaceM),'*','$VAR'(0),(FindO,ReplaceO)),!.
 
 
-aiml_error(E):-  randomVars(E),debugFmt('~q~n',[error(E)]),trace,randomVars(E),!,throw(E).
+aiml_error(E):-trace,  randomVars(E),debugFmt('~q~n',[error(E)]),trace,randomVars(E),!,throw(E).
 
 
 % ===============================================================================================

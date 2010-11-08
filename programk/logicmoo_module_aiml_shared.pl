@@ -16,6 +16,8 @@ hideIfNeeded([I|N],[I0|N0]):-!,hideIfNeeded(I,I0),hideIfNeeded(N,N0),!.
 hideIfNeeded(Comp,Comp2):-compound(Comp),Comp=..[L,I|ST],hideIfNeeded([I|ST],[OI|OIST]),Comp2=..[L,OI|OIST],!.
 hideIfNeeded(I,I):-!.
 
+exists_file_safe(File):-prolog_must(atomic(File)),exists_file(File).
+exists_directory_safe(File):-prolog_must(atomic(File)),exists_directory(File).
 %:-module()
 %:-include('logicmoo_utils_header.pl'). %<?
 %:- style_check(-singleton).
@@ -27,19 +29,34 @@ throw_safe(Exc):-trace,throw(Exc).
 
 :-op(1150,fx,meta_predicate_transparent).
 
+:-'$hide'(prolog_must/1).
 prolog_must(Call):-tracing,!,Call. %%prolog_must_tracing(Call).
-prolog_must(Call):-prolog_must0(Call).
+prolog_must(Call):-prolog_must_call(Call).
 
-prolog_must0(Call):-var(Call),!,trace,randomVars(Call).
-prolog_must0((X,Y)):-!,prolog_must0(X),prolog_must0(Y).
-prolog_must0(prolog_must(Call)):-!,atLeastOne(call(Call),(trace,Call)).
-prolog_must0(Call):- atLeastOne((Call),(trace,Call)).
 
-prolog_must_tracing(Call):-var(Call),!,trace,randomVars(Call).
-prolog_must_tracing((X,Y)):-!,prolog_must_tracing(X),prolog_must_tracing(Y).
-prolog_must_tracing(prolog_must(Call)):-!,prolog_must_tracing(Call).
-prolog_must_tracing(Call):-atLeastOne(Call,hotrace(aiml_error(Call))).
+:-'$hide'(prolog_must_call/1).
+prolog_must_call(Call):- prolog_ecall(prolog_must_call0,Call).   
+prolog_must_call0(Call):- atLeastOne((Call),(trace,Call)).
 
+
+:-'$hide'(prolog_must_tracing/1).
+prolog_must_tracing(Call):- prolog_ecall(prolog_must_tracing0,Call).   
+prolog_must_tracing0(Call):-trace(Call,[-all,+fail]), atLeastOne(Call,hotrace(aiml_error(Call))).
+
+
+:-'$hide'(prolog_ecall/2).
+prolog_ecall(_Pred,Call):-var(Call),!,trace,randomVars(Call).
+prolog_ecall(Pred,(X;Y)):-!,prolog_ecall(Pred,X);prolog_ecall(Pred,Y).
+prolog_ecall(Pred,(X->Y;Z)):-!,(prolog_ecall(Pred,X)->prolog_ecall(Pred,Y);prolog_ecall(Pred,Z)).
+prolog_ecall(Pred,(X->Y)):-!,(prolog_ecall(Pred,X)->prolog_ecall(Pred,Y)).
+prolog_ecall(Pred,(X,Y)):-!,prolog_ecall(Pred,X),prolog_ecall(Pred,Y).
+prolog_ecall(Pred,prolog_must(Call)):-!,prolog_ecall(Pred,Call).
+prolog_ecall(Pred,Call):- call(Pred,Call).
+
+
+:-'$hide'(atLeastOne/1).
+:-'$hide'(atLeastOne/2).
+:-'$hide'(atLeastOne0/2).
 
 atLeastOne(OneA):- atLeastOne(OneA,(trace,OneA)).
 atLeastOne(OneA,Else):-atLeastOne0(OneA,Else).
@@ -47,18 +64,6 @@ atLeastOne(OneA,Else):-atLeastOne0(OneA,Else).
 atLeastOne0(OneA,_Else):-copy_term(OneA,One),findall(One,call(One),OneL),[_|_]=OneL,!,member(OneA,OneL).
 atLeastOne0(OneA,Else):-debugFmt(failed(OneA)),!,Else,!,fail.
 
-
-/*
-
-prolog_must(Var):-var(Var),!,trace,vvvvvvvvvvv=Var,aiml_error(prolog_must_var(Var)).
-prolog_must(Var):-prolog_must0(Var),randomVars(Var).
-prolog_must0((X,Y)):-!,prolog_must0(X),prolog_must0(Y).
-prolog_must0(Call):-localCall(Call),!,Call.
-prolog_must0(Call):-hotrace(Call),!.
-prolog_must0(Call):-tracing,!,Call,!,aiml_error(Call).
-prolog_must0(Call):-trace,Call,!,aiml_error(Call).
-
-*/
 
 randomVars(Term):- random(R), Start is round('*'(R,1000000)), !,
   numbervars(Term, Start, _End, [attvar(skip),functor_name('$VAR')]).
@@ -223,7 +228,7 @@ global_pathname(B,A):-relative_pathname(B,A).
 relative_pathname(Path,Relative):-absolute_file_name(Path,[relative_to('./')],Absolute),member(Rel,['./','../','../../']),absolute_file_name(Rel,Clip),
    canonical_pathname(Absolute,AbsoluteA),
    canonical_pathname(Clip,ClipA),
-   atom_concat(ClipA,RelativeA,AbsoluteA),!,atom_concat(Rel,RelativeA,Relative),!.
+   atom_concat_safe(ClipA,RelativeA,AbsoluteA),!,atom_concat_safe(Rel,RelativeA,Relative),!.
 relative_pathname(Path,Relative):-canonical_pathname(Path,Relative),!.
 
 canonical_pathname(Absolute,AbsoluteB):-prolog_to_os_filename(AbsoluteA,Absolute),expand_file_name(AbsoluteA,[AbsoluteB]),!.
@@ -351,12 +356,12 @@ debugOnFailureAimlEach((A,B)):- !,debugOnFailureAimlEach(A),debugOnFailureAimlEa
 debugOnFailureAimlEach(Call):-ignore((Call;(trace,Call))),!.
 
 
+debugOnFailureAiml(Call):-prolog_ecall(debugOnFailureAiml0,Call).
 
-debugOnFailureAiml((A,B)):- !,debugOnFailureAiml(A),debugOnFailureAiml(B).
 %%%%%%%%%%%%%5%%debugOnFailureAiml(Call):- clause(Call,(_A,_B)),!,clause(Call,Body),trace,debugOnFailureAiml(Body),!.
-debugOnFailureAiml(Call):- Call,!.
+debugOnFailureAiml0(Call):-  Call,!.
 %%%%%%%%%%%%%%debugOnFailureAiml(Call):- debugOnFailureAimlTrace(Call),!.
-debugOnFailureAiml(Call):- beenCaught(Call),!.
+debugOnFailureAiml0(Call):- beenCaught(Call),!.
 
 debugOnFailureAimlTrace(debugOnFailureAiml(Call)):-!,debugOnFailureAimlTrace(Call),!.
 debugOnFailureAimlTrace((A,B)):- !,debugOnFailureAimlTrace(A),!,debugOnFailureAimlTrace(B),!.
@@ -388,7 +393,7 @@ local_predicate(P,_):-predicate_property(P,file(F)),!,atom_contains(F,'aiml_'),!
 local_predicate(P,F/N):-functor(P,F,N),!,fail.
 
 
-time_file_safe(F,INNER_XML):-exists_file(F),time_file(F,INNER_XML).
+time_file_safe(F,INNER_XML):-exists_file_safe(F),time_file(F,INNER_XML).
 
 
 %%:- current_predicate(F/N),trace(F/N, -all),fail.

@@ -34,14 +34,14 @@ convert_text_list([A],B):-!,convert_text_list(A,B).
 convert_text_list(M,C):-delete(M,'',B), (M == B -> C=B ; convert_text_list(B,C)).
 convert_text_list([A|AA],BBB):-convert_text(A,B),convert_text_list(AA,BB),!,flattem_append(B,BB,BBB0),!,BBB=BBB0.
 convert_text_list(A,C):-atom(A),atomSplit(A,M),([A]==M->C=M;convert_text(M,C)),!.
-convert_text_list(A,A):-trace.
+convert_text_list(A,AA):-listify(A,AA).
 
 convert_atom(A,Z):-convert_atom0(A,Y),!,Y=Z.
 convert_atom(E,File):-aiml_error(convert_atom(E,File)),!,E=File.
 %convert_atom(A,C):-atom_to_number(A,C),!.
 convert_atom0(A,A):-concat_atom_safe([A],' ',A).
 convert_atom0(A,C):-atomSplit(A,M),!,convert_text(M,C),!.
-convert_atom0(A,A).
+convert_atom0(A,A). %%:-!listify(A,AA).
 
 flattem_append(A,B,BBB):-flatten([A],AA),!,flatten([B],BB),!,append(AA,BB,BBB),!.
 
@@ -55,8 +55,8 @@ convert_template(_Ctx,_X,Y):-nonvar(Y),throw_safe(nonvar(Y)).
 convert_template(_Ctx,[],[]):-!.
 convert_template(Ctx,[I|P],L):- ignore_aiml(I),!,convert_template(Ctx,P,L),!.
 
-%$convert_template(_Ctx,[ATOM],O):-atom(ATOM),!,atomSplit(ATOM,LIST),!,toAtomList(LIST,O),!.
-%%convert_template(Ctx,[I|P],GOOD):- atom(I),atomSplit(I,LIST),toAtomList(LIST,O),[I] \== O,!, append(O,P,IP), convert_template(Ctx,IP,GOOD),!.
+%%convert_template(_Ctx,[ATOM],O):-atom(ATOM),!,atomSplit(ATOM,LIST),!,toAtomList(LIST,O),!.
+convert_template(Ctx,[I|P],GOOD):- atom(I),atomSplit(I,LIST),toAtomList(LIST,O),[I] \== O,!, append(O,P,IP), convert_template(Ctx,IP,GOOD),!.
 %%convert_template(Ctx,[I|P],GOOD):- is_list(I),!,append(I,P,IP),!,convert_template(Ctx,IP,GOOD),!.
 %%convert_template(Ctx,[I|P],GOOD):- convert_template(Ctx,I,O), I \== O,!, convert_template(Ctx,[O|P],GOOD),!.
 convert_template(Ctx,[I|P],GOOD):- convert_template(Ctx,I,O),!,convert_template(Ctx,P,L),!,append(O,L,GOOD),!.
@@ -69,10 +69,9 @@ listify(OUT,[OUT]).
 
 toAtomList(A,O):-delete(A,'',O),!.
 
+convert_element(Ctx,element(Tag, A, B),Out):-!,convert_ele(Ctx,element(Tag, A, B),M),!,M=Out,!.
 convert_element(_Ctx,Input,Out):-atomic(Input),!,convert_text_list(Input,Out).
 convert_element(Ctx,Input,Out):-convert_ele(Ctx,Input,M),!,M=Out,!.
-%%%,convert_ele(Ctx,M,OutO),!,OutO=Out.
-
 
       
 nameOrValue(ALIST, _VALUE, NORV, 0):-lastMember(name=NORV,ALIST),!.
@@ -133,11 +132,12 @@ convert_ele(_Ctx,element(a, [Link], Name),A):-sformat(S,'<a ~q>~w</a>',[Link, Na
 
 %DELAY convert_ele(Ctx,element(get, [name=Var], []),get(Var)):-!.
 convert_ele(_Ctx,element(learn, [N=File]),load_any_file(File)):-pathAttrib(N),!.
+convert_ele(_Ctx,element(load, [N=File]),load_any_file(File)):-pathAttrib(N),!.
 convert_ele(_Ctx,element(sr,ALIST,MORE),element(srai,ALIST,[element(star,ALIST,MORE)])):-!.
 convert_ele(_Ctx,element(star,ALIST,MORE),star(pattern,XLAT2,MORE2)):-!,starIndex(star,pattern,ALIST,MORE,XLAT2,MORE2).
   starIndex(_Tag,_Star,ALIST,MORE,XLAT2,MORE2):-convert_attributes(Ctx,ALIST,XLAT2),convert_template(Ctx,MORE,MORE2),!.
 
-convert_ele(_Ctx,element(Tag,ALIST,MORE),star(Star,XLAT2,MORE2)):-starType(Tag,Star),!,starIndex(Tag,Star,ALIST,MORE,XLAT2,MORE2).
+convert_ele(_Ctx,element(Tag,ALIST,MORE),star(Star,XLAT2,MORE2)):- starType(Tag,Star),!,starIndex(Tag,Star,ALIST,MORE,XLAT2,MORE2).
    starType(Tag,Star):-member(Tag=Star,[star=pattern,topicstar=topic,gruardstar=guard,inputstar=pattern,thatstar=that]),!.
    starType(Tag,Star):-atom_concat_safe(Star,'_star',Tag),!.
    starType(Tag,Star):-atom_concat_safe(Star,'star',Tag),!.
@@ -237,7 +237,7 @@ specialIndex(justbeforethat,that,[index=(2:1)]).
 specialIndex(justthat ,input,[index=2]).
 specialIndex(beforethat,input,[index=3]).
 
-specialIndex(load,learn,[]).
+%%specialIndex(load,learn,[]).
 specialIndex(set_female,set,[name=gender,value=female]).
 
 specialIndex(getname,name,[name=[name]]).
@@ -251,7 +251,7 @@ formatterProc(Dict):-member(Dict,[formal,uppercase,lowercase,sentence,gossip,thi
 formatterMethod(NamedMethod,NamedMethod):-formatterProc(NamedMethod).
 
 
-evaluatorsDicts(Dict):-member(Dict,[system,javascript,eval,
+evaluatorTag(Tag):-member(Tag,[system,javascript,eval,
                                      cycquery,cycsystem,cycassert,
                                      fortunecookie,substitute,learn,aiml,genlMt,think,
                                      substitute,srai,testsuite,testcase,template,set]).
@@ -266,10 +266,10 @@ substitutionDicts(gender).
 substitutionDicts(person).
 substitutionDicts(person2).
 substitutionDicts(person3).
-%substitutionDicts(Dict):-evaluatorsDicts(Dict).
+%substitutionDicts(Dict):-evaluatorTag(Dict).
 
 
-tagType(Tag,immediate):-evaluatorsDicts(Tag),!.
+tagType(Tag,immediate):-evaluatorTag(Tag),!.
 tagType(Tag,pushable):-cateFallback(LIST),member([Tag=_],LIST).
 tagType(Tag,insideCate):-cateMember(Tag).
 

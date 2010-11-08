@@ -15,3 +15,27 @@ After making changes:
 [root@titan programk]# git config --global user.email "dmiles@daxtron.com"
 [root@titan programk]# git commit . -m 'ProgramK - fixed syntax error that seems to be Linux SWI only'
 
+
+
+Usage:
+xpce -G0 -H0 -L0 -S0 -f logicmoo_module_aiml_main.pl
+... bunch of gibberish...
+when you get the
+|:  
+prompt 
+|:  hello bot, how are you today?
+
+ typing annie will make the aiml run the sanity chacks
+
+if what you type is interpretable as prolog, it will treat it as prolog.
+
+<dmiles_afk> |: member(X,[1,2,3]).
+<dmiles_afk> member(1,[1,2,3]):['X'=1]
+<dmiles_afk> member(2,[1,2,3]):['X'=2]
+<dmiles_afk> member(3,[1,2,3]):['X'=3]
+
+typing prolog
+gets you back to prolog
+
+make
+remakes it

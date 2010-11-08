@@ -131,6 +131,18 @@ Should stemming work like the articles?
 
 How do we support training the bot?
 
+===============
+
+ok, no better place for this
+
+git add 
+ for new files
+git commit -m 'made the dancing bunnies cuter'
+to 'commit' 9which only commits them locally)
+and 
+git push origin master
+to push them back to the proejct
+
 
 
 

@@ -502,9 +502,10 @@ Found the hyphen+done. star= 1
       <srai>STDCATCHALL-NEXVER</srai>
     </template>
   </category>
--->
 
   <load graph="eliza" filename="aiml/jliza/" />
+
+ -->
 
   <category>
     <pattern>TOELIZA *</pattern>

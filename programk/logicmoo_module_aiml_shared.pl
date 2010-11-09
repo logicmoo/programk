@@ -51,12 +51,19 @@ prolog_ecall(Pred,(X->Y;Z)):-!,(prolog_ecall(Pred,X)->prolog_ecall(Pred,Y);prolo
 prolog_ecall(Pred,(X->Y)):-!,(prolog_ecall(Pred,X)->prolog_ecall(Pred,Y)).
 prolog_ecall(Pred,(X,Y)):-!,prolog_ecall(Pred,X),prolog_ecall(Pred,Y).
 prolog_ecall(Pred,prolog_must(Call)):-!,prolog_ecall(Pred,Call).
+prolog_ecall(Pred,Call):- fail, ignore((Call=atom(_),trace)), 
+    predicate_property(Call,number_of_clauses(_Count)),
+    clause(Call,(_A,_B)),!,catch(clause(Call,Body),_,
+      (trace,predicate_property(Call,number_of_clauses(_Count2)),
+      clause(Call,Body))),prolog_ecall(Pred,Body).
+
+
 prolog_ecall(Pred,Call):- call(Pred,Call).
 
 
-:-'$hide'(atLeastOne/1).
-:-'$hide'(atLeastOne/2).
-:-'$hide'(atLeastOne0/2).
+%%:-'$hide'(atLeastOne/1).
+%%:-'$hide'(atLeastOne/2).
+%%:-'$hide'(atLeastOne0/2).
 
 atLeastOne(OneA):- atLeastOne(OneA,(trace,OneA)).
 atLeastOne(OneA,Else):-atLeastOne0(OneA,Else).

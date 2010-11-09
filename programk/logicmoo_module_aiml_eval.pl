@@ -241,9 +241,9 @@ gather_aiml_graph(Ctx,XML,Graph,Filename,AIML):-
 
 
 graph_or_file(_Ctx,_ATTRIBS, [], []):-!.
-graph_or_file(Ctx,ATTRIBS, [Filename], XML):-atomic(Filename),!,graph_or_file(Ctx,ATTRIBS, Filename, XML).
+graph_or_file(Ctx,ATTRIBS, [Filename], XML):-atomic(Filename),!,graph_or_file(Ctx,ATTRIBS, Filename, XML),!.
 
-graph_or_file(Ctx,ATTRIBS,Filename,XML):-graph_or_file_or_dir(Ctx,ATTRIBS,Filename,XML).
+graph_or_file(Ctx,ATTRIBS,Filename,XML):-graph_or_file_or_dir(Ctx,ATTRIBS,Filename,XML),!.
 graph_or_file(Ctx,ATTRIBS, Filename, XML):- 
      prolog_must((getCurrentFileDir(Ctx, ATTRIBS, CurrentDir),join_path(CurrentDir,Filename,Name))),
      prolog_must(graph_or_file_or_dir(Ctx,[currentDir=CurrentDir|ATTRIBS],Name,XML)),!.
@@ -259,7 +259,6 @@ atom_ensure_endswtih(A,E,O):-atom(A),atom(E),atom_concat(A,E,O),!.
 atom_ensure_endswtih(A,E,O):-atom(A),atom(O),atom_concat(A,E,O),!.
 atom_ensure_endswtih(A,O,O):-atom(A),atom(O),!.
 
-
 os_to_prolog_filename(OS,_PL):-prolog_must(atom(OS)),fail.
 os_to_prolog_filename(OS,PL):-exists_file_safe(OS),!,PL=OS.
 os_to_prolog_filename(OS,PL):-exists_directory_safe(OS),!,PL=OS.
@@ -271,6 +270,9 @@ os_to_prolog_filename(OS,PL):-atom_concat_safe(BeforeSlash,'/',OS),os_to_prolog_
 os_to_prolog_filename(OS,PL):-absolute_file_name(OS,OSP),OS \= OSP,!,os_to_prolog_filename(OSP,PL).
 
 
+graph_or_file_or_dir(_Ctx,_ATTRIBS, Filename, XML):- Filename=[A,B|C],atom(A),atom(B),
+                    concat_atom_safe(Filename,'',FileAtom),!,
+                    prolog_must(graph_or_file_or_dir(_Ctx,_ATTRIBS, FileAtom, XML)),!.
 
 graph_or_file_or_dir(_Ctx,_ATTRIBS, Filename, XML):- os_to_prolog_filename(Filename,AFName),
                exists_file_safe(AFName),!,load_structure(AFName,XML,[dialect(xml),space(remove)]),!.

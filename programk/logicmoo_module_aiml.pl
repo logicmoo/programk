@@ -441,7 +441,7 @@ computeStar0(Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Proof,VotesO):-atomic(Index),
     computeStar0(Ctx,Votes,Star,[Index],ATTRIBS,InnerXml,Proof,VotesO).
 
 computeStar0(Ctx,Votes,Star,Index,ATTRIBS,_InnerXml,proof(ValueO,StarVar=ValueI),VotesO):- 
-      prolog_must(catch(concat_atom([Star|Index],StarVar),E,(debugFmt(E=concat_atom([Star|Index],StarVar)),fail)))m,
+      prolog_must(catch(concat_atom([Star|Index],StarVar),E,(debugFmt(E=concat_atom([Star|Index],StarVar)),fail))),
       getAliceMem(Ctx,_Dict,StarVar,ValueI),!,
       computeTemplate(Ctx,Votes,element(template,ATTRIBS,ValueI),ValueO,VotesM),VotesO is VotesM * 1.1.
 
@@ -671,12 +671,12 @@ getCategoryArg0(Ctx,FAB,OutAOutB,Out,CateSig):- FAB=..[F,A,B],
       OutAOutB=..[F,OutA,OutB].
 
 
-meansNothing(Atom,[*]):-atom(Atom),!.
+meansNothing(Atom,['Nothing']):-atom(Atom),!.
 meansNothing(InputNothing,InputPattern):-prolog_must((ground(InputNothing),var(InputPattern))),meansNothing0(InputNothing,InputPattern),!.
 
 meansNothing0([Atom],Out):-!,meansNothing0(Atom,Out).
-meansNothing0('_',['*']).
-meansNothing0('*',['*']).
+meansNothing0('_',['Nothing']).
+meansNothing0('*',['Nothing']).
 
 make_preconds_for_match(Ctx,StarName,InputNothing,CateSig,PrecondsSearch,PostcondsSearch,PrecondsCommit,PostcondsCommit,Out,MinedCates,ProofOut,
  OutputLevel):-
@@ -685,11 +685,11 @@ make_preconds_for_match(Ctx,StarName,InputNothing,CateSig,PrecondsSearch,Postcon
    PostcondsCommit = (PrecondsCommit,CommitResult).
   
 
-make_prepost_conds(Ctx,StarName,InputNothing,CateSig,FindPattern,CommitPattern,Out,_MinedCates,ProofOut,10):- 
+make_prepost_conds(Ctx,StarName,InputNothing,CateSig,FindPattern,starSets(StarSets),Out,_MinedCates,ProofOut,10):- 
   hotrace(meansNothing(InputNothing,InputPattern)),!,trace,
   FindPattern = ((
      getCategoryArg(Ctx,StarName,MatchPattern,Out,CateSig),     
-     prolog_must(make_star_binders(Ctx,StarName,InputPattern,MatchPattern,CommitPattern)),
+     prolog_must(make_star_binders(Ctx,StarName,InputPattern,MatchPattern,_MatchLevel,StarSets)),
      once(addKeyValue(ProofOut,( StarName=InputNothing:MatchPattern))))).
 
 make_prepost_conds(Ctx,StarName,TextPattern,CateSig,FindPattern,CommitPattern,Out,MinedCates,ProofOut,MatchLevel):-
@@ -697,12 +697,14 @@ make_prepost_conds(Ctx,StarName,TextPattern,CateSig,FindPattern,CommitPattern,Ou
   prolog_must(EachMatchSig=[_|_]),
   FindPattern = 
       ((
-        member(MatchLevel - MatchPattern,EachMatchSig),           
+        member(lsp(MatchLevel,StarSets,MatchPattern),EachMatchSig),           
           getCategoryArg(Ctx,StarName,MatchPattern,Out,CateSig),
-           prolog_must(make_star_binders(Ctx,StarName,TextPattern,MatchPattern,CommitInput)),
+           prolog_must(make_star_binders(Ctx,StarName,TextPattern,MatchPattern,MatchLevel,StarSets2)),
+           %%prolog_must(StarSets=StarSets2),
            (CommitPattern = prolog_must(once((
               traceIf((StarName==pattern,TextPattern=[_,_|_])),
-            once((atLeastOne(CommitInput), 
+            once(
+             (atLeastOne(starSets(StarSets2)), 
               addKeyValue(ProofOut, StarName = (TextPattern:MatchPattern))
             ))))))
          )),!.
@@ -723,9 +725,10 @@ generateMatchPatterns(Ctx,StarName,Out,TextPattern,CateSig,_MinedCates,EachMatch
   copy_term(CateSig,CateSigC),!,
   getCategoryArg(Ctx,StarName,MatchPattern,Out,CateSigC),
   findall(MatchPattern,CateSigC,AllMatchSig),!,sort(AllMatchSig,SetOfEachMatchSig),!,
-  findall(MatchLevel - MatchPattern,
+  LSP = lsp(MatchLevel,StarSets,MatchPattern),
+  findall(LSP,
              (member(MatchPattern,SetOfEachMatchSig), 
-              canMatchAtAll_debug(StarName,InputPattern,MatchPattern,MatchLevel)),
+              canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern,MatchLevel,StarSets)),
       EachMatchSig),
  traceIf((StarName==pattern,TextPattern=[_,_|_])),
    prolog_must(EachMatchSig=[_|_]),
@@ -758,46 +761,80 @@ debugFmtList1(Name=Value,Name=(len:Len)):-copy_term(Value,ValueO),append(ValueO,
 debugFmtList1(Name=Value,Name=(F:A)):-functor(Value,F,A).
 debugFmtList1(Value,shown(Value)).
 
-canMatchAtAll2(_StarName,[_],[_,_|_]):-!,fail.
-canMatchAtAll2(StarName,A,B):-canMatchAtAll2(StarName,A,B,_Num),!.
-canMatchAtAll2(StarName,A,B,Num,Len):-canMatchAtAll2(StarName,A,B,Num),argLength(B,Len),!.
 
-:-setLogLevel(canMatchAtAll2,none).
+% ========================================================================================
+%%make_star_binders(Ctx,_StarName,[_],[_,_|_]):-!,fail.
+%%make_star_binders(Ctx,StarName,A,B):-make_star_binders(Ctx,StarName,A,B,_MatchLevel,_StarSets),!.    
+% ========================================================================================
 
-canMatchAtAll_debug(StarName,InputPattern,MatchPattern,MatchLevel):- 
-    canMatchAtAll2(StarName,InputPattern,MatchPattern,MatchLevel),!,
-    (debugFmt(pass_canMatchAtAll_debug(StarName,InputPattern,MatchPattern,MatchLevel))),!.
+canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern,MatchLevel,StarSets):- 
+    make_star_binders(Ctx,StarName,InputPattern,MatchPattern,MatchLevel,StarSets),!,
+    (debugFmt(pass_canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern,MatchLevel,StarSets))),!.
 
-canMatchAtAll_debug(StarName,InputPattern,MatchPattern,_MatchLevel):-
-    nop(debugFmt(fail_canMatchAtAll_debug(StarName,InputPattern,MatchPattern))),!,fail.
+canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern,_MatchLevel,_StarSets):-
+    nop(debugFmt(fail_canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern))),!,fail.
 
+make_star_binders(_Ctx,StarName,InputPattern,MatchPattern,_MatchLevel,StarSets):- 
+   prolog_must(var(StarSets)),prolog_must(ground(StarName:InputPattern:MatchPattern)),fail.  
+
+:-setLogLevel(make_star_binders,none).
+
+% left hand star
+make_star_binders(_Ctx,StarName,Star,_Match,_MatchLevel,_StarSets):-isStar(StarName,Star,_),!,trace,fail. 
+
+%end check
+make_star_binders(_Ctx,_StarName,O,[],0,[]):-!,O==[].
+make_star_binders(_Ctx,_StarName,[],O,0,[]):-!,O==[].
 
 % simplify
-canMatchAtAll2(_StarName,O,[],0):-!,O==[].
-canMatchAtAll2(StarName,[A|B],[A|BB],Count):-!,canMatchAtAll2(StarName,B,BB,Count).
-canMatchAtAll2(StarName,_,[Star],V):-isStar(StarName,Star,V),!.
+make_star_binders(Ctx,StarName,[Word1|B],[Word2|BB],Count,StarSets):-
+     atoms_match(Word1,Word2),!,make_star_binders(Ctx,StarName,B,BB,Count,StarSets).
 
-canMatchAtAll2(StarName,Star,_,_):-isStar(StarName,Star,_),!,trace,fail. % left hand star
-canMatchAtAll2(StarName,Star,_,V):-isWildCard(StarName,Star,V),!.
-canMatchAtAll2(_StarName,[_],[_,_|_],_):-!,fail.
-%%canMatchAtAll2(StarName,A,B,10):- (var(A);var(B)),!, loggerFmt(canMatchAtAll2,canMatchAtAll_vars(StarName,A,B)),!. 
-canMatchAtAll2(_StarName,[],O,0):-!,O==[].
+% tail star
+make_star_binders(_Ctx,StarName,Pattern,[Star],V,[StarName=Pattern]):-isStar(StarName,Star,V),!.
+
+%%TODO one day .. make_star_binders(Ctx,StarName,A,B,10):- (var(A);var(B)),!, loggerFmt(make_star_binders,canMatchAtAll_vars(StarName,A,B)),!. 
+
 
 % walk past star
-canMatchAtAll2(StarName,OList,[STAR,M|More],ValueO):-isStarOrWild(StarName,STAR,StarValue),
-         append(_SkipedSTAR,[M|LeftMore],OList),
-         canMatchAtAll2(StarName,LeftMore,More,Value),!,ValueO is StarValue + Value.
+make_star_binders(Ctx,StarName,OList,[STAR,M0|More],ValueO,[StarName = SkipedSTAR|StarSets]):-isStarOrWild(StarName,STAR,StarValue),
+         append(SkipedSTAR,[M1|LeftMore],OList),atoms_match(M0,M1),
+         make_star_binders(Ctx,StarName,LeftMore,More,Value,StarSets),!,ValueO is StarValue + Value.
 
 % all now in star
-canMatchAtAll2(StarName,I,STAR,Value):-isStarOrWild(StarName,STAR,Value),!,
-   loggerFmt(canMatchAtAll2, canMatchAtAll_star(StarName,I,STAR)),!.
+make_star_binders(_Ctx,StarName,I,STAR,Value,[StarName=I]):-isStarOrWild(StarName,STAR,Value),!,
+   loggerFmt(make_star_binders, canMatchAtAll_star(StarName,I,STAR)),!.
 
-canMatchAtAll2(StarName,[E|_],_,Value):-compound(E),trace,isWildCard(StarName,E,Value),!.
+%
+% re-write section
+%
+%
+make_star_binders(Ctx,StarName,InputNothing,MatchPattern,MatchLevel,StarSets):- 
+   hotrace((InputNothing \== '*',(InputPattern==StarName ; meansNothing(InputNothing,InputPattern)))),!, trace,
+   make_star_binders(Ctx,StarName,['Nothing'],MatchPattern,MatchLevel,StarSets).
+
+
+% must come before search failures
+make_star_binders(Ctx,StarName,TextPattern,MatchPattern,MatchLevel,StarSets):-
+  hotrace(((convertToMatchable(TextPattern,InputPattern),TextPattern \== InputPattern))),!,
+  make_star_binders(Ctx,StarName,InputPattern,MatchPattern,MatchLevel,StarSets),!.
+
+% fast veto
+make_star_binders(_Ctx,StarName,[I0|Pattern],[Match|MPattern],_MatchLevel,_Commit):-
+   member(M,[Match|MPattern]),requireableWord(StarName,M),not(member(M,[I0|Pattern])),!,fail.
+
+% odd LHS
+make_star_binders(_Ctx,StarName,Star,M,V,[lhs(Star=M)]):-isWildCard(StarName,Star,V),trace,!.
+
+% fast veto
+make_star_binders(_Ctx,_StarName,[_],[_,_|_],_NoNum,_NoCommit):-!,fail.
+
+% LHS compound
+make_star_binders(_Ctx,StarName,[E|More],Match,Value,[tryLater([E|More],Match)]):-compound(E),trace,isWildCard(StarName,E,Value),!.
 
 % weird atom
-%%canMatchAtAll2(StarName,I,Atom,12):-atom(Atom),trace,!,loggerFmt(canMatchAtAll2,canMatchAtAll_atom(StarName,I,Atom)),!.
+%%make_star_binders(_Ctx,StarName,I,Atom,12,[Atom=I]):-atom(Atom),trace,!,loggerFmt(make_star_binders,canMatchAtAll_atom(StarName,I,Atom)),!.
 
-%%canMatchAtAll2(StarName,[I0|Pattern],[Match|MPattern],_):-member(M,[Match|MPattern]),requireableWord(StarName,M),not(member(M,[I0|Pattern])),!,fail.
 
 isStarOrWild(StarName,Wild,Value):-isWildCard(StarName,Wild,Value);isStar(StarName,Wild,Value).
 
@@ -832,93 +869,15 @@ must_be_openCateArgs(Arg,_CateSig):-var(Arg),!.
 must_be_openCateArgs('*',_CateSig):-!.
 must_be_openCateArgs(List,CateSig):-trace, throw(List:CateSig),!.
 
-
-make_star_binders(Ctx,StarName,InputText,MatchPattern,CommitPattern):-
- flag(StarName,_,1),
-   traceIf((StarName==pattern,InputText=[_,_|_])),
- (sub_matchit(Ctx,StarName,InputText,MatchPattern,CommitPattern) 
-  ->
-  (  nop(debugFmt(passed_matchit(Ctx,StarName,InputText,MatchPattern,CommitPattern))),
-     prolog_must(nonvar(CommitPattern)),!)
-  ;
-  (nop(debugFmt(failed_matchit(Ctx,StarName,InputText,MatchPattern,CommitPattern))),CommitPattern=fail,fail)).
-
-
-sub_matchit(_Ctx,StarName,InputPattern,_MatchPattern,CommitPattern):- 
-   prolog_must(var(CommitPattern)),prolog_must(ground(StarName:InputPattern)),fail.  
-sub_matchit(_Ctx,_StarName,*,[Match|Pattern],_CommitPattern):-var(Match),var(Pattern),!,fail.
-
-sub_matchit(_Ctx,_StarName,[],[], true):-!.
-sub_matchit(_Ctx,_StarName,'*','*', true):-trace,!,fail.
-
-sub_matchit(Ctx,StarName,InputNothing,MatchPattern,CommitPattern):- 
-   hotrace((InputNothing \== '*',(InputPattern==StarName ; meansNothing(InputNothing,InputPattern)))),!, trace,
-   make_star_binders(Ctx,StarName,'*',MatchPattern,CommitPattern).
-
-
-sub_matchit(Ctx,StarName,[Word1,W1|InputPattern],[Word2,W2|OutPattern],Why):- 
-      atoms_match(Word1,Word2),!,
-      sub_matchit(Ctx,StarName,[W1|InputPattern],[W2|OutPattern],Why),!.
-
-% walk past star
-sub_matchit(Ctx,StarName,OList,[STAR,M|More],Value):-atom(STAR),isStar0(STAR),
-         append(_SkipedSTAR,[M0|LeftMore],OList),atoms_match(M,M0),
-         sub_matchit(Ctx,StarName,LeftMore,More,Value).
-
-%%REAL-UNUSED sub_matchit(_Ctx,StarName,Pattern,MatchPattern,CommitPattern):- set_matchit(StarName,Pattern,MatchPattern,CommitPattern).
-
-sub_matchit(_Ctx,StarName,Pattern,MatchPattern,CommitPattern):-
-   matchit_eliminate_exacts(StarName,Pattern,MatchPattern,CommitPattern).
-
-sub_matchit(_Ctx,StarName,InputPattern,OutPattern,setStar(StarName,StarNum,InputPattern)):- isStar(StarName,OutPattern),
-      flag(StarName,StarNum,StarNum+1),!.
-
-sub_matchit(Ctx,StarName,TextPattern,MatchPattern,CommitPattern):-
-  hotrace(((convertToMatchable(TextPattern,InputPattern),TextPattern \== InputPattern))),!,
-  make_star_binders(Ctx,StarName,InputPattern,MatchPattern,CommitPattern),!.
-
-
-/*
-sub_matchit(_Ctx,StarName,InputPattern,OutPattern,nop(debugFmt(equality(StarName,InputPattern,OutPattern)))):-aimlMatches(InputPattern,OutPattern),!.
-aimlMatches(_,Star):-isStar(StarName,Star),!.
-aimlMatches(Star,_):-isStar(StarName,Star),!.
-*/
-
-
-%%sub_matchit(_Ctx,StarName,InputPattern,OutPattern,debugFmt(fakeEquality(StarName,InputPattern,OutPattern))):-!.
-
-
-
-%%REAL-UNUSED set_matchit(_StarName,Pattern,Pattern,true).
-/*
-
-set_matchit([_,Pattern|_],[_,Pattern|_]).
-set_matchit([Pattern|_],[Pattern|_]).
-set_matchit([_,_,Pattern|_],[_,Pattern|_]).
-set_matchit([_,Pattern|_],[_,_,Pattern|_]).
-%%set_matchit([Pattern|_],[_,Pattern|_]).
-*/
-%%REAL-UNUSED set_matchit(StarName,Pattern,['*'],setStar(StarName,_,Pattern)).
-
-%%REAL-UNUSED set_matchit0(StarName,[H|Pattern],[H|Matcher],OnBind):-set_matchit1(StarName,Pattern,Matcher,OnBind).
-%%REAL-UNUSED set_matchit0(StarName,[H|Pattern],['*'|Matcher],(setStar(StarName,_,H),OnBind)):-set_matchit1(StarName,Pattern,Matcher,OnBind).
-
-
-matchit_eliminate_exacts(_StarName,[],[],true):-!.
-matchit_eliminate_exacts(StarName,Pattern,[Star],true):-isStar(StarName,Star),!,setStar(StarName,_,Pattern),!.
-matchit_eliminate_exacts(StarName,[H|Pattern],[Star,Right|Matcher],(setStar(StarName,_,Left),OnBind)):-
-      isStar(StarName,Star),append(Left,[Right|More],[H|Pattern]),!,
-      matchit_eliminate_exacts(StarName,[Right|More],[Right|Matcher],OnBind).
-
-matchit_eliminate_exacts(StarName,[Word,W1|InputPattern],[Word,W2|OutPattern],OnBind):- atom(Word),!,
-      matchit_eliminate_exacts(StarName,[W1|InputPattern],[W2|OutPattern],OnBind).
-matchit_eliminate_exacts(StarName,[H|Pattern],[H|Matcher],OnBind):-matchit_eliminate_exacts(StarName,Pattern,Matcher,OnBind).
-
-
-setStar(StarName,N,Pattern):-ignore((var(N),flag(StarName,N,N))),
+starSets(List):-prolog_must((starSets0(List),starSets1(List))).
+starSets0([StarName=_|List]):-flag(StarName,_,1),!,starSets0(List).
+starSets0(_):-!.
+starSets1([N=V|List]):-starSet(N,V),!,starSets1(List).
+starSets1(_):-!.
+starSet(StarName,Pattern):- ignore((var(N),flag(StarName,N,N))),
    atom_concat(StarName,N,StarNameN),setAliceMem(_Ctx,user,StarNameN,Pattern),!,flag(StarName,NN,NN+1).
 
-%%REAL-UNUSED set_matchit1(StarName,Pattern,Matcher,OnBind):- length(Pattern,MaxLen0), MaxLen is MaxLen0 + 2,
+%%REAL-UNUSED  set_matchit1(StarName,Pattern,Matcher,OnBind):- length(Pattern,MaxLen0), MaxLen is MaxLen0 + 2,
 %%REAL-UNUSED    set_matchit2(StarName,Pattern,Matcher,MaxLen,OnBind).
 
 
@@ -927,34 +886,6 @@ atoms_match(Word1,Word2):-atom(Word1),atom(Word2),atoms_match0(Word1,Word2).
  atoms_match0(Word1,Word2):- (isStar0(Word1);isStar0(Word2)),!,fail.
  atoms_match0(Word1,Word1):-!.
  atoms_match0(Word1,Word2):-upcase_atom(Word1,WordO),upcase_atom(Word2,WordO),!.
-
-
-/*
-set_matchit2(StarName,Pattern,Matcher,MaxLen,(setStar(StarName,_,Left),setStar(StarName,_,Right))):-member(Mid,[[_,_,_,_],[_,_,_],[_,_],[_]]),
-   sublistspan(Left,Mid,Right,Pattern,MaxLen),
-   set_matchit3(StarName,Pattern,Matcher,MaxLen,Mid).
-
-set_matchit3(_StarName,_Pattern,Matcher,MaxLen,Mid):-sublistspan(_Left,Mid,_Right,Matcher,MaxLen).
-
-
-
-%%sublistspan(Mid,Full,MaxLen):-sublistspan(_Left,Mid,_Right,Full,MaxLen).
-sublistspan(Left,Mid,Right,Full,MaxLen):-append(Left,MidRight,Full),append(Mid,Right,MidRight),length(Full,FLen),FLen =< MaxLen.
-
-
-%get_aiml_that(Ctx,SaidThat,Match,OOut):-get_aiml_cyc(SaidThat,Match,Out),(([srai(Out)] = OOut);OOut=Out).
-get_aiml_that(_Ctx,SaidThat,Match,Out,what(SaidThat, Match,Out)):-what(SaidThat, Match,Out).
-get_aiml_that(_Ctx,['*'],Match,Out,response(Match,Out)):-response(Match,Out).
-
-get_aiml_that(_CTX,[T|HAT],MATCH,OUT,aimlCate(GRAPH,PRECALL,TOPIC,[T|HAT],INPUT,MATCH,FLAGS,CALL,GUARD,USERDICT,OUT,LINENO,SRCFILE)):-
-    aimlCate(GRAPH,PRECALL,TOPIC,[T|HAT],INPUT,MATCH,FLAGS,CALL,GUARD,USERDICT,OUT,LINENO,SRCFILE).
-get_aiml_that(_CTX,['*'],MATCH,OUT,aimlCate(GRAPH,PRECALL,TOPIC,(*),INPUT,MATCH,FLAGS,CALL,GUARD,USERDICT,OUT,LINENO,SRCFILE)):-
-    aimlCate(GRAPH,PRECALL,TOPIC,(*),INPUT,MATCH,FLAGS,CALL,GUARD,USERDICT,OUT,LINENO,SRCFILE).
-
-%get_aiml_cyc(['*'],[String|ListO],[Obj,*]):-poStr(Obj,[String|List]),append(List,['*'],ListO).
-%get_aiml_cyc(['*'],[String,*],[Obj,*]):-poStr(Obj,String).
-
-*/
 
 
 % ===============================================================================================

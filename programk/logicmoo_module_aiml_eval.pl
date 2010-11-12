@@ -274,9 +274,9 @@ os_to_prolog_filename(OS,PL):-atom_concat_safe(BeforeSlash,'/',OS),os_to_prolog_
 os_to_prolog_filename(OS,PL):-absolute_file_name(OS,OSP),OS \= OSP,!,os_to_prolog_filename(OSP,PL).
 
 
-graph_or_file_or_dir(_Ctx,_ATTRIBS, Filename, XML):- Filename=[A,B|C],atom(A),atom(B),
+graph_or_file_or_dir(Ctx,ATTRIBS, Filename, XML):- Filename=[A,B|_C],atom(A),atom(B),
                     concat_atom_safe(Filename,'',FileAtom),!,
-                    prolog_must(graph_or_file_or_dir(_Ctx,_ATTRIBS, FileAtom, XML)),!.
+                    prolog_must(graph_or_file_or_dir(Ctx,ATTRIBS, FileAtom, XML)),!.
 
 graph_or_file_or_dir(_Ctx,_ATTRIBS, Filename, XML):- os_to_prolog_filename(Filename,AFName),
                exists_file_safe(AFName),!,load_structure(AFName,XML,[dialect(xml),space(remove)]),!.

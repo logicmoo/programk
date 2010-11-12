@@ -43,7 +43,7 @@ aiml_directory_search('programk').
 aiml_directory_search('programk/test_suite').
 
 
-%%traceIf(_Call):-!.
+traceIf(_Call):-!.
 traceIf(Call):-ignore((Call,trace)).
 
 :- abolish(cyc:debugFmt/1).
@@ -433,15 +433,19 @@ computeStar(Ctx,Votes,Star,Attribs,InnerXml,Resp,VotesO):-
 computeStar1(Ctx,Votes,Star,Attribs,InnerXml,Resp,VotesO):- 
     lastMember(index=Index,Attribs,AttribsNew),!,
     computeStar0(Ctx,Votes,Star,Index,AttribsNew,InnerXml,Resp,VotesO),!.
+
 computeStar1(Ctx,Votes,Star,Attribs,InnerXml,Resp,VotesO):-
     computeStar0(Ctx,Votes,Star,1,Attribs,InnerXml,Resp,VotesO),!.
 
+computeStar0(Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Proof,VotesO):-atomic(Index),!,
+    computeStar0(Ctx,Votes,Star,[Index],ATTRIBS,InnerXml,Proof,VotesO).
+
 computeStar0(Ctx,Votes,Star,Index,ATTRIBS,_InnerXml,proof(ValueO,StarVar=ValueI),VotesO):- 
-      concat_atom([Star|Index],StarVar),
+      prolog_must(catch(concat_atom([Star|Index],StarVar),E,(debugFmt(E=concat_atom([Star|Index],StarVar)),fail)))m,
       getAliceMem(Ctx,_Dict,StarVar,ValueI),!,
       computeTemplate(Ctx,Votes,element(template,ATTRIBS,ValueI),ValueO,VotesM),VotesO is VotesM * 1.1.
 
-computeStar0(_Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Resp,VotesO):- trace,
+computeStar0(_Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Resp,VotesO):- 
       Resp = result(InnerXml,Star,Index,ATTRIBS),!,VotesO is Votes * 1.1. 
 
 
@@ -780,13 +784,15 @@ canMatchAtAll2(_StarName,[_],[_,_|_],_):-!,fail.
 canMatchAtAll2(_StarName,[],O,0):-!,O==[].
 
 % walk past star
-canMatchAtAll2(StarName,OList,[STAR,M|_More],Value):-isStarOrWild(StarName,STAR,Value),!,member(M,OList),!.
+canMatchAtAll2(StarName,OList,[STAR,M|More],ValueO):-isStarOrWild(StarName,STAR,StarValue),
+         append(_SkipedSTAR,[M|LeftMore],OList),
+         canMatchAtAll2(StarName,LeftMore,More,Value),!,ValueO is StarValue + Value.
 
 % all now in star
 canMatchAtAll2(StarName,I,STAR,Value):-isStarOrWild(StarName,STAR,Value),!,
    loggerFmt(canMatchAtAll2, canMatchAtAll_star(StarName,I,STAR)),!.
 
-canMatchAtAll2(StarName,[E|_],_,Value):-compound(E), isWildCard(StarName,E,Value),!.
+canMatchAtAll2(StarName,[E|_],_,Value):-compound(E),trace,isWildCard(StarName,E,Value),!.
 
 % weird atom
 %%canMatchAtAll2(StarName,I,Atom,12):-atom(Atom),trace,!,loggerFmt(canMatchAtAll2,canMatchAtAll_atom(StarName,I,Atom)),!.
@@ -837,37 +843,46 @@ make_star_binders(Ctx,StarName,InputText,MatchPattern,CommitPattern):-
   ;
   (nop(debugFmt(failed_matchit(Ctx,StarName,InputText,MatchPattern,CommitPattern))),CommitPattern=fail,fail)).
 
+
 sub_matchit(_Ctx,StarName,InputPattern,_MatchPattern,CommitPattern):- 
-   prolog_must(var(CommitPattern)),prolog_must(ground(StarName:InputPattern)),fail.
+   prolog_must(var(CommitPattern)),prolog_must(ground(StarName:InputPattern)),fail.  
 sub_matchit(_Ctx,_StarName,*,[Match|Pattern],_CommitPattern):-var(Match),var(Pattern),!,fail.
 
-sub_matchit(Ctx,StarName,InputNothing,MatchPattern,CommitPattern):- 
-   hotrace((InputNothing \== '*',(InputPattern==StarName ; meansNothing(InputNothing,InputPattern)))),!,   trace,
-   make_star_binders(Ctx,StarName,'*',MatchPattern,CommitPattern).
-
+sub_matchit(_Ctx,_StarName,[],[], true):-!.
 sub_matchit(_Ctx,_StarName,'*','*', true):-trace,!,fail.
 
-sub_matchit(_Ctx,StarName,InputPattern,OutPattern,setStar(StarName,StarNum,InputPattern)):-isStar(StarName,OutPattern),
-      flag(StarName,StarNum,StarNum+1),!.
+sub_matchit(Ctx,StarName,InputNothing,MatchPattern,CommitPattern):- 
+   hotrace((InputNothing \== '*',(InputPattern==StarName ; meansNothing(InputNothing,InputPattern)))),!, trace,
+   make_star_binders(Ctx,StarName,'*',MatchPattern,CommitPattern).
 
-/*
-sub_matchit(_Ctx,StarName,InputPattern,OutPattern,nop(debugFmt(equality(StarName,InputPattern,OutPattern)))):-aimlMatches(InputPattern,OutPattern),!.
-aimlMatches(_,Star):-isStar(StarName,Star),!.
-aimlMatches(Star,_):-isStar(StarName,Star),!.
-*/
+
+sub_matchit(Ctx,StarName,[Word1,W1|InputPattern],[Word2,W2|OutPattern],Why):- 
+      atoms_match(Word1,Word2),!,
+      sub_matchit(Ctx,StarName,[W1|InputPattern],[W2|OutPattern],Why),!.
+
+% walk past star
+sub_matchit(Ctx,StarName,OList,[STAR,M|More],Value):-atom(STAR),isStar0(STAR),
+         append(_SkipedSTAR,[M0|LeftMore],OList),atoms_match(M,M0),
+         sub_matchit(Ctx,StarName,LeftMore,More,Value).
+
+%%REAL-UNUSED sub_matchit(_Ctx,StarName,Pattern,MatchPattern,CommitPattern):- set_matchit(StarName,Pattern,MatchPattern,CommitPattern).
+
+sub_matchit(_Ctx,StarName,Pattern,MatchPattern,CommitPattern):-
+   matchit_eliminate_exacts(StarName,Pattern,MatchPattern,CommitPattern).
+
+sub_matchit(_Ctx,StarName,InputPattern,OutPattern,setStar(StarName,StarNum,InputPattern)):- isStar(StarName,OutPattern),
+      flag(StarName,StarNum,StarNum+1),!.
 
 sub_matchit(Ctx,StarName,TextPattern,MatchPattern,CommitPattern):-
   hotrace(((convertToMatchable(TextPattern,InputPattern),TextPattern \== InputPattern))),!,
   make_star_binders(Ctx,StarName,InputPattern,MatchPattern,CommitPattern),!.
 
 
-sub_matchit(Ctx,StarName,[Word,W1|InputPattern],[Word,W2|OutPattern],Why):-
-      atom(Word),!,sub_matchit(Ctx,StarName,[W1|InputPattern],[W2|OutPattern],Why),!.
-
-%%REAL-UNUSED sub_matchit(_Ctx,StarName,Pattern,MatchPattern,CommitPattern):- set_matchit(StarName,Pattern,MatchPattern,CommitPattern).
-
-sub_matchit(_Ctx,StarName,Pattern,MatchPattern,CommitPattern):-
-   matchit_eliminate_exacts(StarName,Pattern,MatchPattern,CommitPattern).
+/*
+sub_matchit(_Ctx,StarName,InputPattern,OutPattern,nop(debugFmt(equality(StarName,InputPattern,OutPattern)))):-aimlMatches(InputPattern,OutPattern),!.
+aimlMatches(_,Star):-isStar(StarName,Star),!.
+aimlMatches(Star,_):-isStar(StarName,Star),!.
+*/
 
 
 %%sub_matchit(_Ctx,StarName,InputPattern,OutPattern,debugFmt(fakeEquality(StarName,InputPattern,OutPattern))):-!.
@@ -905,6 +920,14 @@ setStar(StarName,N,Pattern):-ignore((var(N),flag(StarName,N,N))),
 
 %%REAL-UNUSED set_matchit1(StarName,Pattern,Matcher,OnBind):- length(Pattern,MaxLen0), MaxLen is MaxLen0 + 2,
 %%REAL-UNUSED    set_matchit2(StarName,Pattern,Matcher,MaxLen,OnBind).
+
+
+isStar0(Word1):- member(Word1,[*,'_']).
+atoms_match(Word1,Word2):-atom(Word1),atom(Word2),atoms_match0(Word1,Word2).
+ atoms_match0(Word1,Word2):- (isStar0(Word1);isStar0(Word2)),!,fail.
+ atoms_match0(Word1,Word1):-!.
+ atoms_match0(Word1,Word2):-upcase_atom(Word1,WordO),upcase_atom(Word2,WordO),!.
+
 
 /*
 set_matchit2(StarName,Pattern,Matcher,MaxLen,(setStar(StarName,_,Left),setStar(StarName,_,Right))):-member(Mid,[[_,_,_,_],[_,_,_],[_,_],[_]]),
@@ -989,7 +1012,7 @@ getAliceMem(_Ctx,_Dict,_Name,OM):-'OM'==OM,!.
 getAliceMem(_Ctx,_Dict,Name,[unknown,Name]):-!.
 
 setAliceMem(Ctx,Dict,Name,[Value]):-nonvar(Value),!,setAliceMem(Ctx,Dict,Name,Value),!.
-%setAliceMem(Ctx,Dict,Name,Value):-immediateCall(Ctx,setCurrentAliceMem(Dict,Name,Value)),fail.
+setAliceMem(Ctx,Dict,Name,Value):-immediateCall(Ctx,setCurrentAliceMem(Dict,Name,Value)),fail.
 %%setAliceMem(_Ctx,_Dict,_Name,'nick').
 setAliceMem(Ctx,Dict,Name,Value):-atom(Dict),downcase_atom(Dict,Down),Dict\=Down,!,setAliceMem(Ctx,Down,Name,Value).
 setAliceMem(Ctx,Dict,Name,Value):-atom(Name),downcase_atom(Name,Down),Name\=Down,!,setAliceMem(Ctx,Dict,Down,Value).

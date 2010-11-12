@@ -47,7 +47,7 @@ prolog_must_tracing0(Call):-trace(Call,[-all,+fail]), atLeastOne(Call,hotrace(ai
 :-'$hide'(prolog_ecall/2).
 prolog_ecall(_Pred,Call):-var(Call),!,trace,randomVars(Call).
 prolog_ecall(Pred,(X;Y)):-!,prolog_ecall(Pred,X);prolog_ecall(Pred,Y).
-prolog_ecall(Pred,(X->Y;Z)):-!,(prolog_ecall(Pred,X)->prolog_ecall(Pred,Y);prolog_ecall(Pred,Z)).
+prolog_ecall(Pred,(X->Y;Z)):-!,(call(X) -> prolog_ecall(Pred,Y) ; prolog_ecall(Pred,Z)).
 prolog_ecall(Pred,(X->Y)):-!,(prolog_ecall(Pred,X)->prolog_ecall(Pred,Y)).
 prolog_ecall(Pred,(X,Y)):-!,prolog_ecall(Pred,X),prolog_ecall(Pred,Y).
 prolog_ecall(Pred,prolog_must(Call)):-!,prolog_ecall(Pred,Call).
@@ -56,7 +56,6 @@ prolog_ecall(Pred,Call):- fail, ignore((Call=atom(_),trace)),
     clause(Call,(_A,_B)),!,catch(clause(Call,Body),_,
       (trace,predicate_property(Call,number_of_clauses(_Count2)),
       clause(Call,Body))),prolog_ecall(Pred,Body).
-
 
 prolog_ecall(Pred,Call):- call(Pred,Call).
 
@@ -382,7 +381,7 @@ debugOnFailureAimlTrace1(Call):- Call,!.
 
 beenCaught(debugOnFailureAiml(Call)):- !, beenCaught(Call).
 beenCaught((A,B)):- !,beenCaught(A),beenCaught(B).
-beenCaught(Call):- clause(Call,(_A,_B)),!,clause(Call,Body),beenCaught(Body),!.
+beenCaught(Call):- fail, predicate_property(Call,number_of_clauses(_Count)), clause(Call,(_A,_B)),!,clause(Call,Body),beenCaught(Body).
 beenCaught(Call):- catch(once(Call),E,(debugFmt(caugth(Call,E)),beenCaught(Call))),!.
 beenCaught(Call):- traceAll,debugFmt(tracing(Call)),debug,trace,Call.
 

@@ -284,8 +284,8 @@ defaultPredicatesS([topic='*',
 cateMember(Tag):-cateMemberTags(List),member(Tag,List).
 
 cateFallback([
-       srcinfo=missing,
-       srcfile=missing,
+       srcinfo=missinginfo,
+       srcfile=missingfile,
        withCategory=[writeqnl,asserta_new],
        pattern='ERROR PATTERN',
        template='ERROR TEMPLATE'|MORE]):-findall(N=V,defaultPredicates(N,V),MORE).

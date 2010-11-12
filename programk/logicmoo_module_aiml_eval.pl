@@ -90,7 +90,10 @@ aiml_eval_each_l(_Ctx,[],[]):-!.
 
 aiml_eval(_Ctx,TAGATTRXML,RESULT):- TAGATTRXML == [],!,RESULT=TAGATTRXML.
 aiml_eval(_Ctx,TAGATTRXML,_RESULT):- prolog_must(nonvar(TAGATTRXML)),fail.
-aiml_eval(Ctx,TAGATTRXML,RESULT):- immediateCall(Ctx,aiml_eval_now(Ctx,TAGATTRXML)),aiml_eval0(Ctx,TAGATTRXML,RESULT),!.
+aiml_eval(Ctx,TAGATTRXML,RESULT):- 
+           immediateCall(Ctx,aiml_eval_now(Ctx,TAGATTRXML)),
+           aiml_eval0(Ctx,TAGATTRXML,RESULT),!.
+
 aiml_eval_now(Ctx,TAGATTRXML):-aiml_eval(Ctx,TAGATTRXML,RESULT),!,debugFmt(aiml_eval_now(Ctx,TAGATTRXML,RESULT)).
 
 immediateCall(Ctx,:-(Call)):-!,immediateCall0(Ctx,:-(Call)),!.
@@ -260,6 +263,7 @@ atom_ensure_endswtih(A,E,O):-atom(A),atom(O),atom_concat(A,E,O),!.
 atom_ensure_endswtih(A,O,O):-atom(A),atom(O),!.
 
 os_to_prolog_filename(OS,_PL):-prolog_must(atom(OS)),fail.
+os_to_prolog_filename(_OS,PL):-prolog_must(var(PL)),fail.
 os_to_prolog_filename(OS,PL):-exists_file_safe(OS),!,PL=OS.
 os_to_prolog_filename(OS,PL):-exists_directory_safe(OS),!,PL=OS.
 os_to_prolog_filename(OS,PL):-aiml_directory_search(CurrentDir),join_path(CurrentDir,OS,PL),exists_file_safe(PL),!.
@@ -321,22 +325,23 @@ tag_eval(Ctx,Current,prologCall(TESTCALL)):- Current=element(TC,ATTRIBS,_LIST), 
      attributeOrTagValue(Ctx,Current,['Description'],Description,'No Description'),
      attributeOrTagValue(Ctx,Current,['ExpectedAnswer'],ExpectedAnswer,'ERROR ExpectedAnswer'),
      attributeOrTagValue(Ctx,Current,['ExpectedKeywords'],ExpectedKeywords,'*'),
-     (ExpectedKeywords=='*' -> Expected = ExpectedAnswer ;  Expected = ExpectedKeywords),     
+     notrace(ExpectedKeywords=='*' -> Expected = ExpectedAnswer ;  Expected = ExpectedKeywords),     
      TESTCALL = testIt(ATTRIBS,Input=ExpectedAnswer,ExpectedKeywords=_Result,Name=Description,Ctx),
      debugFmt(testIt([Name,Description,Input,ExpectedAnswer,ExpectedKeywords,Expected])))),!.
 
 
-prologCall(Call):-catch(Call,E,debugFmt(prologCall(Call,E))),!.
+prologCall(Call):-catch(prolog_must(Call),E,debugFmt(failed_prologCall(Call,E))),!.
 
-testIt(ATTRIBS,Input=ExpectedAnswer,ExpectedKeywords=Result,_Name=_Description,Ctx):-
+testIt(ATTRIBS,Input=ExpectedAnswer,ExpectedKeywords=Result,_Name=_Description,Ctx):-trace,
    (ExpectedKeywords=='*' -> Expected = ExpectedAnswer ;  Expected = ExpectedKeywords),
     withAttributes(Ctx,ATTRIBS,(( runUnitTest(alicebot2(Ctx,Input,Resp),sameBinding(Resp,ExpectedAnswer),Result)))),!.
 
 
 tag_eval(_Ctx,element(In, ATTRIBS, Value),element(In, ATTRIBS, Value)):- preserveTag(In,_Out),!.
+tag_eval(_Ctx,_LIST,_LIST1):-trace,fail.
 
 
-preserveTag(In,Out):- member(Out,['input','description',expectedAnswer,'Name']),atomsSameCI(In,Out),!.
+preserveTag(In,Out):- member(Out,['input','description',expectedAnswer,expectedkeywords,'Name']),atomsSameCI(In,Out),!.
 
 
 runUnitTest(Call,Req,Result):-runUnitTest1(Call,Result1),!,runUnitTest2(Req,Result2),!,Result=unit(Result1,Result2),debugFmt(Result),!.

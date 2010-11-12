@@ -347,6 +347,14 @@ computeElement(Ctx,Votes,gossip,_Attribs,Input,Output,VotesO):-!,computeAnswer(C
 % <think...>
 computeElement(Ctx,Votes,think,_Attribs,Input,proof([],Hidden),VotesO):-!,computeTemplate(Ctx,Votes,Input,Hidden,VotesO).
 
+
+% <formatter...>
+computeElement(Ctx,Votes,formatter,Attribs,Input,Result,VotesO):- !,
+      computeTemplate(Ctx,Votes,Input,Hidden,VotesO),
+      lastMember(type=ProcI,Attribs,NEW),unlistify(ProcI,Proc),!,
+      withAttributes(Ctx,NEW,computeElement(Ctx,Votes,Proc,NEW,Hidden,Result,VotesO)),!.
+
+
 % <get,set,bot...>
 computeElement(Ctx,Votes,GetSetBot,Attrib,InnerXml,Resp,VotesO):-member(GetSetBot,[get,set,bot]),!,computeGetSet(Ctx,Votes,GetSetBot,Attrib,InnerXml,Resp,VotesM),VotesO is VotesM * 1.1,!.
 
@@ -375,7 +383,7 @@ computeElement(Ctx,Votes,Tag,Attribs,Input,result(RESULT,Tag=EVAL),VotesO):-
 computeElement(Ctx,Votes,Tag,Attrib, DOIT, result(OUT,Tag=Attrib), VotesO) :- member(Tag,[template,pre]), !, computeTemplate(Ctx,Votes,DOIT,OUT,VotesO).
 
 % <uppercase, lowercase ...>
-computeElement(Ctx,Votes,Tag,Attrib, DOIT, result(OUT,Tag=Attrib), VotesO) :- formatterProc(Tag), !, computeTemplate(Ctx,Votes,DOIT,OUT,VotesO).
+computeElement(Ctx,Votes,Tag,Attrib, DOIT, result(OUT,Tag=Attrib), VotesO) :- formatterProc(Tag),trace, !, prolog_must(computeTemplate(Ctx,Votes,DOIT,OUT,VotesO)).
 
 % <load...>
 computeElement(Ctx,Votes,Tag,ATTRIBS,Input,result(RESULT,Tag=EVAL),VotesO):- 
@@ -697,7 +705,7 @@ make_prepost_conds(Ctx,StarName,TextPattern,CateSig,FindPattern,CommitPattern,Ou
   prolog_must(EachMatchSig=[_|_]),
   FindPattern = 
       ((
-        member(lsp(MatchLevel,StarSets,MatchPattern),EachMatchSig),           
+        member(lsp(MatchLevel,_StarSets,MatchPattern),EachMatchSig),           
           getCategoryArg(Ctx,StarName,MatchPattern,Out,CateSig),
            prolog_must(make_star_binders(Ctx,StarName,TextPattern,MatchPattern,MatchLevel,StarSets2)),
            %%prolog_must(StarSets=StarSets2),
@@ -1018,4 +1026,5 @@ degrade(OR):-asserta(degraded(OR)).
 
 aimlDebugFmt(X):-debugFmt(X),!.
 
-
+unlistify([L],O):-nonvar(L),unlistify(L,O),!.
+unlistify(L,L).

@@ -500,7 +500,7 @@ computeGetSetVar(Ctx,Votes,Dict,set,VarName,ATTRIBS,InnerXml,proof(ValueO,VarNam
       computeTemplate(Ctx,Votes,element(template,ATTRIBS,InnerXml),ValueO,VotesM),
       setAliceMem(Ctx,Dict,VarName,ValueO),!,VotesO is VotesM * 1.1.
 
-computeGetSetVar(_Ctx,_Votes,_Get,_,_,_,_):-!,fail.
+%%computeGetSetVar(_Ctx,_Votes,_Get,_,_,_,_):-!,fail.
 
 % ===============================================================================================
 % Compute Answer Probilities
@@ -941,7 +941,29 @@ choose_randomsentence(X):-
 		4 is random(10),!,
 		Y=X.
 
-getAliceMem(Ctx,Dict,Name,[Value]):-nonvar(Value),!,getAliceMem(Ctx,Dict,Name,Value),!.
+
+% ===============================================================================================
+% unlistify / unresultify
+% ===============================================================================================
+
+unlistify([L],O):-nonvar(L),unlistify(L,O),!.
+unlistify(L,L).
+
+unresultify(Var,Var):-(var(Var);atomic(Var)),!.
+unresultify([DictI|NV],Dict):-nonvar(DictI),NV==[],!,unresultify(DictI,Dict),!.
+unresultify(Fun,Dict):- compound(Fun),Fun=..[F,DictI|_More],member(F,[result,proof]),!,unresultify(DictI,Dict),!.
+unresultify(Var,Var).
+
+unresultifyC(DictI,Dict):-unresultify(DictI,Dict),DictI\==Dict,!.
+
+% ===============================================================================================
+% get / set  Global Variables
+% ===============================================================================================
+
+getAliceMem(Ctx,DictI,Name,Value):-unresultifyC(DictI,Dict),!,getAliceMem(Ctx,Dict,Name,Value),!.
+getAliceMem(Ctx,Dict,NameI,Value):-unresultifyC(NameI,Name),!,getAliceMem(Ctx,Dict,Name,Value),!.
+getAliceMem(Ctx,Dict,Name,ValueI):-unresultifyC(ValueI,Value),!,getAliceMem(Ctx,Dict,Name,Value),!,prolog_must(nonvar(ValueI)).
+
 getAliceMem(Ctx,Dict,Name,Value):-is_list(Dict),last(Dict,Last),!,getAliceMem(Ctx,Last,Name,Value),!.
 getAliceMem(_Ctx,Dict,Name,Value):-dict(Dict,Name,Value),!.
 getAliceMem(Ctx,Dict,Name,Value):-atom(Dict),downcase_atom(Dict,Down),Dict\=Down,!,getAliceMem(Ctx,Down,Name,Value),!.
@@ -950,7 +972,11 @@ getAliceMem(Ctx,Dict,default(Name,Default),Value):-getAliceMem(Ctx,Dict,Name,'OM
 getAliceMem(_Ctx,_Dict,_Name,OM):-'OM'==OM,!.
 getAliceMem(_Ctx,_Dict,Name,[unknown,Name]):-!.
 
-setAliceMem(Ctx,Dict,Name,[Value]):-nonvar(Value),!,setAliceMem(Ctx,Dict,Name,Value),!.
+
+setAliceMem(Ctx,DictI,Name,Value):-unresultifyC(DictI,Dict),!,setAliceMem(Ctx,Dict,Name,Value),!.
+setAliceMem(Ctx,Dict,NameI,Value):-unresultifyC(NameI,Name),!,setAliceMem(Ctx,Dict,Name,Value),!.
+setAliceMem(Ctx,Dict,Name,ValueI):-unresultifyC(ValueI,Value),!,setAliceMem(Ctx,Dict,Name,Value),!.
+
 setAliceMem(Ctx,Dict,Name,Value):-immediateCall(Ctx,setCurrentAliceMem(Dict,Name,Value)),fail.
 %%setAliceMem(_Ctx,_Dict,_Name,'nick').
 setAliceMem(Ctx,Dict,Name,Value):-atom(Dict),downcase_atom(Dict,Down),Dict\=Down,!,setAliceMem(Ctx,Down,Name,Value).
@@ -959,6 +985,7 @@ setAliceMem(Ctx,Dict,default(Name),DefaultValue):-getAliceMem(Ctx,Dict,Name,'OM'
 setAliceMem(_Ctx,Dict,Name,Value):- ignore(retract(dict(Dict,Name,B))),ignore(B='OM'),retractall(dict(Dict,Name,_)),
    asserta(dict(Dict,Name,Value)).%%,debugFmt('/* ~q. */~n',[dict(Dict,Name,B->Value)]),!.
 :-dynamic(dict/3).
+
 
 setCurrentAliceMem(Dict,X,E):-currentContext(setCurrentAliceMem(Dict,X,E),Ctx), setAliceMem(Ctx,Dict,X,E).
 
@@ -1026,5 +1053,3 @@ degrade(OR):-asserta(degraded(OR)).
 
 aimlDebugFmt(X):-debugFmt(X),!.
 
-unlistify([L],O):-nonvar(L),unlistify(L,O),!.
-unlistify(L,L).

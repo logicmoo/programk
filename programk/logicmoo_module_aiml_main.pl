@@ -54,9 +54,10 @@ dttt:-time(consult(aimlCate_checkpoint)),alicebot.
 
 chomskyAIML:-once(load_aiml_files('programk/test_suite/chomskyAIML/*.aiml')).
 
-:-once(load_aiml_files('programk/test_suite/*.aiml')).
+test_suite_files:-once(load_aiml_files('programk/test_suite/*.aiml')).
 
-run_chat_tests_here:-      
+run_chat_tests_here:-     
+   test_suite_files,
    test_call(alicebot('qt')),
    test_call(alicebot('qt1')),!.
 

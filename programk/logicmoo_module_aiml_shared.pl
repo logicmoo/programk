@@ -29,6 +29,9 @@ throw_safe(Exc):-trace,throw(Exc).
 
 :-op(1150,fx,meta_predicate_transparent).
 
+must_assign(From,To):-To=From,!.
+must_assign(From,To):-trace,To=From.
+
 :-'$hide'(prolog_must/1).
 prolog_must(Call):-tracing,!,Call. %%prolog_must_tracing(Call).
 prolog_must(Call):-prolog_must_call(Call).
@@ -46,9 +49,9 @@ prolog_must_tracing0(Call):-trace(Call,[-all,+fail]), atLeastOne(Call,hotrace(ai
 
 :-'$hide'(prolog_ecall/2).
 prolog_ecall(_Pred,Call):-var(Call),!,trace,randomVars(Call).
-prolog_ecall(Pred,(X;Y)):-!,prolog_ecall(Pred,X);prolog_ecall(Pred,Y).
 prolog_ecall(Pred,(X->Y;Z)):-!,(call(X) -> prolog_ecall(Pred,Y) ; prolog_ecall(Pred,Z)).
-prolog_ecall(Pred,(X->Y)):-!,(prolog_ecall(Pred,X)->prolog_ecall(Pred,Y)).
+prolog_ecall(Pred,(X->Y)):-!,(call(X)->prolog_ecall(Pred,Y)).
+prolog_ecall(Pred,(X;Y)):-!,prolog_ecall(Pred,X);prolog_ecall(Pred,Y).
 prolog_ecall(Pred,(X,Y)):-!,prolog_ecall(Pred,X),prolog_ecall(Pred,Y).
 prolog_ecall(Pred,prolog_must(Call)):-!,prolog_ecall(Pred,Call).
 prolog_ecall(Pred,Call):- fail, ignore((Call=atom(_),trace)), 
@@ -350,13 +353,15 @@ maplist_safe(Pred,LISTIN, LIST):-!, findall(EE, ((member(E,LISTIN),debugOnFailur
 % decends tree
 %================================================================
 
-map_tree_to_list(_,PATTERN,[PATTERN]):- (var(PATTERN);number(PATTERN)),!.
-map_tree_to_list(_,[],OUT):-!,[]=OUT.
-map_tree_to_list(Pred,IN,OUT):- once(call(Pred,IN,MID)), debugOnFailureAiml((MID=IN -> flatten([MID],OUT) ; map_tree_to_list(Pred,MID,OUT))).
-map_tree_to_list(Pred,[I|IN],OUT):-!,debugOnFailureAiml((map_tree_to_list(Pred,I,O1),map_tree_to_list(Pred,IN,O2),!,append(O1,O2,OUT))),!.
-map_tree_to_list(Pred,IN,OUT):-atom(IN),debugOnFailureAiml((atomSplit(IN,MID),!,map_tree_to_list(Pred,MID,OUT))),!.
-map_tree_to_list(Pred,IN,[OUT]):-debugOnFailureAiml((compound(IN), IN=..INP, append(Left,[Last],INP), map_tree_to_list(Pred,Last,UT),!, append(Left,[UT],OUTP),!, OUT =.. OUTP)).
-map_tree_to_list(_,IN,[IN]):-trace,!.
+map_tree_to_list(_,PATTERN,Output):- (var(PATTERN);number(PATTERN)),!,must_assign([PATTERN],Output).
+map_tree_to_list(_,[],OUT):-!,must_assign([],OUT).
+map_tree_to_list(Pred,IN,Output):- once(call(Pred,IN,MID)),debugOnFailureAiml((MID=IN -> flatten([MID],OUT) ; map_tree_to_list(Pred,MID,OUT))),!,must_assign(OUT,Output).
+map_tree_to_list(Pred,[I|IN],Output):-!,debugOnFailureAiml((map_tree_to_list(Pred,I,O1),map_tree_to_list(Pred,IN,O2),!,append(O1,O2,OUT))),!,must_assign(OUT,Output).
+map_tree_to_list(Pred,IN,Output):-atom(IN),debugOnFailureAiml((atomSplit(IN,MID),!,map_tree_to_list(Pred,MID,OUT))),!,must_assign(OUT,Output).
+map_tree_to_list(Pred,IN,Output):-
+  debugOnFailureAiml((compound(IN), IN=..INP, append(Left,[Last],INP), map_tree_to_list(Pred,Last,UT),!, 
+   append(Left,[UT],OUTP),!, OUT =.. OUTP)),must_assign([OUT],Output).
+map_tree_to_list(_,IN,IN):-trace,must_assign([IN],IN).
 
 
 dumpList(B):-currentContext(dumpList,Ctx),dumpList(Ctx,B).

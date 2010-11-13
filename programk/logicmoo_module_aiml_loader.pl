@@ -122,7 +122,12 @@ translate_single_aiml_file(_Ctx,File,PLNAME,_FileMatch):-   %% fail if want to a
    debugFmt(up_to_date(create_aiml_file(File,PLNAME))),!,
    retractall(creating_aiml_file(File,PLNAME)).
 
-translate_single_aiml_file(Ctx,File,PLNAME,FileMatch):-     
+translate_single_aiml_file(Ctx,File,PLNAME,FileMatch):-
+  call_cleanup(
+     translate_single_aiml_file0(Ctx,File,PLNAME,FileMatch),
+     translate_single_aiml_file1(File,PLNAME,FileMatch)).
+
+translate_single_aiml_file0(Ctx,File,PLNAME,FileMatch):-
  debugOnFailureAimlEach((
         asserta(creating_aiml_file(File,PLNAME)),
         debugFmt(doing(create_aiml_file(File,PLNAME))),
@@ -154,11 +159,18 @@ translate_single_aiml_file(Ctx,File,PLNAME,FileMatch):-
         statistics(global,Mem),MU is (Mem / 1024 / 1024),
         debugFmt(statistics(global,MU)),!,
         printPredCount('Loaded',FileMatch, _FM),
-       %% retractall(FileMatch),
-        retractall(lineInfoElement(File,_,_,_)),
-        retractall(xmlns(_,_,_)),        
-        retractall(creating_aiml_file(File,PLNAME)),!,
-        retractall(loaded_aiml_file(File,PLNAME,_Time)))).
+        retractall(creating_aiml_file(File,PLNAME)))),!.
+
+
+translate_single_aiml_file1(File,PLNAME,FileMatch):-
+    ignore((telling(PLNAME),told(PLNAME))),
+    ignore((creating_aiml_file(File,PLNAME),delete_file(PLNAME))),
+    retractall(lineInfoElement(File,_,_,_)),
+    retractall(FileMatch),
+    retractall(xmlns(_,_,_)),        
+    retractall(creating_aiml_file(File,PLNAME)),!,    
+    retractall(loaded_aiml_file(File,PLNAME,_Time)).
+
 
 translate_cate(Ctx,CateSig):-replaceArgsVar(Ctx,[srcinfo],CateSig,_),immediateCall(Ctx,assert_cate_in_load(CateSig)).
 asserta_cate(Ctx,CateSig):-prolog_must(ground(CateSig)),assert_cate_in_load(CateSig),immediateCall(Ctx,assert_cate_in_load(CateSig)).

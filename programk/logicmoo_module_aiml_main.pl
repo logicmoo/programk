@@ -42,6 +42,8 @@ dttt:-time(consult(aimlCate_checkpoint)),alicebot.
 :-guitracer.
 :-list_undefined.
 
+:-debug.
+
 %:-dttt.
 %:-do.
 %:-load_aiml_files.
@@ -50,6 +52,7 @@ dttt:-time(consult(aimlCate_checkpoint)),alicebot.
 :-'trace'(findall/3,[-all]).
 
 
+chomskyAIML:-once(load_aiml_files('programk/test_suite/chomskyAIML/*.aiml')).
 
 :-once(load_aiml_files('programk/test_suite/*.aiml')).
 
@@ -68,6 +71,9 @@ run2:-
 annie:-run_chat_tests_here.
 
 :-time(annie).
+%:-time(chomskyAIML).
 :-alicebot.
 
 %%:-time(load_aiml_files('programk/test_suite/special/*.aiml')).
+
+

@@ -78,7 +78,7 @@ main_loop:-repeat,main_loop1(_),fail.
 
 :-dynamic(aimlCateSigCached/1).
 aimlCateSig(X):-aimlCateSigCached(X),!.
-aimlCateSig(Pred):-aimlCateOrder(List),length(List,L),functor(Pred,aimlCate,L),asserta(aimlCateSigCached(Pred)),!.
+aimlCateSig(X):-aimlCateOrder(List),length(List,L),functor(Pred,aimlCate,L),asserta(aimlCateSigCached(Pred)),!,copy_term(Pred,X).
 
 aimlCateOrder([graph,precall,topic,that,request,pattern,flags,call,guard,userdict,template,srcinfo,srcfile]).
 
@@ -135,7 +135,7 @@ alicebot2(Atoms,Resp):- currentContext(alicebot2(Atoms),Ctx),!,alicebot2(Ctx,Ato
 
 %% dont really call_with_depth_limit/3 as it spoils the debugger
 call_with_depth_limit_traceable(G,Depth,Used):-tracing,!,G,ignore(Depth=1),ignore(Used=1).
-call_with_depth_limit_traceable(G,Depth,Used):-call_with_depth_limit(G,Depth,Used).
+call_with_depth_limit_traceable(G,_Depth,_Used):-G. %%call_with_depth_limit(G,Depth,Used).
 
 alicebot2(_Ctx,[],[]):-!.
 alicebot2(Ctx,[''|X],Resp):-!,alicebot2(Ctx,X,Resp).
@@ -736,26 +736,25 @@ computeSRAI222(CtxIn,Votes,ConvThread,Pattern,Out,VotesO,ProofOut,OutputLevel):-
 
 cateStrength(_CateSig,1.1):-!.
 
-contains_term(SearchThis,Find):-Find==SearchThis,!.
-contains_term(SearchThis,Find):-compound(SearchThis),arg(_,SearchThis,Arg),contains_term(Arg,Find).
-
 computeSRAI2(Ctx,Votes,ConvThread,Pattern,Out,VotesO,ProofOut,MatchLevel):- !, %% avoid next one
     computeSRAI222(Ctx,Votes,ConvThread,Pattern,Out,VotesO,ProofOut,MatchLevel).
 
 getCategoryArg(Ctx,StarName,MatchPattern,Out,CateSig):-
    prolog_must(getCategoryArg0(Ctx,StarName,MatchPattern,Out,CateSig)),!.
 
-getCategoryArg0(_Ctx,StarName,MatchPattern,_Out,CateSig):-atomic(StarName),!,
-   aimlCateOrder(Order),
-   nth1(StarNumber,Order,StarName),
-   aimlCateSig(CateSig),!,
-   prolog_must(arg(StarNumber,CateSig,MatchPattern)),!.
-
+getCategoryArg0(Ctx,StarName,MatchPattern,_Out,CateSig):-atomic(StarName),!,
+  getCategoryArg1(Ctx,StarName,MatchPattern,_StarNumber,CateSig),!.
+  
 getCategoryArg0(Ctx,FAB,OutAOutB,Out,CateSig):- FAB=..[F,A,B],
       getCategoryArg(Ctx,A,OutA,Out,CateSig),!,
       getCategoryArg(Ctx,B,OutB,Out,CateSig),!,
       OutAOutB=..[F,OutA,OutB].
 
+getCategoryArg1(_Ctx,StarName,MatchPattern,StarNumber,CateSig):-
+   prolog_must(aimlCateSig(CateSig)),
+   aimlCateOrder(Order),
+   nth1(StarNumber,Order,StarName),
+   prolog_must(arg(StarNumber,CateSig,MatchPattern)),!.
 
 meansNothing(Atom,['Nothing']):-atom(Atom),!.
 meansNothing(InputNothing,InputPattern):-prolog_must((ground(InputNothing),var(InputPattern))),meansNothing0(InputNothing,InputPattern),!.
@@ -943,8 +942,7 @@ isStar(StarName,A,6):-atom(StarName),!,A==StarName.
 isStar(StarName,[X],N):-isStar(StarName,X,N),!.
 
 
-
-%%must_be_openCate(_CateSig):-!.
+must_be_openCate(_CateSig):-!.
 must_be_openCate(CateSig):- prolog_must(hotrace((((nonvar(CateSig),not(ground(CateSig)),must_be_openCate0(CateSig)))))),!.
 must_be_openCate0(CateSig):- arg(_,CateSig,Arg),must_be_openCateArgs(Arg,CateSig),fail.
 must_be_openCate0(_CateSig):-!.
@@ -1107,6 +1105,7 @@ answerOutput([],Output):- !, Output=[].
 %answerOutput(Output,Split):-atom(Output),atomSplit(Output,Split),Split==[Output],!.
 %answerOutput(Output,Split):-atom(Output),trace,atomSplit(Output,Split),!.
 answerOutput('<br/>',['\n']):-!.
+answerOutput(element('br',[],[]),['\n']):-!.
 answerOutput(Output,[Output]):-atomic(Output),!.
 answerOutput([<,BR,/,>|B],OO):-atom(BR),!,
   answerOutput([element(BR,[],[])|B],OO),!.

@@ -234,6 +234,9 @@ unify_listing(FileMatch,F,A):- unify_listing_header(FileMatch,F,A), printAll(Fil
 printAll(FileMatch):-printAll(FileMatch,FileMatch).
 printAll(Call,Print):-forall(Call,(format('~q.~n',[Print]))).
 
+contains_term(SearchThis,Find):-Find==SearchThis,!.
+contains_term(SearchThis,Find):-compound(SearchThis),functor(SearchThis,Func,_),(Func==Find;arg(_,SearchThis,Arg),contains_term(Arg,Find)).
+
 % =================================================================================
 % Utils
 % =================================================================================

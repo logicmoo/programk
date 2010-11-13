@@ -35,7 +35,7 @@ aiml_call(Ctx,[Atomic|Rest]):- !, %%trace,
 % Test Suite  
 % ============================================
 aiml_call(Ctx,element('testsuite',ATTRIBS,LIST)):-
-     withAttributes(Ctx,ATTRIBS,maplist_safe(aiml_call(Ctx),LIST)).
+     withAttributes(Ctx,ATTRIBS,maplist_safe(aiml_call(Ctx),LIST)),listing(unitTestResult).
 
 aiml_call(Ctx,Current):- Current=element(TC,ATTRIBS,_LIST), member(TC,['testcase','TestCase']),!,
  debugOnFailureAiml((
@@ -45,8 +45,7 @@ aiml_call(Ctx,Current):- Current=element(TC,ATTRIBS,_LIST), member(TC,['testcase
      attributeOrTagValue(Ctx,Current,['ExpectedAnswer'],ExpectedAnswer,'ERROR ExpectedAnswer'),
      attributeOrTagValue(Ctx,Current,['ExpectedKeywords'],ExpectedKeywords,'*'),
      notrace(ExpectedKeywords=='*' -> Expected = ExpectedAnswer ;  Expected = ExpectedKeywords),     
-     testIt(ATTRIBS,Input=ExpectedAnswer,ExpectedKeywords=_Result,Name=Description,Ctx),
-     debugFmt(testIt([Name,Description,Input,ExpectedAnswer,ExpectedKeywords,Expected])))),!.
+     testIt(ATTRIBS,Input,ExpectedAnswer,ExpectedKeywords,_Result,Name,Description,Ctx))),!.
 
 
 aiml_call(Ctx,element(A, B, C)):-tagType(A, immediate), prolog_must(nonvar(C)),
@@ -118,7 +117,7 @@ immediateCall(Ctx,:-(Call)):-!,immediateCall0(Ctx,:-(Call)),!.
 immediateCall(Ctx,Call):-immediateCall0(Ctx,:-(Call)),!.
 immediateCall0(Ctx,C):-hideIfNeeded(C,Call),immediateCall1(Ctx,Call),!.
 %%immediateCall1(_Ctx,C):- prolog_mostly_ground((C)),fail.
-immediateCall1(_Ctx,Call):- (format('~q.~n',[Call])),debugFmt(Call),!.
+immediateCall1(_Ctx,Call):- (format('~q.~n',[Call])). %%,debugFmt(Call),!.
 
 
 %aiml_eval0(Ctx,[ValueI],ValueO):-atom(ValueI),!,aiml_eval(Ctx,ValueI,ValueO),!.
@@ -330,13 +329,20 @@ tagIsCall('testsuite').
 tagIsCall('testcase').
 tagIsCall('TestCase').
 
-tag_eval(_Ctx,element(CallTag,ATTRIBS,LIST),prologCall(aiml_call(Ctx,element(CallTag,ATTRIBS,LIST)))):-tagIsCall(CallTag),!.
+tag_eval(Ctx,element(CallTag,ATTRIBS,LIST),prologCall(aiml_call(Ctx,element(CallTag,ATTRIBS,LIST)))):-tagIsCall(CallTag),!.
 
 prologCall(Call):-catch(prolog_must(Call),E,debugFmt(failed_prologCall(Call,E))),!.
 
-testIt(ATTRIBS,Input=ExpectedAnswer,ExpectedKeywords=Result,_Name=_Description,Ctx):- 
-   once(ExpectedKeywords=='*' -> Expected = ExpectedAnswer ;  Expected = ExpectedKeywords),
-    withAttributes(Ctx,ATTRIBS,(( runUnitTest(alicebot2(Ctx,Input,Resp),sameBinding(Resp,ExpectedAnswer),Result)))),!.
+testIt(ATTRIBS,Input,ExpectedAnswer,ExpectedKeywords,Result,Name,Description,Ctx):- 
+   once(ExpectedKeywords=='*' -> Expected = ExpectedAnswer ;  Expected = ExpectedKeywords),    
+    withAttributes(Ctx,ATTRIBS,(( runUnitTest(alicebot2(Ctx,Input,Resp),sameBinding(Resp,ExpectedAnswer),Result),
+    PRINTRESULT = testIt([Result,Name,Description,Input,ExpectedAnswer,ExpectedKeywords,Expected]),  
+    STORERESULT = [Result,Name,Description,Input],  
+    debugFmt(PRINTRESULT)))),flush_output,
+    once(
+     contains_term(STORERESULT,unit_failed) ->
+      assert(unitTestResult(unit_failed,PRINTRESULT));
+      assert(unitTestResult(unit_passed,PRINTRESULT))),!.
 
 
 tag_eval(_Ctx,element(In, ATTRIBS, Value),element(In, ATTRIBS, Value)):- preserveTag(In,_Out),!.
@@ -345,16 +351,17 @@ tag_eval(_Ctx,LIST1,LIST2):-debugFmt(tag_eval(LIST1->LIST1)),!,prolog_must(LIST1
 
 preserveTag(In,Out):- member(Out,['input','description',expectedAnswer,expectedkeywords,'Name']),atomsSameCI(In,Out),!.
 
-
 runUnitTest(Call,Req,Result):-runUnitTest1(Call,Result1),!,runUnitTest2(Req,Result2),!,Result=unit(Result1,Result2),debugFmt(Result),!.
 
-runUnitTest1(Req,Result):-hotrace(catch((Req-> Result=passed(Req); Result=failed(Req)),E,Result=error(E,Req))).
-runUnitTest2(Req,Result):-hotrace(catch((Req-> Result=passed(Req); Result=failed(Req)),E,Result=error(E,Req))).
+runUnitTest1(Req,Result):-hotrace(catch((Req-> Result=unit_passed(Req); Result=unit_failed(Req)),E,Result=unit_error(E,Req))).
+runUnitTest2(Req,Result):-hotrace(catch((Req-> Result=unit_passed(Req); Result=unit_failed(Req)),E,Result=unit_error(E,Req))).
 
-sameBinding(X,Y):-hotrace((sameBinding1(X,X1),sameBinding1(Y,Y1),sameBinding1(X1,Y1))),!.
+sameBinding(X,Y):-hotrace((sameBinding1(X,X1),sameBinding1(Y,Y1),!,X1=Y1)),!.
 
 sameBinding1(X,X):-var(X),!.
 sameBinding1(_-X,Y):-nonvar(X),!,sameBinding1(X,Y).
+sameBinding1(X,Z):-convertToMatchable(X,Y),!,(X\==Y->sameBinding1(Y,Z);Y=Z),!.
+%sameBinding1([A|B],AB):-convertToMatchable([A|B],AB),!.
 sameBinding1(X,X):-!.
 sameBinding1(X,Y):- balanceBinding(X,Y),!.
 

@@ -9,6 +9,11 @@
 <!-- Annotated Version updated September 2003 -->
 <!-- Cyc Version updated May 2009 -->
 
+
+<category><pattern>CTEST TT</pattern><template>FAILED Ctest TT</template></category>
+<category><pattern>CTEST TT</pattern><template></template></category>
+<category><pattern>CTEST TT</pattern><template>PASSED Ctest TT</template></category>
+
 <!-- custom tag tests -->
 <category><pattern>CTEST A</pattern><template>Passed Ctest A</template></category>
 <category><pattern>CTEST * B</pattern><template>Passed Ctest <star/> B</template></category>

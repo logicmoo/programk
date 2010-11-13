@@ -31,6 +31,24 @@ aiml_call(Ctx,[Atomic|Rest]):- !, %%trace,
             aiml_eval(Ctx,[Atomic|Rest],Output),!,
             debugFmt(resultOf(aiml_call(Ctx,[Atomic|Rest]),Output)),!.
 
+% ============================================
+% Test Suite  
+% ============================================
+aiml_call(Ctx,element('testsuite',ATTRIBS,LIST)):-
+     withAttributes(Ctx,ATTRIBS,maplist_safe(aiml_call(Ctx),LIST)).
+
+aiml_call(Ctx,Current):- Current=element(TC,ATTRIBS,_LIST), member(TC,['testcase','TestCase']),!,
+ debugOnFailureAiml((
+     attributeOrTagValue(Ctx,Current,['name'],Name,'SomeName'),
+     attributeOrTagValue(Ctx,Current,['Input','Pattern'],Input,'ERROR Input'),
+     attributeOrTagValue(Ctx,Current,['Description'],Description,'No Description'),
+     attributeOrTagValue(Ctx,Current,['ExpectedAnswer'],ExpectedAnswer,'ERROR ExpectedAnswer'),
+     attributeOrTagValue(Ctx,Current,['ExpectedKeywords'],ExpectedKeywords,'*'),
+     notrace(ExpectedKeywords=='*' -> Expected = ExpectedAnswer ;  Expected = ExpectedKeywords),     
+     testIt(ATTRIBS,Input=ExpectedAnswer,ExpectedKeywords=_Result,Name=Description,Ctx),
+     debugFmt(testIt([Name,Description,Input,ExpectedAnswer,ExpectedKeywords,Expected])))),!.
+
+
 aiml_call(Ctx,element(A, B, C)):-tagType(A, immediate), prolog_must(nonvar(C)),
       convert_name(A,AA),
       convert_attributes(Ctx,B,BB),
@@ -225,7 +243,7 @@ systemCall_Find(_Ctx,REST,proof(CateSig,REST)):-
 % ===================================================================
 
 % 0.9 version
-tag_eval(Ctx,element(Learn, ATTRIBS, EXTRA),done(new)/*NEW*/):- member(Learn,[load,learn]),
+tag_eval(Ctx,element(Learn, ATTRIBS, EXTRA),[loaded,Filename,via,Learn,into,Graph]/*NEW*/):- member(Learn,[load,learn]),
  debugOnFailureAiml((
      attributeValue(Ctx,ATTRIBS,[graph],Graph,'$current_value'),
      pathAttribS(PathAttribS),
@@ -305,40 +323,25 @@ getItemValue(Name,Ctx,Value):-getAliceMem(Ctx,_,Name,Value),!.
 getItemValue(Name,Ctx,Value):-findTagValue(Ctx,[],Name,Value,'$current_value').%%current_value(Ctx,Name,Value),!.
 
 % ============================================
-% Test Suite 
+% Test Suite  (now uses aiml_call/2 instead of tag_eval/3)
 % ============================================
 
-%%aiml_call_list(Ctx,List):-maplist_safe(aiml_call(Ctx),List).
+tagIsCall('testsuite').
+tagIsCall('testcase').
+tagIsCall('TestCase').
 
-%% NOW USES CALL FOR UNIT TESTS
-%%tag_eval(Ctx,element('testsuite',ATTRIBS,LIST),prologCall(maplist_safe(call,RESULT))):- 
-%%   withAttributes(Ctx,ATTRIBS,aiml_call_list(Ctx,LIST)),!.
-
-tag_eval(Ctx,element('testsuite',ATTRIBS,LIST),PCALL):- PCALL = prologCall(maplist_safe(call,RESULT)),
-   %%trace,
-   withAttributes(Ctx,ATTRIBS,aiml_eval_each(Ctx,LIST,RESULT)),!.
-
-tag_eval(Ctx,Current,prologCall(TESTCALL)):- Current=element(TC,ATTRIBS,_LIST), member(TC,['testcase','TestCase']),     
- debugOnFailureAiml((
-     attributeOrTagValue(Ctx,Current,['name'],Name,'SomeName'),
-     attributeOrTagValue(Ctx,Current,['Input','Pattern'],Input,'ERROR Input'),
-     attributeOrTagValue(Ctx,Current,['Description'],Description,'No Description'),
-     attributeOrTagValue(Ctx,Current,['ExpectedAnswer'],ExpectedAnswer,'ERROR ExpectedAnswer'),
-     attributeOrTagValue(Ctx,Current,['ExpectedKeywords'],ExpectedKeywords,'*'),
-     notrace(ExpectedKeywords=='*' -> Expected = ExpectedAnswer ;  Expected = ExpectedKeywords),     
-     TESTCALL = testIt(ATTRIBS,Input=ExpectedAnswer,ExpectedKeywords=_Result,Name=Description,Ctx),
-     debugFmt(testIt([Name,Description,Input,ExpectedAnswer,ExpectedKeywords,Expected])))),!.
-
+tag_eval(_Ctx,element(CallTag,ATTRIBS,LIST),prologCall(aiml_call(Ctx,element(CallTag,ATTRIBS,LIST)))):-tagIsCall(CallTag),!.
 
 prologCall(Call):-catch(prolog_must(Call),E,debugFmt(failed_prologCall(Call,E))),!.
 
-testIt(ATTRIBS,Input=ExpectedAnswer,ExpectedKeywords=Result,_Name=_Description,Ctx):-trace,
-   (ExpectedKeywords=='*' -> Expected = ExpectedAnswer ;  Expected = ExpectedKeywords),
+testIt(ATTRIBS,Input=ExpectedAnswer,ExpectedKeywords=Result,_Name=_Description,Ctx):- 
+   once(ExpectedKeywords=='*' -> Expected = ExpectedAnswer ;  Expected = ExpectedKeywords),
     withAttributes(Ctx,ATTRIBS,(( runUnitTest(alicebot2(Ctx,Input,Resp),sameBinding(Resp,ExpectedAnswer),Result)))),!.
 
 
 tag_eval(_Ctx,element(In, ATTRIBS, Value),element(In, ATTRIBS, Value)):- preserveTag(In,_Out),!.
 tag_eval(_Ctx,_LIST,_LIST1):-trace,fail.
+tag_eval(_Ctx,LIST1,LIST2):-prolog_must(LIST1=LIST2),!.
 
 
 preserveTag(In,Out):- member(Out,['input','description',expectedAnswer,expectedkeywords,'Name']),atomsSameCI(In,Out),!.

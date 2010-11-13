@@ -124,8 +124,8 @@ convert_ele(Ctx,element(BOT_ATOM, ALIST, V),element(bot,[name=BOT_ATOM|ALIST],VV
 % ===================================================================
 % ===================================================================
 
-convert_ele(Ctx,element(random, [], B),random(BB)):-convert_template(Ctx,B,BB).
-convert_ele(Ctx,element(li, [], B),li(BB)):-convert_template(Ctx,B,BB).
+%DELAY convert_ele(Ctx,element(random, [], B),random(BB)):-convert_template(Ctx,B,BB).
+%DELAY convert_ele(Ctx,element(li, Attrib, B),element(li, Attrib, BB)):-convert_template(Ctx,B,BB).
 %DELAY convert_ele(Ctx,element(star, [], []),(*)).
 convert_ele(_Ctx,element(a, [Target, Link], Name),A):-sformat(S,'<a ~q ~q>~w</a>',[Target, Link, Name]),string_to_atom(S,A).
 convert_ele(_Ctx,element(a, [Link], Name),A):-sformat(S,'<a ~q>~w</a>',[Link, Name]),string_to_atom(S,A).
@@ -244,11 +244,11 @@ specialIndex(getname,name,[name=[name]]).
 specialIndex(gettopic,name,[name=[name]]).
 
 specialIndex(personf,formatter,[type=url_encode]).
-specialIndex(Name,formatter,[type=Method]):-formatterMethod(Name,Method).
+specialIndex(Name,formatter,[type=Type,method=Method]):-formatterTypeMethod(Name,Type,Method),!.
 
 
 formatterProc(Dict):-member(Dict,[formal,uppercase,lowercase,sentence,gossip,think,(format)]).
-formatterMethod(NamedMethod,NamedMethod):-formatterProc(NamedMethod).
+formatterTypeMethod(TagName,TagName,Method):-formatterProc(TagName),atom_concat(format_,TagName,Method),!.
 
 
 evaluatorTag(Tag):-member(Tag,[system,javascript,eval,

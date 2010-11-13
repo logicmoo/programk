@@ -190,7 +190,7 @@ evalSRAI(Ctx,Votes,ATTRIBS,Input0,Output,VotesO):-
       computeElementMust(Ctx,VotesM,template,ATTRIBS,MidIn,MidIn9,VotesI9),
       debugFmt(computeElementMust(Input,MidIn,MidIn9)),
       prolog_must(answerOutput(MidIn9,Mid9)),
-      prolog_must(computeTemplate(Ctx,VotesI9,Mid9,Output,VotesO)))).
+      prolog_must(computeAnswer(Ctx,VotesI9,Mid9,Output,VotesO)))).
 
 % ===============================================================================================
 % Expand Answers
@@ -387,14 +387,14 @@ computeElement(Ctx,Votes,cycrandom,_Attribs,RAND,Output,VotesO):-!, computeAnswe
 computeElement(Ctx,Votes,Tag,Attribs,Input,result(RESULT,Tag=EVAL),VotesO):- 
    member(Tag,[system]),
    checkNameValue(Ctx,Attribs,[lang],Lang, 'bot'),
-   computeTemplate(Ctx,Votes,Input,EVAL,VotesO),
+   computeAnswer(Ctx,Votes,Input,EVAL,VotesO),
    systemCall(Ctx,Lang,EVAL,RESULT).
 
 % <cyc..>
 computeElement(Ctx,Votes,Tag,Attribs,Input,result(RESULT,Tag=EVAL),VotesO):- 
    member(Tag,[cycsystem,cyceval,cycquery]),
    checkNameValue(Ctx,Attribs,[lang],Lang, Tag),  
-   computeTemplate(Ctx,Votes,Input,EVAL,VotesO),
+   computeAnswer(Ctx,Votes,Input,EVAL,VotesO),
    systemCall(Ctx,Lang,EVAL,RESULT).
 
 % <template, pre ...>
@@ -413,10 +413,10 @@ computeCall(Ctx,Method,Mid,Output,ElseResult):-
 computeCall(_Ctx,_Pred,_Mid,Result,ElseResult):-prolog_must(Result=ElseResult).
 
 
-<gender..>
+% <gender..>
 computeElement(Ctx,Votes,Gender,Attribs,Input,Result,VotesO):- substitutionDictsName(Gender,DictName),!,
-      computeTemplate(Ctx,Votes,Input,Hidden,VotesO),
-      substituteFromDict(Ctx,DictName,Hidden,Result),!.
+      withAttributes(Ctx,Attribs,((computeTemplate(Ctx,Votes,Input,Hidden,VotesO),
+      substituteFromDict(Ctx,DictName,Hidden,Result)))),!.
 
 substituteFromDict(_Ctx,DictName,Hidden,result(Hidden,Result)):-Result=..[DictName,Hidden].
 
@@ -431,7 +431,7 @@ format_lowercase(_Ctx,In,Out):-toLowercase(In,Out),!.
 % <load...>
 computeElement(Ctx,Votes,Tag,ATTRIBS,Input,result(RESULT,Tag=EVAL),VotesO):- 
    member(Tag,[load]),!,
-   computeTemplate(Ctx,Votes,Input,EVAL,VotesO),
+   computeAnswer(Ctx,Votes,Input,EVAL,VotesO),
    tag_eval(Ctx,element(Tag,ATTRIBS,EVAL),RESULT).
 
 % <learn...>
@@ -462,10 +462,10 @@ computeElement(Ctx,Votes,Tag,ATTRIBS,Input,RESULT,VotesO):- evaluatorTag(Tag),
    computeTemplate(Ctx,Votes,Input,EVAL,VotesO),!,
    tag_eval(Ctx,element(Tag,ATTRIBS,EVAL),RESULT),!.
 
+
 % rewrites
 computeElement(_Ctx,Votes,Tag,[],[],result([reply,from,tag,Tag],element(Tag,[],[])),Votes):-!.
 computeElement(_Ctx,Votes,Tag,Attribs,[],result([reply,from,Tag|Attribs],Tag,Attribs),Votes):-!,trace.
-
 computeElement(Ctx,Votes,Tag,Attribs,InnerXml,Resp,VotesO):- 
   GETATTRIBS = element(Tag,Attribs,InnerXml), 
   convert_element(Ctx,GETATTRIBS,GETATTRIBS0), 
@@ -538,10 +538,10 @@ computeGetSetVar(Ctx,Votes,_Dict,GetSet,VarName,ATTRIBS,InnerXml,Resp,VotesO):-
 
 computeGetSetVar(Ctx,Votes,Dict,get,VarName,ATTRIBS,_InnerXml,proof(ValueO,VarName=ValueI),VotesO):-!,
       getAliceMem(Ctx,Dict,VarName,ValueI),!,
-      computeTemplate(Ctx,Votes,element(template,ATTRIBS,ValueI),ValueO,VotesM),VotesO is VotesM * 1.1.
+      computeAnswer(Ctx,Votes,element(template,ATTRIBS,ValueI),ValueO,VotesM),VotesO is VotesM * 1.1.
 
 computeGetSetVar(Ctx,Votes,Dict,set,VarName,ATTRIBS,InnerXml,proof(ValueO,VarName=InnerXml),VotesO):-!,
-      computeTemplate(Ctx,Votes,element(template,ATTRIBS,InnerXml),ValueO,VotesM),
+      computeAnswer(Ctx,Votes,element(template,ATTRIBS,InnerXml),ValueO,VotesM),
       setAliceMem(Ctx,Dict,VarName,ValueO),!,VotesO is VotesM * 1.1.
 
 %%computeGetSetVar(_Ctx,_Votes,_Get,_,_,_,_):-!,fail.
@@ -550,18 +550,15 @@ computeGetSetVar(Ctx,Votes,Dict,set,VarName,ATTRIBS,InnerXml,proof(ValueO,VarNam
 % Compute Answer Probilities
 % ===============================================================================================
 :-discontiguous(computeAnswer/5).
+computeAnswer(Ctx,Votes,IN,Result,VotesOut):- not(tracing),computeAnswer0(Ctx,Votes,IN,Result,VotesOut),fail.
 
-computeAnswer(Ctx,Votes,IN,Result,VotesOut):- prolog_must((number(Votes),nonvar(IN),var(Result),var(VotesOut))),
+computeAnswer0(Ctx,Votes,IN,Result,VotesOut):- prolog_must((number(Votes),nonvar(IN),var(Result),var(VotesOut))),
       debugFmt(computeAnswer(Ctx,Votes,IN,Result,VotesOut)),fail.
 
-computeAnswer(Ctx,Votes,MidVote - In,Out,VotesO):- prolog_must(nonvar(MidVote)),
+computeAnswer0(Ctx,Votes,MidVote - In,Out,VotesO):- prolog_must(nonvar(MidVote)),
                            trace, !, computeAnswer(Ctx,Votes,In,Out,VotesA), VotesO is VotesA * MidVote.
 
-computeAnswer(_Ctx,Votes,_I,_,_):-(Votes>20;Votes<0.3),!,fail.
-
-
-computeAnswer(Ctx,Votes,Input,Output,Votes):- fail, Input=..[result,RESULT|REST],trace,Output=result(EVAL,RESULT-REST),
-   aiml_eval(Ctx,RESULT,EVAL),!.
+computeAnswer0(_Ctx,Votes,_I,_,_):-(Votes>20;Votes<0.3),!,fail.
 
 
 computeAnswer(_Ctx,Votes,Res, Res,Votes):-resultOrProof(Res,_Mid),!.
@@ -721,20 +718,26 @@ computeSRAI222(CtxIn,Votes,ConvThread,Pattern,Out,VotesO,ProofOut,OutputLevel):-
          debugFmt(topicThatPattern(Topic,That,Pattern)),
          prolog_must(var(Out)),
          must_be_openCate(CateSig),!,
-         prolog_must(atLeastOne((AfterPattern,CateSig))),         
+         prolog_must(atLeastOne((AfterPattern,CateSig))),  
+         clause(CateSig,true,ClauseNumber),
          once((         
             prolog_must(CAfterPattern),
             prolog_must(nonvar(Out)),
             OutputLevel is OutputLevel1 + OutputLevel2*100 + OutputLevel3*10000,
             cateStrength(CateSig,Mult),
+            (contains_term(Ctx,CateSig)->not(contains_term(Ctx,ClauseNumber));not(contains_term(Ctx,ClauseNumber))),
             VotesO is Votes * Mult,
-            append([Out],Proof,FinalProof),
-            append(FinalProof,[CateSig],FinalProofClosed),
+           %% append([Out],Proof,FinalProof),
+            FinalProof=Proof,
+            append(FinalProof,[cn(ClauseNumber),CateSig],FinalProofClosed),
             %%debugFmt(result(out(Out),from(Pattern),FinalProofClosed)),
-            ProofOut=..[proof|FinalProofClosed])).
+            ProofOut=..[proof,Out|FinalProofClosed])).
 
 
 cateStrength(_CateSig,1.1):-!.
+
+contains_term(SearchThis,Find):-Find==SearchThis,!.
+contains_term(SearchThis,Find):-compound(SearchThis),arg(_,SearchThis,Arg),contains_term(Arg,Find).
 
 computeSRAI2(Ctx,Votes,ConvThread,Pattern,Out,VotesO,ProofOut,MatchLevel):- !, %% avoid next one
     computeSRAI222(Ctx,Votes,ConvThread,Pattern,Out,VotesO,ProofOut,MatchLevel).
@@ -1113,10 +1116,11 @@ answerOutput([A|AA],Output):-!,
    flatten([B,BB],Output).
 answerOutput(element(Tag,Attribs,InnerXML),[element(Tag,Attribs,Output)]):- answerOutput(InnerXML,Output),!.
 answerOutput(Term,Output):-resultOrProof(Term,Mid),!,answerOutput(Mid,Output).
-answerOutput(Term,Output):-compound(Term),Term=..[_,Mid|_],trace,!,answerOutput(Mid,Output).
+answerOutput(Term,Output):-compound(Term),Term=..[_,Mid|_],debugFmt(answerOutput(Term->Mid)),!,answerOutput(Mid,Output).
 answerOutput(Output,[Output]):-!.
 
 lastMemberOrDefault(E,L,N,_D):-lastMember(E,L,N),!.
+lastMemberOrDefault(_Named=E,L,N,D):-L=N,E=D,!.
 lastMemberOrDefault(E,L,N,D):-L=N,E=D.
 % ===============================================================================================
 % Convert to Matchable

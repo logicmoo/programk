@@ -340,8 +340,7 @@ testIt(ATTRIBS,Input=ExpectedAnswer,ExpectedKeywords=Result,_Name=_Description,C
 
 
 tag_eval(_Ctx,element(In, ATTRIBS, Value),element(In, ATTRIBS, Value)):- preserveTag(In,_Out),!.
-tag_eval(_Ctx,_LIST,_LIST1):-trace,fail.
-tag_eval(_Ctx,LIST1,LIST2):-prolog_must(LIST1=LIST2),!.
+tag_eval(_Ctx,LIST1,LIST2):-debugFmt(tag_eval(LIST1->LIST1)),!,prolog_must(LIST1=LIST2),!.
 
 
 preserveTag(In,Out):- member(Out,['input','description',expectedAnswer,expectedkeywords,'Name']),atomsSameCI(In,Out),!.

@@ -89,7 +89,7 @@ meta_predicate_transparent(X):-strip_module(X,M,F),!, meta_predicate_transparent
 meta_predicate_transparent(M,(X,Y)):-!,meta_predicate_transparent(M,X),meta_predicate_transparent(M,Y),!.
 meta_predicate_transparent(_M,X):-atom(X),!.
 meta_predicate_transparent(_M,X):- 
-   prolog_must((   
+   debugOnFailureAimlEach((   
    arg(1,X,A),functor(X,F,_),
    FA=F/A,
    dynamic_if_missing(FA),
@@ -159,7 +159,7 @@ pp_listing(_Pred):-!. %%functor(Pred,File,A),functor(FA,File,A),listing(File),nl
 % Utils
 % =================================================================================
 
-printPredCount(Msg,Pred,N1):- arg(_,Pred,NG),nonvar(NG),!,
+printPredCount(Msg,Pred,N1):- compound(Pred), debugOnFailureAimlEach((arg(_,Pred,NG))),nonvar(NG),!,
    findall(Pred,Pred,LEFTOVERS),length(LEFTOVERS,N1),debugFmt(num_clauses(Msg,Pred,N1)),!.
 
 printPredCount(Msg,Pred,N1):-!,functor(Pred,File,A),functor(FA,File,A), predicate_property(FA,number_of_clauses(N1)),debugFmt(num_clauses(Msg,File/A,N1)),!.
@@ -168,15 +168,21 @@ printPredCount(Msg,Pred,N1):-!,functor(Pred,File,A),functor(FA,File,A), predicat
 % Loader Utils
 % =================================================================================
 
-dynamic_load(Key,PLNAME):- creating_aiml_file(Key,PLNAME),throw_safe(creating_aiml_file(Key,PLNAME)).
+dynamic_load(Key,PLNAME):- creating_aiml_file(Key,PLNAME),throw_safe(creating_aiml_file(Key,PLNAME)),assert(pending_aiml_file(Key,PLNAME)).
 dynamic_load(Key,PLNAME):- not(ground(dynamic_load(Key,PLNAME))),throw_safe(not(ground(dynamic_load(Key,PLNAME)))).
-dynamic_load(Key,PLNAME):- loaded_aiml_file(Key,PLNAME),!,debugFmt(loaded_aiml_file(Key,PLNAME)).
-dynamic_load(Key,PLNAME):- assert(loaded_aiml_file(Key,PLNAME)),fail.
-
+dynamic_load(Key,PLNAME):- loaded_aiml_file(Key,PLNAME,Time),!,debugFmt(loaded_aiml_file(Key,PLNAME,Time)).
 dynamic_load(Key,_PLNAME):- nonvar(Key), once(cateForFile(_,Key,Cate)),Cate,!.
 
-dynamic_load(_Key,PLNAME):- consult(PLNAME),!.
-dynamic_load(_Key,PLNAME):- %% unload_file(PLNAME),
+dynamic_load(Key,PLNAME):- 
+   global_pathname(PLNAME,PN),
+   exists_file_safe(PLNAME),
+   time_file_safe(PN,Time),
+   assert(loaded_aiml_file(Key,PLNAME,Time)),
+   dynamic_load2(Key,PLNAME).
+
+dynamic_load2(_Key,PLNAME):-consult(PLNAME),!.
+
+dynamic_load2(_Key,PLNAME):- %% unload_file(PLNAME),
      open(PLNAME, read, In, []),
      repeat,
       line_count(In,Lineno),
@@ -196,7 +202,7 @@ load_term2(Fact,Options):-!,load_assert(Fact,true,Options).
 
 load_assert(H,B,_Options):-assert((H:-B)),!.
 
-load_dirrective(include(PLNAME),_Options):-  (atom_concat_safe(Key,'.pl',PLNAME);Key=PLNAME),!,dynamic_load(Key,PLNAME).
+load_dirrective(include(PLNAME),_Options):-  (atom_concat_safe(Key,'.pl',PLNAME);Key=PLNAME),!, dynamic_load(Key,PLNAME).
 load_dirrective(module(M,Preds),_Options):-!,module(M),call(module(M,Preds)).
 load_dirrective(Term,_Options):-!,Term.
 
@@ -213,13 +219,17 @@ aimlPredCount(Pred,File,Count):-source_file(File),atom_contains(File,'aiml'),sou
 % =================================================================================
 
 unify_listing(FileMatch):-functor(FileMatch,F,A),unify_listing(FileMatch,F,A),!.
+unify_listing_header(FileMatch):-functor(FileMatch,F,A),unify_listing_header(FileMatch,F,A),!.
 
-unify_listing(FileMatch,F,A):- (format('~n/* Prediate:  ~q / ~q  ~n',[F,A,FileMatch])),fail.
-unify_listing(FileMatch,_F,_A):- printAll(predicate_property(FileMatch,PP),PP),fail.
-unify_listing(FileMatch,_F,_A):- (format('~n ~q. ~n */ ~n',[FileMatch])),fail.
-unify_listing(FileMatch,F,A):-predicate_property(FileMatch,dynamic),(format(':-dynamic(~q).~n',[F/A])),fail.
-unify_listing(FileMatch,F,A):-predicate_property(FileMatch,multifile),(format(':-multifile(~q).~n',[F/A])),fail.
-unify_listing(FileMatch,_F,_A):- printAll(FileMatch).
+
+unify_listing_header(FileMatch,F,A):- (format('~n/* Prediate:  ~q / ~q  ~n',[F,A,FileMatch])),fail.
+unify_listing_header(FileMatch,_F,_A):- printAll(predicate_property(FileMatch,PP),PP),fail.
+unify_listing_header(FileMatch,_F,_A):- (format('~n ~q. ~n */ ~n',[FileMatch])),fail.
+unify_listing_header(FileMatch,F,A):-predicate_property(FileMatch,dynamic),(format(':-dynamic(~q).~n',[F/A])),fail.
+unify_listing_header(FileMatch,F,A):-predicate_property(FileMatch,multifile),(format(':-multifile(~q).~n',[F/A])),fail.
+unify_listing_header(_FileMatch,_F,_A).
+
+unify_listing(FileMatch,F,A):- unify_listing_header(FileMatch,F,A), printAll(FileMatch).
 
 printAll(FileMatch):-printAll(FileMatch,FileMatch).
 printAll(Call,Print):-forall(Call,(format('~q.~n',[Print]))).
@@ -359,7 +369,7 @@ ifThen(When,Do):-When->Do;true.
 traceCall(A):-trace(A,[-all,+fail]),A,!.
 
 debugOnFailureAimlEach((A,B)):- !,debugOnFailureAimlEach(A),debugOnFailureAimlEach(B).
-debugOnFailureAimlEach(Call):-ignore((Call;(trace,Call))),!.
+debugOnFailureAimlEach(Call):- once(prolog_must(Call)).
 
 
 debugOnFailureAiml(Call):-prolog_ecall(debugOnFailureAiml0,Call).

@@ -25,7 +25,7 @@
 % AIML Loading
 % =================================================================================
 reloadAimlFiles:-withCurrentContext(reloadAimlFiles).
-reloadAimlFiles(Ctx):-forall(retract(loaded_aiml_file(A,P)),assert(pending_aiml_file(A,P))),do_pending_loads(Ctx).
+reloadAimlFiles(Ctx):-forall(retract(loaded_aiml_file(A,P,_)),assert(pending_aiml_file(A,P))),do_pending_loads(Ctx).
 
 %%load_aiml_files:- aimlCateSig(CateSig),retractall(CateSig),fail.
 %load_aiml_files:-once(load_aiml_files('programk/test_suite/*.aiml')),fail.
@@ -65,24 +65,25 @@ aiml_files(File,Files):-exists_directory_safe(File), %absolute_file_name(File,_F
 aimlOption(rebuild_Aiml_Files,false).
 
 load_single_aiml_file(Ctx,F0):-
-  debugOnFailureAiml((
+  debugOnFailureAimlEach((
    global_pathname(F0,File),
-   cateForFile(Ctx,File,FileMatch),
+   cateForFile(Ctx,File,FileMatch),!,
    atom_concat_safe(File,'.pl',PLNAME),
-   load_single_aiml_file(Ctx,File,PLNAME,FileMatch,[load]))).
+   load_single_aiml_file(Ctx,File,PLNAME,FileMatch),!)).
 
-load_single_aiml_file(_Ctx,File,PLNAME,_FileMatch,_Load):- loaded_aiml_file(File,PLNAME),!.
-load_single_aiml_file(Ctx,File,PLNAME,FileMatch,Load):-
-   create_aiml_file2(Ctx,File,PLNAME,FileMatch,Load),!,
-   asserta(pending_aiml_file(File,PLNAME)).
+%%load_single_aiml_file(_Ctx,File,PLNAME,_FileMatch):- loaded_aiml_file(File,PLNAME,_Time),!.
+load_single_aiml_file(Ctx,File,PLNAME,FileMatch):-
+   translate_single_aiml_file(Ctx,File,PLNAME,FileMatch),!,
+   asserta(pending_aiml_file(File,PLNAME)),!.
+
 
 
 translate_single_aiml_file(Ctx,F0):-
-  debugOnFailureAiml((
-   global_pathname(F0,File),
-   cateForFile(Ctx,File,FileMatch),
+  debugOnFailureAimlEach((
+   global_pathname(F0,File),!,
+   cateForFile(Ctx,File,FileMatch),!,
    atom_concat_safe(File,'.pl',PLNAME),
-   create_aiml_file2(Ctx,File,PLNAME,FileMatch,[noload]))),!.
+   translate_single_aiml_file(Ctx,File,PLNAME,FileMatch))),!.
 
 translate_aiml_structure(X,X).
 
@@ -98,7 +99,7 @@ withNamedValue(Ctx,[N=V],Call):-withAttributes(Ctx,[N=V],Call),!.
 withCurrentContext(Goal):-prolog_must(atom(Goal)),debugOnFailureAiml((currentContext(Goal,Ctx),call(Goal,Ctx))).
 
 :-dynamic(creating_aiml_file/2).
-:-dynamic(loaded_aiml_file/2).
+:-dynamic(loaded_aiml_file/3).
 :-dynamic(pending_aiml_file/2).
 
 do_pending_loads:-withCurrentContext(do_pending_loads).
@@ -107,19 +108,22 @@ do_pending_loads(Ctx):-forall(retract(pending_aiml_file(File,PLNAME)),load_pendi
 load_pending_aiml_file(Ctx,File,PLNAME):- debugFmt(load_pending_aiml_file(Ctx,File,PLNAME)),
   catch(debugOnFailureAiml(dynamic_load(File,PLNAME)),E,(debugFmt(E),asserta(pending_aiml_file(File,PLNAME)))),!.
 
-create_aiml_file2(_Ctx,File,PLNAME,FileMatch,_Load):- creating_aiml_file(File,PLNAME),!, throw_safe(already(creating_aiml_file(File,PLNAME),FileMatch)).
-create_aiml_file2(_Ctx,File,PLNAME,FileMatch,_Load):- loaded_aiml_file(File,PLNAME),!, throw_safe(already(loaded_aiml_file(File,PLNAME),FileMatch)).
+translate_single_aiml_file(_Ctx,File,PLNAME,FileMatch):- creating_aiml_file(File,PLNAME),!,
+   throw_safe(already(creating_aiml_file(File,PLNAME),FileMatch)),!.
 
-create_aiml_file2(_Ctx,File,PLNAME,_FileMatch,Load):- fail,
+translate_single_aiml_file(_Ctx,File,PLNAME,FileMatch):- loaded_aiml_file(File,PLNAME,Time),!, throw_safe(already(loaded_aiml_file(File,PLNAME,Time),FileMatch)).
+
+translate_single_aiml_file(_Ctx,File,PLNAME,_FileMatch):-   %% fail if want to always remake file
    exists_file_safe(PLNAME),
    time_file_safe(PLNAME,PLTime), % fails on non-existent
    time_file_safe(File,FTime),
    %not(aimlOption(rebuild_Aiml_Files,true)),
    PLTime > FTime,!,
    debugFmt(up_to_date(create_aiml_file(File,PLNAME))),!,
-   ignore((member(load,Load),asserta(pending_aiml_file(File,PLNAME)))),!.
+   retractall(creating_aiml_file(File,PLNAME)).
 
-create_aiml_file2(Ctx,File,PLNAME,FileMatch,Load):-        
+translate_single_aiml_file(Ctx,File,PLNAME,FileMatch):-     
+ debugOnFailureAimlEach((
         asserta(creating_aiml_file(File,PLNAME)),
         debugFmt(doing(create_aiml_file(File,PLNAME))),
         aimlCateSig(CateSig),!,
@@ -129,16 +133,16 @@ create_aiml_file2(Ctx,File,PLNAME,FileMatch,Load):-
         unify_listing(FileMatch),
         retractall(FileMatch),
    (format('%-----------------------------------------~n')),
-
  tell(PLNAME),
         flag(cateSigCount,PREV_cateSigCount,0),
    (format('%-----------------------------------------~n')),
-      withAttributes(Ctx,[withCategory=[asserta_cate]],
+      withAttributes(Ctx,[withCategory=[translate_cate]], %% asserta_cate = load it as well .. but interferes with timesrtamp
                ( fileToLineInfoElements(Ctx,File,AILSTRUCTURES), 
                   load_aiml_structure(Ctx,AILSTRUCTURES))),
 
    (format('%-----------------------------------------~n')),
-        unify_listing(FileMatch),
+         unify_listing_header(FileMatch),
+         %printAll(FileMatch),
    (format('%-----------------------------------------~n')),
         listing(xmlns),
    (format('%-----------------------------------------~n')),
@@ -149,27 +153,33 @@ create_aiml_file2(Ctx,File,PLNAME,FileMatch,Load):-
         debugFmt('NEW_cateSigCount=~q~n',[NEW_cateSigCount]),!,
         statistics(global,Mem),MU is (Mem / 1024 / 1024),
         debugFmt(statistics(global,MU)),!,
-        printPredCount('Loaded',FileMatch, FM),
+        printPredCount('Loaded',FileMatch, _FM),
        %% retractall(FileMatch),
         retractall(lineInfoElement(File,_,_,_)),
         retractall(xmlns(_,_,_)),        
-        retractall(creating_aiml_file(File,PLNAME)),
-        ignore((FM == 0, PREV_cateSigCount>0, retractall(loaded_aiml_file(File,PLNAME)),  member(load,Load), asserta(pending_aiml_file(File,PLNAME)))),!.
+        retractall(creating_aiml_file(File,PLNAME)),!,
+        retractall(loaded_aiml_file(File,PLNAME,_Time)))).
 
+translate_cate(Ctx,CateSig):-replaceArgsVar(Ctx,[srcinfo],CateSig,_),immediateCall(Ctx,assert_cate_in_load(CateSig)).
+asserta_cate(Ctx,CateSig):-prolog_must(ground(CateSig)),assert_cate_in_load(CateSig),immediateCall(Ctx,assert_cate_in_load(CateSig)).
 
-        /*
+is_xml_missing(Var):-var(Var),!.
+is_xml_missing([]).
 
-        copy_term(NEW,OLD),
-      aimlCateOrder(Order)
-         ignore(retract(OLD)),
+isRetraction(Ctx,CateSig,OF):-getCategoryArg(Ctx,'template',NULL,_Out_,CateSig),is_xml_missing(NULL),!,
+   replaceArgsVar(Ctx,['template',srcinfo,srcfile],CateSig,_),
+   OF=CateSig.
 
-        */
-asserta_cate(Ctx,NEW):-prolog_must(ground(NEW)),asserta_new(Ctx,NEW),immediateCall(Ctx,assert_cate_in_load(NEW)).
+replaceArgsVar(_Ctx,[],_CateSig,_With):-!.
+replaceArgsVar(Ctx,[E|L],CateSig,With):-copy_term(With,Replacement),
+    getCategoryArg1(Ctx,E,_NULL,StarNumber,CateSig),nb_setarg(StarNumber,CateSig,Replacement),
+    replaceArgsVar(Ctx,L,CateSig,With),!.
 
+assert_cate_in_load(NEW):-isRetraction(_Ctx,NEW,OF),!,retractall(OF),!.
 assert_cate_in_load(NEW):-asserta(NEW).
 
 /*
-create_aiml_file2xxx(Ctx,File,PLNAME):-
+translate_single_aiml_filexxx(Ctx,File,PLNAME):-
   debugOnFailureAiml((
      Dofile = true,
      aimlCateSig(CateSig),

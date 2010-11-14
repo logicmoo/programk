@@ -244,11 +244,12 @@ specialIndex(getname,name,[name=[name]]).
 specialIndex(gettopic,name,[name=[name]]).
 
 specialIndex(personf,formatter,[type=url_encode]).
-specialIndex(Name,formatter,[type=Type,method=Method]):-formatterTypeMethod(Name,Type,Method),!.
+specialIndex(Name,formatter,[type=Type]):-formatterType(Name,Type),!.
 
 
 formatterProc(Dict):-member(Dict,[formal,uppercase,lowercase,sentence,gossip,think,(format)]).
-formatterTypeMethod(TagName,TagName,Method):-formatterProc(TagName),atom_concat(format_,TagName,Method),!.
+formatterType(TagName,TagName):-formatterProc(TagName).
+formatterTypeMethod(TagName,Type,Method):-formatterType(TagName,Type),atom_concat(format_,Type,Method),!.
 
 
 evaluatorTag(Tag):-member(Tag,[system,javascript,eval,

@@ -74,7 +74,7 @@ load_single_aiml_file(Ctx,F0):-
 %%load_single_aiml_file(_Ctx,File,PLNAME,_FileMatch):- loaded_aiml_file(File,PLNAME,_Time),!.
 load_single_aiml_file(Ctx,File,PLNAME,FileMatch):-
    translate_single_aiml_file(Ctx,File,PLNAME,FileMatch),!,
-   asserta(pending_aiml_file(File,PLNAME)),!.
+   assertz(pending_aiml_file(File,PLNAME)),!.
 
 
 
@@ -106,7 +106,7 @@ do_pending_loads:-withCurrentContext(do_pending_loads).
 do_pending_loads(Ctx):-forall(retract(pending_aiml_file(File,PLNAME)),load_pending_aiml_file(Ctx,File,PLNAME)).
 
 load_pending_aiml_file(Ctx,File,PLNAME):- debugFmt(load_pending_aiml_file(Ctx,File,PLNAME)),
-  catch(debugOnFailureAiml(dynamic_load(File,PLNAME)),E,(debugFmt(E),asserta(pending_aiml_file(File,PLNAME)))),!.
+  catch(debugOnFailureAiml(dynamic_load(File,PLNAME)),E,(debugFmt(E),assert(pending_aiml_file(File,PLNAME)))),!.
 
 translate_single_aiml_file(_Ctx,File,PLNAME,FileMatch):- creating_aiml_file(File,PLNAME),!,
    throw_safe(already(creating_aiml_file(File,PLNAME),FileMatch)),!.
@@ -187,8 +187,34 @@ replaceArgsVar(Ctx,[E|L],CateSig,With):-copy_term(With,Replacement),
     getCategoryArg1(Ctx,E,_NULL,StarNumber,CateSig),nb_setarg(StarNumber,CateSig,Replacement),
     replaceArgsVar(Ctx,L,CateSig,With),!.
 
+:-dynamic(argNumsTracked/3).
+:-dynamic(argNFound/3).
+:-index(argNFound(1,1,1)).
+
+
+%% aimlCateOrder([graph,precall,topic,that,request,pattern,flags,call,guard,userdict,template,srcinfo,srcfile]).
+argNumsTracked(aimlCate,topic,3).
+argNumsTracked(aimlCate,that,4).
+argNumsTracked(aimlCate,pattern,6).
+
+argNFound(aimlCate,'13',_).
+argNFound(aimlCate,'12',_).
+argNFound(aimlCate,'11',_).
+argNFound(aimlCate,'10',_).
+argNFound(aimlCate,'9',_).
+
 assert_cate_in_load(NEW):-isRetraction(_Ctx,NEW,OF),!,retractall(OF),!.
-assert_cate_in_load(NEW):-asserta(NEW).
+assert_cate_in_load(NEW):-asserta(NEW),makeArgIndexes(NEW),!.
+
+makeArgIndexes(CateSig):-functor(CateSig,F,_),makeArgIndexes(CateSig,F),!.
+makeArgIndexes(CateSig,F):- argNumsTracked(F,Atom,Number),arg(Number,CateSig,Arg),nonvar(Arg),
+         %%Number<10,nonvar(Arg),atom_number(Atom,Number),
+         assert_if_new(argNFound(F,Atom,Arg)),fail.
+makeArgIndexes(_NEW,_F).
+
+
+assert_if_new(N):-N,!.
+assert_if_new(N):-assert(N),!.
 
 /*
 translate_single_aiml_filexxx(Ctx,File,PLNAME):-

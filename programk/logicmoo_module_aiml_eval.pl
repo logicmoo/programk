@@ -336,8 +336,8 @@ prologCall(Call):-catch(prolog_must(Call),E,debugFmt(failed_prologCall(Call,E)))
 testIt(ATTRIBS,Input,ExpectedAnswer,ExpectedKeywords,Result,Name,Description,Ctx):- 
    once(ExpectedKeywords=='*' -> Expected = ExpectedAnswer ;  Expected = ExpectedKeywords),    
     withAttributes(Ctx,ATTRIBS,(( runUnitTest(alicebot2(Ctx,Input,Resp),sameBinding(Resp,ExpectedAnswer),Result),
-    PRINTRESULT = testIt([Result,Name,Description,Input,ExpectedAnswer,ExpectedKeywords,Expected]),  
-    STORERESULT = [Result,Name,Description,Input],  
+    hideIfNeeded(testIt([Result,Name,Description,Input,ExpectedAnswer,ExpectedKeywords,Expected]),PRINTRESULT),
+    hideIfNeeded([Result,Name,Description,Input], STORERESULT),
     debugFmt(PRINTRESULT)))),flush_output,
     once(
      contains_term(STORERESULT,unit_failed) ->

@@ -36,6 +36,9 @@ must_assign(From,To):-trace,To=From.
 prolog_must(Call):-tracing,!,Call. %%prolog_must_tracing(Call).
 prolog_must(Call):-prolog_must_call(Call).
 
+:-'$hide'(prolog_may/1).
+prolog_may(Call):-prolog_ecall(debugOnError,Call).
+
 
 :-'$hide'(prolog_must_call/1).
 prolog_must_call(Call):- prolog_ecall(prolog_must_call0,Call).   
@@ -54,6 +57,7 @@ prolog_ecall(Pred,(X->Y)):-!,(call(X)->prolog_ecall(Pred,Y)).
 prolog_ecall(Pred,(X;Y)):-!,prolog_ecall(Pred,X);prolog_ecall(Pred,Y).
 prolog_ecall(Pred,(X,Y)):-!,prolog_ecall(Pred,X),prolog_ecall(Pred,Y).
 prolog_ecall(Pred,prolog_must(Call)):-!,prolog_ecall(Pred,Call).
+prolog_ecall(_Pred,prolog_may(Call)):-!,Call.
 prolog_ecall(Pred,Call):- fail, ignore((Call=atom(_),trace)), 
     predicate_property(Call,number_of_clauses(_Count)),
     clause(Call,(_A,_B)),!,catch(clause(Call,Body),_,
@@ -224,7 +228,6 @@ aimlPredCount(Pred,File,Count):-source_file(File),atom_contains(File,'aiml'),sou
 unify_listing(FileMatch):-functor(FileMatch,F,A),unify_listing(FileMatch,F,A),!.
 unify_listing_header(FileMatch):-functor(FileMatch,F,A),unify_listing_header(FileMatch,F,A),!.
 
-
 unify_listing_header(FileMatch,F,A):- (format('~n/* Prediate:  ~q / ~q  ~n',[F,A,FileMatch])),fail.
 unify_listing_header(FileMatch,_F,_A):- printAll(predicate_property(FileMatch,PP),PP),fail.
 unify_listing_header(FileMatch,_F,_A):- (format('~n ~q. ~n */ ~n',[FileMatch])),fail.
@@ -235,7 +238,8 @@ unify_listing_header(_FileMatch,_F,_A).
 unify_listing(FileMatch,F,A):- unify_listing_header(FileMatch,F,A), printAll(FileMatch).
 
 printAll(FileMatch):-printAll(FileMatch,FileMatch).
-printAll(Call,Print):-forall(Call,(format('~q.~n',[Print]))).
+printAll(Call,Print):- flag(printAll,_,0), forall((Call,flag(printAll,N,N+1)),(format('~q.~n',[Print]))),fail.
+printAll(_Call,Print):- flag(printAll,PA,0),(format('~n /* found ~q for ~q. ~n */ ~n',[PA,Print])).
 
 contains_term(SearchThis,Find):-Find==SearchThis,!.
 contains_term(SearchThis,Find):-compound(SearchThis),functor(SearchThis,Func,_),(Func==Find;arg(_,SearchThis,Arg),contains_term(Arg,Find)).

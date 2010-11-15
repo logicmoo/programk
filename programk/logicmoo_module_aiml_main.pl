@@ -71,7 +71,9 @@ run2:-
 
 annie:-run_chat_tests_here.
 
-:-time(annie).
+:-test_suite_files.
+
+%:-time(annie).
 %:-time(chomskyAIML).
 :-alicebot.
 

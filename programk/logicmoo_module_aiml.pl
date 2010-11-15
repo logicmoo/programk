@@ -345,10 +345,13 @@ computeElement(Ctx,Votes,li,Preconds,InnerXml,OutProof,VotesO):-!,
 computeElement(Ctx,Votes,random,_Attribs,List,AA,VotesO):-!,randomPick(List,Pick),computeAnswer(Ctx,Votes,Pick,AA,VotesO).
 
 % <condition...>
-computeElement(Ctx,Votes,condition,CondAttribs,InnerXml,Result,VotesO):-
+computeElement(Ctx,Votes,condition,CondAttribs,InnerXml,Result,VotesO):- 
+     computeElement_condition(Ctx,Votes,CondAttribs,InnerXml,Result,VotesO),!.
+
+computeElement_condition(Ctx,Votes,CondAttribs,InnerXml,Result,VotesO):- prolog_may(computeAnswerMaybe(Ctx,Votes,element(li,CondAttribs,InnerXml),Result,VotesO)),!.
+computeElement_condition(Ctx,Votes,CondAttribs,InnerXml,Result,VotesO):-
   last(InnerXml,Last),
    withAttributes(Ctx, CondAttribs,
-
       once( (member(Pick,InnerXml),computeAnswerMaybe(Ctx,Votes,withAttributes(CondAttribs,Pick),Result,VotesO)) ; Failed=failed)),
     (Failed \== Failed -> Result = Last; true),!.
 
@@ -378,7 +381,7 @@ computeElement(Ctx,Votes,formatter,Attribs,Input,Result,VotesO):- !,
 computeElement(Ctx,Votes,GetSetBot,Attrib,InnerXml,Resp,VotesO):-member(GetSetBot,[get,set,bot]),!,computeGetSet(Ctx,Votes,GetSetBot,Attrib,InnerXml,Resp,VotesM),VotesO is VotesM * 1.1,!.
 
 % <topicstar,star,thatstar...>
-computeElement(Ctx,Votes,StarTag,Attrib,InnerXml,Resp,VotesO):- hotrace(starType(StarTag,StarName)),!,trace,   
+computeElement(Ctx,Votes,StarTag,Attrib,InnerXml,Resp,VotesO):- hotrace(starType(StarTag,StarName)),!, %%trace,   
       computeStar(Ctx,Votes,StarName,Attrib,InnerXml,Resp,VotesM),VotesO is VotesM * 1.1,!.
 
 % <cycrandom...>
@@ -416,10 +419,18 @@ computeCall(_Ctx,_Pred,_Mid,Result,ElseResult):-prolog_must(Result=ElseResult).
 
 % <gender..>
 computeElement(Ctx,Votes,Gender,Attribs,Input,Result,VotesO):- substitutionDictsName(Gender,DictName),!,
+   computeElement_subst(Ctx,Votes,Gender,DictName,Attribs,Input,Result,VotesO).
+
+% <gender|person2/>
+computeElement_subst(Ctx,Votes,_Gender,DictName,Attribs,[],Result,VotesO):-
+    computeElementMust(Ctx,Votes,star,Attribs,[],Hidden,VotesO),
+    substituteFromDict(Ctx,DictName,Hidden,Result),!.
+
+computeElement_subst(Ctx,Votes,_Gender,DictName,Attribs,Input,Result,VotesO):-
       withAttributes(Ctx,Attribs,((computeTemplate(Ctx,Votes,Input,Hidden,VotesO),
       substituteFromDict(Ctx,DictName,Hidden,Result)))),!.
 
-substituteFromDict(_Ctx,DictName,Hidden,result(Hidden,Result)):-Result=..[DictName,Hidden].
+substituteFromDict(_Ctx,DictName,Hidden,result([substs,DictName,on,Hidden],Result)):-Result=..[DictName,Hidden].
 
 
 format_formal(_Ctx,In,Out):-In=Out.
@@ -862,36 +873,37 @@ make_star_binders(_Ctx,StarName,InputPattern,MatchPattern,_MatchLevel,StarSets):
 
 :-setLogLevel(make_star_binders,none).
 
-% left hand star
-make_star_binders(_Ctx,StarName,Star,_Match,_MatchLevel,_StarSets):-isStar(StarName,Star,_),!,trace,fail. 
-
 %end check
-make_star_binders(_Ctx,_StarName,O,[],0,[]):-!,O==[].
-make_star_binders(_Ctx,_StarName,[],O,0,[]):-!,O==[].
+make_star_binders(_Ctx,_StarName,L,R,0,[]):-R==[],!,L==[].
+make_star_binders(_Ctx,_StarName,L,R,0,[]):-L==[],!,R==[].
+
+
+% left hand star/wild
+make_star_binders(_Ctx,StarName,Star,_Match,_MatchLevel,_StarSets):- not([StarName]=Star),isStarOrWild(StarName,Star,_WildValue,_WMatch,_Pred),!,trace,fail. 
+
 
 % simplify
 make_star_binders(Ctx,StarName,[Word1|B],[Word2|BB],Count,StarSets):-
-     atoms_match(Word1,Word2),!,make_star_binders(Ctx,StarName,B,BB,Count,StarSets).
+     sameWords(Word1,Word2),!,make_star_binders(Ctx,StarName,B,BB,Count,StarSets).
 
-% tail star
-make_star_binders(_Ctx,StarName,Pattern,[Star],V,[StarName=Pattern]):-isStar(StarName,Star,V),!.
-
-%%TODO one day .. make_star_binders(Ctx,StarName,A,B,10):- (var(A);var(B)),!, loggerFmt(make_star_binders,canMatchAtAll_vars(StarName,A,B)),!. 
+% tail (all now in) star/wildcard
+make_star_binders(_Ctx,StarName,Match,WildCard,WildValue,[Pred]):-isStarOrWild(StarName,WildCard,WildValue,Match,Pred),!.
 
 % once in star.. walk past star
-make_star_binders(Ctx,StarName,OList,[STAR,M0|More],ValueO,[StarName = SkipedSTAR|StarSets]):-isStarOrWild(StarName,STAR,StarValue),
-         append(SkipedSTAR,[M1|LeftMore],OList),atoms_match(M0,M1),
-         make_star_binders(Ctx,StarName,LeftMore,More,Value,StarSets),!,ValueO is StarValue + Value.
+make_star_binders(Ctx,StarName,OList,[WildCard,M0|More],ValueO,[Pred|StarSets]):-isStarOrWild(StarName,WildCard,WildValue,SkipedSTAR,Pred),
+         append(SkipedSTAR,[M1|LeftMore],OList),sameWords(M0,M1),
+         make_star_binders(Ctx,StarName,LeftMore,More,Value,StarSets),!,ValueO is WildValue + Value.
 
-% all now in star
-make_star_binders(_Ctx,StarName,I,STAR,Value,[StarName=I]):-isStarOrWild(StarName,STAR,Value),!,
-   loggerFmt(make_star_binders, canMatchAtAll_star(StarName,I,STAR)),!.
+% is mid-right hand wildcard
+make_star_binders(Ctx,StarName,[Match|B],[WildCard|BB],ValueO,[Pred|StarSets]):-isStarOrWild(StarName,WildCard,WildValue,Match, Pred),!,
+     make_star_binders(Ctx,StarName,B,BB,Value,StarSets),!,ValueO is WildValue + Value.
+
 
 %
 % re-write section
 %
 %
-
+/*
 make_star_binders(Ctx,StarName,InputNothing,MatchPattern,MatchLevel,StarSets):- 
    hotrace((InputNothing \== '*',(InputPattern==StarName ; meansNothing(InputNothing,InputPattern)))),!, trace,
    make_star_binders(Ctx,StarName,['Nothing'],MatchPattern,MatchLevel,StarSets).
@@ -910,20 +922,19 @@ make_star_binders(_Ctx,StarName,[I0|Pattern],[Match|MPattern],_MatchLevel,_Commi
 make_star_binders(_Ctx,_StarName,[_],[_,_|_],_NoNum,_NoCommit):-!,fail.
 
 
-% odd LHS
-make_star_binders(_Ctx,StarName,Star,M,V,[lhs(Star=M)]):-isWildCard(StarName,Star,V),trace,!.
-
-% LHS compound
 make_star_binders(_Ctx,StarName,[E|More],Match,Value,[tryLater([E|More],Match)]):-compound(E),trace,isWildCard(StarName,E,Value),!.
 
 % weird atom
 %%make_star_binders(_Ctx,StarName,I,Atom,12,[Atom=I]):-atom(Atom),trace,!,loggerFmt(make_star_binders,canMatchAtAll_atom(StarName,I,Atom)),!.
 
+*/
 
-isStarOrWild(StarName,Wild,Value):-isWildCard(StarName,Wild,Value);isStar(StarName,Wild,Value).
+isStarOrWild(StarName,[Text],Value,Match,Pred):-nonvar(Text),!,isStarOrWild(StarName,Text,Value,Match,Pred),!.
 
-isWildCard(StarName,Wild,1):- not(is_list(Wild)),compound(Wild),trace,Wild=..LWild,not(not(member(StarName,LWild))),!.
+isStarOrWild(StarName,Text,Value,Match,StarName=Match):-isStar(StarName,Text,Value),!.
+isStarOrWild(StarName,WildCard,Value,Match,Pred):- isWildCard(StarName,WildCard,Value,Match,Pred),!.
 
+isWildCard(StarName,Wild,1,Match,call(sameBinding(Wild,Match))):- not(is_list(Wild)),compound(Wild),Wild=..LWild,not(not(member(StarName,LWild))),!.
 
 requireableWord(StarName,M):-not(isOptionalOrStar(StarName,M)).
 
@@ -952,11 +963,20 @@ must_be_openCateArgs(Arg,_CateSig):-var(Arg),!.
 must_be_openCateArgs('*',_CateSig):-!.
 must_be_openCateArgs(List,CateSig):-trace, throw(List:CateSig),!.
 
-starSets(List):-prolog_must((starSets0(List),starSets1(List))).
-starSets0([StarName=_|List]):-flag(StarName,_,1),!,starSets0(List).
-starSets0(_):-!.
-starSets1([N=V|List]):-starSet(N,V),!,starSets1(List).
-starSets1(_):-!.
+starSets(List):-prolog_must((mapsome_openlist(starMust0,List),mapsome_openlist(starMust1,List),mapsome_openlist(starMust2,List))),!.
+
+endOfList(EndOfList):-(var(EndOfList);atomic(EndOfList)),!.
+
+starMust0(StarName=_):-flag(StarName,_,1).
+starMust1(StarName=Value):-starSet(StarName,Value).
+starMust2(call(Call)):-!,prolog_must(Call).
+starMust2(_Skip).
+
+mapsome_openlist(_Pred,EndOfList):-endOfList(EndOfList),!.
+mapsome_openlist(Pred,[Item|List]):-call(Pred,Item),!,mapsome_openlist(Pred,List).
+mapsome_openlist(Pred,[_|List]):- mapsome_openlist(Pred,List).
+mapsome_openlist(_Pred,_):-!.
+
 starSet(StarName,Pattern):- ignore((var(N),flag(StarName,N,N))),
    atom_concat(StarName,N,StarNameN),setAliceMem(_Ctx,user,StarNameN,Pattern),!,flag(StarName,NN,NN+1).
 
@@ -965,7 +985,7 @@ starSet(StarName,Pattern):- ignore((var(N),flag(StarName,N,N))),
 
 
 isStar0(Word1):- member(Word1,[*,'_']).
-atoms_match(Word1,Word2):-atom(Word1),atom(Word2),atoms_match0(Word1,Word2).
+sameWords(Word1,Word2):-atom(Word1),atom(Word2),atoms_match0(Word1,Word2).
  atoms_match0(Word1,Word2):- (isStar0(Word1);isStar0(Word2)),!,fail.
  atoms_match0(Word1,Word1):-!.
  atoms_match0(Word1,Word2):-upcase_atom(Word1,WordO),upcase_atom(Word2,WordO),!.
@@ -1085,20 +1105,29 @@ rememberSaidIt(Ctx,R1):-answerOutput(R1,SR1),!,
    getItemValue('you',Ctx,User),
    setAliceMem(Ctx,Robot,'lastSaid',SR1),
    splitSentences(SR1,SR2),
-   maplist_safe(setEachThat(Ctx,User),SR2).
+   previousVars('that',PrevVars,10),
+   maplist_safe(setEachSentenceThat(Ctx,User,PrevVars),SR2).
 
-setEachThat(Ctx,User,[]):-!.
-setEachThat(Ctx,User,SR3):-
-   getAliceMem(Ctx,User,'that',Prev),
-   setAliceMem(Ctx,User,'that_1',Prev),
-   setAliceMem(Ctx,User,'that',SR3).
+previousVars(That,[That],0):-!.
+previousVars(That,[Item|Prevs],N):-atomic_list_concat([That,'(',N,')'],Item), NN is N-1,previousVars(That,Prevs,NN).
+
+setEachSentenceThat(_Ctx,_User,_Vars,[]):-!.
+
+setEachSentenceThat(Ctx,User,[Var],SR0):-
+   cleanSentence(SR0,SR3),
+   setAliceMem(Ctx,User,Var,SR3).
+
+setEachSentenceThat(Ctx,User,[PrevVar,Var|MORE],SR0):-
+   getAliceMem(Ctx,User,default(Var,'Nothing'),Prev),
+   setAliceMem(Ctx,User,PrevVar,Prev),
+   setEachSentenceThat(Ctx,User,[Var|MORE],SR0).
 
    
 splitSentences(SR1,[SR0|SRMORE]):-grabFirstSetence(SR1,SR0,LeftOver),splitSentences(LeftOver,SRMORE),!.
 splitSentences(SR1,[SR1]):-!.
 
-grabFirstSetence(SR1,SRS,LeftOver):-sentenceEnder(EOS),LeftSide=[_,_|_],append(LeftSide,[EOS|LeftOver],SR1),append(LeftSide,[EOS],SR0),cleanSentence(SR0,SRS),!.
-cleanSentence(SR0,SRS):-leftTrim(SR0,sentenceEnderOrPunct,SRS),!.
+grabFirstSetence(SR1,SRS,LeftOver):-sentenceEnder(EOS),LeftSide=[_|_],append(LeftSide,[EOS|LeftOver],SR1),append(LeftSide,[EOS],SR0),cleanSentence(SR0,SRS),!.
+cleanSentence(SR0,SRS):-prolog_must(leftTrim(SR0,sentenceEnderOrPunct,SRS)),!.
 
 getRobot(Robot):-trace,getAliceMem(_Ctx,'robot','me',Robot),!.
 

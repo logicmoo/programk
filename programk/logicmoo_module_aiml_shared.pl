@@ -278,8 +278,17 @@ currentContext(Name,X):-makeAimlContext(Name,X),!.
 %getWordTokens(WORDS,TOKENS):-concat_atom(TOKENS,' ',WORDS).
 %is_string(S):-string(S).
 
-removePMark(UCase,Atoms):-append(AtomsPre,[Last],UCase),member(Last,[?,('.'),(','),('\n')]),!,removePMark(AtomsPre,Atoms).
+
+sentenceEnder(Last):-member(Last,[?,('.'),('\n')]).
+sentenceEnderOrPunct(Last):-member(Last,[?,('.'),(','),('\n')]).
+
+removePMark(UCase,Atoms):-append(AtomsPre,[Last],UCase),sentenceEnderOrPunct(Last),!,removePMark(AtomsPre,Atoms).
 removePMark(Atoms,Atoms).
+
+leftTrim([B|Before],ToRemove,After):-call(ToRemove,B),!,leftTrim(Before,ToRemove,After).
+leftTrim([B|Before],ToRemove,[B|After]):-leftTrim(Before,ToRemove,After).
+leftTrim([],_ToRemove,[]):-!.
+
 
 randomPick(List,Ele):-length(List,Len),Pick is random(Len),nth0(Pick,List,Ele),!.
 

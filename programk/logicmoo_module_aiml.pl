@@ -156,8 +156,9 @@ alicebot2(Ctx,Atoms,Resp):-
    sort(L,S),
    dumpList(S),
    reverse(S,[Resp|_RR]),
-   degrade(Resp),!,
-   rememberSaidIt(Ctx,Resp),!.
+   setThatResponse(Ctx,Resp),!.
+
+setThatResponse(Ctx,Resp):- degrade(Resp),!, rememberSaidIt(Ctx,Resp).
 
 computeInputOutput(Ctx,VoteIn,Input,Output,VotesOut):- prolog_must(computeAnswer(Ctx,VoteIn,element(srai,[],Input),Output,VotesOut)),!.
 
@@ -1083,8 +1084,21 @@ rememberSaidIt(Ctx,R1):-answerOutput(R1,SR1),!,
    getItemValue('me',Ctx,Robot),
    getItemValue('you',Ctx,User),
    setAliceMem(Ctx,Robot,'lastSaid',SR1),
-   setAliceMem(Ctx,User,'that',SR1).
+   splitSentences(SR1,SR2),
+   maplist_safe(setEachThat(Ctx,User),SR2).
+
+setEachThat(Ctx,User,[]):-!.
+setEachThat(Ctx,User,SR3):-
+   getAliceMem(Ctx,User,'that',Prev),
+   setAliceMem(Ctx,User,'that_1',Prev),
+   setAliceMem(Ctx,User,'that',SR3).
+
    
+splitSentences(SR1,[SR0|SRMORE]):-grabFirstSetence(SR1,SR0,LeftOver),splitSentences(LeftOver,SRMORE),!.
+splitSentences(SR1,[SR1]):-!.
+
+grabFirstSetence(SR1,SRS,LeftOver):-sentenceEnder(EOS),LeftSide=[_,_|_],append(LeftSide,[EOS|LeftOver],SR1),append(LeftSide,[EOS],SR0),cleanSentence(SR0,SRS),!.
+cleanSentence(SR0,SRS):-leftTrim(SR0,sentenceEnderOrPunct,SRS),!.
 
 getRobot(Robot):-trace,getAliceMem(_Ctx,'robot','me',Robot),!.
 

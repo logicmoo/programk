@@ -507,6 +507,8 @@ dictReplace(DictName,B,A):-dict(substitutions(DictName),Before,After),simplify_a
 
 substituteFromDict(Ctx,DictName,Hidden,Output):-answerOutput(Hidden,Mid),Hidden\==Mid,!,substituteFromDict(Ctx,DictName,Mid,Output),!.
 
+substituteFromDict(Ctx,DictName,Hidden,Output):- dictReplace(DictName,_,_),substituteFromDict_l(Ctx,DictName,Hidden,Output),!.
+
 substituteFromDict(_Ctx,DictName,Hidden,Output):- dictReplace(DictName,_,_),!,
       recorda(DictName,Hidden),
       forall(dictReplace(DictName,Before,After),
@@ -518,8 +520,13 @@ substituteFromDict(_Ctx,DictName,Hidden,Output):- dictReplace(DictName,_,_),!,
       debugFmt(substituteFromDict(Hidden,Output)),
       erase(Ref),!.
 
-
 substituteFromDict(_Ctx,DictName,Hidden,result([substs,DictName,on,Hidden],Result)):-Result=..[DictName,Hidden].
+
+substituteFromDict_l(_Ctx,_DictName,Hidden,Output):-atomic(Hidden),!,Hidden=Output.
+substituteFromDict_l(Ctx,DictName,[V|Hidden],[V|Output]):-verbatum(_)==V,!,substituteFromDict_l(Ctx,DictName,Hidden,Output).
+substituteFromDict_l(Ctx,DictName,Hidden,[verbatum(After)|Output]):-dictReplace(DictName,Before,After),length(Before,Left),length(NewBefore,Left),
+   append(NewBefore,Rest,Hidden),sameBinding(NewBefore,Before),!,substituteFromDict_l(Ctx,DictName,Rest,Output).
+substituteFromDict_l(Ctx,DictName,[V|Hidden],[V|Output]):-substituteFromDict_l(Ctx,DictName,Hidden,Output).
 
 
 format_formal(_Ctx,In,Out):-In=Out.

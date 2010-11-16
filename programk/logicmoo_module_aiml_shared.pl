@@ -39,6 +39,10 @@ prolog_must(Call):-prolog_must_call(Call).
 :-'$hide'(prolog_may/1).
 prolog_may(Call):-prolog_ecall(debugOnError,Call).
 
+:-'$hide'(debugOnError/1).
+:-'$hide'(debugOnError0/1).
+debugOnError(Call):-prolog_ecall(debugOnError0,Call).
+debugOnError0(Call):- catch(Call,E,(debugFmt(caugth(Call,E)),trace,Call)).
 
 :-'$hide'(prolog_must_call/1).
 prolog_must_call(Call):- prolog_ecall(prolog_must_call0,Call).   
@@ -54,17 +58,16 @@ prolog_must_tracing0(Call):-trace(Call,[-all,+fail]), atLeastOne(Call,hotrace(ai
 prolog_ecall(_Pred,Call):-var(Call),!,trace,randomVars(Call).
 prolog_ecall(Pred,(X->Y;Z)):-!,(call(X) -> prolog_ecall(Pred,Y) ; prolog_ecall(Pred,Z)).
 prolog_ecall(Pred,(X->Y)):-!,(call(X)->prolog_ecall(Pred,Y)).
+prolog_ecall(Pred,catch(C,E,H)):-!,catch(prolog_ecall(Pred,C),E,prolog_ecall(Pred,H)).
 prolog_ecall(Pred,(X;Y)):-!,prolog_ecall(Pred,X);prolog_ecall(Pred,Y).
 prolog_ecall(Pred,(X,Y)):-!,prolog_ecall(Pred,X),prolog_ecall(Pred,Y).
 prolog_ecall(Pred,prolog_must(Call)):-!,prolog_ecall(Pred,Call).
-prolog_ecall(_Pred,prolog_may(Call)):-!,Call.
-prolog_ecall(Pred,Call):- fail, ignore((Call=atom(_),trace)), 
+prolog_ecall(_Pred,prolog_may(Call)):-!,debugOnError(Call).
+prolog_ecall(_Pred,Call):- fail, ignore((Call=atom(_),trace)), 
     predicate_property(Call,number_of_clauses(_Count)),
-    clause(Call,(_A,_B)),!,catch(clause(Call,Body),_,
-      (trace,predicate_property(Call,number_of_clauses(_Count2)),
-      clause(Call,Body))),prolog_ecall(Pred,Body).
-
-prolog_ecall(Pred,Call):- call(Pred,Call).
+    catch((clause(Call,AB),AB\==true),_,((trace,predicate_property(Call,number_of_clauses(_Count2)),fail))),!,
+    clause(Call,Body),debugOnError(Body).
+prolog_ecall(Pred,Call):- debugOnError0(call(Pred,Call)).
 
 
 %%:-'$hide'(atLeastOne/1).

@@ -165,13 +165,14 @@ popAttributes(Ctx,Scope,[N=V|L]):- !,checkAttribute(Scope,N,V),popNameValue(Ctx,
 popAttributes(_Ctx,_Scope,[]).
 
 withAttributes(_Ctx,ATTRIBS,Call):-ATTRIBS==[],!,Call.
-withAttributes(Ctx,ATTRIBS,Call):- 
+withAttributes(Ctx,ATTRIBS,Call):-
+  hotrace((
    ensureScope(Ctx,ATTRIBS,Scope),
-   checkAttributes(Scope,ATTRIBS),
+   checkAttributes(Scope,ATTRIBS))),
    call_cleanup((
-    once(pushAttributes(Ctx,Scope,ATTRIBS)),
-    Call),
-    once(popAttributes(Ctx,Scope,ATTRIBS))).
+    once(hotrace(pushAttributes(Ctx,Scope,ATTRIBS))),
+      Call),
+    once(hotrace(popAttributes(Ctx,Scope,ATTRIBS)))).
 
 checkAttributes(Scope,ATTRIBS):-prolog_must(nonvar(ATTRIBS)),maplist(checkAttribute(Scope),ATTRIBS).
 checkAttribute(Scope,N=V):-checkAttribute(Scope,N,V).

@@ -131,24 +131,27 @@ peekNameValue(Ctx,Scope,Name,Value):-peekNameValue(Ctx,Scope,Name,Value,Failed),
 peekNameValue(Ctx,Scope,Name,Value,Else):-nonvar(Value),!,checkNameValue(Ctx,Scope,Name,Value,Else).
 peekNameValue(Ctx,_Scope,Name,Value,_ElseVar):-getCtxValue(Name,Ctx,Value),!.
 peekNameValue(Ctx,List,Name,Value,_ElseVar):- nonvar(List),not(atom(List)),attributeOrTagValue(Ctx,List,Name,Value,'$failure'),!.
-peekNameValue(_Ctx,Scope,Name,Value,_ElseVar):-dict(Scope,Name,Value),checkAttribute(Scope,Name,Value),!.
-peekNameValue(_Ctx,Scope,Name,Value,_ElseVar):-nonvar(Scope),dict(Scope2,Name,Value),Scope\=Scope2,checkAttribute(Scope2,Name,Value),!,checkValue(Value).
+peekNameValue(Ctx,Scope,Name,Value,_ElseVar):-getAliceMemDictOnly(Ctx,Scope,Name,Value),checkAttribute(Scope,Name,Value),!.
+peekNameValue(Ctx,Scope,Name,Value,_ElseVar):-nonvar(Scope),getAliceMemDictOnly(Ctx,Scope2,Name,Value),Scope\=Scope2,checkAttribute(Scope2,Name,Value),!,checkValue(Value).
 peekNameValue(Ctx,_Scope,Name,Value,ElseVar):-makeParamFallback(Ctx,Name,Value,ElseVar),!.
 %%peekNameValue(_Ctx,_Scope,_Name,Value,ElseVar):-ignore(Value=ElseVar),!.
 
 checkNameValue(Ctx,Scope,[Name],Value,Else):-!,peekNameValue(Ctx,Scope,Name,ValueVar,Else),!,checkValue(ValueVar),valuesMatch(Ctx,ValueVar,Value),!.
 checkNameValue(Ctx,Scope,Name,Value,Else):-peekNameValue(Ctx,Scope,Name,ValueVar,Else),!,checkValue(ValueVar),valuesMatch(Ctx,ValueVar,Value),!.
 
-valuesMatch(_Ctx,_V,A):-A=='*'.
-valuesMatch(_Ctx,V,_A):-V=='*'.
-valuesMatch(_Ctx,V,A):-V=A.
+valuesMatch(_Ctx,_V,A):-A=='*',!.
+valuesMatch(_Ctx,V,_A):-V=='*',!.
+valuesMatch(_Ctx,V,A):-V=A,!.
 valuesMatch(Ctx,V,A):-compound(V),convertToMatchable(V,VV),!,valuesMatch0(Ctx,VV,A).
 valuesMatch(Ctx,V,A):-compound(A),convertToMatchable(A,AA),!,valuesMatch0(Ctx,V,AA).
 
+
 valuesMatch0(_Ctx,V,A):-V=A.
 valuesMatch0(Ctx,[V|VV],[A|AA]):-valuesMatch0(Ctx,V,A),!,valuesMatch0(Ctx,VV,AA).
+valuesMatch0(_Ctx,V,A):-sameBinding(V,A),!.
 valuesMatch0(Ctx,[V],A):-!,valuesMatch0(Ctx,V,A).
 valuesMatch0(Ctx,V,[A]):-!,valuesMatch0(Ctx,V,A).
+
 
 valueMP(Var,M):- member(M, [var(Var), Var=missing, Var=[], Var=(*) , (Var=(-(_))) ]),M,!.
 valueMP(V,(V='ERROR')):-prolog_must(ground(V)),term_to_atom(V,A), concat_atom_safe([_,_|_],'ERROR',A),!.

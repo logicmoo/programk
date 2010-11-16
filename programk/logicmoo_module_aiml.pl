@@ -345,7 +345,7 @@ computeElement_li(Ctx,Votes,Preconds,_InnerXml,OutProof,VotesO):-makeBlank(Ctx,V
 
   precondsTrue0(_Ctx,PC):-PC==[];var(PC),!.
   precondsTrue0(Ctx,[NV|MORE]):-!,precondsTrue0(Ctx,MORE),!,precondsTrue0(Ctx,NV).
-  precondsTrue0(Ctx,N=V):- peekNameValue(Ctx,user,N,Value,[]),!,valuesMatch(Ctx,Value,V).
+  precondsTrue0(Ctx,N=V):- peekNameValue(Ctx,user,N,Value,[]),!,(valuesMatch(Ctx,Value,V)->debugFmt(valuesMatch(Value,V));debugFmt(valuesMatch(not,Value,V))),valuesMatch(Ctx,Value,V).
   precondsTrue0(_Ctx,_NV):-trace.
 
 % <random...>
@@ -507,7 +507,7 @@ dictReplace(DictName,B,A):-dict(substitutions(DictName),Before,After),simplify_a
 
 substituteFromDict(Ctx,DictName,Hidden,Output):-answerOutput(Hidden,Mid),Hidden\==Mid,!,substituteFromDict(Ctx,DictName,Mid,Output),!.
 
-substituteFromDict(Ctx,DictName,Hidden,Output):- dictReplace(DictName,_,_),substituteFromDict_l(Ctx,DictName,Hidden,Output),!.
+substituteFromDict(Ctx,DictName,Hidden,Output):- dictReplace(DictName,_,_),prolog_must(substituteFromDict_l(Ctx,DictName,Hidden,Output)),!.
 
 substituteFromDict(_Ctx,DictName,Hidden,Output):- dictReplace(DictName,_,_),!,
       recorda(DictName,Hidden),
@@ -1156,20 +1156,22 @@ unresultifyC(DictI,Dict):-unresultify(DictI,Dict),DictI\==Dict,!.
 % ===============================================================================================
 % get / set  Global Variables
 % ===============================================================================================
+:-dynamic(dict/3).
 
-getAliceMem(_Ctx,Dict,Name,Value):- dict(Dict,Name,Value),!.
-getAliceMem(Ctx,DictI,Name,Value):-unresultifyC(DictI,Dict),!,getAliceMem(Ctx,Dict,Name,Value),!.
-getAliceMem(Ctx,Dict,NameI,Value):-unresultifyC(NameI,Name),!,getAliceMem(Ctx,Dict,Name,Value),!.
+getAliceMem(Ctx,Dict,default(Name,Default),OValue):-!, (getAliceMemDictOnly(Ctx,Dict,Name,ValueO) -> OValue = ValueO ; OValue = Default). 
+getAliceMem(Ctx,Dict,Name,ValueO):- var(ValueO), !, once(getAliceMemDictOnly(Ctx,Dict,Name,ValueO);ValueO=[unknown,Name]).
+getAliceMem(Ctx,Dict,Name,'OM'):- !,not((getAliceMemDictOnly(Ctx,Dict,Name,ValueO),ValueO\=='OM')).
 getAliceMem(Ctx,Dict,Name,ValueI):-unresultifyC(ValueI,Value),!,getAliceMem(Ctx,Dict,Name,Value),!,prolog_must(nonvar(ValueI)),!.
-getAliceMem(Ctx,Dict,Name,Value):-is_list(Dict),last(Dict,Last),!,getAliceMem(Ctx,Last,Name,Value),!.
-getAliceMem(Ctx,Dict,Name,Value):-atom(Dict),downcase_atom(Dict,Down),Dict\=Down,!,getAliceMem(Ctx,Down,Name,Value),!.
-getAliceMem(_Ctx,Dict,default(Name,Default),OValue):- !, 
-         %prolog_must( getAliceMem(Ctx,Dict,Name,'OM') -> Default=Value ; getAliceMem(Ctx,Dict,Name,Value)),!.
-         prolog_must(once(( dict(Dict,Name,OValue) ; (OValue = Default )))),!.
-getAliceMem(Ctx,Dict,Name,Value):-atom(Name),downcase_atom(Name,Down),Name\=Down,dict(Dict,Down,_SomeValue),!,getAliceMem(Ctx,Dict,Down,Value),!.
-getAliceMem(_Ctx,Dict,Name,OM):-  'OM'==OM,!, not(dict(Dict,Name,_Value)).
-getAliceMem(_Ctx,_Dict,Name,[unknown,Name]):-!.
+getAliceMem(Ctx,Dict,Name,ValueI):- getAliceMemDictOnly(Ctx,Dict,Name,ValueO),!,sameBinding(ValueI,ValueO).
 
+
+getAliceMemDictOnly(_Ctx,_Dict,_Name,Value):-prolog_must(var(Value)),fail.
+getAliceMemDictOnly(_Ctx,Dict,Name,Value):-dict(Dict,Name,Value),!.
+getAliceMemDictOnly(Ctx,DictI,Name,Value):-unresultifyC(DictI,Dict),!,getAliceMemDictOnly(Ctx,Dict,Name,Value),!.
+getAliceMemDictOnly(Ctx,Dict,NameI,Value):-unresultifyC(NameI,Name),!,getAliceMemDictOnly(Ctx,Dict,Name,Value),!.
+getAliceMemDictOnly(Ctx,Dict,Name,ValueI):-unresultifyC(ValueI,Value),!,getAliceMemDictOnly(Ctx,Dict,Name,Value),!,prolog_must(nonvar(ValueI)),!.
+getAliceMemDictOnly(Ctx,Dict,Name,Value):-is_list(Dict),last(Dict,Last),!,getAliceMemDictOnly(Ctx,Last,Name,Value),!.
+getAliceMemDictOnly(Ctx,Dict,Name,Value):-atom(Dict),downcase_atom(Dict,Down),Dict\=Down,getAliceMemDictOnly(Ctx,Down,Name,Value),!.
 
 
 setAliceMem(Ctx,DictI,Name,Value):-unresultifyC(DictI,Dict),!,setAliceMem(Ctx,Dict,Name,Value),!.
@@ -1183,7 +1185,6 @@ setAliceMem(Ctx,Dict,Name,Value):-atom(Name),downcase_atom(Name,Down),Name\=Down
 setAliceMem(Ctx,Dict,default(Name),DefaultValue):-getAliceMem(Ctx,Dict,Name,'OM')->setAliceMem(Ctx,Dict,Name,DefaultValue);true.
 setAliceMem(_Ctx,Dict,Name,Value):- ignore(retract(dict(Dict,Name,B))),ignore(B='OM'),retractall(dict(Dict,Name,_)),
    asserta(dict(Dict,Name,Value)).%%,debugFmt('/* ~q. */~n',[dict(Dict,Name,B->Value)]),!.
-:-dynamic(dict/3).
 
 
 setCurrentAliceMem(Dict,X,E):-currentContext(setCurrentAliceMem(Dict,X,E),Ctx), setAliceMem(Ctx,Dict,X,E).

@@ -228,7 +228,12 @@ aimlPredCount(Pred,File,Count):-source_file(File),atom_contains(File,'aiml'),sou
 % Utils
 % =================================================================================
 
-unify_listing(FileMatch):-functor(FileMatch,F,A),unify_listing(FileMatch,F,A),!.
+unify_listing(FileMatch):-unify_listing(FileMatch,_NumberFound).
+unify_listing(FileMatch,NumberFound):-unify_listing0(FileMatch),flag(printAll,NumberFound,0).
+
+unify_listing0(FileMatch):-functor(FileMatch,F,A),unify_listing(FileMatch,F,A),!.
+
+
 unify_listing_header(FileMatch):-functor(FileMatch,F,A),unify_listing_header(FileMatch,F,A),!.
 
 unify_listing_header(FileMatch,F,A):- (format('~n/* Prediate:  ~q / ~q  ~n',[F,A,FileMatch])),fail.
@@ -242,7 +247,7 @@ unify_listing(FileMatch,F,A):- unify_listing_header(FileMatch,F,A), printAll(Fil
 
 printAll(FileMatch):-printAll(FileMatch,FileMatch).
 printAll(Call,Print):- flag(printAll,_,0), forall((Call,flag(printAll,N,N+1)),(format('~q.~n',[Print]))),fail.
-printAll(_Call,Print):- flag(printAll,PA,0),(format('~n /* found ~q for ~q. ~n */ ~n',[PA,Print])).
+printAll(_Call,Print):- flag(printAll,PA,PA),(format('~n /* found ~q for ~q. ~n */ ~n',[PA,Print])).
 
 contains_term(SearchThis,Find):-Find==SearchThis,!.
 contains_term(SearchThis,Find):-compound(SearchThis),functor(SearchThis,Func,_),(Func==Find;arg(_,SearchThis,Arg),contains_term(Arg,Find)).

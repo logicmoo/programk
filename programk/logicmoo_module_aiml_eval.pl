@@ -35,7 +35,10 @@ aiml_call(Ctx,[Atomic|Rest]):- !, %%trace,
 % Test Suite  
 % ============================================
 aiml_call(Ctx,element('testsuite',ATTRIBS,LIST)):-
-     withAttributes(Ctx,ATTRIBS,maplist_safe(aiml_call(Ctx),LIST)),listing(unitTestResult).
+     withAttributes(Ctx,ATTRIBS,maplist_safe(aiml_call(Ctx),LIST)),
+     unify_listing(unitTestResult(unit_passed,PRINTRESULT),Passed),
+     unify_listing(unitTestResult(unit_failed,PRINTRESULT),Failed),
+     debugFmt(testsuite_passed_failed(Passed,Failed)),!.
 
 aiml_call(Ctx,Current):- Current=element(TC,ATTRIBS,_LIST), member(TC,['testcase','TestCase']),!,
  debugOnFailureAiml((
@@ -219,6 +222,9 @@ systemCall_Bot(Ctx,['set'],template([setted,Ctx])):-!,listing(dict).
 systemCall_Bot(Ctx,['load'|REST],OUT):- !, debugOnFailure(systemCall_Load(Ctx,REST,OUT)),!.
 systemCall_Bot(Ctx,['find'|REST],OUT):- !, debugOnFailure(systemCall_Find(Ctx,REST,OUT)),!.
 systemCall_Bot(Ctx,['chgraph',Graph],['chgraph',Graph]):- set_current_value(Ctx,graph,Graph),!.
+systemCall_Bot(_Ctx,['substs',DictName],['substsof',DictName]):- unify_listing(dictReplace(DictName,_,_)),!.
+systemCall_Bot(_Ctx,['substs'],['substsof',all]):- unify_listing(dictReplace(_DictName,_,_)),!.
+
 systemCall_Bot(_Ctx,DONE,template([delayed,DONE])):-!.
 
 systemCall_Load(Ctx,[],template([loaded,Ctx])):-!.

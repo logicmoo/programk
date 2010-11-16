@@ -520,21 +520,30 @@ Found the hyphen+done. star= 1
   </category>
 
   <category>
-    <pattern>QT</pattern>
+    <pattern>QTP</pattern>
     <template>
-      <load graph="ProgramD" filename="ProgramD\AIML.aiml" />
+      <system>@chgraph programd</system>
       <load graph="ProgramD" filename="ProgramD\predicates.xml" />
       <load graph="ProgramD" filename="ProgramD\properties.xml" />
       <load graph="ProgramD" filename="ProgramD\substitutions.xml" />
-      <system>@chgraph programd</system>
+    </template>
+  </category>
+
+<!--
+  <category>
+    <pattern>QT</pattern>
+    <template>
+      <load graph="ProgramD" filename="ProgramD\AIML.aiml" />
       <pre> now @load ProgramD\AIML.xml </pre>
     </template>
   </category>
+ -->
 
   <aiml graph="ProgramD">
     <category>
       <pattern>QT1</pattern>
       <template graph="ProgramD">
+        <srai>QTP</srai>
         <system>@load ProgramD\AIML.xml</system>
       </template>
     </category>

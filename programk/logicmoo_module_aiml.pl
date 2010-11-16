@@ -189,8 +189,8 @@ evalSRAI(Ctx,Votes,ATTRIBS,Input0,Output,VotesO):-
     prolog_must(nonvar(MidIn)),
       debugFmt(sraiTRACE(Input,MidIn)),
       computeElementMust(Ctx,VotesM,template,ATTRIBS,MidIn,MidIn9,VotesI9),
-      debugFmt(computeElementMust(Input,MidIn,MidIn9)),
       prolog_must(answerOutput(MidIn9,Mid9)),
+      debugFmt(evalSRAI(Input,MidIn,MidIn9,Mid9)),
       prolog_must(computeAnswer(Ctx,VotesI9,Mid9,Output,VotesO)))).
 
 % ===============================================================================================
@@ -227,7 +227,7 @@ expandVar(_Ctx,mynick,'jllykifsh'):-!.
 expandVar(_Ctx,name=name,'jllykifsh'):-!.
 expandVar(_Ctx,mychan,A):-!,default_channel(B),!,from_atom_codes(A,B),!.
 expandVar(_Ctx,Resp,Resp):-atomic(Resp),!.
-expandVar(Ctx,In,Out):-prolog_must(computeAnswer(Ctx,1,In,Out,_VotesO)).
+expandVar(Ctx,In,Out):-computeAnswerMaybe(Ctx,1,In,Out,_VotesO).
 
 
 
@@ -325,12 +325,19 @@ computeElement(_Ctx,Votes,srai,ATTRIBS,[],result([],srai=ATTRIBS),VotesO):-trace
 % <srai>s   
 computeElement(Ctx,Votes,srai,ATTRIBS,Input0,Output,VotesO):- 
   prolog_must(ground(Input0)),!,flatten([Input0],Input), !,
-   evalSRAI(Ctx,Votes,ATTRIBS,Input,Output,VotesO).
+  withAttributes(Ctx,ATTRIBS,((computeTemplate(Ctx,Votes,Input,Middle,VotesM),
+   evalSRAI(Ctx,VotesM,ATTRIBS,Middle,Output,VotesO)))).
 
-% <li>s
-computeElement(Ctx,Votes,li,Preconds,InnerXml,OutProof,VotesO):-!,
+% <li...>
+computeElement(Ctx,Votes,li,Preconds,InnerXml,OutProof,VotesO):- !, computeElement_li(Ctx,Votes,Preconds,InnerXml,OutProof,VotesO).
+
+% <li> PASSED
+computeElement_li(Ctx,Votes,Preconds,InnerXml,OutProof,VotesO):-
      precondsTrue(Ctx,Preconds),!,computeTemplate(Ctx,Votes,InnerXml,Output,VotesM),VotesO is VotesM * 1.1,!,
      prolog_must(OutProof = proof(Output,Preconds)).
+
+% <li> FAILED ==> []
+computeElement_li(Ctx,Votes,Preconds,_InnerXml,OutProof,VotesO):-makeBlank(Ctx,Votes,failed(Preconds),OutProof,VotesO),!.
 
   precondsTrue(Ctx,PC):-lastMember(name=Name,PC,WO),lastMember(value=Value,WO,Rest),!,precondsTrue0(Ctx,[Name=Value|Rest]).
   precondsTrue(_Ctx,PC):-PC==[];var(PC),!.
@@ -346,14 +353,27 @@ computeElement(Ctx,Votes,random,_Attribs,List,AA,VotesO):-!,randomPick(List,Pick
 
 % <condition...>
 computeElement(Ctx,Votes,condition,CondAttribs,InnerXml,Result,VotesO):- 
-     computeElement_condition(Ctx,Votes,CondAttribs,InnerXml,Result,VotesO),!.
+     prolog_must(computeElement_condition(Ctx,Votes,CondAttribs,InnerXml,Result,VotesO)),!.
 
-computeElement_condition(Ctx,Votes,CondAttribs,InnerXml,Result,VotesO):- prolog_may(computeAnswerMaybe(Ctx,Votes,element(li,CondAttribs,InnerXml),Result,VotesO)),!.
+% <condition name="foo" value="bar"> (acts like a <li name="foo" value="bar">)
+computeElement_condition(Ctx,Votes,CondAttribs,InnerXml,Result,VotesO):- 
+   copy_term(CondAttribs,CondAttribsCopy),
+     attributesContainOneOf0(CondAttribsCopy,[value=_]),attributesContainOneOf0(CondAttribsCopy,[var=_,name=_]),!,
+      prolog_must(prolog_may(computeAnswerMaybe(Ctx,Votes,element(li,CondAttribs,InnerXml),Result,VotesO));makeBlank(Ctx,Votes,failed(CondAttribs),Result,VotesO)),!.
+
+% <condition><li..>
 computeElement_condition(Ctx,Votes,CondAttribs,InnerXml,Result,VotesO):-
   last(InnerXml,Last),
    withAttributes(Ctx, CondAttribs,
-      once( (member(Pick,InnerXml),computeAnswerMaybe(Ctx,Votes,withAttributes(CondAttribs,Pick),Result,VotesO)) ; Failed=failed)),
-    (Failed \== Failed -> Result = Last; true),!.
+     once( 
+      once((member(Pick,InnerXml),once((computeAnswerMaybe(Ctx,Votes,withAttributes(CondAttribs,Pick),Result,VotesO),isNonBlank(Result)))))
+         ; (Result = Last, VotesO is Votes * 0.9))),!.
+
+makeBlank(_Ctx,Votes,Message,result([],Message),VotesO):- VotesO is Votes * 0.3 . %%%failed(CondAttribs)
+
+attributesContainOneOf(CondAttribs,AllOf):-copy_term(CondAttribs,CondAttribsCopy),attributesContainOneOf0(CondAttribsCopy,AllOf),!.
+attributesContainOneOf0(CondAttribsCopy,AllOf):-member(Find,AllOf),member(Find,CondAttribsCopy),!.
+isNonBlank(Result):-answerOutput(Result,Stuff),!,nonvar(Stuff),Stuff=[].
 
 % <input/response/that index="1"...>
 computeElement(Ctx,Votes,InputResponse,Attribs,InnerXml,Resp,VotesO):-member(InputResponse,[input,response,that]),!,
@@ -423,12 +443,81 @@ computeElement(Ctx,Votes,Gender,Attribs,Input,Result,VotesO):- substitutionDicts
 
 % <gender|person2/>
 computeElement_subst(Ctx,Votes,_Gender,DictName,Attribs,[],Result,VotesO):-
-    computeElementMust(Ctx,Votes,star,Attribs,[],Hidden,VotesO),
+    computeElementMust(Ctx,Votes,star,Attribs,[],Hidden,VotesO),    
     substituteFromDict(Ctx,DictName,Hidden,Result),!.
 
 computeElement_subst(Ctx,Votes,_Gender,DictName,Attribs,Input,Result,VotesO):-
       withAttributes(Ctx,Attribs,((computeTemplate(Ctx,Votes,Input,Hidden,VotesO),
       substituteFromDict(Ctx,DictName,Hidden,Result)))),!.
+
+% ===================================================================
+% Substitution based on Pred like sameWordsDict(String,Pattern).
+% ===================================================================
+
+simplify_atom(A,D):- downcase_atom(A,B),atomic_list_concat(L0,'\\b',B),delete(L0,'',L),atomic_list_concat(L,' ',C),!,atomSplit(C,D),!.
+
+sameWordsDict([String|A],[Pattern|B]):-!,sameWordsDict0(String,Pattern),!,sameWordsDict_l(A,B),!.
+sameWordsDict(String,Pattern):-sameWordsDict0(String,Pattern),!.
+
+sameWordsDict_l([String|A],[Pattern|B]):-sameWordsDict0(String,Pattern),sameWordsDict_l(A,B),!.
+sameWordsDict_l([],[]):-!.
+
+sameWordsDict0(verbatum(_String),_):-!,fail.
+sameWordsDict0(_,verbatum(_Pattern)):-!,fail.
+sameWordsDict0(String,Pattern):-compound(String), 
+   debugOnFailure((answerOutput_atom(String,String1),debugFmt(interactStep(String,String1,Pattern)),String \== String1)),!,
+   sameWordsDict0(String1,Pattern).
+
+sameWordsDict0(String,Pattern):-compound(Pattern), 
+   debugOnFailure((answerOutput_atom(Pattern,Pattern1),debugFmt(interactStep(Pattern,Pattern1,String)), Pattern \== Pattern1)),!,
+   sameWordsDict0(String,Pattern1).
+
+sameWordsDict0(String,Pattern):-String==Pattern,!,debugFmt(sameWordsDict(String,Pattern)).
+%sameWordsDict0(String,Pattern):-debugFmt(sameWordsDict0(String,Pattern)),wildcard_match(Pattern,String),!.
+%sameWordsDict0(String,Pattern):-dwim_match(Pattern,String),!.
+
+answerOutput_atom(Pattern,Pattern1):-unresultify(Pattern,Pattern0),unlistify(Pattern0,Pattern1),!,prolog_must(atomic(Pattern1)).
+
+interactStep(_String):-!.  %%%debugFmt(interactStep(String)),!,get_char(_).
+
+% Usage: pred_subst(+Pred, +Fml,+X,+Sk,?FmlSk)
+
+pred_subst(Pred,A,[B],C,D):- nonvar(B),!,pred_subst(Pred,A,B,C,D).
+pred_subst(Pred,A,B,C,D):- catch(notrace(nd_subst(Pred,A,B,C,D)),E,(debugFmt(E),fail)),!.
+pred_subst(_Pred,A,_B,_C,A).
+
+nd_subst(Pred,  Var, VarS,SUB,SUB ) :- call(Pred,Var,VarS),!.
+nd_subst(Pred,  P, X, Sk, P1 ) :- functor(P,_,N),nd_subst1(Pred, X, Sk, P, N, P1 ).
+
+nd_subst1(_Pred, _,  _, P, 0, P  ).
+nd_subst1(Pred, X, Sk, P, N, P1 ) :- N > 0, P =.. [F|Args], 
+            nd_subst2(Pred, X, Sk, Args, ArgS ),
+            nd_subst2(Pred, X, Sk, [F], [FS] ),  
+            P1 =.. [FS|ArgS].
+
+nd_subst2(_Pred, _,  _, [], [] ).
+nd_subst2(Pred, X, Sk, [A|As], [A|AS]  ) :- nonvar(A), A=verbatum(_), !, nd_subst2(Pred, X, Sk, As, AS).
+nd_subst2(Pred, X, Sk, [A|As], [Sk|AS] ) :- call(Pred, X, A), !, nd_subst2(Pred, X, Sk, As, AS).
+nd_subst2(Pred, X, Sk, [A|As], [A|AS]  ) :- var(A), !, nd_subst2(Pred, X, Sk, As, AS).
+nd_subst2(Pred, X, Sk, [A|As], [Ap|AS] ) :- nd_subst(Pred, A, X, Sk, Ap ),nd_subst2(Pred, X, Sk, As, AS).
+nd_subst2(_Pred, _X, _Sk, L, L ).
+
+
+dictReplace(DictName,B,A):-dict(substitutions(DictName),Before,After),simplify_atom(Before,B),simplify_atom(After,A).
+
+substituteFromDict(Ctx,DictName,Hidden,Output):-answerOutput(Hidden,Mid),Hidden\==Mid,!,substituteFromDict(Ctx,DictName,Mid,Output),!.
+
+substituteFromDict(_Ctx,DictName,Hidden,Output):- dictReplace(DictName,_,_),!,
+      recorda(DictName,Hidden),
+      forall(dictReplace(DictName,Before,After),
+          (recorded(DictName,Start,Ref),
+          erase(Ref),              
+          pred_subst(sameWordsDict,Start,Before,verbatum(After),End),
+          recorda(DictName,End))),
+      recorded(DictName,Output,Ref),
+      debugFmt(substituteFromDict(Hidden,Output)),
+      erase(Ref),!.
+
 
 substituteFromDict(_Ctx,DictName,Hidden,result([substs,DictName,on,Hidden],Result)):-Result=..[DictName,Hidden].
 
@@ -572,8 +661,27 @@ computeAnswer0(Ctx,Votes,MidVote - In,Out,VotesO):- prolog_must(nonvar(MidVote))
 
 computeAnswer0(_Ctx,Votes,_I,_,_):-(Votes>20;Votes<0.3),!,fail.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
+% elements
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
 
-computeAnswer(_Ctx,Votes,Res, Res,Votes):-resultOrProof(Res,_Mid),!.
+% element inner reductions
+computeAnswer_1_disabled(Ctx,Votes, element(Tag, ATTRIBS, [DO|IT]), OUT, VotesO) :- recursiveTag(Tag),not(DO=(_-_)),!,
+     appendAttributes(Ctx,ATTRIBS, [computeAnswer=[side_effects_allow=[transform],intag=Tag]], ATTRIBS_NEW),
+       withAttributes(_Ctx,ATTRIBS_NEW, findall(Each,((member(In,[DO|IT]),computeInner(Ctx,Votes, In, Each))),INNERDONE)),
+       computeElementMust(Ctx,Votes,Tag, ATTRIBS, INNERDONE, OUT, VotesO).
+
+computeAnswer(Ctx,Votes, element(Tag, ATTRIBS, [DO|IT]), OUT, VotesO) :- recursiveTag(Tag),not(DO=(_-_)),!,
+     appendAttributes(Ctx,ATTRIBS, [computeAnswer=[side_effects_allow=[transform],intag=Tag]], ATTRIBS_NEW),
+         withAttributes(Ctx,ATTRIBS_NEW, maplist_safe(computeInnerEach(Ctx, Votes),[DO|IT],INNERDONE)),
+       prolog_mostly_ground((INNERDONE)),
+       computeElementMust(Ctx,Votes,Tag, ATTRIBS, INNERDONE, OUT, VotesO).
+
+computeAnswer(Ctx,Votes,element(Tag,Attribs,List),Out,VotesO):-!,computeElement(Ctx,Votes,Tag,Attribs,List,Out,VotesO),!.
+
+% never gets here due to element/3 cutted above
+computeAnswer(Ctx,Votes,element(Tag,Attribs,List),Output,VotesO):- !,computeElement(Ctx,Votes,Tag,Attribs,List,Output,VotesO),!.
+computeAnswer(Ctx,Votes,element(Tag,Attribs,List),Out,VotesO):-trace,computeElement(Ctx,Votes,Tag,Attribs,List,Out,VotesO),!.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
@@ -603,24 +711,6 @@ computeAnswer(Ctx,Votes,In,Out,Votes):-atomic(In),expandVar(Ctx,In,Out).
 computeAnswer(_Ctx,Votes,Resp,Resp,Votes):-atomic(Resp),!.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
-% elements
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
-
-% element inner reductions
-computeAnswer_1_disabled(Ctx,Votes, element(Tag, ATTRIBS, [DO|IT]), OUT, VotesO) :- recursiveTag(Tag),not(DO=(_-_)),!,
-     appendAttributes(Ctx,ATTRIBS, [computeAnswer=[side_effects_allow=[transform],intag=Tag]], ATTRIBS_NEW),
-       withAttributes(_Ctx,ATTRIBS_NEW, findall(Each,((member(In,[DO|IT]),computeInner(Ctx,Votes, In, Each))),INNERDONE)),
-       computeElementMust(Ctx,Votes,Tag, ATTRIBS, INNERDONE, OUT, VotesO).
-
-computeAnswer(Ctx,Votes, element(Tag, ATTRIBS, [DO|IT]), OUT, VotesO) :- recursiveTag(Tag),not(DO=(_-_)),!,
-     appendAttributes(Ctx,ATTRIBS, [computeAnswer=[side_effects_allow=[transform],intag=Tag]], ATTRIBS_NEW),
-         withAttributes(Ctx,ATTRIBS_NEW, maplist_safe(computeInnerEach(Ctx, Votes),[DO|IT],INNERDONE)),
-       prolog_mostly_ground((INNERDONE)),
-       computeElementMust(Ctx,Votes,Tag, ATTRIBS, INNERDONE, OUT, VotesO).
-
-computeAnswer(Ctx,Votes,element(Tag,Attribs,List),Out,VotesO):-!,computeElement(Ctx,Votes,Tag,Attribs,List,Out,VotesO),!.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
 % prologCall
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
 computeAnswer(Ctx,Votes,prologCall(Method,Stuff),Resp,VotesO):- 
@@ -635,11 +725,6 @@ computeAnswer(_Ctx,Votes,prologCall(Method),Resp,VotesO):- trace,
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
 computeAnswer(Ctx,Votes,star(Star,Attribs,InnerXml),Output,VotesO):- computeStar(Ctx,Votes,Star,Attribs,InnerXml,Output,VotesO),!.
 
-
-% never gets here due to element/3 cutted above
-computeAnswer(Ctx,Votes,element(Tag,Attribs,List),Output,VotesO):- !,computeElement(Ctx,Votes,Tag,Attribs,List,Output,VotesO),!.
-computeAnswer(Ctx,Votes,element(Tag,Attribs,List),Out,VotesO):-trace,computeElement(Ctx,Votes,Tag,Attribs,List,Out,VotesO),!.
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
 % withAttributes Compounds
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
@@ -652,6 +737,11 @@ computeAnswer(Ctx,Votes,Input,Output,VotesO):- functor(Input,withAttributes,_),
 computeAnswer(Ctx,Votes,withAttributes(OuterAttribs,InnerXml),Output,VotesO):- 
   withAttributes(Ctx,OuterAttribs,once(computeAnswer(Ctx,Votes,InnerXml,Output,VotesO);Failed=failed)),!,Failed \== failed.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
+% Result or Proof already
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
+
+computeAnswer(_Ctx,Votes,Res, Res,Votes):-resultOrProof(Res,_Mid),!.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
 % Other Compounds
@@ -1049,7 +1139,10 @@ unresultify([DictI|NV],Dict):-nonvar(DictI),NV==[],!,unresultify(DictI,Dict),!.
 unresultify(Fun,Dict):-resultOrProof(Fun,DictI),!,unresultify(DictI,Dict),!.
 unresultify(Var,Var).
 
-resultOrProof(Term,Mid):-compound(Term),Term=..[RP,Mid,_|_],member(RP,[result,proof,fromTo]),!.
+resultOrProof(element(_,_,_),_):-!,fail.
+resultOrProof(Term,Mid):-compound(Term),resultOrProof0(Term,Mid).
+resultOrProof0(_=Mid,Mid):-!.
+resultOrProof0(Term,Mid):-Term=..[RP,Mid|_],member(RP,[result,proof,fromTo,verbatum]),!.
 
 unresultifyC(DictI,Dict):-unresultify(DictI,Dict),DictI\==Dict,!.
 

@@ -132,7 +132,8 @@ peekNameValue(Ctx,Scope,Name,Value,Else):-nonvar(Value),!,checkNameValue(Ctx,Sco
 peekNameValue(Ctx,_Scope,Name,Value,_ElseVar):-getCtxValue(Name,Ctx,Value),!.
 peekNameValue(Ctx,List,Name,Value,_ElseVar):- nonvar(List),not(atom(List)),attributeOrTagValue(Ctx,List,Name,Value,'$failure'),!.
 peekNameValue(Ctx,Scope,Name,Value,_ElseVar):-getAliceMemDictOnly(Ctx,Scope,Name,Value),checkAttribute(Scope,Name,Value),!.
-peekNameValue(Ctx,Scope,Name,Value,_ElseVar):-nonvar(Scope),getAliceMemDictOnly(Ctx,Scope2,Name,Value),Scope\=Scope2,checkAttribute(Scope2,Name,Value),!,checkValue(Value).
+peekNameValue(Ctx,Scope,Name,Value,_ElseVar):-nonvar(Scope),getAliceMemDictOnly(Ctx,Scope2,Name,Value),Scope\=Scope2,checkAttribute(Scope2,Name,Value),!,checkValue(Value),!.
+peekNameValue(Ctx,Scope,Name,Value,_ElseVar):-is_list(Name),member(N0,Name),peekNameValue(Ctx,Scope,N0,Value,'$failure'),!.
 peekNameValue(Ctx,_Scope,Name,Value,ElseVar):-makeParamFallback(Ctx,Name,Value,ElseVar),!.
 %%peekNameValue(_Ctx,_Scope,_Name,Value,ElseVar):-ignore(Value=ElseVar),!.
 
@@ -277,7 +278,8 @@ defaultPredicatesS([topic='*',
              call='true',
              flags='*',
              that='*',
-             dictionary='userdict',
+             % hide for testing 
+             dictionary='default',
              userdict='user',
              substitutions='input',
              graph='default',

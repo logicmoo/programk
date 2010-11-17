@@ -373,7 +373,7 @@ makeBlank(_Ctx,Votes,Message,result([],Message),VotesO):- VotesO is Votes * 0.3 
 
 attributesContainOneOf(CondAttribs,AllOf):-copy_term(CondAttribs,CondAttribsCopy),attributesContainOneOf0(CondAttribsCopy,AllOf),!.
 attributesContainOneOf0(CondAttribsCopy,AllOf):-member(Find,AllOf),member(Find,CondAttribsCopy),!.
-isNonBlank(Result):-answerOutput(Result,Stuff),!,nonvar(Stuff),Stuff=[].
+isNonBlank(Result):-answerOutput(Result,Stuff),!,nonvar(Stuff),Stuff\==[].
 
 % <input/response/that index="1"...>
 computeElement(Ctx,Votes,InputResponse,Attribs,InnerXml,Resp,VotesO):-member(InputResponse,[input,response,that]),!,

@@ -339,8 +339,7 @@ computeElement(_Ctx,Votes,srai,ATTRIBS,[],result([],srai=ATTRIBS),VotesO):-trace
 computeElement(Ctx,Votes,srai,ATTRIBS,Input0,Output,VotesO):- 
   prolog_must(ground(Input0)),!,flatten([Input0],Input), !,
   withAttributes(Ctx,ATTRIBS,((computeTemplate(Ctx,Votes,Input,Middle,VotesM),
-   answerOutput(Middle,MiddleO),
-   evalSRAI(Ctx,VotesM,ATTRIBS,MiddleO,Output,VotesO)))).
+   evalSRAI(Ctx,VotesM,ATTRIBS,Middle,Output,VotesO)))).
 
 % <li...>
 computeElement(Ctx,Votes,li,Preconds,InnerXml,OutProof,VotesO):- !, computeElement_li(Ctx,Votes,Preconds,InnerXml,OutProof,VotesO).
@@ -402,7 +401,7 @@ computeElement(Ctx,Votes,think,_Attribs,Input,proof([],Hidden),VotesO):-!,comput
 
 % <formatter...>
 computeElement(Ctx,Votes,formatter,Attribs,Input,Result,VotesO):- 
-      computeTemplate(Ctx,Votes,Input,Mid,VotesO),
+      computeTemplateOutput(Ctx,Votes,Input,Mid,VotesO),
       lastMember(type=ProcI,Attribs,_NEW),unlistify(ProcI,Proc),atom(Proc),atom_concat('format_',Proc,Pred),
       computeCall(Ctx,Pred,Mid,Result,error),Result\==error.
 computeElement(Ctx,Votes,formatter,Attribs,Input,Result,VotesO):- !,
@@ -549,7 +548,8 @@ substituteFromDict_l(Ctx,DictName,Hidden,[verbatum(After)|Output]):-dictReplace(
 substituteFromDict_l(Ctx,DictName,[V|Hidden],[V|Output]):-substituteFromDict_l(Ctx,DictName,Hidden,Output).
 
 
-format_formal(_Ctx,In,Out):-In=Out.
+format_formal(_Ctx,In,Out):-toPropercase(In,Out),!.
+format_sentence(_Ctx,[In1|In],[Out1|Out]):-In=Out,toPropercase(In1,Out1),!.
 format_sentence(_Ctx,In,Out):-In=Out.
 format_think(_Ctx,_In,Out):-[]=Out.
 format_gossip(_Ctx,In,Out):-In=Out.
@@ -801,17 +801,23 @@ computeAnswer(_Ctx,Votes,Resp,Resp,Votes):-trace,aiml_error(computeAnswer(Resp))
 % ===============================================================================================
 
 computeSRAI(_Ctx,_Votes,[],_,_,_Proof):- !,trace,fail.
+
 computeSRAI(Ctx,Votes,Input,Result,VotesO,Proof):-
    getAliceMem(Ctx,'bot','I',Robot),
    getAliceMem(Ctx,'bot','you',User),
    prolog_must(computeSRAI0(Ctx,Votes,fromTo(User,Robot),Input,Result,VotesO,Proof)).
 
-computeSRAI0(Ctx,Votes,ConvThread,Input,Result,VotesO,Proof):- not(is_list(Input)),
-   compound(Input),answerOutput(Input,InputO),Input\==InputO,!,
+
+computeSRAI0(Ctx,Votes,ConvThread,Input,Result,VotesO,Proof):-
+   computeTemplateOutput(Ctx,Votes,Input,NewIn,VotesM),NewIn \== Input,!,
+   computeSRAI0(Ctx,VotesM,ConvThread,NewIn,Result,VotesO,Proof),!.
+
+computeSRAI0(Ctx,Votes,ConvThread,Input,Result,VotesO,Proof):- not(is_list(Input)),compound(Input),
+   answerOutput(Input,InputO),Input\==InputO,!,trace,
    computeSRAI0(Ctx,Votes,ConvThread,InputO,Result,VotesO,Proof).
 
-computeSRAI0(Ctx,Votes,ConvThread,Input,Result,VotesO,Proof):- not(is_list(Input)),
-   compound(Input),computeAnswer(Ctx,Votes,Input,InputO,VotesM),Input\==InputO,!,
+computeSRAI0(Ctx,Votes,ConvThread,Input,Result,VotesO,Proof):- not(is_list(Input)),compound(Input),
+   computeAnswer(Ctx,Votes,Input,InputO,VotesM),Input\==InputO,!,trace,
    computeSRAI0(Ctx,VotesM,ConvThread,InputO,Result,VotesO,Proof).
 
 computeSRAI0(Ctx,Votes,ConvThread,Input,Result,VotesO,Proof):-
@@ -856,7 +862,7 @@ computeSRAI222(CtxIn,Votes,ConvThread,Pattern,Out,VotesO,ProofOut,OutputLevel):-
          once((         
             prolog_must(CAfterPattern),
             prolog_must(nonvar(Out)),
-            OutputLevel is OutputLevel1 + OutputLevel2*100 + OutputLevel3*10000,
+            OutputLevel is OutputLevel1 + OutputLevel2*100 + OutputLevel3*10000 + 100000000,
             cateStrength(CateSig,Mult),
             (contains_term(Ctx,CateSig)->not(contains_term(Ctx,ClauseNumber));not(contains_term(Ctx,ClauseNumber))),
             VotesO is Votes * Mult,
@@ -1295,6 +1301,8 @@ getLastSaidAsInput(LastSaidMatchable):-getLastSaid(That),convertToMatchable(That
 % ===============================================================================================
 % Template Output to text
 % ===============================================================================================
+computeTemplateOutput(Ctx,Votes,Input,Output,VotesO):-
+    computeTemplate(Ctx,Votes,Input,Mid,VotesO),answerOutput(Mid,Output),!.
 
 answerOutput(Output,NonVar):-nonvar(NonVar),answerOutput(Output,Var),!,valuesMatch(_Ctx,Var,NonVar).
 answerOutput(Output,[Output]):-var(Output),!.

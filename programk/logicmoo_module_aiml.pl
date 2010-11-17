@@ -43,7 +43,7 @@ aiml_directory_search('programk').
 aiml_directory_search('programk/test_suite').
 
 
-traceIf(_Call):-!.
+%%traceIf(_Call):-!.
 traceIf(Call):-ignore((Call,trace)).
 
 :- abolish(cyc:debugFmt/1).
@@ -916,7 +916,7 @@ make_prepost_conds(Ctx,StarName,TextPattern,CateSig,FindPattern,CommitPattern,Ou
            prolog_must(make_star_binders(Ctx,StarName,TextPattern,MatchPattern,MatchLevel,StarSets2)),
            %%prolog_must(StarSets=StarSets2),
            (CommitPattern = prolog_must(once((
-              traceIf((StarName==pattern,TextPattern=[_,_|_])),
+              %%traceIf((StarName==pattern,TextPattern=[_,_|_])),
             once(
              (atLeastOne(starSets(StarSets2)), 
               addKeyValue(ProofOut, StarName = (TextPattern:MatchPattern))

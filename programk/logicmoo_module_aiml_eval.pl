@@ -41,14 +41,14 @@ aiml_call(Ctx,element('testsuite',ATTRIBS,LIST)):-
      debugFmt(testsuite_passed_failed(Passed,Failed)),!.
 
 aiml_call(Ctx,Current):- Current=element(TC,ATTRIBS,_LIST), member(TC,['testcase','TestCase']),!,
- debugOnFailureAiml((
+  debugOnFailureAiml((
      attributeOrTagValue(Ctx,Current,['name'],Name,'SomeName'),
      attributeOrTagValue(Ctx,Current,['Input','Pattern'],Input,'ERROR Input'),
      attributeOrTagValue(Ctx,Current,['Description'],Description,'No Description'),
-     attributeOrTagValue(Ctx,Current,['ExpectedAnswer'],ExpectedAnswer,'ERROR ExpectedAnswer'),
-     attributeOrTagValue(Ctx,Current,['ExpectedKeywords'],ExpectedKeywords,'*'),
-     notrace(ExpectedKeywords=='*' -> Expected = ExpectedAnswer ;  Expected = ExpectedKeywords),     
-     testIt(ATTRIBS,Input,ExpectedAnswer,ExpectedKeywords,_Result,Name,Description,Ctx))),!.
+     attributeOrTagValue(Ctx,Current,['ExpectedAnswer'],ExpectedAnswer,['noExpectedAnswer']),
+     findall(ExpectedKeywords0,(attributeOrTagValue(Ctx,Current,['ExpectedKeywords'],ExpectedKeywords,['noExpectedKeywords']),
+                                listify(ExpectedKeywords,ExpectedKeywords0)),ExpectedKeywordsList),
+     testIt(ATTRIBS,Input,ExpectedAnswer,ExpectedKeywordsList,_Result,Name,Description,Ctx))),!.
 
 
 aiml_call(Ctx,element(A, B, C)):-tagType(A, immediate), prolog_must(nonvar(C)),
@@ -340,15 +340,25 @@ tag_eval(Ctx,element(CallTag,ATTRIBS,LIST),prologCall(aiml_call(Ctx,element(Call
 prologCall(Call):-catch(prolog_must(Call),E,debugFmt(failed_prologCall(Call,E))),!.
 
 testIt(ATTRIBS,Input,ExpectedAnswer,ExpectedKeywords,Result,Name,Description,Ctx):- 
-   once(ExpectedKeywords=='*' -> Expected = ExpectedAnswer ;  Expected = ExpectedKeywords),    
-    withAttributes(Ctx,ATTRIBS,(( runUnitTest(alicebot2(Ctx,Input,Resp),sameBinding(Resp,ExpectedAnswer),Result),
-    hideIfNeeded(testIt([Result,Name,Description,Input,ExpectedAnswer,ExpectedKeywords,Expected]),PRINTRESULT),
+   notrace(ExpectedKeywords==[[noExpectedKeywords]] -> PASSGOAL = sameBinding(Resp,ExpectedAnswer);  PASSGOAL = containsEachBinding(Resp,ExpectedKeywords)),    
+  %% traceIf(ExpectedKeywords \== [[noExpectedKeywords]]),
+    withAttributes(Ctx,ATTRIBS,(( runUnitTest(alicebot2(Ctx,Input,Resp),PASSGOAL,Result),
+    hideIfNeeded(testIt(Name,Description,Input,PASSGOAL),PRINTRESULT),
     hideIfNeeded([Result,Name,Description,Input], STORERESULT),
     debugFmt(PRINTRESULT)))),flush_output,
     once(
      contains_term(STORERESULT,unit_failed) ->
-      assert(unitTestResult(unit_failed,PRINTRESULT));
+      (assert(unitTestResult(unit_failed,PRINTRESULT)), true );
       assert(unitTestResult(unit_passed,PRINTRESULT))),!.
+
+
+containsEachBinding(_-Resp,ExpectedList):-!,containsEachBinding(Resp,ExpectedList).
+containsEachBinding(Resp,ExpectedList):-maplist_safe(containsSubBinding(Resp),ExpectedList).
+
+containsSubBinding(X,Y):-hotrace((sameBinding_listify(X,X1),sameBinding_listify(Y,Y1))),!,subList(X1,Y1),!.
+
+sameBinding_listify(X,X1):-sameBinding1(X,X0),listify(X0,X1),!.
+subList(X1,Y1):-append(Y1,_,Y1Opened),!,append(_,Y1Opened,X1),!.
 
 
 tag_eval(_Ctx,element(In, ATTRIBS, Value),element(In, ATTRIBS, Value)):- preserveTag(In,_Out),!.
@@ -363,6 +373,7 @@ runUnitTest1(Req,Result):-hotrace(catch((Req-> Result=unit_passed(Req); Result=u
 runUnitTest2(Req,Result):-hotrace(catch((Req-> Result=unit_passed(Req); Result=unit_failed(Req)),E,Result=unit_error(E,Req))).
 
 sameBinding(X,Y):-hotrace((sameBinding1(X,X1),sameBinding1(Y,Y1),!,X1=Y1)),!.
+
 
 sameBinding1(X,X):-var(X),!.
 sameBinding1(_-X,Y):-nonvar(X),!,sameBinding1(X,Y).

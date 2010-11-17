@@ -143,9 +143,9 @@ alicebot2(Ctx,Atoms,Resp):-
    retractall(posibleResponse(_,_)),
    flag(a_answers,_,0),!,
    prolog_must((
-   getAliceMem(Ctx,'robot','you',User),
-   getAliceMem(Ctx,'robot',default('minanswers',1),MinAns),
-   getAliceMem(Ctx,'robot',default('maxanswers',1),_MaxAns),
+   getAliceMem(Ctx,'bot','you',User),
+   getAliceMem(Ctx,'bot',default('minanswers',1),MinAns),
+   getAliceMem(Ctx,'bot',default('maxanswers',1),_MaxAns),
    setAliceMem(Ctx,User,'input',Atoms),
    setAliceMem(Ctx,User,'rawinput',Atoms))),
    ((call_with_depth_limit_traceable(computeInputOutput(Ctx,1,Atoms,Output,N),8000,_DL),
@@ -219,17 +219,30 @@ computeTemplate11(Ctx,Votes,[A|B],[A|BB],VotesO):-atomic(A),!,computeTemplate11(
 traceAIML:-!.
 
 expandVar(_Ctx,Var,Var):-var(Var),!,traceAIML.
-expandVar(_Ctx,[Var|_],Var):- !,traceAIML.
-expandVar(_Ctx,nick,A):-!,default_user(B),!,from_atom_codes(A,B),!.
-expandVar(_Ctx,person,A):-!,default_user(B),!,from_atom_codes(A,B),!.
-expandVar(_Ctx,botnick,'jllykifsh'):-!.
-expandVar(_Ctx,mynick,'jllykifsh'):-!.
-expandVar(_Ctx,name=name,'jllykifsh'):-!.
-expandVar(_Ctx,mychan,A):-!,default_channel(B),!,from_atom_codes(A,B),!.
-expandVar(_Ctx,Resp,Resp):-atomic(Resp),!.
-expandVar(Ctx,In,Out):-computeAnswerMaybe(Ctx,1,In,Out,_VotesO).
+expandVar(_Ctx,[Var|_],Var):- !,trace,traceAIML.
+expandVar(Ctx,In,Out):-atom(In),atom_concat('$',NameVar,In),!,expandVariable(Ctx,NameVar,Out),!.
+expandVar(_Ctx,In,Out):-atomic(In),Out=In,!.
+expandVar(Ctx,element(A,B,C),Out):-computeElementMust(Ctx,1,A,B,C,Out,_VotesO),!.
+expandVar(Ctx,In,Out):-computeAnswerMaybe(Ctx,1,In,Out,_VotesO),!.
+expandVar(_Ctx,In,Out):-trace,Out=In,!.
 
+expandVariable(Ctx,In,Out):-atom(In),atom_concat('$',NameVar,In),!,expandVariable(Ctx,NameVar,Out),!.
+expandVariable(Ctx,In,Out):-atom(In),atom_concat(NameVar,'$',In),!,expandVariable(Ctx,NameVar,Out),!.
+expandVariable(Ctx,name=Name,Result):-!,expandVariable(Ctx,Name,Result),!.
+expandVariable(Ctx,NameVar,Result):-getAliceMemDictOnly(Ctx,'bot',NameVar,Result),!.
+expandVariable(Ctx,NameVar,Result):-getAliceMemDictOnly(Ctx,'global',NameVar,Result),!.
+expandVariable(_Ctx,nick,A):-!,default_user(B),!,from_atom_codes(A,B),!.
+expandVariable(_Ctx,person,A):-!,default_user(B),!,from_atom_codes(A,B),!.
+expandVariable(_Ctx,botnick,'jllykifsh'):-!.
+expandVariable(_Ctx,mynick,'jllykifsh'):-!.
+expandVariable(_Ctx,version,[push_nobrkspace,'1','.','0','.','1',pop_nobrkspace]):-!.
+expandVariable(_Ctx,id,'$botnick$'):-!.
+expandVariable(_Ctx,size,Size):-aimlCateSig(X),predicate_property(X,number_of_clauses(Size)),!.
+%TODO extract the machine's TimeZone
+expandVariable(_Ctx,date,[Y,'-',M,'-',D]):-get_time(TimeStamp),stamp_date_time(TimeStamp,DateTime,'UTC'),date_time_value(date,DateTime,date(Y,M,D)),!.
+expandVariable(_Ctx,mychan,A):-!,default_channel(B),!,from_atom_codes(A,B),!.
 
+globalAliceTagVar(BOT_ATOM):-member(BOT_ATOM,[version,id,favfood,date,size]).
 
 
 from_atom_codes(Atom,Atom):-atom(Atom),!.
@@ -399,6 +412,11 @@ computeElement(Ctx,Votes,formatter,Attribs,Input,Result,VotesO):- !,
 
 % <get,set,bot...>
 computeElement(Ctx,Votes,GetSetBot,Attrib,InnerXml,Resp,VotesO):-member(GetSetBot,[get,set,bot]),!,computeGetSet(Ctx,Votes,GetSetBot,Attrib,InnerXml,Resp,VotesM),VotesO is VotesM * 1.1,!.
+
+% for sure botvar-ish
+% <version/id/date/size>
+% HANDLE this in computeAnswer now convert_ele(Ctx,element(BOT_ATOM, ALIST, V),element(bot,[name=BOT_ATOM|ALIST],VV)):- globalAliceTagVar(BOT_ATOM),convert_template(Ctx,V,VV),!.
+computeElement(Ctx,Votes,BOT_ATOM,[],[],proof(Resp,globalAliceTagVar(BOT_ATOM)),VotesO):- globalAliceTagVar(BOT_ATOM),!,expandVariable(Ctx,BOT_ATOM,Resp),VotesO is Votes  * 1.1.
 
 % <topicstar,star,thatstar...>
 computeElement(Ctx,Votes,StarTag,Attrib,InnerXml,Resp,VotesO):- hotrace(starType(StarTag,StarName)),!, %%trace,   
@@ -570,6 +588,10 @@ computeElement(Ctx,Votes,Tag,ATTRIBS,Input,RESULT,VotesO):- evaluatorTag(Tag),
    computeTemplate(Ctx,Votes,Input,EVAL,VotesO),!,
    tag_eval(Ctx,element(Tag,ATTRIBS,EVAL),RESULT),!.
 
+% maybe not for sure botvar-ish 
+% <favfood/master>
+% HANDLE this in computeAnswer now convert_ele(Ctx,element(BOT_ATOM, ALIST, V),element(bot,[name=BOT_ATOM|ALIST],VV)):- globalAliceTagVar(BOT_ATOM),convert_template(Ctx,V,VV),!.
+computeElement(Ctx,Votes,BOT_ATOM,[],[],proof(Resp,globalAliceTagVar(BOT_ATOM)),VotesO):- expandVariable(Ctx,BOT_ATOM,Resp),!, VotesO is Votes  * 1.1.
 
 % rewrites
 computeElement(_Ctx,Votes,Tag,[],[],result([reply,from,tag,Tag],element(Tag,[],[])),Votes):-!.
@@ -778,8 +800,8 @@ computeAnswer(_Ctx,Votes,Resp,Resp,Votes):-trace,aiml_error(computeAnswer(Resp))
 
 computeSRAI(_Ctx,_Votes,[],_,_,_Proof):- !,trace,fail.
 computeSRAI(Ctx,Votes,Input,Result,VotesO,Proof):-
-   getAliceMem(Ctx,'robot','I',Robot),
-   getAliceMem(Ctx,'robot','you',User),
+   getAliceMem(Ctx,'bot','I',Robot),
+   getAliceMem(Ctx,'bot','you',User),
    prolog_must(computeSRAI0(Ctx,Votes,fromTo(User,Robot),Input,Result,VotesO,Proof)).
 
 computeSRAI0(Ctx,Votes,ConvThread,Input,Result,VotesO,Proof):- not(is_list(Input)),
@@ -1230,14 +1252,19 @@ splitSentences(SR1,[SR1]):-!.
 grabFirstSetence(SR1,SRS,LeftOver):-sentenceEnder(EOS),LeftSide=[_|_],append(LeftSide,[EOS|LeftOver],SR1),append(LeftSide,[EOS],SR0),cleanSentence(SR0,SRS),!.
 cleanSentence(SR0,SRS):-prolog_must(leftTrim(SR0,sentenceEnderOrPunct,SRS)),!.
 
-getRobot(Robot):-trace,getAliceMem(_Ctx,'robot','me',Robot),!.
+getRobot(Robot):-trace,getAliceMem(_Ctx,'bot','me',Robot),!.
 
 getLastSaid(LastSaid):-getRobot(Robot),getAliceMem(_Ctx,Robot,'lastSaid',LastSaid).
 
 getLastSaidAsInput(LastSaidMatchable):-getLastSaid(That),convertToMatchable(That,LastSaidMatchable),!.
 
-:-setCurrentAliceMem('robot','me','Robot').
-:-setCurrentAliceMem('robot','you','user').
+% set some sane defaults to be overiden in config.xmls
+:-setCurrentAliceMem('bot','me','bot').
+:-setCurrentAliceMem('bot','you','user').
+:-setCurrentAliceMem('bot','name',['The','Robot']).
+:-setCurrentAliceMem('bot',version,'1.0.1').
+:-setCurrentAliceMem('user','name',['Unknown','Partner']).
+
 
 % ===============================================================================================
 % Template Output to text

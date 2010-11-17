@@ -1119,7 +1119,7 @@ isStar0(Word1):- member(Word1,[*,'_']).
 sameWords(Word1,Word2):-atom(Word1),atom(Word2),atoms_match0(Word1,Word2).
  atoms_match0(Word1,Word2):- (isStar0(Word1);isStar0(Word2)),!,fail.
  atoms_match0(Word1,Word1):-!.
- atoms_match0(Word1,Word2):-upcase_atom(Word1,WordO),upcase_atom(Word2,WordO),!.
+ atoms_match0(Word1,Word2):-litteral_atom(Word1,WordO),litteral_atom(Word2,WordO),!.
 
 
 % ===============================================================================================
@@ -1325,7 +1325,13 @@ lastMemberOrDefault(E,L,N,D):-L=N,E=D.
 convertToMatchable(That,LastSaid):-
       answerOutput(That,AA),!,
       deleteAll(AA,['.','!','?','\'','!','','\n'],Words),
-      toUppercase(Words,LastSaid),!.
+      toLowercase(Words,LastSaid),!.
+
+
+matchable_litteral_safe(A,B):-atom(A),litteral_atom(A,B),!.
+litteral_atom(A,B):-downcase_atom(A,B),!.
+is_litteral(X):-atom(X),litteral_atom(X,N),!,N=X.
+
 
 deleteAll(A,[],A):-!.
 deleteAll(A,[L|List],AA):-delete(A,L,AAA),deleteAll(AAA,List,AA),!.

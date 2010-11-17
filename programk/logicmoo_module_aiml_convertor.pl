@@ -213,22 +213,22 @@ transformTagData0(_Ctx,N,Else,ValueO,ValueO):-isVerbatumTag(N),!, member(Else,['
 transformTagData0(Ctx,TAG,_Default,PATTERN_IN,PATTERN_OUT):-isPatternTag(TAG),convert_pattern(Ctx,PATTERN_IN,PATTERN_OUT),!.
 transformTagData0(Ctx,TAG,_Default,PATTERN_IN,PATTERN_OUT):-isOutputTag(TAG),convert_template_pred(Ctx,=,PATTERN_IN,PATTERN_OUT),!.
 
-transformTagData1(_Ctx,TAG,_Default,PATTERN_IN,PATTERN_OUT):- member(TAG,[userdict,graph]),upcase_atom_safe(PATTERN_IN,PATTERN_OUT),!.
+transformTagData1(_Ctx,TAG,_Default,PATTERN_IN,PATTERN_OUT):- member(TAG,[userdict,graph]),matchable_litteral_safe(PATTERN_IN,PATTERN_OUT),!.
 transformTagData1(_Ctx,TAG,_Default,PATTERN_IN,PATTERN_OUT):-infoTagLikeLineNumber(TAG),!,PATTERN_IN=PATTERN_OUT.
 
 transformTagData1(Ctx,TAG,Default,PATTERN_IN,PATTERN_OUT):- debugFmt(transformTagData(TAG,Default,PATTERN_IN)), 
-                 convert_template_pred(Ctx,upcase_atom_safe,PATTERN_IN,PATTERN_OUT),!.
+                 convert_template_pred(Ctx,matchable_litteral_safe,PATTERN_IN,PATTERN_OUT),!.
 transformTagData1(Ctx,_N,_Default,R,RR):-convert_template(Ctx,R,RR),!. 
 transformTagData1(_Ctx,_TAG,_Default,PATTERN,PATTERN):-!.
 
 % ===============================================================================================
 % ===============================================================================================
 
-convert_pattern(Ctx,PATTERN_IN,PATTERN_OUT):- convert_template_pred(Ctx,upcase_atom_safe_non_special,PATTERN_IN,PATTERN_OUT),!.
+convert_pattern(Ctx,PATTERN_IN,PATTERN_OUT):- convert_template_pred(Ctx,matchable_litteral_safe_non_special,PATTERN_IN,PATTERN_OUT),!.
 
-upcase_atom_safe_non_special(A,A):-not(atom(A)),!.
-upcase_atom_safe_non_special(Atom,Atom):-atom_prefix(Atom,'#$'),!.
-upcase_atom_safe_non_special(A,U):-upcase_atom_safe(A,U).
+matchable_litteral_safe_non_special(A,A):-not(atom(A)),!.
+matchable_litteral_safe_non_special(Atom,Atom):-atom_prefix(Atom,'#$'),!.
+matchable_litteral_safe_non_special(A,U):-matchable_litteral_safe(A,U).
 
 convert_template_pred(Ctx,Pred,PATTERN_IN,PATTERN_OUT):- convert_template(Ctx,PATTERN_IN,PATTERN_MID),!,
      debugOnFailureAiml(map_tree_to_list(Pred,PATTERN_MID,PATTERN_OUT)),!.

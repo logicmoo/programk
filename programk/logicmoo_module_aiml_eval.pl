@@ -237,10 +237,10 @@ systemCall_Load(Ctx,[Filename],template([loaded,Filename])):-
     withAttributes(Ctx,ATTRIBS,load_aiml_structure(Ctx,AIML)),!.
 
 systemCall_Find(_Ctx,REST,proof(CateSig,REST)):-
-         findall(U,(member(L,REST),upcase_atom(L,U)),UUs),
+         findall(U,(member(L,REST),litteral_atom(L,U)),UUs),
          functor(CateSig,aimlCate,13),
          findall(CateSig,
-             (CateSig,once((term_to_atom(CateSig,Atom),upcase_atom(Atom,U1),member(U2,UUs),sub_atom(U1,_,_,_,U2),
+             (CateSig,once((term_to_atom(CateSig,Atom),litteral_atom(Atom,U1),member(U2,UUs),sub_atom(U1,_,_,_,U2),
               debugFmt(CateSig)))),_List),!.
 
 % ===================================================================

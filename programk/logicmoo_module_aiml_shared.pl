@@ -320,15 +320,11 @@ atomSplit(A,B):- notrace((cyc:atomSplit(A,BB),!,BB=B)).
 
 %%atomSplit(A,B):-token_stream_of(A,AA),findall(B0,arg(1,AA,B),B).
 
-all_upper_atom(X):-toUppercase(X,N),!,N=X.
-
 atom_concat_safe(L,R,A):- ((atom(A),(atom(L);atom(R))) ; ((atom(L),atom(R)))), !, atom_concat(L,R,A),!.
 
 concat_atom_safe(List,Sep,[Atom]):-atom(Atom),!,concat_atom(List,Sep,Atom),!.
 concat_atom_safe(List,Sep,Atom):-atom(Atom),!,concat_atom(ListM,Sep,Atom),!,List = ListM.
 concat_atom_safe(List,Sep,Atom):- concat_atom(List,Sep,Atom),!.
-
-upcase_atom_safe(A,B):-atom(A),upcase_atom(A,B),!.
 
 atom_contains(F,C):- hotrace((atom(F),atom(C),sub_atom(F,_,_,_,C))).
 

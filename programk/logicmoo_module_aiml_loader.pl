@@ -553,6 +553,7 @@ ignore_aiml(''):-!.
 ignore_aiml(A):-atom(A),!,atom_codes(A,C),!,clean_codes(C,D),!,D=[].
 ignore_aiml([A|B]):-ignore_aiml(A),!,ignore_aiml(B),!.
 
+/* commenting since proably not used
 
 aiml_classify([],[]).
 aiml_classify(Find,[atom]):-atomic(Find).
@@ -568,12 +569,12 @@ classify2(Out,Out).
 
 classifySingle('_',var('_')).
 classifySingle(*,var('*')).
-classifySingle(Atom,in):-atom(Atom),all_upper_atom(Atom).
+classifySingle(Atom,in):-is_litteral(Atom).
 classifySingle(Atom,out):-atom(Atom).
 classifySingle(Atom,spec(File)):-compound(Atom),functor(Atom,File,_).
 classifySingle(_Atom,unknown).
 
-
+*/
 
 varize(Find,Replace,FindO,ReplaceO):-
       subst((Find,Replace),'_','$VAR'(0),(FindM,ReplaceM)),

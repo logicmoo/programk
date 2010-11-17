@@ -139,18 +139,18 @@ peekNameValue(Ctx,_Scope,Name,Value,ElseVar):-makeParamFallback(Ctx,Name,Value,E
 checkNameValue(Ctx,Scope,[Name],Value,Else):-!,peekNameValue(Ctx,Scope,Name,ValueVar,Else),!,checkValue(ValueVar),valuesMatch(Ctx,ValueVar,Value),!.
 checkNameValue(Ctx,Scope,Name,Value,Else):-peekNameValue(Ctx,Scope,Name,ValueVar,Else),!,checkValue(ValueVar),valuesMatch(Ctx,ValueVar,Value),!.
 
+valuesMatch(_Ctx,V,A):-V=A,!.
 valuesMatch(_Ctx,_V,A):-A=='*',!.
 valuesMatch(_Ctx,V,_A):-V=='*',!.
-valuesMatch(_Ctx,V,A):-V=A,!.
 valuesMatch(Ctx,V,A):-compound(V),convertToMatchable(V,VV),!,valuesMatch0(Ctx,VV,A).
 valuesMatch(Ctx,V,A):-compound(A),convertToMatchable(A,AA),!,valuesMatch0(Ctx,V,AA).
+valuesMatch(Ctx,V,A):-valuesMatch0(Ctx,V,A),!.
 
-
-valuesMatch0(_Ctx,V,A):-V=A.
-valuesMatch0(Ctx,[V|VV],[A|AA]):-valuesMatch0(Ctx,V,A),!,valuesMatch0(Ctx,VV,AA).
+valuesMatch0(_Ctx,V,A):-V=A,!.
+valuesMatch0(Ctx,[V|VV],[A|AA]):-valuesMatch(Ctx,V,A),!,valuesMatch(Ctx,VV,AA).
 valuesMatch0(_Ctx,V,A):-sameBinding(V,A),!.
-valuesMatch0(Ctx,[V],A):-!,valuesMatch0(Ctx,V,A).
-valuesMatch0(Ctx,V,[A]):-!,valuesMatch0(Ctx,V,A).
+valuesMatch0(Ctx,[V],A):-!,valuesMatch(Ctx,V,A).
+valuesMatch0(Ctx,V,[A]):-!,valuesMatch(Ctx,V,A).
 
 
 valueMP(Var,M):- member(M, [var(Var), Var=missing, Var=[], Var=(*) , (Var=(-(_))) ]),M,!.

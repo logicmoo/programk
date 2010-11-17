@@ -339,7 +339,8 @@ computeElement(_Ctx,Votes,srai,ATTRIBS,[],result([],srai=ATTRIBS),VotesO):-trace
 computeElement(Ctx,Votes,srai,ATTRIBS,Input0,Output,VotesO):- 
   prolog_must(ground(Input0)),!,flatten([Input0],Input), !,
   withAttributes(Ctx,ATTRIBS,((computeTemplate(Ctx,Votes,Input,Middle,VotesM),
-   evalSRAI(Ctx,VotesM,ATTRIBS,Middle,Output,VotesO)))).
+   answerOutput(Middle,MiddleO),
+   evalSRAI(Ctx,VotesM,ATTRIBS,MiddleO,Output,VotesO)))).
 
 % <li...>
 computeElement(Ctx,Votes,li,Preconds,InnerXml,OutProof,VotesO):- !, computeElement_li(Ctx,Votes,Preconds,InnerXml,OutProof,VotesO).

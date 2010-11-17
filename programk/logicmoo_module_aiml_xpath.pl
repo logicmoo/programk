@@ -215,17 +215,17 @@ replaceAttribute0(_Ctx,_Before,_After,B,B):-!.
 
 
 makeAllParams(Ctx,[O|Order],Assert,UnboundDefault,[Tag=RR|Result]):-
-   makeSingleTag(Ctx,O,Assert,UnboundDefault,Tag,RR),
+   makeSingleTag(Ctx,O,Assert,UnboundDefault,Tag,RR),prolog_must(O\==RR),
    makeAllParams(Ctx,Order,Assert,UnboundDefault,Result),!.
 makeAllParams(_Ctx,[],_,_,[]).
 
 
-makeSingleTag(Ctx,Name,ATTRIBS,Default,Tag,Result):-atom(Name),!,makeSingleTag(Ctx,[Name],ATTRIBS,Default,Tag,Result).
+makeSingleTag(Ctx,Name,ATTRIBS,Default,Tag,Result):-atom(Name),!,makeSingleTag(Ctx,[Name],ATTRIBS,Default,Tag,Result),!.
 makeSingleTag(Ctx,NameS,ATTRIBS,Default,Tag,ValueO):-makeAimlSingleParam0(Ctx,NameS,ATTRIBS,Default,Tag,ValueI),
-      transformTagData(Ctx,Tag,Default,ValueI,ValueO).
+      transformTagData(Ctx,Tag,Default,ValueI,ValueO),!.
 
-makeAimlSingleParam0(_Ctx,[N|NameS],ATTRIBS,_D,N,Value):-member(O,[N|NameS]),lastMember(OI=Value,ATTRIBS),atomsSameCI(O,OI),!.
-makeAimlSingleParam0(Ctx,[N|NameS],_,ElseVar,N,Value):- makeParamFallback(Ctx,[N|NameS],Value,ElseVar),!.
+makeAimlSingleParam0(_Ctx,[N|NameS],ATTRIBS,_D,N,Value):-member(O,[N|NameS]),lastMember(OI=Value,ATTRIBS),atomsSameCI(O,OI),!,prolog_must(N\==Value).
+makeAimlSingleParam0(Ctx,[N|NameS],_,ElseVar,N,Value):- makeParamFallback(Ctx,[N|NameS],Value,ElseVar),!,prolog_must(N\==Value).
 
 
 % ===============================================================================================

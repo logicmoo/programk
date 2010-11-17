@@ -889,7 +889,11 @@ getCategoryArg1(_Ctx,StarName,MatchPattern,StarNumber,CateSig):-
    nth1(StarNumber,Order,StarName),
    prolog_must(arg(StarNumber,CateSig,MatchPattern)),!.
 
-meansNothing(Atom,['Nothing']):-atom(Atom),!.
+
+meansNothing(Var,_Nothing):-var(Var),!,aiml_error(meansNothing(var(Var))),!.
+meansNothing([Atomic],Nothing):-nonvar(Atomic),!,meansNothing(Atomic,Nothing),!.
+meansNothing(N,['Nothing']):-member(N,[[],'Nothing']),!.
+meansNothing(Atom,['Nothing']):-atom(Atom),!,fail.
 meansNothing(InputNothing,InputPattern):-prolog_must((ground(InputNothing),var(InputPattern))),meansNothing0(InputNothing,InputPattern),!.
 
 meansNothing0([Atom],Out):-!,meansNothing0(Atom,Out).
@@ -903,7 +907,7 @@ make_preconds_for_match(Ctx,StarName,InputNothing,CateSig,PrecondsSearch,Postcon
    PostcondsCommit = (PrecondsCommit,CommitResult).
 
 make_prepost_conds(Ctx,StarName,TextPattern,CateSig,FindPattern,CommitPattern,Out,MinedCates,ProofOut,MatchLevel):- 
-  hotrace(meansNothing(TextPattern,InputPattern)),
+  hotrace(meansNothing(TextPattern,InputPattern)), 
    TextPattern \= InputPattern,!,
   make_prepost_conds(Ctx,StarName,InputPattern,CateSig,FindPattern,CommitPattern,Out,MinedCates,ProofOut,MatchLevel).
 
@@ -927,8 +931,14 @@ make_prepost_conds(Ctx,StarName,TextPattern,CateSig,FindPattern,CommitPattern,Ou
 
 notSingletons(_Singleton_List):-!.
 
-generateMatchPatterns(Ctx,StarName,Out,InputNothing,CateSig,_NC_MinedCates,EachMatchSig):- 
-  hotrace(meansNothing(InputNothing,_InputPattern)),!,   trace,
+generateMatchPatterns(Ctx,StarName,Out,InputNothing,CateSig,NC_MinedCates,EachMatchSig):-
+  hotrace(meansNothing(InputNothing,InputPattern)),
+  InputNothing\==InputPattern,!,
+  generateMatchPatterns(Ctx,StarName,Out,InputPattern,CateSig,NC_MinedCates,EachMatchSig).
+
+generateMatchPatterns(Ctx,StarName,Out,InputNothing,CateSig,_NC_MinedCates,EachMatchSig):- fail,
+  hotrace(meansNothing(InputNothing,_InputPattern)),!,
+  traceIf(InputNothing\==['Nothing']),
   must_be_openCate(CateSig),
   getCategoryArg(Ctx,StarName,'*',Out,CateSig),
    prolog_must(EachMatchSig=[_|_]),
@@ -999,13 +1009,13 @@ make_star_binders(_Ctx,_StarName,L,R,0,[]):-R==[],!,L==[].
 make_star_binders(_Ctx,_StarName,L,R,0,[]):-L==[],!,R==[].
 
 
-% left hand star/wild
-make_star_binders(_Ctx,StarName,Star,_Match,_MatchLevel,_StarSets):- not([StarName]=Star),isStarOrWild(StarName,Star,_WildValue,_WMatch,_Pred),!,trace,fail. 
+% left hand star/wild  (cannot really happen (i hope))
+make_star_binders(_Ctx,StarName,Star,_Match,_MatchLevel,_StarSets):- false, not([StarName]=Star),isStarOrWild(StarName,Star,_WildValue,_WMatch,_Pred),!,trace,fail. 
 
 
 % simplify
-make_star_binders(Ctx,StarName,[Word1|B],[Word2|BB],Count,StarSets):-
-     sameWords(Word1,Word2),!,make_star_binders(Ctx,StarName,B,BB,Count,StarSets).
+make_star_binders(Ctx,StarName,[Word1|B],[Word2|BB],CountO,StarSets):-
+     sameWords(Word1,Word2),!,make_star_binders(Ctx,StarName,B,BB,Count,StarSets),CountO is Count - 0.1 .
 
 % tail (all now in) star/wildcard
 make_star_binders(_Ctx,StarName,Match,WildCard,WildValue,[Pred]):-isStarOrWild(StarName,WildCard,WildValue,Match,Pred),!.
@@ -1015,8 +1025,8 @@ make_star_binders(Ctx,StarName,OList,[WildCard,M0|More],ValueO,[Pred|StarSets]):
          append(SkipedSTAR,[M1|LeftMore],OList),sameWords(M0,M1),
          make_star_binders(Ctx,StarName,LeftMore,More,Value,StarSets),!,ValueO is WildValue + Value.
 
-% is mid-right hand wildcard
-make_star_binders(Ctx,StarName,[Match|B],[WildCard|BB],ValueO,[Pred|StarSets]):-isStarOrWild(StarName,WildCard,WildValue,Match, Pred),!,
+% is mid-right hand wildcard (this should be the last test)
+make_star_binders(Ctx,StarName,[Match|B],[WildCard|BB],ValueO,[Pred|StarSets]):-!, isStarOrWild(StarName,WildCard,WildValue,Match, Pred),!,
      make_star_binders(Ctx,StarName,B,BB,Value,StarSets),!,ValueO is WildValue + Value.
 
 
@@ -1071,7 +1081,7 @@ isStar(StarName,Text):-isStar(StarName,Text,_Order),!.
 isStar(StarName,Var,Val):-not(ground(Var)),trace,debugFmt(isStar(StarName,Var,Val)),!,fail.
 isStar(_StarName,'*',4).
 isStar(_StarName,'_',2).
-isStar(StarName,A,6):-atom(StarName),!,A==StarName.
+isStar(StarName,A,6):-atom(StarName),!,A==StarName,trace.
 isStar(StarName,[X],N):-isStar(StarName,X,N),!.
 
 

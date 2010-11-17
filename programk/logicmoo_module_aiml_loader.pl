@@ -608,7 +608,7 @@ makeAimlCate1(Ctx,Assert,Value,UnboundDefault):-
 
 arg2OfList(UnboundDefault,LIST,LISTO):-maplist_safe(arg2(UnboundDefault),LIST,LISTO),!.
 arg2(_UnboundDefault,_=Value,Value):-!.
-arg2(_UnboundDefault,Value,Value):-!.
+arg2(_UnboundDefault,Value,Value):-!,trace.
 
 makeAimlCate2(_Ctx,LIST,UnboundDefault,Value):- arg2OfList(UnboundDefault,LIST,LISTO), Value =.. [aimlCate|LISTO],!.
 

@@ -196,13 +196,18 @@ isVerbatumTag(N):-memberchk(N,[call,precall,srcfile,srcdir,lineno,srcinfo]),!.
 isVerbatumTag(N):-pathAttrib(N),!.
 
 
-transformTagData(Ctx,[Name|S],Else,ValueI,ValueO):- member(N,[Name|S]),transformTagData0(Ctx,N,Else,ValueI,ValueO).
-transformTagData(Ctx,[Name|S],Else,ValueI,ValueO):- member(N,[Name|S]),!,transformTagData1(Ctx,N,Else,ValueI,ValueO).
-transformTagData(Ctx,Tag,Else,ValueI,ValueO):-transformTagData0(Ctx,Tag,Else,ValueI,ValueO).
-transformTagData(Ctx,Tag,Else,ValueI,ValueO):-transformTagData1(Ctx,Tag,Else,ValueI,ValueO).
+transformTagData(Ctx,[Name|S],Else,ValueI,ValueO):- member(N,[Name|S]),transformTagData0(Ctx,N,Else,ValueI,ValueO),prolog_must(N\==ValueO).
+transformTagData(Ctx,[Name|S],Else,ValueI,ValueO):- member(N,[Name|S]),!,transformTagData1(Ctx,N,Else,ValueI,ValueO),prolog_must(N\==ValueO).
+transformTagData(Ctx,Tag,Else,ValueI,ValueO):-transformTagData0(Ctx,Tag,Else,ValueI,ValueO),prolog_must(Tag\==ValueO).
+transformTagData(Ctx,Tag,Else,ValueI,ValueO):-transformTagData1(Ctx,Tag,Else,ValueI,ValueO),prolog_must(Tag\==ValueO).
 
-transformTagData0(_Ctx,TAG,_Default,[*],TAG).
-transformTagData0(_Ctx,TAG,_Default,*,TAG).
+% this was _Tag.. very bad!
+tagStar(_TAG,Star,Star):-!.
+
+transformTagData0(_Ctx,TAG,_Default,[*],TAGSTAR):-tagStar(TAG,*,TAGSTAR),!.
+transformTagData0(_Ctx,TAG,_Default,*,TAGSTAR):-tagStar(TAG,*,TAGSTAR),!.
+transformTagData0(_Ctx,TAG,_Default,['_'],TAGSTAR):-tagStar(TAG,'_',TAGSTAR),!.
+transformTagData0(_Ctx,TAG,_Default,'_',TAGSTAR):-tagStar(TAG,'_',TAGSTAR),!.
 transformTagData0(Ctx,Tag,_Else,ValueI,ValueO):- ValueI=='$current_value', current_value(Ctx,Tag,ValueO),!.
 transformTagData0(_Ctx,N,Else,ValueO,ValueO):-isVerbatumTag(N),!, member(Else,['$current_value']),!.
 transformTagData0(Ctx,TAG,_Default,PATTERN_IN,PATTERN_OUT):-isPatternTag(TAG),convert_pattern(Ctx,PATTERN_IN,PATTERN_OUT),!.

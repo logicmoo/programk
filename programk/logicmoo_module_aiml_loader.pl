@@ -60,7 +60,7 @@ aiml_files(File,Files):-atom(File),sub_atom(File,_Before,_Len,_After,'*'),!,expa
 aiml_files(File,Files):-atom_concat_safe(WithOutSlashes,'/',File),!,aiml_files(WithOutSlashes,Files).
 aiml_files(File,Files):-exists_directory_safe(File), %absolute_file_name(File,_FileDir),
       atom_concat_safe(File,'/*.aiml',Mask),aiml_files(Mask,Files),!.
-                    
+
 
 aimlOption(rebuild_Aiml_Files,false).
 
@@ -142,7 +142,7 @@ translate_single_aiml_file0(Ctx,File,PLNAME,FileMatch):-
         flag(cateSigCount,PREV_cateSigCount,0),
    (format('%-----------------------------------------~n')),
       withAttributes(Ctx,[withCategory=[translate_cate]], %% asserta_cate = load it as well .. but interferes with timesrtamp
-               ( fileToLineInfoElements(Ctx,File,AILSTRUCTURES), 
+               ( fileToLineInfoElements(Ctx,File,AILSTRUCTURES),
                   load_aiml_structure(Ctx,AILSTRUCTURES))),
 
    (format('%-----------------------------------------~n')),
@@ -167,8 +167,8 @@ translate_single_aiml_file1(File,PLNAME,FileMatch):-
     ignore((creating_aiml_file(File,PLNAME),delete_file(PLNAME))),
     retractall(lineInfoElement(File,_,_,_)),
     retractall(FileMatch),
-    retractall(xmlns(_,_,_)),        
-    retractall(creating_aiml_file(File,PLNAME)),!,    
+    retractall(xmlns(_,_,_)),
+    retractall(creating_aiml_file(File,PLNAME)),!,
     retractall(loaded_aiml_file(File,PLNAME,_Time)).
 
 
@@ -223,7 +223,7 @@ translate_single_aiml_filexxx(Ctx,File,PLNAME):-
      aimlCateSig(CateSig),
    ifThen(Dofile,tell(PLNAME)),
    (format(user_error,'%~w~n',[File])),
-   load_structure(File,X,[dialect(xml),space(remove)]),!,  
+   load_structure(File,X,[dialect(xml),space(remove)]),!,
    ATTRIBS = [srcfile=File],!,
    pushAttributes(Ctx,filelevel,ATTRIBS),
    load_aiml_structure_list(Ctx,X),!,
@@ -234,7 +234,7 @@ translate_single_aiml_filexxx(Ctx,File,PLNAME):-
 
 %% sgml_parser_defs(PARSER_DEFAULTS,PARSER_CALLBACKS) /*shorttag(false),*/
 sgml_parser_defs(
-  [defaults(false), space(remove),number(integer), qualify_attributes(false), 
+  [defaults(false), space(remove),number(integer), qualify_attributes(false),
          %call(decl, on_decl),
          %call(pi, on_pi),call(xmlns, on_xmlns),call(urlns, xmlns),call(error,xml_error),
          dialect(xml)
@@ -270,7 +270,7 @@ load_inner_aiml_w_lineno(SrcFile,OuterTag,Parent,Attributes,Ctx,[H|T],LL):-!,
 %% offset
 load_inner_aiml_w_lineno(SrcFile,[OuterTag|PREV],Parent,Attributes,Ctx,element(Tag,Attribs,ContentIn),element(Tag,NewAttribs,ContentOut)):-
    Context=[Tag,OuterTag|_],
-   MATCH = lineInfoElement(SrcFile,Line:Offset, Context, element(Tag, Attribs, no_content_yet)),   
+   MATCH = lineInfoElement(SrcFile,Line:Offset, Context, element(Tag, Attribs, no_content_yet)),
    MATCH,!,
    ignore(Line = nonfile),
    ignore(Offset = nonfile),
@@ -384,7 +384,7 @@ load_aiml_structure(Ctx,element(catagory,ALIST,LIST)):-load_aiml_structure(Ctx,e
 
 
 % aiml
-load_aiml_structure(Ctx,element(aiml,ALIST,LIST)):- 
+load_aiml_structure(Ctx,element(aiml,ALIST,LIST)):-
     replaceAttribute(Ctx,name,graph,ALIST,ATTRIBS),!,
  defaultPredicatesS(Defaults),
   withAttributes(Ctx,Defaults,
@@ -451,16 +451,34 @@ load_aiml_structure(Ctx,X):- aiml_error(missing_load_aiml_structure(Ctx,X)).
 % ============================================
 % special dictionaries
 % ============================================
-% user/bot dictionaries
-load_dict_structure(Ctx,element(Tag,ALIST,LIST)):- 
+dictionaryTags(Tag):-dictionaryOuterTags(Tag);dictionaryItemTags(Tag);dictionaryTypeTags(Tag,_).
+
+dictionaryOuterTags(Tag):- member(Tag,[predicates,vars,properties,bots,bot]).
+dictionaryItemTags(Tag):- member(Tag,[predicate,property,var,item,set,entry]).
+
+% Bot properties are predicates that cannot be changed during the runtime life of the bot,
+% but which can be included in AIML patterns for matching.
+dictionaryTypeTags(Tag,[bot,default]):-member(Tag,[properties]).
+dictionaryTypeTags(Tag,[bot]):-member(Tag,[bots,bot,entry]).
+% Default predicates can be thought of as your bot's "assumptions" about new users.
+dictionaryTypeTags(Tag,default):-member(Tag,[predicate,predicates]).
+dictionaryTypeTags(Tag,user):-member(Tag,[var,vars,set]).
+
+obtainDictionaryName(Ctx,_Tag,ALIST,Dict):- peekNameValue(Ctx,ALIST,[dict,user,type],Dict,'$failure'),!.
+obtainDictionaryName(_Ctx,Tag,_ALIST,Dict):- dictionaryTypeTags(Tag,Dict),!.
+obtainDictionaryName(Ctx,_Tag,ALIST,Dict):- peekNameValue(Ctx,ALIST,[dictionary,name],Dict,'$error'),!.
+
+% user/bot dictionaries (outers-only)
+load_dict_structure(Ctx,element(Tag,ALIST,LIST)):-
    member(Tag,[predicates,vars,properties]),
    replaceAttribute(Ctx,name,dictionary,ALIST,ATTRIBS),
-   withAttributes(Ctx,ATTRIBS,
+   obtainDictionaryName(Ctx,Tag,ATTRIBS,Dict),  
+   withAttributes(Ctx,[dictionary=Dict|ATTRIBS],
     debugOnFailureAiml((
      current_value(Ctx,dictionary,_Dict),
       maplist_safe(load_dict_structure(Ctx),LIST)))).
 
-% user/bot predicatates
+% user/bot predicatates (inners-only)
 load_dict_structure(Ctx,element(Tag,ALIST,LIST)):-member(Tag,[predicate]),
    current_value(Ctx,dictionary,Dict),
      attributeValue(Ctx,ALIST,[name,var],Name,'$error'),
@@ -488,6 +506,7 @@ load_dict_structure(Ctx,element(substitutions,ALIST,LIST)):-
       replaceAttribute(Ctx,name,graph,[dictionary=substitutions(input)|ALIST],ATTRIBS),
      withAttributes(Ctx,ATTRIBS,
      maplist_safe(load_substs(Ctx),LIST)))).
+
 
 load_substs(Ctx,element(Tag,ALIST,LIST)):- substitutionDictsName(Tag,Dict),
    debugOnFailureAiml((
@@ -530,7 +549,7 @@ load_dict_structure(Ctx,dict(Dict,Name,Value)):-
 
 ignore_aiml(VAR):-var(VAR),!,aiml_error(VAR).
 ignore_aiml([]):-!.
-ignore_aiml(''):-!. 
+ignore_aiml(''):-!.
 ignore_aiml(A):-atom(A),!,atom_codes(A,C),!,clean_codes(C,D),!,D=[].
 ignore_aiml([A|B]):-ignore_aiml(A),!,ignore_aiml(B),!.
 
@@ -554,8 +573,8 @@ classifySingle(Atom,out):-atom(Atom).
 classifySingle(Atom,spec(File)):-compound(Atom),functor(Atom,File,_).
 classifySingle(_Atom,unknown).
 
-                                        
-      
+
+
 varize(Find,Replace,FindO,ReplaceO):-
       subst((Find,Replace),'_','$VAR'(0),(FindM,ReplaceM)),
       subst((FindM,ReplaceM),'*','$VAR'(0),(FindO,ReplaceO)),!.
@@ -571,9 +590,9 @@ assertCate(Ctx,Cate,DoWhat):-
       makeAimlCate(Ctx,Cate,Value),!,
       assertCate3(Ctx,Value,DoWhat),!.
 
-%% todo maybe this.. once((retract(NEW),asserta(NEW)) ; (asserta(NEW),(debugFmt('~q.~n',[NEW])))),!. 
+%% todo maybe this.. once((retract(NEW),asserta(NEW)) ; (asserta(NEW),(debugFmt('~q.~n',[NEW])))),!.
 % assertCate3(Ctx,NEW,DoWhat):-NEW,!.
- assertCate3(Ctx,NEW,DoWhat):- 
+ assertCate3(Ctx,NEW,DoWhat):-
   flag(cateSigCount,X,X+1), forall(member(Pred,DoWhat),call(Pred,Ctx,NEW)).
 
 % ===============================================================================================
@@ -583,7 +602,7 @@ makeAimlCate(Ctx,Cate,Value):-makeAimlCate(Ctx,Cate,Value,'$current_value').
 makeAimlCate(Ctx,Cate,Value,UnboundDefault):- debugOnFailureAiml((convert_template(Ctx,Cate,Assert),!,makeAimlCate1(Ctx,Assert,Value,UnboundDefault))).
 
 makeAimlCate1(Ctx,Assert,Value,UnboundDefault):-
-   aimlCateOrder(Order), 
+   aimlCateOrder(Order),
    makeAllParams(Ctx,Order,Assert,UnboundDefault,Result),
    makeAimlCate2(Ctx,Result,UnboundDefault,Value),!.
 
@@ -653,7 +672,7 @@ pushCateElement(Ctx,INATTRIBS,element(Tag,ATTRIBS,INNER_XML)):- member(Tag,[topi
 
 % flag/topic
 pushCateElement(Ctx,INATTRIBS,element(Tag,ALIST,INNER_XML)):- member(Tag,[topic,flag]),!,
-  debugOnFailureAiml(( 
+  debugOnFailureAiml((
   replaceAttribute(Ctx,name,Tag,ALIST,ATTRIBS),
   appendAttributes(Ctx,ATTRIBS,INATTRIBS,OUTATTRIBS),
   withAttributes(Ctx,OUTATTRIBS,
@@ -680,14 +699,14 @@ each_pattern(Ctx,ATTRIBS,TAGS,element(TAG,ALIST,PATTERN)):-  innerTagLikeThat(Th
    each_pattern(Ctx,ATTRIBS,[element(That,WA,WP)|TAGS],element(TAG,ALIST,NOPATTERNS)),!.
 
 each_pattern(Ctx,ATTRIBS,NOPATTERNS,element(TAG,ALIST,PATTERNA)):-
-  debugOnFailureAiml(( 
+  debugOnFailureAiml((
    convert_text(PATTERNA,PATTERN),
    replaceAttribute(Ctx,name,TAG,ALIST,PATTRIBS),
    appendAttributes(Ctx,PATTRIBS,ATTRIBS,NEWATTRIBS),
    gatherEach(Ctx,[TAG=PATTERN|NEWATTRIBS],NOPATTERNS,Results),
    prolog_must(dumpListHere(Ctx,Results)))),!.
 
-dumpListHere(Ctx,DumpListHere):- 
+dumpListHere(Ctx,DumpListHere):-
    debugOnFailureAiml((
     %%debugFmt(DumpListHere),
     current_value(Ctx,withCategory,Verbs),
@@ -702,7 +721,7 @@ gatherEach(Ctx,NEWATTRIBS,[element(TAG,ALIST,PATTERN)|NOPATTERNS],RESULTS):- inn
       takeout(element(That,WA,WP),PATTERN,NOTHAT),!,
       gatherEach(Ctx,NEWATTRIBS,[element(That,WA,WP),element(TAG,ALIST,NOTHAT)|NOPATTERNS],RESULTS),!.
 
-gatherEach(Ctx,NEWATTRIBS,[element(TAG,ALIST,PATTERN_IN)|NOPATTERNS],[TAG=PATTERN_OUT|Result]):- 
+gatherEach(Ctx,NEWATTRIBS,[element(TAG,ALIST,PATTERN_IN)|NOPATTERNS],[TAG=PATTERN_OUT|Result]):-
       transformTagData(Ctx,TAG,'$current_value',PATTERN_IN,PATTERN_OUT),!,
       gatherEach(Ctx,NEWATTRIBS,NOPATTERNS,ResultM),!,
       appendAttributes(Ctx,ALIST,ResultM,Result),!.
@@ -719,7 +738,7 @@ each_that(Ctx,M):-debugFmt('FAILURE'(each_that(Ctx,M))),trace.
 :-retractall(dict(_,_,_)).
 
 :- cateFallback(ATTRIBS), pushAttributes(_Ctx,default,ATTRIBS).
-:- cateFallback(ATTRIBS), popAttributes(_Ctx,default,ATTRIBS). 
+:- cateFallback(ATTRIBS), popAttributes(_Ctx,default,ATTRIBS).
 :- cateFallback(ATTRIBS), pushAttributes(_Ctx,default,ATTRIBS).
 
 :-pp_listing(dict(_,_,_)).

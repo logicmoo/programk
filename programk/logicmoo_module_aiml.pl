@@ -472,6 +472,7 @@ computeElement_subst(Ctx,Votes,_Gender,DictName,Attribs,Input,Result,VotesO):-
 % Substitution based on Pred like sameWordsDict(String,Pattern).
 % ===================================================================
 
+simplify_atom(A0,D):- is_list(A0),atomic_list_concat(A0,' ',A),!,simplify_atom(A,D).
 simplify_atom(A,D):- downcase_atom(A,B),atomic_list_concat(L0,'\\b',B),delete(L0,'',L),atomic_list_concat(L,' ',C),!,atomSplit(C,D),!.
 
 sameWordsDict([String|A],[Pattern|B]):-!,sameWordsDict0(String,Pattern),!,sameWordsDict_l(A,B),!.
@@ -1195,18 +1196,27 @@ getAliceMemDictOnly(Ctx,Dict,Name,ValueI):-unresultifyC(ValueI,Value),!,getAlice
 getAliceMemDictOnly(Ctx,Dict,Name,Value):-is_list(Dict),last(Dict,Last),!,getAliceMemDictOnly(Ctx,Last,Name,Value),!.
 getAliceMemDictOnly(Ctx,Dict,Name,Value):-atom(Dict),downcase_atom(Dict,Down),Dict\=Down,getAliceMemDictOnly(Ctx,Down,Name,Value),!.
 
+getAliceMemDictInherited(Ctx,Dict,Name,Value):-getAliceMemDictOnly(Ctx,Dict,Name,Value).
+getAliceMemDictInherited(Ctx,Dict,Name,Value):-Dict \== default,getAliceMemDictInherited(Ctx,default,Name,Value).
+getAliceMemDictInherited(Ctx,Dict,Name,Value):-atom(Dict),getAliceMemDictOnly(Ctx,defaultValue(Dict),Name,Value).
 
+getUserDicts(User,Name,Value):-isPersonaUser(User),isPersonaPred(Name),once(getAliceMemDictInherited(_Ctx,User,Name,Value)).
+
+isPersonaUser(User):-findall(User0,dict(User0,'is_type','agent'),Users),sort(Users,UsersS),!,member(User,UsersS).
+isPersonaPred(Name):-findall(Pred,(dict(_Dict,Pred,_Value),atom(Pred)),Preds),sort(Preds,PredsS),!,member(Name,PredsS).
+
+setAliceMem(Ctx,DictI,Name,Value):-is_list(DictI),!,foreach(member(Dict,DictI),setAliceMem(Ctx,Dict,Name,Value)),!.
 setAliceMem(Ctx,DictI,Name,Value):-unresultifyC(DictI,Dict),!,setAliceMem(Ctx,Dict,Name,Value),!.
 setAliceMem(Ctx,Dict,NameI,Value):-unresultifyC(NameI,Name),!,setAliceMem(Ctx,Dict,Name,Value),!.
 setAliceMem(Ctx,Dict,Name,ValueI):-unresultifyC(ValueI,Value),!,setAliceMem(Ctx,Dict,Name,Value),!.
 
 setAliceMem(Ctx,Dict,Name,Value):-immediateCall(Ctx,setCurrentAliceMem(Dict,Name,Value)),fail.
-%%setAliceMem(_Ctx,_Dict,_Name,'nick').
+%%setAliceMem(Ctx,'user','name',['Test',passed,'.']):-trace.
 setAliceMem(Ctx,Dict,Name,Value):-atom(Dict),downcase_atom(Dict,Down),Dict\=Down,!,setAliceMem(Ctx,Down,Name,Value).
 setAliceMem(Ctx,Dict,Name,Value):-atom(Name),downcase_atom(Name,Down),Name\=Down,!,setAliceMem(Ctx,Dict,Down,Value).
 setAliceMem(Ctx,Dict,default(Name),DefaultValue):-getAliceMem(Ctx,Dict,Name,'OM')->setAliceMem(Ctx,Dict,Name,DefaultValue);true.
 setAliceMem(_Ctx,Dict,Name,Value):- ignore(retract(dict(Dict,Name,B))),ignore(B='OM'),retractall(dict(Dict,Name,_)),
-   asserta(dict(Dict,Name,Value)).%%,debugFmt('/* ~q. */~n',[dict(Dict,Name,B->Value)]),!.
+   assertz(dict(Dict,Name,Value)).%%,debugFmt('/* ~q. */~n',[dict(Dict,Name,B->Value)]),!.
 
 
 setCurrentAliceMem(Dict,X,E):-currentContext(setCurrentAliceMem(Dict,X,E),Ctx), setAliceMem(Ctx,Dict,X,E).
@@ -1264,6 +1274,11 @@ getLastSaidAsInput(LastSaidMatchable):-getLastSaid(That),convertToMatchable(That
 :-setCurrentAliceMem('bot','name',['The','Robot']).
 :-setCurrentAliceMem('bot',version,'1.0.1').
 :-setCurrentAliceMem('user','name',['Unknown','Partner']).
+:-setCurrentAliceMem('user','me','user').
+:-setCurrentAliceMem('user','is_type','agent').
+:-setCurrentAliceMem('bot','is_type','agent').
+:-setCurrentAliceMem('default','is_type','role').
+:-setCurrentAliceMem(substitutions(_DictName),'is_type','substitutions').
 
 
 % ===============================================================================================

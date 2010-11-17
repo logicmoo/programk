@@ -279,7 +279,7 @@ defaultPredicatesS([topic='*',
              flags='*',
              that='*',
              % hide for testing 
-             dictionary='default',
+             %dictionary='default',
              userdict='user',
              substitutions='input',
              graph='default',

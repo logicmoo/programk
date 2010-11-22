@@ -9,6 +9,7 @@
 % ===================================================================
 :-dynamic(lineInfoElement/4).
 
+nthAnswerOf(Call,Nth):-flag(nthAnswerOf,_,Nth), Call,flag(nthAnswerOf,R,R-1),R=1,!.
 
 hideIfNeeded(I,I):- (var(I);atomic(I)),!.
 hideIfNeeded([I|_],ctx):-nonvar(I),I=frame(_,_,_),!.
@@ -70,9 +71,9 @@ prolog_ecall(_Pred,Call):- fail, ignore((Call=atom(_),trace)),
 prolog_ecall(Pred,Call):- debugOnError0(call(Pred,Call)).
 
 
-%%:-'$hide'(atLeastOne/1).
-%%:-'$hide'(atLeastOne/2).
-%%:-'$hide'(atLeastOne0/2).
+:-'$hide'(atLeastOne/1).
+:-'$hide'(atLeastOne/2).
+:-'$hide'(atLeastOne0/2).
 
 atLeastOne(OneA):- atLeastOne(OneA,(trace,OneA)).
 atLeastOne(OneA,Else):-atLeastOne0(OneA,Else).

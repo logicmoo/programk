@@ -519,6 +519,21 @@ Found the hyphen+done. star= 1
     </template>
   </category>
 
+    <category>
+        <pattern>doug1</pattern>
+        <template>Test case #15 setup. THAT plus two. THAT plus one. THAT.</template>
+    </category>
+
+    <category>
+        <pattern>doug2</pattern>
+        <template>Test case #15.<html:br/>
+            THAT: Old form: <that/><html:br/>
+            New form: <that index="1,1"/><html:br/>
+            THAT+1: <that index="1,2"/><html:br/>
+            THAT+2: <that index="1,3"/><html:br/>
+        </template>
+    </category>
+
   <category>
     <pattern>QTP</pattern>
     <template>
@@ -529,6 +544,19 @@ Found the hyphen+done. star= 1
     </template>
   </category>
 
+  <category>
+    <pattern>QTPS</pattern>
+    <template>
+        <srai>teststar Test passed one and Test passed two and Test passed three and Test passed four</srai>
+    </template>
+  </category>
+  <category>
+    <pattern>QTPT</pattern>
+    <template>
+        <srai>teststar Test passed one and Test passed two and Test passed three and Test passed
+	four</srai>
+    </template>
+  </category>
 <!--
   <category>
     <pattern>QT</pattern>

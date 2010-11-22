@@ -53,15 +53,16 @@ flattem_append(A,B,BBB):-flatten([A],AA),!,flatten([B],BB),!,append(AA,BB,BBB),!
 convert_template(_Ctx,X,_Y):-var(X),throw_safe(var(X)).
 convert_template(_Ctx,_X,Y):-nonvar(Y),throw_safe(nonvar(Y)).
 convert_template(_Ctx,[],[]):-!.
-convert_template(Ctx,[I|P],L):- ignore_aiml(I),!,convert_template(Ctx,P,L),!.
+%%HIDE convert_template(Ctx,[I|P],L):-!,convert_template(I,IO),!,convert_template(Ctx,P,PO),append(IO,PO,L),!.
+convert_template(_Ctx,I,[]):-ignore_aiml(I),!.
 
-%%convert_template(_Ctx,[ATOM],O):-atom(ATOM),!,atomSplit(ATOM,LIST),!,toAtomList(LIST,O),!.
-convert_template(Ctx,[I|P],GOOD):- atom(I),atomSplit(I,LIST),toAtomList(LIST,O),[I] \== O,!, append(O,P,IP), convert_template(Ctx,IP,GOOD),!.
-%%convert_template(Ctx,[I|P],GOOD):- is_list(I),!,append(I,P,IP),!,convert_template(Ctx,IP,GOOD),!.
-%%convert_template(Ctx,[I|P],GOOD):- convert_template(Ctx,I,O), I \== O,!, convert_template(Ctx,[O|P],GOOD),!.
+%%%HIDE            %%convert_template(_Ctx,[ATOM],O):-atom(ATOM),!,atomSplit(ATOM,LIST),!,toAtomList(LIST,O),!.
+convert_template(Ctx,I,GOOD):- atom(I),atomSplit(I,LIST),toAtomList(LIST,O),[I] \== O,!, convert_template(Ctx,O,GOOD),!.
+%%%HIDE            %%convert_template(Ctx,[I|P],GOOD):- is_list(I),!,append(I,P,IP),!,convert_template(Ctx,IP,GOOD),!.
+%%%HIDE            %%convert_template(Ctx,[I|P],GOOD):- convert_template(Ctx,I,O), I \== O,!, convert_template(Ctx,[O|P],GOOD),!.
 convert_template(Ctx,[I|P],GOOD):- convert_template(Ctx,I,O),!,convert_template(Ctx,P,L),!,append(O,L,GOOD),!.
-%%convert_template(Ctx,[P],POL):-!,convert_template(Ctx,P,POL).
-%%convert_template(Ctx,element(TAG,ATTRIBS,P),POL):-convert_element(Ctx,element(TAG,ATTRIBS,PO),OUT),!,listify(OUT,POL).
+%%%HIDE            %%convert_template(Ctx,[P],POL):-!,convert_template(Ctx,P,POL).
+convert_template(Ctx,element(TAG,ATTRIBS,P),POL):-!, convert_element(Ctx,element(TAG,ATTRIBS,P),OUT),!,listify(OUT,POL).
 convert_template(Ctx,P,POL):-convert_element(Ctx,P,PO),!,listify(PO,POL).
 
 listify(OUT,OUT):-not(not(is_list(OUT))),!.
@@ -87,8 +88,8 @@ convert_ele(Ctx,element(_NS:Local,A,B),Out):- !,convert_ele(Ctx,element(Local,A,
 convert_ele(_Ctx,element(NSLocal,_A,_B),_Out):-not(atom(NSLocal)),!,throw_safe(not(atom(NSLocal))),!.
 convert_ele(Ctx,element(NSLocal,A,B),Out):- concat_atom_safe([_NS,Local],':',NSLocal),!,convert_ele(Ctx,element(Local,A,B),Out),!.
 convert_ele(Ctx,element(html:TAG,A,B),Out):-!,convert_ele(Ctx,element(TAG,A,B),Out),!.
-convert_ele(_Ctx,element(br,[],[]),'<br/>').
-convert_ele(_Ctx,element(p,[],[]),'<p/>').
+convert_ele(_Ctx,element(br,[],[]),'\n').
+convert_ele(_Ctx,element(p,[],[]),'\r\n').
 convert_ele(Ctx,element(pre,[],B),BB):-!,convert_template(Ctx,B,BB).
 
 convert_ele(Ctx,element(catagory, A, B),Out):-convert_ele(Ctx,element(category, A, B),Out).
@@ -139,7 +140,7 @@ convert_ele(_Ctx,element(star,ALIST,MORE),star(pattern,XLAT2,MORE2)):-!,starInde
   starIndex(_Tag,_Star,ALIST,MORE,XLAT2,MORE2):-convert_attributes(Ctx,ALIST,XLAT2),convert_template(Ctx,MORE,MORE2),!.
 
 convert_ele(_Ctx,element(Tag,ALIST,MORE),star(Star,XLAT2,MORE2)):- starType(Tag,Star),!,starIndex(Tag,Star,ALIST,MORE,XLAT2,MORE2).
-   starType(Tag,Star):-member(Tag=Star,[star=pattern,topicstar=topic,gruardstar=guard,inputstar=pattern,thatstar=that]),!.
+   starType(Tag,Star):-member(Tag=Star,[star=pattern,topicstar=topic,guardstar=guard,inputstar=pattern,thatstar=that]),!.
    starType(Tag,Star):-atom_concat_safe(Star,'_star',Tag),!.
    starType(Tag,Star):-atom_concat_safe(Star,'star',Tag),!.
 
@@ -211,7 +212,15 @@ transformTagData0(_Ctx,TAG,_Default,'_',TAGSTAR):-tagStar(TAG,'_',TAGSTAR),!.
 transformTagData0(Ctx,Tag,_Else,ValueI,ValueO):- ValueI=='$current_value', current_value(Ctx,Tag,ValueO),!.
 transformTagData0(_Ctx,N,Else,ValueO,ValueO):-isVerbatumTag(N),!, member(Else,['$current_value']),!.
 transformTagData0(Ctx,TAG,_Default,PATTERN_IN,PATTERN_OUT):-isPatternTag(TAG),convert_pattern(Ctx,PATTERN_IN,PATTERN_OUT),!.
-transformTagData0(Ctx,TAG,_Default,PATTERN_IN,PATTERN_OUT):-isOutputTag(TAG),convert_template_pred(Ctx,=,PATTERN_IN,PATTERN_OUT),!.
+
+transformTagData0(Ctx,TAG,_Default,PATTERN_IN,PATTERN_OUT):-
+  isOutputTag(TAG),convert_template_pred(Ctx,=,PATTERN_IN,PATTERN_OUT),!,
+  nop((traceIf((    
+    member(element(THAT,_,_),PATTERN_IN),
+    not(member(element(THAT,_,_),PATTERN_OUT)),
+    not(member(THAT,[br,star,pattern,thatstar,topicstar,think,srai,sr]))
+    )))),
+  convert_template_pred(Ctx,=,PATTERN_IN,_PATTERN_OUT_UNUSED).
 
 transformTagData1(_Ctx,TAG,_Default,PATTERN_IN,PATTERN_OUT):- member(TAG,[userdict,graph]),matchable_litteral_safe(PATTERN_IN,PATTERN_OUT),!.
 transformTagData1(_Ctx,TAG,_Default,PATTERN_IN,PATTERN_OUT):-infoTagLikeLineNumber(TAG),!,PATTERN_IN=PATTERN_OUT.
@@ -282,6 +291,5 @@ tagType(Tag,insideCate):-cateMember(Tag).
 
 tagType(Tag,requiredCate):-member(Tag,[pattern,template]).
 tagType(Tag,optionalCate):-cateMember(Tag),not(tagType(Tag,requiredCate)).
-
 
 

@@ -113,7 +113,7 @@ translate_single_aiml_file(_Ctx,File,PLNAME,FileMatch):- creating_aiml_file(File
 
 translate_single_aiml_file(_Ctx,File,PLNAME,FileMatch):- loaded_aiml_file(File,PLNAME,Time),!, throw_safe(already(loaded_aiml_file(File,PLNAME,Time),FileMatch)).
 
-translate_single_aiml_file(_Ctx,File,PLNAME,_FileMatch):-   %% fail if want to always remake file
+translate_single_aiml_file(_Ctx,File,PLNAME,_FileMatch):-  fail, %% fail if want to always remake file
    exists_file_safe(PLNAME),
    time_file_safe(PLNAME,PLTime), % fails on non-existent
    time_file_safe(File,FTime),
@@ -617,9 +617,9 @@ makeAimlCate2(_Ctx,LIST,UnboundDefault,Value):- arg2OfList(UnboundDefault,LIST,L
 %  Load Categories
 % ===============================================================================================
 
-innerTagLikeThat(That):-innerTagLike(That,prepattern).
+innerTagLikeThat(That):-hotrace(innerTagLike(That,prepattern)).
 
-innerTagLike(That,Like):-innerTagPriority(That,Atts),memberchk(Like,Atts).
+innerTagLike(That,Like):-hotrace((innerTagPriority(That,Atts),memberchk(Like,Atts))).
 
 innerTagPriority(graph,[topic,prepattern]).
 innerTagPriority(precall,[that,prepattern]).
@@ -659,8 +659,7 @@ each_category(Ctx,ATTRIBS,NOPATTERNS,element(TAG,ALIST,PATTERN)):-
 
 
 %catagory
-pushCateElement(Ctx,ATTRIBS,element(catagory, A, B)):-pushCateElement(Ctx,ATTRIBS,element(category, A, B)).
-
+pushCateElement(Ctx,ATTRIBS,element(catagory, A, B)):- !,pushCateElement(Ctx,ATTRIBS,element(category, A, B)),!.
 
 % <topic> has non<category>s
 pushCateElement(Ctx,INATTRIBS,element(Tag,ATTRIBS,INNER_XML)):- member(Tag,[topic,flag]),member(element(INNER,_,_),INNER_XML),INNER \= category,!,
@@ -695,9 +694,10 @@ pushCateElement(Ctx,ATTRIBS,M):-debugFmt('FAILURE'(pushCateElement(Ctx,ATTRIBS,M
 unify_partition(Mask, List, Included, Excluded):- partition(\=(Mask), List, Excluded , Included),!.
 %%unify_partition(Mask, +List, ?Included, ?Excluded)
 
-each_pattern(Ctx,ATTRIBS,TAGS,element(TAG,ALIST,PATTERN)):-  innerTagLikeThat(That), member(element(That,WA,WP), PATTERN),!,
+each_pattern(Ctx,ATTRIBS,TAGS,element(TAG,ALIST,PATTERN)):- innerTagLikeThat(That), member(element(That,WA,WP), PATTERN),!,
+   debugOnFailureAiml((
    takeout(element(That,WA,WP),PATTERN,NOPATTERNS),
-   each_pattern(Ctx,ATTRIBS,[element(That,WA,WP)|TAGS],element(TAG,ALIST,NOPATTERNS)),!.
+   each_pattern(Ctx,ATTRIBS,[element(That,WA,WP)|TAGS],element(TAG,ALIST,NOPATTERNS)))),!.
 
 each_pattern(Ctx,ATTRIBS,NOPATTERNS,element(TAG,ALIST,PATTERNA)):-
   debugOnFailureAiml((
@@ -716,15 +716,25 @@ dumpListHere(Ctx,DumpListHere):-
 %%dumpListHere([]):-debugFmt(dumpListHere).
 %%dumpListHere([R|Results]):-debugFmt(R),dumpListHere(Results),!.
 
-gatherEach(_Ctx,NEWATTRIBS,[],NEWATTRIBS):-!.
+gatherEach(Ctx,NEWATTRIBS,NOPATTERNS,RESULTS):-
+   gatherEach0(Ctx,NEWATTRIBS,NOPATTERNS,RESULTS),
+   debugFmt(gatherEach0(Ctx,NEWATTRIBS,NOPATTERNS,RESULTS)),!.
 
-gatherEach(Ctx,NEWATTRIBS,[element(TAG,ALIST,PATTERN)|NOPATTERNS],RESULTS):- innerTagLikeThat(That), member(element(That,WA,WP), PATTERN),!,
+
+removeAlwaysFromTag(that,pattern).
+
+gatherEach0(_Ctx,NEWATTRIBS,[],NEWATTRIBS):-!.
+
+gatherEach0(Ctx,NEWATTRIBS,[element(TAG,ALIST,PATTERN)|NOPATTERNS],RESULTS):-  
+   removeAlwaysFromTag(That,TAG),
+      innerTagLikeThat(That), member(element(That,WA,WP), PATTERN),!,
       takeout(element(That,WA,WP),PATTERN,NOTHAT),!,
-      gatherEach(Ctx,NEWATTRIBS,[element(That,WA,WP),element(TAG,ALIST,NOTHAT)|NOPATTERNS],RESULTS),!.
+      prolog_must(removeAlwaysFromTag(TAG,That)),
+      gatherEach0(Ctx,NEWATTRIBS,[element(That,WA,WP),element(TAG,ALIST,NOTHAT)|NOPATTERNS],RESULTS),!.
 
-gatherEach(Ctx,NEWATTRIBS,[element(TAG,ALIST,PATTERN_IN)|NOPATTERNS],[TAG=PATTERN_OUT|Result]):-
+gatherEach0(Ctx,NEWATTRIBS,[element(TAG,ALIST,PATTERN_IN)|NOPATTERNS],[TAG=PATTERN_OUT|Result]):-
       transformTagData(Ctx,TAG,'$current_value',PATTERN_IN,PATTERN_OUT),!,
-      gatherEach(Ctx,NEWATTRIBS,NOPATTERNS,ResultM),!,
+      gatherEach0(Ctx,NEWATTRIBS,NOPATTERNS,ResultM),!,
       appendAttributes(Ctx,ALIST,ResultM,Result),!.
 
 
@@ -759,6 +769,4 @@ save:-tell(aimlCate),
 dt:- withAttributes(Ctx,[graph='ChomskyAIML'],load_aiml_files(Ctx,'aiml/chomskyAIML/*.aiml')).
 
 do:-load_aiml_files,alicebot.
-
-
 

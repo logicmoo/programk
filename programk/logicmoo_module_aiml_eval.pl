@@ -288,8 +288,8 @@ os_to_prolog_filename(OS,_PL):-prolog_must(atom(OS)),fail.
 os_to_prolog_filename(_OS,PL):-prolog_must(var(PL)),fail.
 os_to_prolog_filename(OS,PL):-exists_file_safe(OS),!,PL=OS.
 os_to_prolog_filename(OS,PL):-exists_directory_safe(OS),!,PL=OS.
-os_to_prolog_filename(OS,PL):-aiml_directory_search(CurrentDir),join_path(CurrentDir,OS,PL),exists_file_safe(PL),!.
-os_to_prolog_filename(OS,PL):-aiml_directory_search(CurrentDir),join_path(CurrentDir,OS,PL),exists_directory_safe(PL),!.
+os_to_prolog_filename(OS,PL):-local_directory_search(CurrentDir),join_path(CurrentDir,OS,PL),exists_file_safe(PL),!.
+os_to_prolog_filename(OS,PL):-local_directory_search(CurrentDir),join_path(CurrentDir,OS,PL),exists_directory_safe(PL),!.
 
 os_to_prolog_filename(OS,PL):-atom(OS),atomic_list_concat([X,Y|Z],'\\',OS),atomic_list_concat([X,Y|Z],'/',OPS),!,os_to_prolog_filename(OPS,PL).
 os_to_prolog_filename(OS,PL):-atom_concat_safe(BeforeSlash,'/',OS),os_to_prolog_filename(BeforeSlash,PL).
@@ -319,7 +319,7 @@ getCurrentFile(Ctx,_ATTRIBS,CurrentFile):-getItemValue(proof,Ctx,Proof),nonvar(P
 getCurrentFileDir(Ctx,ATTRIBS,Dir):- prolog_must((getCurrentFile(Ctx, ATTRIBS, CurrentFile),atom(CurrentFile),
       file_directory_name(CurrentFile,Dir0),absolute_file_name(Dir0,Dir))).
 
-getCurrentFileDir(_Ctx,_ATTRIBS,Dir):- aiml_directory_search(Dir).
+getCurrentFileDir(_Ctx,_ATTRIBS,Dir):- local_directory_search(Dir).
 
 getItemValue(Name,Ctx,Value):-nonvar(Ctx),getCtxValue(Name,Ctx,Value),!.
 getItemValue(Name,Ctx,Value):-current_value(Ctx,Name,Value),!.
@@ -342,12 +342,12 @@ testIt(ATTRIBS,Input,ExpectedAnswer,ExpectedKeywords,Result,Name,Description,Ctx
    notrace(ExpectedKeywords==[[noExpectedKeywords]] -> PASSGOAL = sameBinding(Resp,ExpectedAnswer);  PASSGOAL = containsEachBinding(Resp,ExpectedKeywords)),    
   %% traceIf(ExpectedKeywords \== [[noExpectedKeywords]]),
     withAttributes(Ctx,ATTRIBS,(( runUnitTest(alicebot2(Ctx,Input,Resp),PASSGOAL,Result),
-    hideIfNeeded(testIt(Name,Description,Input,PASSGOAL),PRINTRESULT),
+    hideIfNeeded(testIt(Input,Name,Description,PASSGOAL),PRINTRESULT),
     hideIfNeeded([Result,Name,Description,Input], STORERESULT),
     debugFmt(PRINTRESULT)))),flush_output,
     once(
      contains_term(STORERESULT,unit_failed) ->
-      (assert(unitTestResult(unit_failed,PRINTRESULT)), true );
+      (assert(unitTestResult(unit_failed,f(PRINTRESULT,PASSGOAL))), true );
       assert(unitTestResult(unit_passed,PRINTRESULT))),!.
 
 

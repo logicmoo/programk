@@ -35,12 +35,13 @@ hotrace(X):-call(X).
 :-ensure_loaded(library('programk/logicmoo_module_aiml_convertor.pl')).
 :-ensure_loaded(library('programk/logicmoo_module_aiml_eval.pl')).
 %%:-ensure_loaded(library('notaiml/tokenize.pl')).
-:-dynamic(aiml_directory_search/1).
-:-multifile(aiml_directory_search/1).
-:-module_transparent(aiml_directory_search/1).
+:-dynamic(local_directory_search/1).
+:-multifile(local_directory_search/1).
+:-module_transparent(local_directory_search/1).
 
-aiml_directory_search('programk').
-aiml_directory_search('programk/test_suite').
+local_directory_search('programk').
+local_directory_search('programk/test_suite').
+local_directory_search('../aiml').
 
 
 %%traceIf(_Call):-!.
@@ -862,7 +863,7 @@ computeSRAI222(CtxIn,Votes,ConvThread,Pattern,Out,VotesO,ProofOut,OutputLevel):-
          once((         
             prolog_must(CAfterPattern),
             prolog_must(nonvar(Out)),
-            OutputLevel is OutputLevel1 + OutputLevel2*100 + OutputLevel3*10000 + 100000000,
+            OutputLevel = OutputLevel1 - OutputLevel2 - OutputLevel3,
             cateStrength(CateSig,Mult),
             (contains_term(Ctx,CateSig)->not(contains_term(Ctx,ClauseNumber));not(contains_term(Ctx,ClauseNumber))),
             VotesO is Votes * Mult,
@@ -924,12 +925,13 @@ make_prepost_conds(Ctx,StarName,TextPattern,CateSig,FindPattern,CommitPattern,Ou
       ((
         member(lsp(MatchLevel,_StarSets,MatchPattern),EachMatchSig),           
           getCategoryArg(Ctx,StarName,MatchPattern,Out,CateSig),
-           prolog_must(make_star_binders(Ctx,StarName,TextPattern,MatchPattern,MatchLevel,StarSets2)),
+           prolog_must(make_star_binders(Ctx,StarName,TextPattern,MatchPattern,MatchLevel2,StarSets2)),
            %%prolog_must(StarSets=StarSets2),
            (CommitPattern = prolog_must(once((
               %%traceIf((StarName==pattern,TextPattern=[_,_|_])),
             once(
              (atLeastOne(starSets(StarSets2)), 
+              ignore(MatchLevel2 = MatchLevel),
               addKeyValue(ProofOut, StarName = (TextPattern:MatchPattern))
             ))))))
          )),!.
@@ -999,29 +1001,29 @@ debugFmtList1(Value,shown(Value)).
 % ========================================================================================
 
 canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern,MatchLevel,StarSets):- 
-    make_star_binders(Ctx,StarName,InputPattern,MatchPattern,MatchLevel,StarSets),!,
+    make_star_binders(Ctx,StarName,InputPattern,MatchPattern,MatchLevelInv,StarSets),!,MatchLevel is 1/MatchLevelInv ,
     (debugFmt(pass_canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern,MatchLevel,StarSets))),!.
 
 canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern,_MatchLevel,_StarSets):-
     nop(debugFmt(fail_canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern))),!,fail.
 
-make_star_binders(_Ctx,StarName,InputPattern,MatchPattern,_MatchLevel,StarSets):- 
-   prolog_must(var(StarSets)),prolog_must(ground(StarName:InputPattern:MatchPattern)),fail.  
+make_star_binders(_Ctx,StarName,InputPattern,MatchPattern,MatchLevel,StarSets):- 
+   prolog_must(var(StarSets)),prolog_must(var(MatchLevel)),prolog_must(ground(StarName:InputPattern:MatchPattern)),fail.  
 
 :-setLogLevel(make_star_binders,none).
 
 %end check
-make_star_binders(_Ctx,_StarName,L,R,0,[]):-R==[],!,L==[].
-make_star_binders(_Ctx,_StarName,L,R,0,[]):-L==[],!,R==[].
+make_star_binders(_Ctx,_StarName,L,R,1,[]):-R==[],!,L==[].
+make_star_binders(_Ctx,_StarName,L,R,1,[]):-L==[],!,R==[].
 
 
 % left hand star/wild  (cannot really happen (i hope))
-make_star_binders(_Ctx,StarName,Star,_Match,_MatchLevel,_StarSets):- false, not([StarName]=Star),isStarOrWild(StarName,Star,_WildValue,_WMatch,_Pred),!,trace,fail. 
+%make_star_binders(_Ctx,StarName,Star,_Match,_MatchLevel,_StarSets):- fail, not([StarName]=Star),isStarOrWild(StarName,Star,_WildValue,_WMatch,_Pred),!,trace,fail. 
 
 
 % simplify
 make_star_binders(Ctx,StarName,[Word1|B],[Word2|BB],CountO,StarSets):-
-     sameWords(Word1,Word2),!,make_star_binders(Ctx,StarName,B,BB,Count,StarSets),CountO is Count - 0.1 .
+     sameWords(Word1,Word2),!,make_star_binders(Ctx,StarName,B,BB,Count,StarSets),CountO is Count + 1.
 
 % tail (all now in) star/wildcard
 make_star_binders(_Ctx,StarName,Match,WildCard,WildValue,[Pred]):-isStarOrWild(StarName,WildCard,WildValue,Match,Pred),!.
@@ -1085,10 +1087,10 @@ isStar(StarName,'input'):-!.
 */
 isStar(StarName,Text):-isStar(StarName,Text,_Order),!.
 isStar(StarName,Var,Val):-not(ground(Var)),trace,debugFmt(isStar(StarName,Var,Val)),!,fail.
-isStar(_StarName,'*',4).
-isStar(_StarName,'_',2).
-isStar(StarName,A,6):-atom(StarName),!,A==StarName,trace.
-isStar(StarName,[X],N):-isStar(StarName,X,N),!.
+isStar(_StarName,'*',0.3).
+isStar(_StarName,'_',0.8).
+isStar(StarName,A,6):-atom(StarName),!,A==StarName,writq(qq),trace.
+%isStar(StarName,[X],N):-isStar(StarName,X,N),!.
 
 
 must_be_openCate(_CateSig):-!.

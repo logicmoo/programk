@@ -206,17 +206,19 @@ tag_eval(Ctx,element(system,ATTRIBS,INNER_XML),Output):-
 systemCall(Ctx,[Lang],Eval,Out):- nonvar(Lang),!, systemCall(Ctx,Lang,Eval,Out).
 
 systemCall(_Ctx,_Lang,[],[]):-!.
+systemCall(Ctx,Lang,[''|REST],DONE):-!,systemCall(Ctx,Lang,REST,DONE).
 systemCall(Ctx,Bot,[FIRST|REST],DONE):-atom_concat_safe('@',CMD,FIRST),!,systemCall(Ctx,Bot,[CMD|REST],DONE).
 systemCall(Ctx,'bot',REST,OUT):-!,debugOnFailure(systemCall_Bot(Ctx,REST,OUT)),!.
 systemCall(Ctx,Lang,[Eval],Out):-systemCall(Ctx,Lang,Eval,Out).
 systemCall(Ctx,Lang,Eval,Out):-once((atom(Eval),atomSplit(Eval,Atoms))),Atoms=[_,_|_],!,trace,systemCall(Ctx,Lang,Atoms,Out).
 systemCall(_Ctx,Lang,Eval,writeq(evaled(Lang,Eval))):- aiml_error(evaled(Lang,Eval)).
 
-systemCall_Bot(Ctx,['@'|REST],DONE):-systemCall_Bot(Ctx,REST,DONE).
-systemCall_Bot(Ctx,[''|REST],DONE):-systemCall_Bot(Ctx,REST,DONE).
+systemCall_Bot(Ctx,['@'|REST],DONE):-!,systemCall_Bot(Ctx,REST,DONE).
+systemCall_Bot(Ctx,[''|REST],DONE):-!,systemCall_Bot(Ctx,REST,DONE).
 systemCall_Bot(Ctx,[FIRST|REST],DONE):-atom_concat_safe('@',CMD,FIRST),CMD\=='',!,systemCall_Bot(Ctx,['@',CMD|REST],DONE).
 systemCall_Bot(_Ctx,['eval'|DONE],template([evaled,DONE])):-!.
 systemCall_Bot(Ctx,['set'],template([setted,Ctx])):-!,unify_listing(getUserDicts(_User,_Name,_Value)),!.
+systemCall_Bot(Ctx,['get',Name|MajorMinor],template([getted,Dict,Value])):-!,debugOnFailure(getAliceMemDictInheritedMajorMinor(Ctx,Dict,Name,MajorMinor,Value)),!.
 %systemCall_Bot(Ctx,['ctx'],template([ctxed,Ctx])):-!,showCtx.
 systemCall_Bot(Ctx,['load'|REST],OUT):- !, debugOnFailure(systemCall_Load(Ctx,REST,OUT)),!.
 systemCall_Bot(Ctx,['find'|REST],OUT):- !, debugOnFailure(systemCall_Find(Ctx,REST,OUT)),!.

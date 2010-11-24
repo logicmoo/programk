@@ -37,6 +37,11 @@ must_assign(From,To):-trace,To=From.
 prolog_must(Call):-tracing,!,Call. %%prolog_must_tracing(Call).
 prolog_must(Call):-prolog_must_call(Call).
 
+:-'trace'(system:catch/3,-all).
+:-'trace'(system:not/1,-all).
+
+:-'$hide'(cyc:ctrace/0).
+
 :-'$hide'(prolog_may/1).
 prolog_may(Call):-prolog_ecall(debugOnError,Call).
 

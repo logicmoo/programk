@@ -23,7 +23,7 @@
 
 % When you trust the code enough you dont to debug it
 %  but if that code does something wrong while your not debugging, you want to see the error
-hotrace(X):-!,X.
+
 hotrace(X):-tracing,!, notrace(X).
 hotrace(X):-call(X).
 
@@ -145,6 +145,7 @@ alicebot2(Ctx,Atoms,Resp):-
    flag(a_answers,_,0),!,
    prolog_must((
    getAliceMem(Ctx,'bot','you',User),
+   getAliceMem(Ctx,'bot','me',Robot),
    getAliceMem(Ctx,'bot',default('minanswers',1),MinAns),
    getAliceMem(Ctx,'bot',default('maxanswers',1),_MaxAns),
    setAliceMem(Ctx,User,'input',Atoms),
@@ -324,9 +325,9 @@ computeElement(Ctx,Votes,html:Br,ATTRIBS,Input,Output,VotesO):- atom(Br),
    computeElementMust(Ctx,Votes,Br,ATTRIBS,Input,Output,VotesO).
 
 % <br/>
-computeElement(_Ctx,Votes,br,[],[],'<br/>',Votes):-!.
+computeElement(_Ctx,Votes,br,[],[],'\n',Votes):-!.
 % <p/>
-computeElement(_Ctx,Votes,p,[],[],'<p/>',Votes):-!.
+computeElement(_Ctx,Votes,p,[],[],'\r\n',Votes):-!.
 
 % <sr/>
 computeElement(Ctx,Votes,sr,ATTRIBS,Input,Output,VotesO):- !,
@@ -620,14 +621,23 @@ computeStar1(Ctx,Votes,Star,Attribs,InnerXml,Resp,VotesO):-
     computeStar0(Ctx,Votes,Star,Index,AttribsNew,InnerXml,Resp,VotesO),!.
 
 computeStar1(Ctx,Votes,Star,Attribs,InnerXml,Resp,VotesO):-
-    computeStar0(Ctx,Votes,Star,1,Attribs,InnerXml,Resp,VotesO),!.
+    computeStar0(Ctx,Votes,Star,[1],Attribs,InnerXml,Resp,VotesO),!.
 
-computeStar0(Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Proof,VotesO):-atomic(Index),!,
-    computeStar0(Ctx,Votes,Star,[Index],ATTRIBS,InnerXml,Proof,VotesO).
+computeStar0(Ctx,Votes,Star,[Major,SEP|Minor],ATTRIBS,InnerXml,Resp,VotesO):- member(SEP,[',',':']),!,
+    computeStar0(Ctx,Votes,Star,[Major|Minor],ATTRIBS,InnerXml,Resp,VotesO).
 
-computeStar0(Ctx,Votes,Star,Index,ATTRIBS,_InnerXml,proof(ValueO,StarVar=ValueI),VotesO):- 
-      prolog_must(catch(concat_atom([Star|Index],StarVar),E,(debugFmt(E=concat_atom([Star|Index],StarVar)),fail))),
-      getAliceMem(Ctx,_Dict,StarVar,ValueI),!,
+computeStar0(Ctx,Votes,Star,Major,ATTRIBS,InnerXml,Proof,VotesO):-atomic(Major),!,
+    computeStar0(Ctx,Votes,Star,[Major],ATTRIBS,InnerXml,Proof,VotesO).
+
+
+computeStar0(Ctx,Votes,Star,Index,ATTRIBS,_InnerXml,proof(ValueO,StarVar=ValueI),VotesO):- is_list(Index),
+      CALL=concat_atom([Star|Index],StarVar),
+      prolog_must(catch(CALL,E,(debugFmt(CALL->E),fail))),
+      getAliceMemDictInherited(Ctx,_Dict,StarVar,ValueI),!,
+      computeTemplate(Ctx,Votes,element(template,ATTRIBS,ValueI),ValueO,VotesM),VotesO is VotesM * 1.1.
+
+computeStar0(Ctx,Votes,Star,[Major|Minor],ATTRIBS,_InnerXml,proof(ValueO,Star=ValueI),VotesO):- 
+      getAliceMemDictInheritedMajorMinor(Ctx,_Dict,Star,[Major|Minor],ValueI),!,
       computeTemplate(Ctx,Votes,element(template,ATTRIBS,ValueI),ValueO,VotesM),VotesO is VotesM * 1.1.
 
 computeStar0(_Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Resp,VotesO):- 
@@ -846,12 +856,13 @@ computeSRAI0(Ctx,Votes,ConvThread,[B|Flat],[B|Result],VotesO,Proof):- fail,
 computeSRAI222(CtxIn,Votes,ConvThread,Pattern,Out,VotesO,ProofOut,OutputLevel):-    
    %%convertToMatchable(Pattern,InputPattern),
          getCategoryArg(Ctx,'template',Out, _Out_ ,CateSig),!,
-         getAliceMem(CtxIn,ConvThread,default('topic',['Nothing']),Topic),
+         %%getAliceMem(CtxIn,ConvThread,default('topic',['Nothing']),Topic),
+         prolog_must(getAliceMemDictInheritedMajorMinor(CtxIn,ConvThread,default('topic',['Nothing']),[1],Topic)),
          PreTopic = (CtxIn=Ctx),
          CPreTopic = true,
          make_preconds_for_match(Ctx,'topic',Topic,CateSig,PreTopic,AfterTopic, CPreTopic,CAfterTopic, Out,MinedCates,Proof,OutputLevel1),
          must_be_openCate(CateSig),
-         getAliceMem(CtxIn,ConvThread,default('that',['Nothing']),That),
+         prolog_must(getAliceMemDictInheritedMajorMinor(CtxIn,ConvThread,default('that',['Nothing']),[1],That)),
          make_preconds_for_match(Ctx,'that',That,CateSig,AfterTopic,AfterThat,CAfterTopic,CAfterThat,Out,MinedCates,Proof,OutputLevel2),
          must_be_openCate(CateSig),
          make_preconds_for_match(Ctx,'pattern',Pattern,CateSig,AfterThat,AfterPattern,CAfterThat,CAfterPattern,Out,MinedCates,Proof,OutputLevel3),!,
@@ -1089,7 +1100,7 @@ isStar(StarName,Text):-isStar(StarName,Text,_Order),!.
 isStar(StarName,Var,Val):-not(ground(Var)),trace,debugFmt(isStar(StarName,Var,Val)),!,fail.
 isStar(_StarName,'*',0.3).
 isStar(_StarName,'_',0.8).
-isStar(StarName,A,6):-atom(StarName),!,A==StarName,writq(qq),trace.
+isStar(StarName,A,6):-atom(StarName),!,A==StarName,writeq(qqqq-qq),trace.
 %isStar(StarName,[X],N):-isStar(StarName,X,N),!.
 
 
@@ -1215,9 +1226,38 @@ getAliceMemDictOnly(Ctx,Dict,Name,ValueI):-unresultifyC(ValueI,Value),!,getAlice
 getAliceMemDictOnly(Ctx,Dict,Name,Value):-is_list(Dict),last(Dict,Last),!,getAliceMemDictOnly(Ctx,Last,Name,Value),!.
 getAliceMemDictOnly(Ctx,Dict,Name,Value):-atom(Dict),downcase_atom(Dict,Down),Dict\=Down,getAliceMemDictOnly(Ctx,Down,Name,Value),!.
 
-getAliceMemDictInherited(Ctx,Dict,Name,Value):-getAliceMemDictOnly(Ctx,Dict,Name,Value).
+getAliceMemDictInherited(Ctx,Dict,default(Name,Default),OValue):-!, (getAliceMemDictInherited(Ctx,Dict,Name,ValueO) -> OValue = ValueO ; OValue = Default). 
+getAliceMemDictInherited(Ctx,Dict,Name,Value):- getAliceMemDictOnly(Ctx,Dict,Name,Value).
 getAliceMemDictInherited(Ctx,Dict,Name,Value):-Dict \== default,getAliceMemDictInherited(Ctx,default,Name,Value).
 getAliceMemDictInherited(Ctx,Dict,Name,Value):-atom(Dict),getAliceMemDictOnly(Ctx,defaultValue(Dict),Name,Value).
+
+getAliceMemDictInheritedMajorMinor(Ctx,Dict,DEFAULT,MajorMinor,OValue):- compound(DEFAULT),DEFAULT=default(Name,Default),!,
+    (getAliceMemDictInheritedMajorMinor(Ctx,Dict,Name,MajorMinor,ValueO)  -> OValue = ValueO ; OValue = Default). 
+   
+getAliceMemDictInheritedMajorMinor(Ctx,Dict,Name,[Major|Minor],Value):- %% trace, 
+   member(Major,[0,1,'0','1']),
+   getAliceMemDictInherited(Ctx,Dict,Name,ValueS),
+   getMinorSubscript(ValueS,Minor,Value),!.
+
+getAliceMemDictInheritedMajorMinor(Ctx,Dict,Name,[Major|Minor],Value):-atomic(Name),
+   atomic_list_concat([Name,Major],Item),
+   getAliceMemDictInherited(Ctx,Dict,Item,ValueS),!,
+   getMinorSubscript(ValueS,Minor,Value),!.
+
+%% getMinorSubscript(Items,Minor,Value).
+getMinorSubscript(ItemsO,Index,Value):- not(is_list(ItemsO)),answerOutput(ItemsO,Items),prolog_must(is_list(Items)),getMinorSubscript(Items,Index,Value),!.
+getMinorSubscript(Items,_Index,_Value):- prolog_must(is_list(Items)),fail.
+getMinorSubscript(Items,'*',Value):-!,prolog_must(flatten(Items,Value)),!.
+getMinorSubscript(Items,',',Value):-!,prolog_must(=(Items,Value)),!.
+getMinorSubscript(Items,'[]',Value):-!,prolog_must(=(Items,Value)),!.
+%%%
+getMinorSubscript(Items,[A|B],Value):-!,getMinorSubscript(Items,A,ValueS),!,getMinorSubscript(ValueS,B,Value),!.
+getMinorSubscript(Items,ANum,Value):-not(number(ANum)),!,prolog_must(atom_to_number(ANum,Num)),!,getMinorSubscript(Items,Num,Value).
+
+getMinorSubscript(Items,Num,Value):-prolog_must(is_list(Items)),length(Items,Len),Index is Len-Num,nth0(Index,Items,Value),!.
+getMinorSubscript(Items,Num,Value):-debugFmt(getMinorSubscriptFailed(Items,Num,Value)),fail.
+getMinorSubscript(Items,1,Value):- trace,last(Items,Last), (is_list(Last)->Value=Last;Value=Items),!.
+getMinorSubscript(Items,1,Value):- ignore(=(Items,Value)),!,trace.
 
 getUserDicts(User,Name,Value):-isPersonaUser(User),isPersonaPred(Name),once(getAliceMemDictInherited(_Ctx,User,Name,Value)).
 
@@ -1276,6 +1316,7 @@ setEachSentenceThat(Ctx,User,[PrevVar,Var|MORE],SR0):-
 
    
 splitSentences(SR1,[SR0|SRMORE]):-grabFirstSetence(SR1,SR0,LeftOver),splitSentences(LeftOver,SRMORE),!.
+splitSentences([],[]):-!.
 splitSentences(SR1,[SR1]):-!.
 
 grabFirstSetence(SR1,SRS,LeftOver):-sentenceEnder(EOS),LeftSide=[_|_],append(LeftSide,[EOS|LeftOver],SR1),append(LeftSide,[EOS],SR0),cleanSentence(SR0,SRS),!.
@@ -1312,6 +1353,7 @@ answerOutput([],Output):- !, Output=[].
 %answerOutput(Output,Split):-atom(Output),atomSplit(Output,Split),Split==[Output],!.
 %answerOutput(Output,Split):-atom(Output),trace,atomSplit(Output,Split),!.
 answerOutput('<br/>',['\n']):-!.
+answerOutput('<p/>',['\r\n']):-!.
 answerOutput(element('br',[],[]),['\n']):-!.
 answerOutput(Output,[Output]):-atomic(Output),!.
 answerOutput([<,BR,/,>|B],OO):-atom(BR),!,

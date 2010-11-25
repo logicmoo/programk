@@ -148,7 +148,8 @@ alicebot2(Ctx,Atoms,Resp):-
    getAliceMem(Ctx,'bot','me',Robot),
    getAliceMem(Ctx,'bot',default('minanswers',1),MinAns),
    getAliceMem(Ctx,'bot',default('maxanswers',1),_MaxAns),
-   setAliceMem(Ctx,User,'input',Atoms),
+   %%setAliceMem(Ctx,User,'input',Atoms),
+   pushInto1DAnd2DArray('request','input',10,Atoms,Ctx,Robot->User),
    setAliceMem(Ctx,User,'rawinput',Atoms))),
    ((call_with_depth_limit_traceable(computeInputOutput(Ctx,1,Atoms,Output,N),8000,_DL),
 	 ignore((nonvar(N),nonvar(Output),savePosibleResponse(N,Output))),flag(a_answers,X,X+1),
@@ -392,7 +393,7 @@ isNonBlank(Result):-answerOutput(Result,Stuff),!,nonvar(Stuff),Stuff\==[].
 
 % <input/response/that index="1"...>
 computeElement(Ctx,Votes,InputResponse,Attribs,InnerXml,Resp,VotesO):-member(InputResponse,[input,response,that]),!,
-  lastMemberOrDefault(index=Index,Attribs,AttribsNew,['1,*']),
+  lastMemberOrDefault(index=Index,Attribs,AttribsNew,['1']),
   prolog_must(computeStar0(Ctx,Votes,InputResponse,Index,AttribsNew,InnerXml,Resp,VotesO)).
 
 % <gossip...>
@@ -1214,7 +1215,7 @@ unresultifyC(DictI,Dict):-unresultify(DictI,Dict),DictI\==Dict,!.
 getAliceMem(Ctx,Dict,default(Name,Default),OValue):-!, (getAliceMemDictOnly(Ctx,Dict,Name,ValueO) -> OValue = ValueO ; OValue = Default). 
 getAliceMem(Ctx,Dict,Name,ValueO):- var(ValueO), !, once(getAliceMemDictOnly(Ctx,Dict,Name,ValueO);ValueO=[unknown,Name]).
 getAliceMem(Ctx,Dict,Name,'OM'):- !,not((getAliceMemDictOnly(Ctx,Dict,Name,ValueO),ValueO\=='OM')).
-getAliceMem(Ctx,Dict,Name,ValueI):-unresultifyC(ValueI,Value),!,getAliceMem(Ctx,Dict,Name,Value),!,prolog_must(nonvar(ValueI)),!.
+%%getAliceMem(Ctx,Dict,Name,ValueI):- %%unresultifyC(ValueI,ValueM),!,getAliceMem(Ctx,Dict,Name,ValueO),!,sameBinding(ValueI,ValueO).%%prolog_must(nonvar(ValueI)),!.
 getAliceMem(Ctx,Dict,Name,ValueI):- getAliceMemDictOnly(Ctx,Dict,Name,ValueO),!,sameBinding(ValueI,ValueO).
 
 
@@ -1267,7 +1268,7 @@ isPersonaPred(Name):-findall(Pred,(dict(_Dict,Pred,_Value),atom(Pred)),Preds),so
 setAliceMem(Ctx,DictI,Name,Value):-is_list(DictI),!,foreach(member(Dict,DictI),setAliceMem(Ctx,Dict,Name,Value)),!.
 setAliceMem(Ctx,DictI,Name,Value):-unresultifyC(DictI,Dict),!,setAliceMem(Ctx,Dict,Name,Value),!.
 setAliceMem(Ctx,Dict,NameI,Value):-unresultifyC(NameI,Name),!,setAliceMem(Ctx,Dict,Name,Value),!.
-setAliceMem(Ctx,Dict,Name,ValueI):-unresultifyC(ValueI,Value),!,setAliceMem(Ctx,Dict,Name,Value),!.
+%setAliceMem(Ctx,Dict,Name,ValueI):-unresultifyC(ValueI,Value),!,setAliceMem(Ctx,Dict,Name,Value),!.
 
 setAliceMem(Ctx,Dict,Name,Value):-immediateCall(Ctx,setCurrentAliceMem(Dict,Name,Value)),fail.
 %%setAliceMem(Ctx,'user','name',['Test',passed,'.']):-trace.
@@ -1289,22 +1290,45 @@ setCurrentAliceMem(Dict,X,E):-currentContext(setCurrentAliceMem(Dict,X,E),Ctx), 
 
 :-setAliceMem(_,_,that,(['where',am,'I'])).
 
+
 rememberSaidIt(_Ctx,[]):-!.
 rememberSaidIt(Ctx,_-R1):-!,rememberSaidIt(Ctx,R1).
 rememberSaidIt(Ctx,R1):-append(New,'.',R1),!,rememberSaidIt(Ctx,New).
+rememberSaidIt(Ctx,R1):- fail,!,
+   getItemValue('me',Ctx,Speaker),
+   getItemValue('you',Ctx,Hearer),
+   rememberSaidIt_SH(Ctx,R1,Speaker,Hearer).
+
 rememberSaidIt(Ctx,R1):-answerOutput(R1,SR1),!,
    getItemValue('me',Ctx,Robot),
    getItemValue('you',Ctx,User),
+   rememberSaidIt_SR(Ctx,SR1,User).
+
+rememberSaidIt_SR(Ctx,SR1,User):-
    setAliceMem(Ctx,Robot,'lastSaid',SR1),
    splitSentences(SR1,SR2),
    previousVars('that',PrevVars,10),
    maplist_safe(setEachSentenceThat(Ctx,User,PrevVars),SR2).
 
+rememberSaidIt_SH(_Ctx,[],_Speaker,_Hearer):-!.
+rememberSaidIt_SH(Ctx,_-R1,Speaker,Hearer):-!,rememberSaidIt_SH(Ctx,R1,Speaker,Hearer).
+rememberSaidIt_SH(Ctx,R1,Speaker,Hearer):-append(New,[Punct],R1),sentenceEnderOrPunct_NoQuestion(Punct),!,rememberSaidIt_SH(Ctx,New,Speaker,Hearer).
+rememberSaidIt_SH(Ctx,R1,Speaker,Hearer):-answerOutput(R1,SR1),!,
+   setAliceMem(Ctx,Speaker,'lastSaid',SR1),
+   pushInto1DAnd2DArray('response','that',10,SR1,Ctx,Speaker->Hearer).
+
+pushInto1DAnd2DArray(Name,Name2,Ten,SR1,Ctx,_Speaker->User):-
+   splitSentences(SR1,SR2),
+   previousVars(Name,PrevVars,Ten),
+   previousVars(Name2,PrevVars2,Ten),
+   maplist_safe(setEachSentenceThat(Ctx,User,PrevVars),SR2),!,
+   setEachSentenceThat(Ctx,User,PrevVars2,SR2),!.
+
+
 previousVars(That,[That],0):-!.
-previousVars(That,[Item|Prevs],N):-atomic_list_concat([That,'(',N,')'],Item), NN is N-1,previousVars(That,Prevs,NN).
+previousVars(That,[Item|Prevs],N):-atomic_list_concat([That,N],Item), NN is N-1,previousVars(That,Prevs,NN).
 
 setEachSentenceThat(_Ctx,_User,_Vars,[]):-!.
-
 setEachSentenceThat(Ctx,User,[Var],SR0):-
    cleanSentence(SR0,SR3),
    setAliceMem(Ctx,User,Var,SR3).

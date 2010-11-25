@@ -297,8 +297,9 @@ currentContext(Name,X):-makeAimlContext(Name,X),!.
 %is_string(S):-string(S).
 
 
-sentenceEnder(Last):-member(Last,[?,('.'),('\n')]).
-sentenceEnderOrPunct(Last):-member(Last,[?,('.'),(','),('\n')]).
+sentenceEnder(Last):-member(Last,[?,('.'),('\n'),('\r\n')]).
+sentenceEnderOrPunct(Last):-member(Last,[?]);sentenceEnderOrPunct_NoQuestion(Last).
+sentenceEnderOrPunct_NoQuestion(Last):-member(Last,[('.'),(','),('\n'),('\r\n')]).
 
 removePMark(UCase,Atoms):-append(AtomsPre,[Last],UCase),sentenceEnderOrPunct(Last),!,removePMark(AtomsPre,Atoms).
 removePMark(Atoms,Atoms).

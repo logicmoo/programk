@@ -693,11 +693,24 @@ computeGetSetVar(Ctx,Votes,Dict,get,VarName,ATTRIBS,_InnerXml,proof(ValueO,VarNa
       getAliceMem(Ctx,Dict,VarName,ValueI),!,
       computeAnswer(Ctx,Votes,element(template,ATTRIBS,ValueI),ValueO,VotesM),VotesO is VotesM * 1.1.
 
-computeGetSetVar(Ctx,Votes,Dict,set,VarName,ATTRIBS,InnerXml,proof(ValueO,VarName=InnerXml),VotesO):-!,
-      computeAnswer(Ctx,Votes,element(template,ATTRIBS,InnerXml),ValueO,VotesM),
-      setAliceMem(Ctx,Dict,VarName,ValueO),!,VotesO is VotesM * 1.1.
+computeGetSetVar(Ctx,Votes,Dict,set,VarName,ATTRIBS,InnerXml,proof(ReturnValue,VarName=InnerXml),VotesO):-!,
+      computeAnswer(Ctx,Votes,element(template,ATTRIBS,InnerXml),ValueM,VotesM),
+      computeTemplateOutput(Ctx,VotesM,ValueM,ValueO,VotesMO),
+      setAliceMem(Ctx,Dict,VarName,ValueO),!,
+      returnNameOrValue(Ctx,Dict,VarName,ValueO,ReturnValue),
+      VotesO is VotesMO * 1.1.
 
 %%computeGetSetVar(_Ctx,_Votes,_Get,_,_,_,_):-!,fail.
+
+returnNameOrValue(Ctx,Dict,[VarName],ValueO,ReturnValueO):-!,returnNameOrValue(Ctx,Dict,VarName,ValueO,ReturnValueO).
+returnNameOrValue(Ctx,Dict,VarName,ValueO,ReturnValueO):-
+      once(getAliceMem(Ctx,setReturn(_Default),VarName,NameOrValue);NameOrValue=value),
+      returnNameOrValue0(NameOrValue,VarName,ValueO,ReturnValue),!,listify(ReturnValue,ReturnValueO).
+
+returnNameOrValue0([NameOrValue],VarName,ValueO,ReturnValue):-!,returnNameOrValue0(NameOrValue,VarName,ValueO,ReturnValue),!.
+returnNameOrValue0(name,VarName,_ValueO,VarName).
+returnNameOrValue0(_Value,_VarName,ValueO,ValueO).
+
 
 % ===============================================================================================
 % Compute Answer Probilities
@@ -1321,7 +1334,8 @@ numberFyList([A|MajorMinor],[A|MajorMinorM]):-numberFyList(MajorMinor,MajorMinor
 isStarValue(Value):-nonvar(Value),member(Value,[[ValueM],ValueM]),!,member(ValueM,['*','_']),!.
 
 xformOutput(Value,ValueO):-isStarValue(Value),!,trace,Value=ValueO.
-xformOutput(Value,Value):-!.
+xformOutput(Value,ValueO):-listify(Value,ValueL),Value\==ValueL,!,xformOutput(ValueL,ValueO).
+xformOutput(Value,Value).
 
 subscriptZeroOrOne(Major):-nonvar(Major),member(Major,[0,1,'0','1']).
 
@@ -1330,9 +1344,9 @@ subscriptZeroOrOne(Major):-nonvar(Major),member(Major,[0,1,'0','1']).
 %% getMinorSubscript(Items,Minor,Value).
 getMinorSubscript(ItemsO,Index,Value):- not(is_list(ItemsO)),answerOutput(ItemsO,Items),prolog_must(is_list(Items)),getMinorSubscript(Items,Index,Value),!.
 getMinorSubscript(Items,'*',Value):-!,prolog_must(flatten(Items,Value)),!.
-getMinorSubscript(Items,',',Value):- throw_safe(getMinorSubscript(Items,Len,',',Value)), !,prolog_must(=(Items,Value)),!.
+getMinorSubscript(Items,',',Value):- throw_safe(getMinorSubscript(Items,',',Value)), !,prolog_must(=(Items,Value)),!.
 getMinorSubscript(Items,[A|B],Value):-!,getMinorSubscript(Items,A,ValueS),!,getMinorSubscript(ValueS,B,Value),!.
-getMinorSubscript(Items,[],Value):-!,xformOutput(Items,Value)),!.
+getMinorSubscript(Items,[],Value):-!,xformOutput(Items,Value),!.
 getMinorSubscript(Items,ANum,Value):-not(number(ANum)),!,prolog_must(atom_to_number(ANum,Num)),!,getMinorSubscript(Items,Num,Value).
 %%%
 getMinorSubscript(Items,Num,Value):- prolog_must(is_list(Items)),length(Items,Len),Index is Len-Num,nth0(Index,Items,Value),is_list(Value),!.
@@ -1344,6 +1358,11 @@ getUserDicts(User,Name,Value):-isPersonaUser(User),isPersonaPred(Name),once(getA
 
 isPersonaUser(User):-findall(User0,dict(User0,'is_type','agent'),Users),sort(Users,UsersS),!,member(User,UsersS).
 isPersonaPred(Name):-findall(Pred,(dict(_Dict,Pred,_Value),atom(Pred)),Preds),sort(Preds,PredsS),!,member(Name,PredsS).
+
+
+setAliceMem(Ctx,Dict,Name,Var):-var(Var),!,setAliceMem(Ctx,Dict,Name,['$var'(Var)]).
+setAliceMem(Ctx,Dict,Name,Atomic):-atomic(Atomic),Atomic\==[],!,setAliceMem(Ctx,Dict,Name,[Atomic]).
+setAliceMem(Ctx,Dict,Name,NonList):-not(is_list(NonList)),trace,!,setAliceMem(Ctx,Dict,Name,[NonList]).
 
 setAliceMem(Ctx,DictI,Name,Value):-is_list(DictI),!,foreach(member(Dict,DictI),setAliceMem(Ctx,Dict,Name,Value)),!.
 setAliceMem(Ctx,DictI,Name,Value):-unresultifyC(DictI,Dict),!,setAliceMem(Ctx,Dict,Name,Value),!.

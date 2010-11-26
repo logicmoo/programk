@@ -105,6 +105,148 @@ getAttributeOrTags1(Ctx,[N=Default|More],ATTRIBS,INNERXML,[N=Default|NormalProps
 set_current_value(Ctx,N,V):-pushNameValue(Ctx,user,N,V).
 
 % ===============================================================================================
+% get / set  Global Variables
+% ===============================================================================================
+:-dynamic(dict/3).
+
+getAliceMem(Ctx,Dict,DEFAULT,ValueOut):- compound(DEFAULT),DEFAULT=default(Name,Default),!, 
+     (getStoredValue(Ctx,Dict,Name,ValueO) -> xformOutput(ValueO, ValueOut)  ; xformOutput(Default, ValueOut)). 
+getAliceMem(Ctx,Dict,Name,ValueO):- var(ValueO), !, once(getStoredValue(Ctx,Dict,Name,ValueO);ValueO=[unknown,Name]).
+getAliceMem(Ctx,Dict,Name,'OM'):- !,not((getStoredValue(Ctx,Dict,Name,ValueO),ValueO\=='OM')).
+%%getAliceMem(Ctx,Dict,Name,ValueI):- %%unresultifyC(ValueI,ValueM),!,getAliceMem(Ctx,Dict,Name,ValueO),!,sameBinding(ValueI,ValueO).%%prolog_must(nonvar(ValueI)),!.
+getAliceMem(Ctx,Dict,Name,ValueI):- getStoredValue(Ctx,Dict,Name,ValueO),!,sameBinding(ValueI,ValueO).
+
+
+getStoredValue(_Ctx,_Dict,_Name,Value):-prolog_must(var(Value)),fail.
+getStoredValue(_Ctx,Dict,Name,Value):-dict(Dict,Name,Value),!.
+getStoredValue(Ctx,DictI,Name,Value):-unresultifyC(DictI,Dict),!,getStoredValue(Ctx,Dict,Name,Value),!.
+getStoredValue(Ctx,Dict,NameI,Value):-unresultifyC(NameI,Name),!,getStoredValue(Ctx,Dict,Name,Value),!.
+getStoredValue(Ctx,Dict,Name,ValueI):-unresultifyC(ValueI,Value),!,getStoredValue(Ctx,Dict,Name,Value),!,prolog_must(nonvar(ValueI)),!.
+getStoredValue(Ctx,Dict,Name,Value):-is_list(Dict),last(Dict,Last),!,getStoredValue(Ctx,Last,Name,Value),!.
+getStoredValue(Ctx,Dict,Name,Value):-atom(Dict),downcase_atom(Dict,Down),Dict\=Down,getStoredValue(Ctx,Down,Name,Value),!.
+
+
+getInheritedStoredValue(Ctx,Scope,DEFAULT,ValueOut):- compound(DEFAULT),DEFAULT=default(Name,Default),!, 
+         (getInheritedStoredValue(Ctx,Scope,Name,ValueO) -> xformOutput(ValueO, ValueOut)  ; xformOutput(Default, ValueOut)). 
+ 
+getInheritedStoredValue(Ctx,Scope,Name,Value):- getStoredValue(Ctx,Scope,Name,Value).
+getInheritedStoredValue(Ctx,Scope,Name,Value):- atom(Scope),inheritedFrom(Scope,InHerit),getInheritedStoredValue(Ctx,InHerit,Name,Value).
+ 
+inheritedFrom(default,_):-!,fail.
+inheritedFrom(defaultValue(_),_):-!,fail.
+inheritedFrom(Scope,defaultValue(Scope)).
+inheritedFrom(Scope,default).
+ 
+
+getIndexedValue(Ctx,DictI,Name,MajorMinor,Value):-unresultifyC(DictI,Dict),!,
+    getIndexedValue(Ctx,Dict,Name,MajorMinor,Value),!.
+
+getIndexedValue(Ctx,Dict,Name,[],Value):-!,
+    getIndexedValue(Ctx,Dict,Name,[1],Value).
+
+getIndexedValue(Ctx,Dict,Name,Major,Value):-atomic(Major),!,
+    getIndexedValue(Ctx,Dict,Name,[Major],Value).
+
+getIndexedValue(Ctx,Dict,Name,[Minor],Value):-atomic(Minor),!,
+    getIndexedValue(Ctx,Dict,Name,[1,Minor],Value).
+
+getIndexedValue(Ctx,Dict,Name,[Major,SEP|Minor],Value):- member(SEP,[',',':']),!,
+    getIndexedValue(Ctx,Dict,Name,[Major|Minor],Value).
+
+getIndexedValue(Ctx,Dict,Name,MajorMinor,ValueO):- numberFyList(MajorMinor,MajorMinorM),MajorMinor\==MajorMinorM,!,
+   getIndexedValue(Ctx,Dict,Name,MajorMinorM,ValueO).
+
+getIndexedValue(Ctx,Dict,DEFAULT,MajorMinor,ValueOut):- compound(DEFAULT),DEFAULT=default(Name,Default),!,
+    (getIndexedValue(Ctx,Dict,Name,MajorMinor,ValueO)  -> xformOutput(ValueO, ValueOut)  ; xformOutput(Default, ValueOut)). 
+
+
+getIndexedValue(Ctx,Dict,Name,MajorMinor,ValueO):-
+    notrace(getIndexedValue0(Ctx,Dict,Name,MajorMinor,Value)),
+    xformOutput(Value,ValueO).
+
+getIndexedValue(Ctx,Dict,Name,MajorMinor,ValueO):-
+    unify_listing(dict(Dict,_,_)), 
+    %%unify_listing(dict(_,Name,_)),
+    getIndexedValue0(Ctx,Dict,Name,MajorMinor,Value),
+    xformOutput(Value,ValueO).
+
+getIndexedValue0(Ctx,Dict,Name,[Major|Minor],Value):-
+   getMajorMinorIndexedValue(Ctx,Dict,Name,Major,Minor,Value),!.
+
+getMajorMinorIndexedValue(Ctx,Dict,Name,Major,Minor,Value):-
+   indexOntoKey(Name,Major,Item),
+   getInheritedStoredValue(Ctx,Dict,Item,ValueS),!,
+   getMajorMinorIndexedValue0(Ctx,Dict,Name,Major,Minor,ValueS,Value).
+
+getMajorMinorIndexedValue0(_Ctx,_Dict,_Name,_Major,Minor,ValueS,Value):-
+   getMinorSubscript(ValueS,Minor,Value),!.
+
+getMajorMinorIndexedValue0(Ctx,Dict,Name,Major,[M|Minor],ValueS,Value):-
+   prolog_must(is_list(ValueS)),
+   length(ValueS,ValueSLen),
+   MajorN is Major + 1,
+   N is M - ValueSLen,
+   trace,
+   getMajorMinorIndexedValue(Ctx,Dict,Name,MajorN,[N|Minor],Value),!.
+
+
+numberFyList([],[]).
+numberFyList([A|MajorMinor],[B|MajorMinorM]):-
+  atom(A),atom_to_number(A,B),
+  numberFyList(MajorMinor,MajorMinorM),!.
+numberFyList([A|MajorMinor],[A|MajorMinorM]):-numberFyList(MajorMinor,MajorMinorM).
+
+isStarValue(Value):-nonvar(Value),member(Value,[[ValueM],ValueM]),!,member(ValueM,['*','_']),!.
+
+xformOutput(Value,ValueO):-isStarValue(Value),!,trace,Value=ValueO.
+xformOutput(Value,ValueO):-listify(Value,ValueL),Value\==ValueL,!,xformOutput(ValueL,ValueO).
+xformOutput(Value,Value).
+
+subscriptZeroOrOne(Major):-nonvar(Major),member(Major,[0,1,'0','1']).
+
+
+
+%% getMinorSubscript(Items,Minor,Value).
+getMinorSubscript(ItemsO,Index,Value):- not(is_list(ItemsO)),answerOutput(ItemsO,Items),prolog_must(is_list(Items)),getMinorSubscript(Items,Index,Value),!.
+getMinorSubscript(Items,'*',Value):-!,prolog_must(flatten(Items,Value)),!.
+getMinorSubscript(Items,',',Value):- throw_safe(getMinorSubscript(Items,',',Value)), !,prolog_must(=(Items,Value)),!.
+getMinorSubscript(Items,[A|B],Value):-!,getMinorSubscript(Items,A,ValueS),!,getMinorSubscript(ValueS,B,Value),!.
+getMinorSubscript(Items,[],Value):-!,xformOutput(Items,Value),!.
+getMinorSubscript(Items,ANum,Value):-not(number(ANum)),!,prolog_must(atom_to_number(ANum,Num)),!,getMinorSubscript(Items,Num,Value).
+%%%
+getMinorSubscript(Items,Num,Value):- prolog_must(is_list(Items)),length(Items,Len),Index is Len-Num,nth0(Index,Items,Value),is_list(Value),!.
+getMinorSubscript(Items,Num,Value):-debugFmt(getMinorSubscriptFailed(Items,Num,Value)),fail.
+getMinorSubscript(Items,1,Value):- trace,last(Items,Last), (is_list(Last)->Value=Last;Value=Items),!.
+getMinorSubscript(Items,1,Value):- xformOutput(Items,Value),!,trace.
+
+getUserDicts(User,Name,Value):-isPersonaUser(User),isPersonaPred(Name),once(getInheritedStoredValue(_Ctx,User,Name,Value)).
+
+isPersonaUser(User):-findall(User0,dict(User0,'is_type','agent'),Users),sort(Users,UsersS),!,member(User,UsersS).
+isPersonaPred(Name):-findall(Pred,(dict(_Dict,Pred,_Value),atom(Pred)),Preds),sort(Preds,PredsS),!,member(Name,PredsS).
+
+
+setAliceMem(Ctx,Dict,Name,Var):-var(Var),!,setAliceMem(Ctx,Dict,Name,['$var'(Var)]).
+setAliceMem(Ctx,Dict,Name,Atomic):-atomic(Atomic),Atomic\==[],!,setAliceMem(Ctx,Dict,Name,[Atomic]).
+setAliceMem(Ctx,Dict,Name,NonList):-not(is_list(NonList)),trace,!,setAliceMem(Ctx,Dict,Name,[NonList]).
+
+setAliceMem(Ctx,DictI,Name,Value):-is_list(DictI),!,foreach(member(Dict,DictI),setAliceMem(Ctx,Dict,Name,Value)),!.
+setAliceMem(Ctx,DictI,Name,Value):-unresultifyC(DictI,Dict),!,setAliceMem(Ctx,Dict,Name,Value),!.
+setAliceMem(Ctx,Dict,NameI,Value):-unresultifyC(NameI,Name),!,setAliceMem(Ctx,Dict,Name,Value),!.
+%setAliceMem(Ctx,Dict,Name,ValueI):-unresultifyC(ValueI,Value),!,setAliceMem(Ctx,Dict,Name,Value),!.
+
+setAliceMem(Ctx,Dict,Name,Value):-immediateCall(Ctx,setCurrentAliceMem(Dict,Name,Value)),fail.
+%%setAliceMem(Ctx,'user','name',['Test',passed,'.']):-trace.
+setAliceMem(Ctx,Dict,Name,Value):-atom(Dict),downcase_atom(Dict,Down),Dict\=Down,!,setAliceMem(Ctx,Down,Name,Value).
+setAliceMem(Ctx,Dict,Name,Value):-atom(Name),downcase_atom(Name,Down),Name\=Down,!,setAliceMem(Ctx,Dict,Down,Value).
+setAliceMem(Ctx,Dict,Name,Value):-isStarValue(Value),debugFmt(setAliceMem(Ctx,Dict,Name,Value)),trace.
+setAliceMem(Ctx,Dict,default(Name),DefaultValue):-getAliceMem(Ctx,Dict,Name,'OM')->setAliceMem(Ctx,Dict,Name,DefaultValue);true.
+setAliceMem(_Ctx,Dict,Name,Value):- ignore(retract(dict(Dict,Name,B))),ignore(B='OM'),retractall(dict(Dict,Name,_)),
+   assertz(dict(Dict,Name,Value)).%%,debugFmt('/* ~q. */~n',[dict(Dict,Name,B->Value)]),!.
+
+
+setCurrentAliceMem(Dict,X,E):-currentContext(setCurrentAliceMem(Dict,X,E),Ctx), setAliceMem(Ctx,Dict,X,E).
+
+% ===============================================================================================
 %    AIML Runtime Database
 % ===============================================================================================
 :-dynamic(saveDFAttribute/3).
@@ -131,8 +273,8 @@ current_value(Ctx,Name,Value):-peekNameValue(Ctx,_,Name,Value,'$error').
 peekNameValue(Ctx,Scope,Name,Value,Else):-nonvar(Value),!,checkNameValue(Ctx,Scope,Name,Value,Else).
 peekNameValue(Ctx,_Scope,Name,Value,_ElseVar):-getCtxValue(Name,Ctx,Value),!.
 peekNameValue(Ctx,List,Name,Value,_ElseVar):- nonvar(List),not(atom(List)),attributeOrTagValue(Ctx,List,Name,Value,'$failure'),!.
-peekNameValue(Ctx,Scope,Name,Value,_ElseVar):-getAliceMemDictOnly(Ctx,Scope,Name,Value),checkAttribute(Scope,Name,Value),!.
-peekNameValue(Ctx,Scope,Name,Value,_ElseVar):-nonvar(Scope),getAliceMemDictOnly(Ctx,Scope2,Name,Value),Scope\=Scope2,checkAttribute(Scope2,Name,Value),!,checkValue(Value),!.
+peekNameValue(Ctx,Scope,Name,Value,_ElseVar):-getStoredValue(Ctx,Scope,Name,Value),checkAttribute(Scope,Name,Value),!.
+peekNameValue(Ctx,Scope,Name,Value,_ElseVar):-nonvar(Scope),getStoredValue(Ctx,Scope2,Name,Value),Scope\=Scope2,checkAttribute(Scope2,Name,Value),!,checkValue(Value),!.
 peekNameValue(Ctx,Scope,Name,Value,_ElseVar):-is_list(Name),member(N0,Name),peekNameValue(Ctx,Scope,N0,Value,'$failure'),!.
 peekNameValue(Ctx,_Scope,Name,Value,ElseVar):-makeParamFallback(Ctx,Name,Value,ElseVar),!.
 %%peekNameValue(_Ctx,_Scope,_Name,Value,ElseVar):-ignore(Value=ElseVar),!.

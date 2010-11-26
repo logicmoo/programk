@@ -217,6 +217,7 @@ systemCall_Bot(Ctx,['@'|REST],DONE):-!,systemCall_Bot(Ctx,REST,DONE).
 systemCall_Bot(Ctx,[''|REST],DONE):-!,systemCall_Bot(Ctx,REST,DONE).
 systemCall_Bot(Ctx,[FIRST|REST],DONE):-atom_concat_safe('@',CMD,FIRST),CMD\=='',!,systemCall_Bot(Ctx,['@',CMD|REST],DONE).
 systemCall_Bot(_Ctx,['eval'|DONE],template([evaled,DONE])):-!.
+systemCall_Bot(_Ctx,['echo'|DONE],DONE):-!.
 systemCall_Bot(Ctx,['set'],template([setted,Ctx])):-!,unify_listing(getUserDicts(_User,_Name,_Value)),!.
 systemCall_Bot(Ctx,['get',Name|MajorMinor],template([getted,Dict,Value])):- member(Dict,[user,robot,_]),debugOnFailure(getAliceMemDictInheritedMajorMinor(Ctx,Dict,Name,MajorMinor,Value)),!.
 %systemCall_Bot(Ctx,['ctx'],template([ctxed,Ctx])):-!,showCtx.

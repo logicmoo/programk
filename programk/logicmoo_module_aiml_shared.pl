@@ -243,8 +243,8 @@ unify_listing0(FileMatch):-functor(FileMatch,F,A),unify_listing(FileMatch,F,A),!
 unify_listing_header(FileMatch):-functor(FileMatch,F,A),unify_listing_header(FileMatch,F,A),!.
 
 unify_listing_header(FileMatch,F,A):- (format('~n/* Prediate:  ~q / ~q  ~n',[F,A,FileMatch])),fail.
-unify_listing_header(FileMatch,_F,_A):- printAll(predicate_property(FileMatch,PP),PP),fail.
-unify_listing_header(FileMatch,_F,_A):- (format('~n ~q. ~n */ ~n',[FileMatch])),fail.
+unify_listing_header(FileMatch,_F,_A):- forall(predicate_property(FileMatch,Print),(format('~q.~n',[Print]))),fail.
+unify_listing_header(FileMatch,_F,_A):- (format('Pattern: ~q. ~n */~n~n',[FileMatch])),fail.
 unify_listing_header(FileMatch,F,A):-predicate_property(FileMatch,dynamic),(format(':-dynamic(~q).~n',[F/A])),fail.
 unify_listing_header(FileMatch,F,A):-predicate_property(FileMatch,multifile),(format(':-multifile(~q).~n',[F/A])),fail.
 unify_listing_header(_FileMatch,_F,_A).
@@ -253,7 +253,9 @@ unify_listing(FileMatch,F,A):- unify_listing_header(FileMatch,F,A), printAll(Fil
 
 printAll(FileMatch):-printAll(FileMatch,FileMatch).
 printAll(Call,Print):- flag(printAll,_,0), forall((Call,flag(printAll,N,N+1)),(format('~q.~n',[Print]))),fail.
-printAll(_Call,Print):- flag(printAll,PA,PA),(format('~n /* found ~q for ~q. ~n */ ~n',[PA,Print])).
+printAll(_Call,Print):- flag(printAll,PA,PA),(format('~n /* found ~q for ~q. */ ~n',[PA,Print])),!.
+
+
 
 contains_term(SearchThis,Find):-Find==SearchThis,!.
 contains_term(SearchThis,Find):-compound(SearchThis),functor(SearchThis,Func,_),(Func==Find;arg(_,SearchThis,Arg),contains_term(Arg,Find)).

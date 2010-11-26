@@ -1284,11 +1284,9 @@ getAliceMemDictInheritedMajorMinor(Ctx,Dict,Name,MajorMinor,ValueO):- numberFyLi
 
 getAliceMemDictInheritedMajorMinor(Ctx,Dict,Name,MajorMinor,ValueO):-
     notrace(getAliceMemDictInheritedMajorMinor0(Ctx,Dict,Name,MajorMinor,Value)),
-    not(isStarValue(Value)),!,
     xformOutput(Value,ValueO).
 
 getAliceMemDictInheritedMajorMinor(Ctx,Dict,Name,MajorMinor,ValueO):-
-    %listing(dict), 
     unify_listing(dict(Dict,_,_)), 
     %%unify_listing(dict(_,Name,_)),
     getAliceMemDictInheritedMajorMinor0(Ctx,Dict,Name,MajorMinor,Value),
@@ -1306,7 +1304,7 @@ getAliceMemDictInheritedMajorMinor000(_Ctx,_Dict,_Name,_Major,Minor,ValueS,Value
    getMinorSubscript(ValueS,Minor,Value),!.
 
 getAliceMemDictInheritedMajorMinor000(Ctx,Dict,Name,Major,[M|Minor],ValueS,Value):-
-   trace,
+   prolog_must(is_list(ValueS)),
    length(ValueS,ValueSLen),
    MajorN is Major + 1,
    N is M - ValueSLen,
@@ -1331,18 +1329,16 @@ subscriptZeroOrOne(Major):-nonvar(Major),member(Major,[0,1,'0','1']).
 
 %% getMinorSubscript(Items,Minor,Value).
 getMinorSubscript(ItemsO,Index,Value):- not(is_list(ItemsO)),answerOutput(ItemsO,Items),prolog_must(is_list(Items)),getMinorSubscript(Items,Index,Value),!.
-getMinorSubscript(Items,[A|B],Value):-!,getMinorSubscript(Items,A,ValueS),!,getMinorSubscript(ValueS,B,Value),!.
-getMinorSubscript(Items,_Index,_Value):- prolog_must(is_list(Items)),fail.
 getMinorSubscript(Items,'*',Value):-!,prolog_must(flatten(Items,Value)),!.
-getMinorSubscript(Items,',',Value):-!,prolog_must(=(Items,Value)),!.
-%%%
-getMinorSubscript(Items,'[]',Value):-!,prolog_must(=(Items,Value)),!.
+getMinorSubscript(Items,',',Value):- throw_safe(getMinorSubscript(Items,Len,',',Value)), !,prolog_must(=(Items,Value)),!.
+getMinorSubscript(Items,[A|B],Value):-!,getMinorSubscript(Items,A,ValueS),!,getMinorSubscript(ValueS,B,Value),!.
+getMinorSubscript(Items,[],Value):-!,xformOutput(Items,Value)),!.
 getMinorSubscript(Items,ANum,Value):-not(number(ANum)),!,prolog_must(atom_to_number(ANum,Num)),!,getMinorSubscript(Items,Num,Value).
-
-getMinorSubscript(Items,Num,Value):-prolog_must(is_list(Items)),length(Items,Len),Index is Len-Num,nth0(Index,Items,Value),!.
+%%%
+getMinorSubscript(Items,Num,Value):- prolog_must(is_list(Items)),length(Items,Len),Index is Len-Num,nth0(Index,Items,Value),is_list(Value),!.
 getMinorSubscript(Items,Num,Value):-debugFmt(getMinorSubscriptFailed(Items,Num,Value)),fail.
 getMinorSubscript(Items,1,Value):- trace,last(Items,Last), (is_list(Last)->Value=Last;Value=Items),!.
-getMinorSubscript(Items,1,Value):- ignore(=(Items,Value)),!,trace.
+getMinorSubscript(Items,1,Value):- xformOutput(Items,Value),!,trace.
 
 getUserDicts(User,Name,Value):-isPersonaUser(User),isPersonaPred(Name),once(getAliceMemDictInherited(_Ctx,User,Name,Value)).
 

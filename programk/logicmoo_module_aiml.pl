@@ -86,7 +86,7 @@ aimlCateOrder([graph,precall,topic,that,request,pattern,flags,call,guard,userdic
 % [graph,precall,topic,that,pattern,flags,call,guard,template,userdict]
 cateMemberTags(Result):- aimlCateOrder(List), findall(E,(member(E0,List),once((E0=[E|_];E0=E))), Result).
 
-makeAimlCateSig(Ctx,ListOfValues,Pred):-aimlCateSig(Pred),!,makeAimlCate(Ctx,ListOfValues,Pred,current_value),!.
+makeAimlCateSig(Ctx,ListOfValues,Pred):-aimlCateSig(Pred),!,makeAimlCate(Ctx,ListOfValues,Pred,'$current_value'),!.
 
 :- aimlCateOrder(List),length(List,L),dynamic(aimlCate/L),multifile(aimlCate/L). 
 
@@ -361,7 +361,7 @@ computeElement_li(Ctx,Votes,Preconds,_InnerXml,OutProof,VotesO):-makeBlank(Ctx,V
 
   precondsTrue0(_Ctx,PC):-PC==[];var(PC),!.
   precondsTrue0(Ctx,[NV|MORE]):-!,precondsTrue0(Ctx,MORE),!,precondsTrue0(Ctx,NV).
-  precondsTrue0(Ctx,N=V):- peekNameValue(Ctx,user,N,Value,[]),!,(valuesMatch(Ctx,Value,V)->debugFmt(valuesMatch(Value,V));debugFmt(valuesMatch(not,Value,V))),valuesMatch(Ctx,Value,V).
+  precondsTrue0(Ctx,N=V):- peekNameValue(Ctx,user,N,Value,'$value'([])),!,(valuesMatch(Ctx,Value,V)->debugFmt(valuesMatch(Value,V));debugFmt(valuesMatch(not,Value,V))),valuesMatch(Ctx,Value,V).
   precondsTrue0(_Ctx,_NV):-trace.
 
 % <random...>
@@ -394,7 +394,7 @@ isNonBlank(Result):-answerOutput(Result,Stuff),!,nonvar(Stuff),Stuff\==[].
 % <input/response/that index="1"...>
 computeElement(Ctx,Votes,InputResponse,Attribs,InnerXml,Resp,VotesO):-member(InputResponse,[input,response,that]),!,
   lastMemberOrDefault(index=Index,Attribs,AttribsNew,['1']),
-  prolog_must(computeStar0(Ctx,Votes,InputResponse,Index,AttribsNew,InnerXml,Resp,VotesO)).
+  prolog_must(computeMetaStar(Ctx,Votes,InputResponse,Index,AttribsNew,InnerXml,Resp,VotesO)).
 
 % <gossip...>
 computeElement(Ctx,Votes,gossip,_Attribs,Input,Output,VotesO):-!,computeAnswer(Ctx,Votes,Input,Output,VotesO).
@@ -614,37 +614,46 @@ computeElement(Ctx,Votes,Tag,Attribs,InnerXml,Resp,VotesO):-
 % Compute Star
 % ===============================================================================================
 
-computeStar(Ctx,Votes,Star,Attribs,InnerXml,Resp,VotesO):-
-   computeStar1(Ctx,Votes,Star,Attribs,InnerXml,Resp,VotesO),!.
+starName(StarStar,StarStar):- atom_concat(_,'star',StarStar),!.
+starName(Star,StarStar):- atom_concat(Star,'star',StarStar),!.
 
-computeStar1(Ctx,Votes,Star,Attribs,InnerXml,Resp,VotesO):- 
+computeStar(Ctx,Votes,Star,Attribs,InnerXml,Resp,VotesO):- 
+   starName(Star,StarStar),Star \== StarStar,
+   computeStar(Ctx,Votes,StarStar,Attribs,InnerXml,Resp,VotesO),!.
+
+computeStar(Ctx,Votes,Star,Attribs,InnerXml,Resp,VotesO):- 
     lastMember(index=Index,Attribs,AttribsNew),!,
-    computeStar0(Ctx,Votes,Star,Index,AttribsNew,InnerXml,Resp,VotesO),!.
+    computeStar1(Ctx,Votes,Star,Index,AttribsNew,InnerXml,Resp,VotesO),!.
 
-computeStar1(Ctx,Votes,Star,Attribs,InnerXml,Resp,VotesO):-
-    computeStar0(Ctx,Votes,Star,[1],Attribs,InnerXml,Resp,VotesO),!.
+computeStar(Ctx,Votes,Star,Attribs,InnerXml,Resp,VotesO):-
+    computeStar1(Ctx,Votes,Star,[1],Attribs,InnerXml,Resp,VotesO),!.
 
-computeStar0(Ctx,Votes,Star,[Major,SEP|Minor],ATTRIBS,InnerXml,Resp,VotesO):- member(SEP,[',',':']),!,
-    computeStar0(Ctx,Votes,Star,[Major|Minor],ATTRIBS,InnerXml,Resp,VotesO).
+computeStar1(Ctx,Votes,Star,Major,ATTRIBS,InnerXml,Proof,VotesO):-atomic(Major),!,
+    computeStar1(Ctx,Votes,Star,[Major],ATTRIBS,InnerXml,Proof,VotesO),!.
 
-computeStar0(Ctx,Votes,Star,Major,ATTRIBS,InnerXml,Proof,VotesO):-atomic(Major),!,
-    computeStar0(Ctx,Votes,Star,[Major],ATTRIBS,InnerXml,Proof,VotesO).
-
-
-computeStar0(Ctx,Votes,Star,Index,ATTRIBS,_InnerXml,proof(ValueO,StarVar=ValueI),VotesO):- is_list(Index),
+computeStar1(Ctx,Votes,Star,Index,ATTRIBS,_InnerXml,proof(ValueO,StarVar=ValueI),VotesO):- is_list(Index),
       CALL=concat_atom([Star|Index],StarVar),
-      prolog_must(catch(CALL,E,(debugFmt(CALL->E),fail))),
-      getAliceMemDictInherited(Ctx,_Dict,StarVar,ValueI),!,
+      prolog_must(catch(CALL,E,(debugFmt(CALL->E),fail))),      
+      getDictFromAttributes(ATTRIBS,Dict),
+      getAliceMemDictInherited(Ctx,Dict,StarVar,ValueI),!,
       computeTemplate(Ctx,Votes,element(template,ATTRIBS,ValueI),ValueO,VotesM),VotesO is VotesM * 1.1.
 
-computeStar0(Ctx,Votes,Star,[Major|Minor],ATTRIBS,_InnerXml,proof(ValueO,Star=ValueI),VotesO):- 
-      getAliceMemDictInheritedMajorMinor(Ctx,_Dict,Star,[Major|Minor],ValueI),!,
-      computeTemplate(Ctx,Votes,element(template,ATTRIBS,ValueI),ValueO,VotesM),VotesO is VotesM * 1.1.
-
-computeStar0(_Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Resp,VotesO):- 
+computeStar1(_Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Resp,VotesO):- 
       Resp = result(InnerXml,Star,Index,ATTRIBS),!,VotesO is Votes * 1.1. 
 
 
+
+computeMetaStar(Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Resp,VotesO):-computeStar0(Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Resp,VotesO).
+
+computeStar0(Ctx,Votes,Star,MajorMinor,ATTRIBS,_InnerXml,proof(ValueO,Star=ValueI),VotesO):- 
+      getDictFromAttributes(ATTRIBS,Dict),
+      getAliceMemDictInheritedMajorMinor(Ctx,Dict,Star,MajorMinor,ValueI),!,
+      computeTemplate(Ctx,Votes,element(template,ATTRIBS,ValueI),ValueO,VotesM),VotesO is VotesM * 1.1.
+
+computeStar0(_Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Resp,VotesO):- 
+      Resp = result(InnerXml,Star,Index,ATTRIBS),!,VotesO is Votes * 0.9. 
+
+getDictFromAttributes(_ATTRIBS,user):-!.
 % ===============================================================================================
 % Compute Get/Set Probilities
 % ===============================================================================================
@@ -737,7 +746,8 @@ computeAnswer(_Ctx,Votes,'$stringCodes'(List),AA,Votes):-!,from_atom_codes(AA,Li
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
 % list-check
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
-computeAnswer(_Ctx,_Votes,['*'],_,_):- !,trace,fail.
+% (should be no stars)
+computeAnswer(_Ctx,_Votes,Pattern,_,_):- isStarValue(Pattern),trace,fail.
 
 computeAnswer(_Ctx,Votes,[],[],Votes):-!.
 computeAnswer(Ctx,Votes,[A|B],OO,VotesO):- 
@@ -854,16 +864,23 @@ computeSRAI0(_Ctx,Votes,ConvThread,Input,Result,VotesO,Proof):- !, VotesO is Vot
 computeSRAI0(Ctx,Votes,ConvThread,[B|Flat],[B|Result],VotesO,Proof):- fail,
    computeSRAI2(Ctx,Votes,ConvThread,Flat,Result,VotesO,Proof,_PostMatchLevel3),prolog_must(nonvar(Result)).
 
+
+getAliceMemOrSetDefault(CtxIn,ConvThread,Name,Value,_OrDefault):-
+   getAliceMemDictInheritedMajorMinor(CtxIn,ConvThread,Name,[],Value),!.
+getAliceMemOrSetDefault(CtxIn,ConvThread,Name,Value,OrDefault):-
+   setAliceMem(CtxIn,ConvThread,Name,OrDefault),!,OrDefault=Value.
+
+
 computeSRAI222(CtxIn,Votes,ConvThread,Pattern,Out,VotesO,ProofOut,OutputLevel):-    
    %%convertToMatchable(Pattern,InputPattern),
          getCategoryArg(Ctx,'template',Out, _Out_ ,CateSig),!,
-         %%getAliceMem(CtxIn,ConvThread,default('topic',['Nothing']),Topic),
-         prolog_must(getAliceMemDictInheritedMajorMinor(CtxIn,ConvThread,default('topic',['Nothing']),[1],Topic)),
+         getAliceMemOrSetDefault(CtxIn,ConvThread,'topic',Topic,['Nothing']),
+         getAliceMemOrSetDefault(CtxIn,ConvThread,'userdict',_UserDict,'user'),
          PreTopic = (CtxIn=Ctx),
          CPreTopic = true,
          make_preconds_for_match(Ctx,'topic',Topic,CateSig,PreTopic,AfterTopic, CPreTopic,CAfterTopic, Out,MinedCates,Proof,OutputLevel1),
-         must_be_openCate(CateSig),
-         prolog_must(getAliceMemDictInheritedMajorMinor(CtxIn,ConvThread,default('that',['Nothing']),[1],That)),
+         must_be_openCate(CateSig),         
+         getAliceMemOrSetDefault(CtxIn,ConvThread,'that',That,['Nothing']),
          make_preconds_for_match(Ctx,'that',That,CateSig,AfterTopic,AfterThat,CAfterTopic,CAfterThat,Out,MinedCates,Proof,OutputLevel2),
          must_be_openCate(CateSig),
          make_preconds_for_match(Ctx,'pattern',Pattern,CateSig,AfterThat,AfterPattern,CAfterThat,CAfterPattern,Out,MinedCates,Proof,OutputLevel3),!,
@@ -1038,11 +1055,11 @@ make_star_binders(Ctx,StarName,[Word1|B],[Word2|BB],CountO,StarSets):-
      sameWords(Word1,Word2),!,make_star_binders(Ctx,StarName,B,BB,Count,StarSets),CountO is Count + 1.
 
 % tail (all now in) star/wildcard
-make_star_binders(_Ctx,StarName,Match,WildCard,WildValue,[Pred]):-isStarOrWild(StarName,WildCard,WildValue,Match,Pred),!.
+make_star_binders(_Ctx,StarName,InputText,WildCard,WildValue,[Pred]):-isStarOrWild(StarName,WildCard,WildValue,InputText,Pred),!.
 
 % once in star.. walk past star
-make_star_binders(Ctx,StarName,OList,[WildCard,M0|More],ValueO,[Pred|StarSets]):-isStarOrWild(StarName,WildCard,WildValue,SkipedSTAR,Pred),
-         append(SkipedSTAR,[M1|LeftMore],OList),sameWords(M0,M1),
+make_star_binders(Ctx,StarName,InputText,[WildCard,M0|More],ValueO,[Pred|StarSets]):-isStarOrWild(StarName,WildCard,WildValue,SkipedSTAR,Pred),
+         append(SkipedSTAR,[M1|LeftMore],InputText),sameWords(M0,M1),
          make_star_binders(Ctx,StarName,LeftMore,More,Value,StarSets),!,ValueO is WildValue + Value.
 
 % is mid-right hand wildcard (this should be the last test)
@@ -1079,17 +1096,21 @@ make_star_binders(_Ctx,StarName,[E|More],Match,Value,[tryLater([E|More],Match)])
 %%make_star_binders(_Ctx,StarName,I,Atom,12,[Atom=I]):-atom(Atom),trace,!,loggerFmt(make_star_binders,canMatchAtAll_atom(StarName,I,Atom)),!.
 
 */
+starNameTransform(Star,StarStar):-starName(Star,StarStar),!.
+starNameTransform(StarName,StarName):-atom_concat(_,'star',StarName),!.
+starNameTransform(StarName,StarNameStar):-atom_concat(StarName,'star',StarNameStar),!.
 
-isStarOrWild(StarName,[Text],Value,Match,Pred):-nonvar(Text),!,isStarOrWild(StarName,Text,Value,Match,Pred),!.
+isStarOrWild(StarName,[StarNameText],WildValue,InputText,Pred):-nonvar(StarNameText),!,isStarOrWild(StarName,StarNameText,WildValue,InputText,Pred),!.
 
-isStarOrWild(StarName,Text,Value,Match,StarName=Match):-isStar(StarName,Text,Value),!.
-isStarOrWild(StarName,WildCard,Value,Match,Pred):- isWildCard(StarName,WildCard,Value,Match,Pred),!.
+isStarOrWild(StarName,StarNameText,WildValue,InputText,StarNameStar=InputText):-
+   isStar(StarName,StarNameText,WildValue),!,starNameTransform(StarName,StarNameStar),!,traceIf(isStarValue(InputText)).
+isStarOrWild(StarName,WildCardText,WildValue,InputText,Pred):- isWildCard(StarName,WildCardText,WildValue,InputText,Pred),!.
 
-isWildCard(StarName,Wild,1,Match,call(sameBinding(Wild,Match))):- not(is_list(Wild)),compound(Wild),Wild=..LWild,not(not(member(StarName,LWild))),!.
+isWildCard(StarName,Wild,1,InputText,call(sameBinding(Wild,InputText))):- not(is_list(Wild)),compound(Wild),Wild=..LWild,not(not(member(StarName,LWild))),!.
 
 requireableWord(StarName,M):-not(isOptionalOrStar(StarName,M)).
 
-isOptionalOrStar(_StarName,M):-not(atom(M)),!.
+isOptionalOrStar(_StarName,M):-not(atom(M)),!,trace.
 isOptionalOrStar(StarName,M):-isStar(StarName,M),!.
 
 /*
@@ -1097,12 +1118,12 @@ isStar(StarName,'topic'):-!. %%,trace.
 isStar(StarName,'that'):-!.
 isStar(StarName,'input'):-!.
 */
-isStar(StarName,Text):-isStar(StarName,Text,_Order),!.
-isStar(StarName,Var,Val):-not(ground(Var)),trace,debugFmt(isStar(StarName,Var,Val)),!,fail.
+isStar(StarName,StarNameText):-isStar(StarName,StarNameText,_Order),!.
+isStar(StarName,StarNameText,WildValue):-not(ground(StarNameText)),trace,debugFmt(isStar(StarName,StarNameText,WildValue)),!,fail.
+isStar(StarName,[StarNameText],WildValue):-trace,isStar(StarName,StarNameText,WildValue),!.
 isStar(_StarName,'*',0.3).
 isStar(_StarName,'_',0.8).
-isStar(StarName,A,6):-atom(StarName),!,A==StarName,writeq(qqqq-qq),trace.
-%isStar(StarName,[X],N):-isStar(StarName,X,N),!.
+%%WAS VERY BAD IDEA:  isStar(StarName,StarNameText,6):-atom(StarName),!,StarNameText==StarName,writeq(qqqq-qq),trace.
 
 
 must_be_openCate(_CateSig):-!.
@@ -1118,7 +1139,7 @@ starSets(List):-prolog_must((mapsome_openlist(starMust0,List),mapsome_openlist(s
 
 endOfList(EndOfList):-(var(EndOfList);atomic(EndOfList)),!.
 
-starMust0(StarName=_):-flag(StarName,_,1).
+starMust0(StarName=_):-flag_safe(StarName,_,1).
 starMust1(StarName=Value):-starSet(StarName,Value).
 starMust2(call(Call)):-!,prolog_must(Call).
 starMust2(_Skip).
@@ -1128,12 +1149,14 @@ mapsome_openlist(Pred,[Item|List]):-call(Pred,Item),!,mapsome_openlist(Pred,List
 mapsome_openlist(Pred,[_|List]):- mapsome_openlist(Pred,List).
 mapsome_openlist(_Pred,_):-!.
 
-starSet(StarName,Pattern):- ignore((var(N),flag(StarName,N,N))),
-   atom_concat(StarName,N,StarNameN),setAliceMem(_Ctx,user,StarNameN,Pattern),!,flag(StarName,NN,NN+1).
+starSet(StarName,Pattern):- ignore((var(N),flag_safe(StarName,N,N))),
+   nop(traceIf(isStarValue(Pattern))),
+   atom_concat(StarName,N,StarNameN),setAliceMem(_Ctx,user,StarNameN,Pattern),!,flag_safe(StarName,NN,NN+1).
 
 %%REAL-UNUSED  set_matchit1(StarName,Pattern,Matcher,OnBind):- length(Pattern,MaxLen0), MaxLen is MaxLen0 + 2,
 %%REAL-UNUSED    set_matchit2(StarName,Pattern,Matcher,MaxLen,OnBind).
 
+flag_safe(Flag,Out,In):- starNameTransform(Flag,StarFlag), flag(StarFlag,Out,In),!. %%,prolog_must(atom_concat(_,'star',Flag)),!.
 
 isStar0(Word1):- member(Word1,[*,'_']).
 sameWords(Word1,Word2):-atom(Word1),atom(Word2),atoms_match0(Word1,Word2).
@@ -1205,6 +1228,7 @@ resultOrProof(Term,Mid):-compound(Term),resultOrProof0(Term,Mid).
 resultOrProof0(_=Mid,Mid):-!.
 resultOrProof0(Term,Mid):-Term=..[RP,Mid|_],member(RP,[result,proof,fromTo,verbatum]),!.
 
+%%unresultifyC(DictI,[Dict]):-atom(DictI),member(Chop,['0','1']),atom_concat(Dict,Chop,DictI),!.
 unresultifyC(DictI,Dict):-unresultify(DictI,Dict),DictI\==Dict,!.
 
 % ===============================================================================================
@@ -1212,7 +1236,8 @@ unresultifyC(DictI,Dict):-unresultify(DictI,Dict),DictI\==Dict,!.
 % ===============================================================================================
 :-dynamic(dict/3).
 
-getAliceMem(Ctx,Dict,default(Name,Default),OValue):-!, (getAliceMemDictOnly(Ctx,Dict,Name,ValueO) -> OValue = ValueO ; OValue = Default). 
+getAliceMem(Ctx,Dict,DEFAULT,ValueOut):- compound(DEFAULT),DEFAULT=default(Name,Default),!, 
+     (getAliceMemDictOnly(Ctx,Dict,Name,ValueO) -> xformOutput(ValueO, ValueOut)  ; xformOutput(Default, ValueOut)). 
 getAliceMem(Ctx,Dict,Name,ValueO):- var(ValueO), !, once(getAliceMemDictOnly(Ctx,Dict,Name,ValueO);ValueO=[unknown,Name]).
 getAliceMem(Ctx,Dict,Name,'OM'):- !,not((getAliceMemDictOnly(Ctx,Dict,Name,ValueO),ValueO\=='OM')).
 %%getAliceMem(Ctx,Dict,Name,ValueI):- %%unresultifyC(ValueI,ValueM),!,getAliceMem(Ctx,Dict,Name,ValueO),!,sameBinding(ValueI,ValueO).%%prolog_must(nonvar(ValueI)),!.
@@ -1227,32 +1252,91 @@ getAliceMemDictOnly(Ctx,Dict,Name,ValueI):-unresultifyC(ValueI,Value),!,getAlice
 getAliceMemDictOnly(Ctx,Dict,Name,Value):-is_list(Dict),last(Dict,Last),!,getAliceMemDictOnly(Ctx,Last,Name,Value),!.
 getAliceMemDictOnly(Ctx,Dict,Name,Value):-atom(Dict),downcase_atom(Dict,Down),Dict\=Down,getAliceMemDictOnly(Ctx,Down,Name,Value),!.
 
-getAliceMemDictInherited(Ctx,Dict,default(Name,Default),OValue):-!, (getAliceMemDictInherited(Ctx,Dict,Name,ValueO) -> OValue = ValueO ; OValue = Default). 
+getAliceMemDictInherited(Ctx,Dict,DEFAULT,ValueOut):- compound(DEFAULT),DEFAULT=default(Name,Default),!, 
+         (getAliceMemDictInherited(Ctx,Dict,Name,ValueO) -> xformOutput(ValueO, ValueOut)  ; xformOutput(Default, ValueOut)). 
 getAliceMemDictInherited(Ctx,Dict,Name,Value):- getAliceMemDictOnly(Ctx,Dict,Name,Value).
 getAliceMemDictInherited(Ctx,Dict,Name,Value):-Dict \== default,getAliceMemDictInherited(Ctx,default,Name,Value).
 getAliceMemDictInherited(Ctx,Dict,Name,Value):-atom(Dict),getAliceMemDictOnly(Ctx,defaultValue(Dict),Name,Value).
 
-getAliceMemDictInheritedMajorMinor(Ctx,Dict,DEFAULT,MajorMinor,OValue):- compound(DEFAULT),DEFAULT=default(Name,Default),!,
-    (getAliceMemDictInheritedMajorMinor(Ctx,Dict,Name,MajorMinor,ValueO)  -> OValue = ValueO ; OValue = Default). 
-   
-getAliceMemDictInheritedMajorMinor(Ctx,Dict,Name,[Major|Minor],Value):- %% trace, 
-   member(Major,[0,1,'0','1']),
-   getAliceMemDictInherited(Ctx,Dict,Name,ValueS),
+
+
+
+getAliceMemDictInheritedMajorMinor(Ctx,DictI,Name,MajorMinor,Value):-unresultifyC(DictI,Dict),!,
+    getAliceMemDictInheritedMajorMinor(Ctx,Dict,Name,MajorMinor,Value),!.
+
+getAliceMemDictInheritedMajorMinor(Ctx,Dict,Name,[],Value):-!,
+    getAliceMemDictInheritedMajorMinor(Ctx,Dict,Name,[1],Value).
+
+getAliceMemDictInheritedMajorMinor(Ctx,Dict,Name,Major,Value):-atomic(Major),!,
+    getAliceMemDictInheritedMajorMinor(Ctx,Dict,Name,[Major],Value).
+
+getAliceMemDictInheritedMajorMinor(Ctx,Dict,Name,[Minor],Value):-atomic(Minor),!,
+    getAliceMemDictInheritedMajorMinor(Ctx,Dict,Name,[1,Minor],Value).
+
+getAliceMemDictInheritedMajorMinor(Ctx,Dict,Name,[Major,SEP|Minor],Value):- member(SEP,[',',':']),!,
+    getAliceMemDictInheritedMajorMinor(Ctx,Dict,Name,[Major|Minor],Value).
+
+getAliceMemDictInheritedMajorMinor(Ctx,Dict,DEFAULT,MajorMinor,ValueOut):- compound(DEFAULT),DEFAULT=default(Name,Default),!,
+    (getAliceMemDictInheritedMajorMinor0(Ctx,Dict,Name,MajorMinor,ValueO)  -> xformOutput(ValueO, ValueOut)  ; xformOutput(Default, ValueOut)). 
+
+getAliceMemDictInheritedMajorMinor(Ctx,Dict,Name,MajorMinor,ValueO):- numberFyList(MajorMinor,MajorMinorM),MajorMinor\==MajorMinorM,!,
+   getAliceMemDictInheritedMajorMinor(Ctx,Dict,Name,MajorMinorM,ValueO).
+
+getAliceMemDictInheritedMajorMinor(Ctx,Dict,Name,MajorMinor,ValueO):-
+    notrace(getAliceMemDictInheritedMajorMinor0(Ctx,Dict,Name,MajorMinor,Value)),
+    not(isStarValue(Value)),!,
+    xformOutput(Value,ValueO).
+
+getAliceMemDictInheritedMajorMinor(Ctx,Dict,Name,MajorMinor,ValueO):-
+    %listing(dict), 
+    unify_listing(dict(Dict,_,_)), 
+    %%unify_listing(dict(_,Name,_)),
+    getAliceMemDictInheritedMajorMinor0(Ctx,Dict,Name,MajorMinor,Value),
+    xformOutput(Value,ValueO).
+
+getAliceMemDictInheritedMajorMinor0(Ctx,Dict,Name,[Major|Minor],Value):-
+   getAliceMemDictInheritedMajorMinor00(Ctx,Dict,Name,Major,Minor,Value),!.
+
+getAliceMemDictInheritedMajorMinor00(Ctx,Dict,Name,Major,Minor,Value):-
+   indexOntoKey(Name,Major,Item),
+   getAliceMemDictInherited(Ctx,Dict,Item,ValueS),!,
+   getAliceMemDictInheritedMajorMinor000(Ctx,Dict,Name,Major,Minor,ValueS,Value).
+
+getAliceMemDictInheritedMajorMinor000(_Ctx,_Dict,_Name,_Major,Minor,ValueS,Value):-
    getMinorSubscript(ValueS,Minor,Value),!.
 
-getAliceMemDictInheritedMajorMinor(Ctx,Dict,Name,[Major|Minor],Value):-atomic(Name),
-   atomic_list_concat([Name,Major],Item),
-   getAliceMemDictInherited(Ctx,Dict,Item,ValueS),!,
-   getMinorSubscript(ValueS,Minor,Value),!.
+getAliceMemDictInheritedMajorMinor000(Ctx,Dict,Name,Major,[M|Minor],ValueS,Value):-
+   trace,
+   length(ValueS,ValueSLen),
+   MajorN is Major + 1,
+   N is M - ValueSLen,
+   trace,
+   getAliceMemDictInheritedMajorMinor00(Ctx,Dict,Name,MajorN,[N|Minor],Value),!.
+
+
+numberFyList([],[]).
+numberFyList([A|MajorMinor],[B|MajorMinorM]):-
+  atom(A),atom_to_number(A,B),
+  numberFyList(MajorMinor,MajorMinorM),!.
+numberFyList([A|MajorMinor],[A|MajorMinorM]):-numberFyList(MajorMinor,MajorMinorM).
+
+isStarValue(Value):-nonvar(Value),member(Value,[[ValueM],ValueM]),!,member(ValueM,['*','_']),!.
+
+xformOutput(Value,ValueO):-isStarValue(Value),!,trace,Value=ValueO.
+xformOutput(Value,Value):-!.
+
+subscriptZeroOrOne(Major):-nonvar(Major),member(Major,[0,1,'0','1']).
+
+
 
 %% getMinorSubscript(Items,Minor,Value).
 getMinorSubscript(ItemsO,Index,Value):- not(is_list(ItemsO)),answerOutput(ItemsO,Items),prolog_must(is_list(Items)),getMinorSubscript(Items,Index,Value),!.
+getMinorSubscript(Items,[A|B],Value):-!,getMinorSubscript(Items,A,ValueS),!,getMinorSubscript(ValueS,B,Value),!.
 getMinorSubscript(Items,_Index,_Value):- prolog_must(is_list(Items)),fail.
 getMinorSubscript(Items,'*',Value):-!,prolog_must(flatten(Items,Value)),!.
 getMinorSubscript(Items,',',Value):-!,prolog_must(=(Items,Value)),!.
-getMinorSubscript(Items,'[]',Value):-!,prolog_must(=(Items,Value)),!.
 %%%
-getMinorSubscript(Items,[A|B],Value):-!,getMinorSubscript(Items,A,ValueS),!,getMinorSubscript(ValueS,B,Value),!.
+getMinorSubscript(Items,'[]',Value):-!,prolog_must(=(Items,Value)),!.
 getMinorSubscript(Items,ANum,Value):-not(number(ANum)),!,prolog_must(atom_to_number(ANum,Num)),!,getMinorSubscript(Items,Num,Value).
 
 getMinorSubscript(Items,Num,Value):-prolog_must(is_list(Items)),length(Items,Len),Index is Len-Num,nth0(Index,Items,Value),!.
@@ -1274,6 +1358,7 @@ setAliceMem(Ctx,Dict,Name,Value):-immediateCall(Ctx,setCurrentAliceMem(Dict,Name
 %%setAliceMem(Ctx,'user','name',['Test',passed,'.']):-trace.
 setAliceMem(Ctx,Dict,Name,Value):-atom(Dict),downcase_atom(Dict,Down),Dict\=Down,!,setAliceMem(Ctx,Down,Name,Value).
 setAliceMem(Ctx,Dict,Name,Value):-atom(Name),downcase_atom(Name,Down),Name\=Down,!,setAliceMem(Ctx,Dict,Down,Value).
+setAliceMem(Ctx,Dict,Name,Value):-isStarValue(Value),debugFmt(setAliceMem(Ctx,Dict,Name,Value)),trace.
 setAliceMem(Ctx,Dict,default(Name),DefaultValue):-getAliceMem(Ctx,Dict,Name,'OM')->setAliceMem(Ctx,Dict,Name,DefaultValue);true.
 setAliceMem(_Ctx,Dict,Name,Value):- ignore(retract(dict(Dict,Name,B))),ignore(B='OM'),retractall(dict(Dict,Name,_)),
    assertz(dict(Dict,Name,Value)).%%,debugFmt('/* ~q. */~n',[dict(Dict,Name,B->Value)]),!.
@@ -1282,33 +1367,24 @@ setAliceMem(_Ctx,Dict,Name,Value):- ignore(retract(dict(Dict,Name,B))),ignore(B=
 setCurrentAliceMem(Dict,X,E):-currentContext(setCurrentAliceMem(Dict,X,E),Ctx), setAliceMem(Ctx,Dict,X,E).
 
 
+
 % ===============================================================================================
 % Get and rember Last Said
 % ===============================================================================================
 
 %%:-dynamic(getLastSaid/1). 
 
-:-setAliceMem(_,_,that,(['where',am,'I'])).
+%%:-setAliceMem(_,_,that,(['where',am,'I'])).
 
 
 rememberSaidIt(_Ctx,[]):-!.
 rememberSaidIt(Ctx,_-R1):-!,rememberSaidIt(Ctx,R1).
 rememberSaidIt(Ctx,R1):-append(New,'.',R1),!,rememberSaidIt(Ctx,New).
-rememberSaidIt(Ctx,R1):- fail,!,
+rememberSaidIt(Ctx,R1):-answerOutput(R1,SR1),R1\==SR1,!,rememberSaidIt(Ctx,SR1).
+rememberSaidIt(Ctx,R1):- !,
    getItemValue('me',Ctx,Speaker),
    getItemValue('you',Ctx,Hearer),
    rememberSaidIt_SH(Ctx,R1,Speaker,Hearer).
-
-rememberSaidIt(Ctx,R1):-answerOutput(R1,SR1),!,
-   getItemValue('me',Ctx,Robot),
-   getItemValue('you',Ctx,User),
-   rememberSaidIt_SR(Ctx,SR1,User).
-
-rememberSaidIt_SR(Ctx,SR1,User):-
-   setAliceMem(Ctx,Robot,'lastSaid',SR1),
-   splitSentences(SR1,SR2),
-   previousVars('that',PrevVars,10),
-   maplist_safe(setEachSentenceThat(Ctx,User,PrevVars),SR2).
 
 rememberSaidIt_SH(_Ctx,[],_Speaker,_Hearer):-!.
 rememberSaidIt_SH(Ctx,_-R1,Speaker,Hearer):-!,rememberSaidIt_SH(Ctx,R1,Speaker,Hearer).
@@ -1317,16 +1393,25 @@ rememberSaidIt_SH(Ctx,R1,Speaker,Hearer):-answerOutput(R1,SR1),!,
    setAliceMem(Ctx,Speaker,'lastSaid',SR1),
    pushInto1DAnd2DArray('response','that',10,SR1,Ctx,Speaker->Hearer).
 
+
 pushInto1DAnd2DArray(Name,Name2,Ten,SR1,Ctx,_Speaker->User):-
    splitSentences(SR1,SR2),
+
    previousVars(Name,PrevVars,Ten),
-   previousVars(Name2,PrevVars2,Ten),
    maplist_safe(setEachSentenceThat(Ctx,User,PrevVars),SR2),!,
-   setEachSentenceThat(Ctx,User,PrevVars2,SR2),!.
+
+   previousVars(Name2,PrevVars2,Ten),
+   setEachSentenceThat(Ctx,User,PrevVars2,SR2),
+
+   !.
 
 
 previousVars(That,[That],0):-!.
-previousVars(That,[Item|Prevs],N):-atomic_list_concat([That,N],Item), NN is N-1,previousVars(That,Prevs,NN).
+previousVars(That,[That],1):-!.
+previousVars(That,[Item|Prevs],N):-indexOntoKey(That,N,Item), NN is N-1,previousVars(That,Prevs,NN).
+
+indexOntoKey(That,N,That):-subscriptZeroOrOne(N),!.
+indexOntoKey(That,N,Item):-atomic_list_concat([That,'(',N,')'],Item).
 
 setEachSentenceThat(_Ctx,_User,_Vars,[]):-!.
 setEachSentenceThat(Ctx,User,[Var],SR0):-
@@ -1338,9 +1423,8 @@ setEachSentenceThat(Ctx,User,[PrevVar,Var|MORE],SR0):-
    setAliceMem(Ctx,User,PrevVar,Prev),
    setEachSentenceThat(Ctx,User,[Var|MORE],SR0).
 
-   
+splitSentences([],[]):-!.   
 splitSentences(SR1,[SR0|SRMORE]):-grabFirstSetence(SR1,SR0,LeftOver),splitSentences(LeftOver,SRMORE),!.
-splitSentences([],[]):-!.
 splitSentences(SR1,[SR1]):-!.
 
 grabFirstSetence(SR1,SRS,LeftOver):-sentenceEnder(EOS),LeftSide=[_|_],append(LeftSide,[EOS|LeftOver],SR1),append(LeftSide,[EOS],SR0),cleanSentence(SR0,SRS),!.

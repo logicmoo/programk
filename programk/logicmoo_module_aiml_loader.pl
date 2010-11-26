@@ -516,7 +516,7 @@ load_substs(Ctx,element(Tag,ALIST,LIST)):- substitutionDictsName(Tag,Dict),
 
 load_substs(Ctx,element(Tag,ATTRIBS,LIST)):-member(Tag,[substitution,substitute]),!,
    debugOnFailureAiml((
-      peekNameValue(Ctx,filelevel,dictionary,substitutions(Catalog)),
+      peekNameValue(Ctx,filelevel,dictionary,substitutions(Catalog),'$error'),
       attributeOrTagValue(Ctx,element(substitute,ATTRIBS,LIST),[old,find,name,before],Find,'$error'),
       attributeOrTagValue(Ctx,element(substitute,ATTRIBS,LIST),[new,replace,value,after],Replace,'$error'),
       debugOnFailureAiml(load_dict_structure(Ctx,dict(substitutions(Catalog),Find,Replace))))),!.
@@ -599,7 +599,7 @@ assertCate(Ctx,Cate,DoWhat):-
 % ===============================================================================================
 %  Make AIML Categories
 % ===============================================================================================
-makeAimlCate(Ctx,Cate,Value):-makeAimlCate(Ctx,Cate,Value,'$current_value').
+makeAimlCate(Ctx,Cate,Value):-makeAimlCate(Ctx,Cate,Value,'$first'(['$value'('*'),'$current_value'])),!.
 makeAimlCate(Ctx,Cate,Value,UnboundDefault):- debugOnFailureAiml((convert_template(Ctx,Cate,Assert),!,makeAimlCate1(Ctx,Assert,Value,UnboundDefault))).
 
 makeAimlCate1(Ctx,Assert,Value,UnboundDefault):-

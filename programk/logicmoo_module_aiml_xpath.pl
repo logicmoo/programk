@@ -116,17 +116,17 @@ pushAttributes(Ctx,Scope,List):-pushCtxFrame(Scope,Ctx,List),pushAttributes0(Ctx
 pushAttributes0(Ctx,Scope,[N=V|L]):-pushNameValue(Ctx,Scope,N,V),pushAttributes0(Ctx,Scope,L).
 pushAttributes0(_Ctx,_Scope,[]).
 
-peekAttributes(Ctx,[Name|SList],Scope,[Name=Value|Results]):- peekNameValue(Ctx,Scope,Name,Value),peekAttributes(Ctx,SList,Scope,Results),!.
+peekAttributes(Ctx,[Name|SList],Scope,[Name=Value|Results]):- peekNameValue(Ctx,Scope,Name,Value,'$error'),peekAttributes(Ctx,SList,Scope,Results),!.
 peekAttributes(_Ctx,[],_Scope,[]):-!.
 
 current_value(Ctx,arg(N),Value):-integer(N), N = -1,!,getItemValue(lastArg,Ctx,Value),!.
 current_value(Ctx,Name,Value):-Name==lastArg,compound(Ctx),functor(Ctx,_F,A),arg(A,Ctx,Value),!.
 current_value(Ctx,Name,Ctx):-Name==lastArg,!.
 current_value(Ctx,arg(N),Value):-integer(N),prolog_must(compound(Ctx)),arg(N,Ctx,Value),!.
-current_value(Ctx,Name,Value):-peekNameValue(Ctx,_,Name,Value).
+current_value(Ctx,Name,Value):-peekNameValue(Ctx,_,Name,Value,'$error').
 
 
-peekNameValue(Ctx,Scope,Name,Value):-peekNameValue(Ctx,Scope,Name,Value,Failed),ignore((Value==Failed,trace,Value = '*')),!.
+%%peekNameValue(Ctx,Scope,Name,Value):-Failed='$error',peekNameValue(Ctx,Scope,Name,Value,Failed),ignore((Value==Failed,trace,Value = '*')),!.
 
 peekNameValue(Ctx,Scope,Name,Value,Else):-nonvar(Value),!,checkNameValue(Ctx,Scope,Name,Value,Else).
 peekNameValue(Ctx,_Scope,Name,Value,_ElseVar):-getCtxValue(Name,Ctx,Value),!.
@@ -236,10 +236,12 @@ makeParamFallback(Ctx,Name,Value,ElseVar):-var(ElseVar),!,throw_safe(makeParamFa
 makeParamFallback(Ctx,Name,Value,ElseVar):-atom(Name),!,makeParamFallback(Ctx,[Name],Value,ElseVar).
 makeParamFallback(_Ctx,_NameS,Value,ElseVar):-'var'(ElseVar),!,Value=ElseVar,!.
 makeParamFallback(_Ctx,_NameS,_Value,'$failure'):-!,fail.
-makeParamFallback(_Ctx,_NameS,_Value,'$call'(Prolog)):-!,Prolog.
+makeParamFallback(_Ctx,_NameS,_Value,'$call'(Prolog)):-!,call(Prolog).
 makeParamFallback(Ctx,NameS,Value,'$error'):-aiml_error(makeParamFallback(Ctx,NameS,Value,'$error')),throw_safe(fallbackValue(Ctx,NameS,Value,'$error')),!.
 makeParamFallback(Ctx,NameS,ValueO, '$current_value'):- member(Name,NameS),current_value(Ctx,Name,ValueO),valuePresent(ValueO),!.
 makeParamFallback(_Ctx,_NameS,_Value,'$succeed'):-!.
+makeParamFallback(_Ctx,_NameS,ValueO,'$value'(Else)):-!,ValueO=Else,!.
+makeParamFallback(Ctx,NameS,ValueO,'$first'(List)):-!,member(E,List),makeParamFallback(Ctx,NameS,ValueO,E),!.
 makeParamFallback(_Ctx,_NameS,ValueO,Else):-ValueO=Else,!.
 makeParamFallback(_Ctx,_NameS,ValueO,Else):-trace,debugFmt(ignore(ValueO=Else)),!.
 
@@ -259,32 +261,33 @@ popCateElements2(Ctx,CateO):- findall(Tag=DCG,cateNodes2(Ctx,category,Tag,DCG),C
 
 cateNodes1(Ctx,Scope,Tag,DCGO):-member(Tag,[pattern,template]),once(cateNodes1a(Ctx,Scope,Tag,TEMPLATE)),once(convert_template(Ctx,TEMPLATE,DCG)),!,DCG=DCGO.
 
-cateNodes1a(Ctx,Scope,Tag,DCGO):-peekNameValue(Ctx,Scope,Tag,DCG),popNameValue(Ctx,Scope,Tag,DCG),!,DCG=DCGO.
+cateNodes1a(Ctx,Scope,Tag,DCGO):-peekNameValue(Ctx,Scope,Tag,DCG,'$failure'),popNameValue(Ctx,Scope,Tag,DCG),!,DCG=DCGO.
 cateNodes1a(Ctx,Scope,Tag,DCGO):-listing(dict),aiml_error(peekNameValue(Ctx,Scope,Tag,DCG)),!,DCG=DCGO.
-cateNodes1a(Ctx,Scope,Tag,DCGO):-peekNameValue(Ctx,Other,Tag,DCG),Other\==Scope,!,DCG=DCGO.
+cateNodes1a(Ctx,Scope,Tag,DCGO):-peekNameValue(Ctx,Other,Tag,DCG,'$error'),Other\==Scope,!,DCG=DCGO.
 
 
 cateNodes2(Scope,Tag,DCGO):-member(Tag,[that,guard,topic]),once(cateNodes2a(Scope,Tag,TEMPLATE)),once(convert_template(_Ctx,TEMPLATE,DCG)),!,DCG=DCGO.
 
-cateNodes2a(Scope,Tag,DCGO):-peekNameValue(_Ctx,Other,Tag,DCG),Other\==Scope,!,DCG=DCGO.
+cateNodes2a(Scope,Tag,DCGO):-peekNameValue(_Ctx,Other,Tag,DCG,'$failure'),Other\==Scope,!,DCG=DCGO.
 cateNodes2a(Scope,Tag,DCGO):-aiml_error(peekNameValue(_Ctx,Scope,Tag,DCG)),!,DCG=DCGO.
 
 defaultPredicates(N,V):-member(N,[username,botname]),V='*'.
 
-defaultPredicates(N,V):-member(N,[input,pattern]),V='*'.
+%defaultPredicates(N,V):-member(N,[input,pattern]),V='*'.
 defaultPredicates(N,V):-defaultPredicatesS(S),member(N=V,S).
-defaultPredicatesS([topic='*',
+defaultPredicatesS([
+             %%topic='*',
              precall='true',
              call='true',
              flags='*',
-             that='*',
+             %that='*',
              % hide for testing 
              %dictionary='default',
              userdict='user',
              substitutions='input',
              graph='default',
              guard='*',
-             request='*',
+             %request='*',
              lang='bot']).
  
 cateMember(Tag):-cateMemberTags(List),member(Tag,List).

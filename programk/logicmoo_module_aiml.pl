@@ -243,8 +243,8 @@ expandVariable(_Ctx,size,Size):-aimlCateSig(X),predicate_property(X,number_of_cl
 %TODO extract the machine's TimeZone
 expandVariable(_Ctx,date,[Y,'-',M,'-',D]):-get_time(TimeStamp),stamp_date_time(TimeStamp,DateTime,'UTC'),date_time_value(date,DateTime,date(Y,M,D)),!.
 expandVariable(_Ctx,mychan,A):-!,default_channel(B),!,from_atom_codes(A,B),!.
-expandVariable(Ctx,NameVar,Result):-getStoredValue(Ctx,'bot',NameVar,Result),!.
-expandVariable(Ctx,NameVar,Result):-getStoredValue(Ctx,'global',NameVar,Result),!.
+expandVariable(Ctx,NameVar,Result):-getAliceMem(Ctx,'bot',NameVar,Result),!.
+expandVariable(Ctx,NameVar,Result):-getAliceMem(Ctx,'global',NameVar,Result),!.
 
 
 globalAliceTagVar(BOT_ATOM):-member(BOT_ATOM,[version,id,favfood,date,size]).
@@ -637,7 +637,7 @@ computeStar1(Ctx,Votes,Star,Index,ATTRIBS,_InnerXml,proof(ValueO,StarVar=ValueI)
       CALL=concat_atom([Star|Index],StarVar),
       prolog_must(catch(CALL,E,(debugFmt(CALL->E),fail))),      
       getDictFromAttributes(ATTRIBS,Dict),
-      getInheritedStoredValue(Ctx,Dict,StarVar,ValueI),!,
+      getAliceMem(Ctx,Dict,StarVar,ValueI),!,
       computeTemplate(Ctx,Votes,element(template,ATTRIBS,ValueI),ValueO,VotesM),VotesO is VotesM * 1.1.
 
 computeStar1(_Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Resp,VotesO):- 

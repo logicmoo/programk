@@ -110,15 +110,20 @@ set_current_value(Ctx,N,V):-pushNameValue(Ctx,user,N,V).
 :-dynamic(dict/3).
 
 getAliceMem(Ctx,Dict,DEFAULT,ValueOut):- compound(DEFAULT),DEFAULT=default(Name,Default),!, 
-     (getStoredValue(Ctx,Dict,Name,ValueO) -> xformOutput(ValueO, ValueOut)  ; xformOutput(Default, ValueOut)). 
-getAliceMem(Ctx,Dict,Name,ValueO):- var(ValueO), !, once(getStoredValue(Ctx,Dict,Name,ValueO);ValueO=[unknown,Name]).
-getAliceMem(Ctx,Dict,Name,'OM'):- !,not((getStoredValue(Ctx,Dict,Name,ValueO),ValueO\=='OM')).
+     (getAliceMemComplete(Ctx,Dict,Name,ValueO) -> xformOutput(ValueO, ValueOut)  ; xformOutput(Default, ValueOut)). 
+getAliceMem(Ctx,Dict,Name,ValueO):- var(ValueO), !, once(getAliceMemComplete(Ctx,Dict,Name,ValueO);ValueO=[unknown,Name]).
+getAliceMem(Ctx,Dict,Name,'OM'):- !,not((getAliceMemComplete(Ctx,Dict,Name,ValueO),ValueO\=='OM')).
 %%getAliceMem(Ctx,Dict,Name,ValueI):- %%unresultifyC(ValueI,ValueM),!,getAliceMem(Ctx,Dict,Name,ValueO),!,sameBinding(ValueI,ValueO).%%prolog_must(nonvar(ValueI)),!.
-getAliceMem(Ctx,Dict,Name,ValueI):- getStoredValue(Ctx,Dict,Name,ValueO),!,sameBinding(ValueI,ValueO).
+getAliceMem(Ctx,Dict,Name,ValueI):- getAliceMemComplete(Ctx,Dict,Name,ValueO),!,sameBinding(ValueI,ValueO).
 
+getAliceMemComplete(Ctx,Dict,Name,ValueO):-getInheritedStoredValue(Ctx,Dict,Name,ValueO),!.
+
+dictNameKey(Dict,Name,Dict:Name):-!.
+dictNameKey(_Dict,NameKey,NameKey):-!.
 
 getStoredValue(_Ctx,_Dict,_Name,Value):-prolog_must(var(Value)),fail.
 getStoredValue(_Ctx,Dict,Name,Value):-dict(Dict,Name,Value),!.
+getStoredValue(Ctx,Dict,Name,Value):-dictNameKey(Dict,Name,Key),debugOnError(getCtxValue(Key,Ctx,Value)),!.
 getStoredValue(Ctx,DictI,Name,Value):-unresultifyC(DictI,Dict),!,getStoredValue(Ctx,Dict,Name,Value),!.
 getStoredValue(Ctx,Dict,NameI,Value):-unresultifyC(NameI,Name),!,getStoredValue(Ctx,Dict,Name,Value),!.
 getStoredValue(Ctx,Dict,Name,ValueI):-unresultifyC(ValueI,Value),!,getStoredValue(Ctx,Dict,Name,Value),!,prolog_must(nonvar(ValueI)),!.
@@ -135,7 +140,7 @@ getInheritedStoredValue(Ctx,Scope,Name,Value):- atom(Scope),inheritedFrom(Scope,
 inheritedFrom(default,_):-!,fail.
 inheritedFrom(defaultValue(_),_):-!,fail.
 inheritedFrom(Scope,defaultValue(Scope)).
-inheritedFrom(Scope,default).
+inheritedFrom(_Scope,default).
  
 
 getIndexedValue(Ctx,DictI,Name,MajorMinor,Value):-unresultifyC(DictI,Dict),!,
@@ -240,7 +245,10 @@ setAliceMem(Ctx,Dict,Name,Value):-atom(Dict),downcase_atom(Dict,Down),Dict\=Down
 setAliceMem(Ctx,Dict,Name,Value):-atom(Name),downcase_atom(Name,Down),Name\=Down,!,setAliceMem(Ctx,Dict,Down,Value).
 setAliceMem(Ctx,Dict,Name,Value):-isStarValue(Value),debugFmt(setAliceMem(Ctx,Dict,Name,Value)),trace.
 setAliceMem(Ctx,Dict,default(Name),DefaultValue):-getAliceMem(Ctx,Dict,Name,'OM')->setAliceMem(Ctx,Dict,Name,DefaultValue);true.
-setAliceMem(_Ctx,Dict,Name,Value):- ignore(retract(dict(Dict,Name,B))),ignore(B='OM'),retractall(dict(Dict,Name,_)),
+setAliceMem(Ctx,Dict,Name,Value):-
+   dictNameKey(Dict,Name,Key),
+   addCtxValue(Key,Ctx,Value),
+   ignore(retract(dict(Dict,Name,B))),ignore(B='OM'),retractall(dict(Dict,Name,_)),
    assertz(dict(Dict,Name,Value)).%%,debugFmt('/* ~q. */~n',[dict(Dict,Name,B->Value)]),!.
 
 
@@ -274,9 +282,11 @@ peekNameValue(Ctx,Scope,Name,Value,Else):-nonvar(Value),!,checkNameValue(Ctx,Sco
 peekNameValue(Ctx,_Scope,Name,Value,_ElseVar):-getCtxValue(Name,Ctx,Value),!.
 peekNameValue(Ctx,List,Name,Value,_ElseVar):- nonvar(List),not(atom(List)),attributeOrTagValue(Ctx,List,Name,Value,'$failure'),!.
 peekNameValue(Ctx,Scope,Name,Value,_ElseVar):-getStoredValue(Ctx,Scope,Name,Value),checkAttribute(Scope,Name,Value),!.
-peekNameValue(Ctx,Scope,Name,Value,_ElseVar):-nonvar(Scope),getStoredValue(Ctx,Scope2,Name,Value),Scope\=Scope2,checkAttribute(Scope2,Name,Value),!,checkValue(Value),!.
+%%%%%%peekNameValue(Ctx,Scope,Name,Value,_ElseVar):-nonvar(Scope),getStoredValue(Ctx,Scope2,Name,Value),Scope\=Scope2,checkAttribute(Scope2,Name,Value),!,checkValue(Value),!.
+peekNameValue(Ctx,Scope,Name,Value,_ElseVar):-getInheritedStoredValue(Ctx,Scope,Name,Value),checkAttribute(Scope,Name,Value),!.
 peekNameValue(Ctx,Scope,Name,Value,_ElseVar):-is_list(Name),member(N0,Name),peekNameValue(Ctx,Scope,N0,Value,'$failure'),!.
 peekNameValue(Ctx,_Scope,Name,Value,ElseVar):-makeParamFallback(Ctx,Name,Value,ElseVar),!.
+
 %%peekNameValue(_Ctx,_Scope,_Name,Value,ElseVar):-ignore(Value=ElseVar),!.
 
 checkNameValue(Ctx,Scope,[Name],Value,Else):-!,peekNameValue(Ctx,Scope,Name,ValueVar,Else),!,checkValue(ValueVar),valuesMatch(Ctx,ValueVar,Value),!.
@@ -468,6 +478,7 @@ no_cyclic_terms.
 ndestruct:-trace.
 ndestruct(Holder):-debugFmt(unImplemented(ndestruct(Holder))).
 no_setter(Why,Name,Ctx,Value):-debugFmt(unImplemented2(no_setter(Why,Name,Ctx,Value))).
+nb_setarg(N,Term,Name,_Value,_FOO):-trace,nb_setarg(N,Term,Value).
 
 % set_assoc as the "setter" means to use the term found in a assoc/1 .. change the calue and resave assoc/1 internal held term
 set_assoc(ASSOC,Name,_Ctx,Value):- ASSOC = assoc(Assoc), 
@@ -555,11 +566,11 @@ get_ctx_holderFreeSpot1(assoc(_Ctx),_,_):-!,fail.
 get_ctx_holderFreeSpot1(frame(Key,_Inner_Dest,Ctx),NamedValue,Destruct):- nonvar(Key), !, get_ctx_holderFreeSpot1(Ctx,NamedValue,Destruct).
 get_ctx_holderFreeSpot1(Ctx,NamedValue,Destruct):-functor(Ctx,F,A),!,get_ctx_holderFreeSpot1(Ctx,F,A,NamedValue,Destruct).
 
-get_ctx_holderFreeSpot1(Ctx,'.',2,NamedValue,nb_setarg(Ctx,2,NEXT)):-arg(2,Ctx,Try1), var(Try1),!, Try1 = [NamedValue|NEXT].
+get_ctx_holderFreeSpot1(Ctx,'.',2,NamedValue,nb_setarg(2,NEXT)):-arg(2,Ctx,Try1), var(Try1),!, Try1 = [NamedValue|NEXT].
 get_ctx_holderFreeSpot1(Ctx,'.',2,NamedValue,Destruct):-arg(2,Ctx,Try2),get_ctx_holderFreeSpot0(Try2,NamedValue,Destruct).
 
 %%get_ctx_holderFreeSpot1(Ctx,_,_,NamedValue,_):-!,fail.
-%%get_ctx_holderFreeSpot1(Ctx,_,_,NamedValue,nb_setarg(Ctx,N,NEXT)):-arg(N,Ctx,Try3),var(Try3),!, Try3 = [NamedValue|NEXT].
+%%get_ctx_holderFreeSpot1(Ctx,_,_,NamedValue,nb_setarg(N,NEXT)):-arg(N,Ctx,Try3),var(Try3),!, Try3 = [NamedValue|NEXT].
 %%get_ctx_holderFreeSpot1(Ctx,_,_,NamedValue,Destruct):-arg(N,Ctx,Try4),get_ctx_holderFreeSpot0(Try4,NamedValue,Destruct).
 
 
@@ -572,9 +583,9 @@ get_o_value00(Name,Ctx,Value,Setter):-get_o_value0(Name,Ctx,Value,HIDE_Setter),!
 get_o_value(Name,Ctx,Value,Setter):-hotrace(get_o_value00(Name,Ctx,Value,Setter)),!.
 
 get_o_value0(Name,Ctx,Value,Setter):-compound(Ctx),get_o_value1(Name,Ctx,Value,Setter).
-get_o_value1(Name,ASSOC,Value,set_assoc(ASSOC)):- ASSOC = assoc(Ctx), get_assoc(Name,Ctx,Value),!.
-get_o_value1(Name,frame(Key,_Inner_Dest,Ctx),Value,Setter):- nonvar(Key), get_o_value0(Name,Ctx,Value,Setter),!.
 get_o_value1(Name,[H|T],Value,Setter):- !,(get_o_value0(Name,T,Value,Setter);get_o_value1(Name,H,Value,Setter)).
+get_o_value1(Name,ASSOC,Value,set_assoc(ASSOC)):- ASSOC = assoc(Ctx),!, get_assoc(Name,Ctx,Value),!.
+get_o_value1(Name,frame(Key,_Inner_Dest,Ctx),Value,Setter):- nonvar(Key), get_o_value0(Name,Ctx,Value,Setter),!.
 get_o_value1(Name,Pred,Value,Setter):-functor(Pred,F,A),!,get_n_value(Name,Pred,F,A,Value,Setter).
 
 get_n_value(Name,Name,_F,_A,_Value,_):-!,fail.

@@ -149,7 +149,7 @@ alicebot2(Ctx,Atoms,Resp):-
    getAliceMem(Ctx,'bot',default('minanswers',1),MinAns),
    getAliceMem(Ctx,'bot',default('maxanswers',1),_MaxAns),
    %%setAliceMem(Ctx,User,'input',Atoms),
-   pushInto1DAnd2DArray('request','input',10,Atoms,Ctx,Robot->User),
+   pushInto1DAnd2DArray(Ctx,'request','input',10,Atoms,Robot->User),
    setAliceMem(Ctx,User,'rawinput',Atoms))),
    ((call_with_depth_limit_traceable(computeInputOutput(Ctx,1,Atoms,Output,N),8000,_DL),
 	 ignore((nonvar(N),nonvar(Output),savePosibleResponse(N,Output))),flag(a_answers,X,X+1),
@@ -187,14 +187,15 @@ evalSRAI(Ctx,Votes,ATTRIBS,[I|Input0],Output,VotesO):-atom(I),atom_prefix(I,'@')
 
 evalSRAI(Ctx,Votes,ATTRIBS,Input0,Output,VotesO):-
   prolog_must(ground(Input0)),!,flatten([Input0],Input),  
-  withAttributes(Ctx,[proof=Proof|ATTRIBS],
+ withAttributes(Ctx,ATTRIBS,
+   withAttributes(Ctx,[proof=pp(Proof)],
   ( computeSRAI(Ctx,Votes,Input,MidIn,VotesM,Proof),      
     prolog_must(nonvar(MidIn)),
       debugFmt(sraiTRACE(Input,MidIn)),
       computeElementMust(Ctx,VotesM,template,ATTRIBS,MidIn,MidIn9,VotesI9),
       prolog_must(answerOutput(MidIn9,Mid9)),
       debugFmt(evalSRAI(Input,MidIn,MidIn9,Mid9)),
-      prolog_must(computeAnswer(Ctx,VotesI9,Mid9,Output,VotesO)))).
+      prolog_must(computeAnswer(Ctx,VotesI9,Mid9,Output,VotesO))))).
 
 % ===============================================================================================
 % Expand Answers
@@ -879,7 +880,8 @@ computeSRAI0(_Ctx,Votes,ConvThread,Input,Result,VotesO,Proof):- !, VotesO is Vot
 computeSRAI0(Ctx,Votes,ConvThread,[B|Flat],[B|Result],VotesO,Proof):- fail,
    computeSRAI2(Ctx,Votes,ConvThread,Flat,Result,VotesO,Proof,_PostMatchLevel3),prolog_must(nonvar(Result)).
 
-
+getAliceMemOrSetDefault(CtxIn,_ConvThread,Name,Value,_OrDefault):-
+   getCtxValue(Name,CtxIn,Value),!.
 getAliceMemOrSetDefault(CtxIn,ConvThread,Name,Value,_OrDefault):-
    getIndexedValue(CtxIn,ConvThread,Name,[],Value),!.
 getAliceMemOrSetDefault(CtxIn,ConvThread,Name,Value,OrDefault):-
@@ -1269,18 +1271,18 @@ rememberSaidIt_SH(Ctx,_-R1,Speaker,Hearer):-!,rememberSaidIt_SH(Ctx,R1,Speaker,H
 rememberSaidIt_SH(Ctx,R1,Speaker,Hearer):-append(New,[Punct],R1),sentenceEnderOrPunct_NoQuestion(Punct),!,rememberSaidIt_SH(Ctx,New,Speaker,Hearer).
 rememberSaidIt_SH(Ctx,R1,Speaker,Hearer):-answerOutput(R1,SR1),!,
    setAliceMem(Ctx,Speaker,'lastSaid',SR1),
-   pushInto1DAnd2DArray('response','that',10,SR1,Ctx,Speaker->Hearer).
+   pushInto1DAnd2DArray(Ctx,'response','that',10,SR1,Speaker->Hearer).
 
 
-pushInto1DAnd2DArray(Name,Name2,Ten,SR1,Ctx,_Speaker->User):-
+pushInto1DAnd2DArray(Ctx,Name,Name2,Ten,SR1,_Speaker->User):-
    splitSentences(SR1,SR2),
-
+   addCtxValue(quiteMemOps,Ctx,true),
    previousVars(Name,PrevVars,Ten),
    maplist_safe(setEachSentenceThat(Ctx,User,PrevVars),SR2),!,
 
    previousVars(Name2,PrevVars2,Ten),
    setEachSentenceThat(Ctx,User,PrevVars2,SR2),
-
+   setCtxValue(quiteMemOps,Ctx,false),
    !.
 
 

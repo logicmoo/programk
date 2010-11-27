@@ -115,6 +115,8 @@ aiml_eval(Ctx,TAGATTRXML,RESULT):-
 
 aiml_eval_now(Ctx,TAGATTRXML):-aiml_eval(Ctx,TAGATTRXML,RESULT),!,debugFmt(aiml_eval_now(Ctx,TAGATTRXML,RESULT)).
 
+
+immediateCall(Ctx,_):- getCtxValueElse(quiteMemOps,Ctx,True,false),True=true,!.
 immediateCall(Ctx,:-(Call)):-!,immediateCall0(Ctx,:-(Call)),!.
 immediateCall(Ctx,Call):-immediateCall0(Ctx,:-(Call)),!.
 immediateCall0(Ctx,C):-hideIfNeeded(C,Call),immediateCall1(Ctx,Call),!.
@@ -223,7 +225,7 @@ systemCall_Bot(Ctx,['get',Name|MajorMinor],template([getted,Dict,Value])):- memb
 %systemCall_Bot(Ctx,['ctx'],template([ctxed,Ctx])):-!,showCtx.
 systemCall_Bot(Ctx,['load'|REST],OUT):- !, debugOnFailure(systemCall_Load(Ctx,REST,OUT)),!.
 systemCall_Bot(Ctx,['find'|REST],OUT):- !, debugOnFailure(systemCall_Find(Ctx,REST,OUT)),!.
-systemCall_Bot(Ctx,['chgraph',Graph],['chgraph',Graph]):- set_current_value(Ctx,graph,Graph),!.
+systemCall_Bot(Ctx,['chgraph',Graph],['chgraph',Graph]):- setAliceMem(Ctx,user,graph,Graph),!.
 systemCall_Bot(_Ctx,['substs',DictName],['substsof',DictName]):- unify_listing(dictReplace(DictName,_,_)),!.
 systemCall_Bot(_Ctx,['substs'],['substsof',all]):- unify_listing(dictReplace(_DictName,_,_)),!.
 

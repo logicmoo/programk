@@ -102,8 +102,6 @@ getAttributeOrTags1(Ctx,[N=Default|More],ATTRIBS,INNERXML,[N=Default|NormalProps
       getAttributeOrTags1(Ctx,More,ATTRIBS,INNERXML,NormalProps),!.
 */
 
-set_current_value(Ctx,N,V):-pushNameValue(Ctx,user,N,V).
-
 % ===============================================================================================
 % get / set  Global Variables
 % ===============================================================================================
@@ -130,11 +128,6 @@ getStoredValue(Ctx,Dict,NameI,Value):-unresultifyC(NameI,Name),!,getStoredValue(
 getStoredValue(Ctx,Dict,Name,ValueI):-unresultifyC(ValueI,Value),!,getStoredValue(Ctx,Dict,Name,Value),!,prolog_must(nonvar(ValueI)),!.
 getStoredValue(Ctx,Dict,Name,Value):-is_list(Dict),last(Dict,Last),!,getStoredValue(Ctx,Last,Name,Value),!.
 getStoredValue(Ctx,Dict,Name,Value):-atom(Dict),downcase_atom(Dict,Down),Dict\=Down,getStoredValue(Ctx,Down,Name,Value),!.
-
-
-%%getContextStoredValue(Ctx,Dict,Name,Value):-dictNameKey(Dict,Name,Key),debugOnError(getCtxValue(Key,Ctx,Value)),valuePresent(Value).
-getContextStoredValue(_Ctx,Dict,Name,Value):-dict(Dict,Name,Value),!.
- 
 
 getInheritedStoredValue(Ctx,Scope,DEFAULT,ValueOut):- compound(DEFAULT),DEFAULT=default(Name,Default),!, 
          (getInheritedStoredValue(Ctx,Scope,Name,ValueO) -> xformOutput(ValueO, ValueOut)  ; xformOutput(Default, ValueOut)). 
@@ -173,10 +166,10 @@ getIndexedValue(Ctx,Dict,DEFAULT,MajorMinor,ValueOut):- compound(DEFAULT),DEFAUL
 getIndexedValue(Ctx,Dict,Name,MajorMinor,ValueO):-
     notrace(getIndexedValue0(Ctx,Dict,Name,MajorMinor,Value)),
     xformOutput(Value,ValueO).
-
+   
 getIndexedValue(Ctx,Dict,Name,MajorMinor,ValueO):-
-    unify_listing(dict(Dict,_,_)), 
-    %%unify_listing(dict(_,Name,_)),
+    unify_listing(getContextStoredValue(Ctx,Dict,_N,_V)),
+    %%unify_listing(getContextStoredValue(Ctx,_,Name,_)),
     getIndexedValue0(Ctx,Dict,Name,MajorMinor,Value),
     xformOutput(Value,ValueO).
 
@@ -225,14 +218,15 @@ getMinorSubscript(Items,[],Value):-!,xformOutput(Items,Value),!.
 getMinorSubscript(Items,ANum,Value):-not(number(ANum)),!,prolog_must(atom_to_number(ANum,Num)),!,getMinorSubscript(Items,Num,Value).
 %%%
 getMinorSubscript(Items,Num,Value):- prolog_must(is_list(Items)),length(Items,Len),Index is Len-Num,nth0(Index,Items,Value),is_list(Value),!.
-getMinorSubscript(Items,Num,Value):-debugFmt(getMinorSubscriptFailed(Items,Num,Value)),fail.
+getMinorSubscript([],1,[]):-!.
+getMinorSubscript(Items,Num,Value):-debugFmt(getMinorSubscriptFailed(Items,Num,Value)),trace,fail.
 getMinorSubscript(Items,1,Value):- trace,last(Items,Last), (is_list(Last)->Value=Last;Value=Items),!.
 getMinorSubscript(Items,1,Value):- xformOutput(Items,Value),!,trace.
 
 getUserDicts(User,Name,Value):-isPersonaUser(User),isPersonaPred(Name),once(getInheritedStoredValue(_Ctx,User,Name,Value)).
 
-isPersonaUser(User):-findall(User0,dict(User0,'is_type','agent'),Users),sort(Users,UsersS),!,member(User,UsersS).
-isPersonaPred(Name):-findall(Pred,(dict(_Dict,Pred,_Value),atom(Pred)),Preds),sort(Preds,PredsS),!,member(Name,PredsS).
+isPersonaUser(User):-findall(User0,getContextStoredValue(User0,'is_type','agent'),Users),sort(Users,UsersS),!,member(User,UsersS).
+isPersonaPred(Name):-findall(Pred,(getContextStoredValue(_Ctx,_Dict,Pred,_Value),atom(Pred)),Preds),sort(Preds,PredsS),!,member(Name,PredsS).
 
 
 setAliceMem(Ctx,Dict,Name,Var):-var(Var),!,setAliceMem(Ctx,Dict,Name,['$var'(Var)]).
@@ -250,14 +244,29 @@ setAliceMem(Ctx,Dict,Name,Value):-atom(Dict),downcase_atom(Dict,Down),Dict\=Down
 setAliceMem(Ctx,Dict,Name,Value):-atom(Name),downcase_atom(Name,Down),Name\=Down,!,setAliceMem(Ctx,Dict,Down,Value).
 setAliceMem(Ctx,Dict,Name,Value):-isStarValue(Value),debugFmt(setAliceMem(Ctx,Dict,Name,Value)),trace.
 setAliceMem(Ctx,Dict,default(Name),DefaultValue):-getAliceMem(Ctx,Dict,Name,'OM')->setAliceMem(Ctx,Dict,Name,DefaultValue);true.
-setAliceMem(Ctx,Dict,Name,Value):-
-   dictNameKey(Dict,Name,Key),
-   addCtxValue(Key,Ctx,Value),
-   ignore(retract(dict(Dict,Name,B))),ignore(B='OM'),retractall(dict(Dict,Name,_)),
-   assertz(dict(Dict,Name,Value)).%%,debugFmt('/* ~q. */~n',[dict(Dict,Name,B->Value)]),!.
+setAliceMem(Ctx,Dict,Name,Value):-resetAliceMem(Ctx,Dict,Name,Value),!.
 
-
+resetAliceMem(Ctx,Dict,Name,Value):-
+   % for printing
+   currentContextValue(Ctx,Dict,Name,B),
+   debugFmt('/* ~q. */',[dict(Dict,Name,B->Value)]),
+   % for cleaning
+   clearContextValues(Ctx,Dict,Name),
+   % for setting
+   addNewContextValue(Ctx,Dict,Name,Value),!.
+   
 setCurrentAliceMem(Dict,X,E):-currentContext(setCurrentAliceMem(Dict,X,E),Ctx), setAliceMem(Ctx,Dict,X,E).
+
+%%getContextStoredValue(Ctx,Dict,Name,Value):-dictNameKey(Dict,Name,Key),debugOnError(getCtxValue(Key,Ctx,Value)),valuePresent(Value).
+currentContextValue(Ctx,Dict,Name,Value):- getContextStoredValue(Ctx,Dict,Name,Value),!.
+currentContextValue(_Ctx,_Dict,_Name,'OM'):-!.
+
+getContextStoredValue(_Ctx,Dict,Name,Value):-dict(Dict,Name,Value),!.
+removeContextValue(_Ctx,Dict,Name,Value):-ignore(retract(dict(Dict,Name,Value))).
+clearContextValues(_Ctx,Dict,Name):-retractall(dict(Dict,Name,_Value)).
+
+addNewContextValue(Ctx,Dict,Name,OM):-OM=='OM',!,clearContextValues(Ctx,Dict,Name),!.
+addNewContextValue(Ctx,Dict,Name,Value):-prolog_must(nonvar(Value)),dictNameKey(Dict,Name,Key),addCtxValue(Key,Ctx,Value),assertz(dict(Dict,Name,Value)).
 
 % ===============================================================================================
 %    AIML Runtime Database
@@ -340,15 +349,18 @@ checkAttribute(Scope,N=V):-checkAttribute(Scope,N,V).
 checkAttribute(Scope,N,_V):-N==proof,!,prolog_must(nonvar(Scope)).
 checkAttribute(Scope,N,V):-prolog_must(nonvar(Scope)),prolog_must(nonvar(N)),!,prolog_must(nonvar(V)).
 
-pushNameValue(_Ctx,Scope,N,V):-
+pushNameValue(Ctx,Scope,N,V):-
    checkAttribute(Scope,N,V),
-   asserta(dict(Scope,N,V)),!.
+   resetAliceMem(Ctx,Scope,N,V),!.
+   %%asserta(dict(Scope,N,V)),!.
 
-popNameValue(_Ctx,Scope,N,V):-
-   dict(Scope,N,V),checkAttribute(Scope,N,V),ignore(retract(dict(Scope,N,V))),!,
+popNameValue(Ctx,Scope,N,V):-
+   currentContextValue(Ctx,Scope,N,V),
+   checkAttribute(Scope,N,V),
+   removeContextValue(Ctx,Scope,N,V),
    checkAttribute(Scope,N,V),!.
 
-dyn_retract(dict(Scope,N,V)):-(retract(dict(Scope,N,V))),!.
+%dyn_retract(dict(Scope,N,V)):-(retract(dict(Scope,N,V))),!.
 
 ensureScope(_Ctx,_ATTRIBS,Scope):-nonvar(Scope),!.
 ensureScope(_Ctx,_ATTRIBS,filelevel):-!.
@@ -406,7 +418,7 @@ makeParamFallback(_Ctx,_NameS,ValueO,Else):-trace,debugFmt(ignore(ValueO=Else)),
 %  Popping when Building categories
 % ===============================================================================================
 
-clearCateStack(_Ctx):-retractall(dict(category,_,_)).
+clearCateStack(_Ctx):- retractall(dict(category,_,_)).
 
 peekCateElements(Ctx,Cate):- cateMemberTags(CATETAGS), peekAttributes(Ctx,CATETAGS,category,Cate),!.
 
@@ -485,7 +497,11 @@ no_cyclic_terms.
 ndestruct:-trace.
 ndestruct(Holder):-debugFmt(unImplemented(ndestruct(Holder))).
 no_setter(Why,Name,Ctx,Value):-debugFmt(unImplemented2(no_setter(Why,Name,Ctx,Value))).
-nb_setarg(N,Term,_Name,Value,_FOO):-trace,nb_setarg(N,Term,Value).
+
+
+nb_setarg(N,Term,Name,OldCtx,Value):-var(Term),throw_safe(nb_setarg(N,Term,Name,OldCtx,Value)),!.
+nb_setarg(N,NameT=Term,Name,_OldCtx,Value):-prolog_must(Name=NameT),!,nb_setarg(N,Term,Value).
+nb_setarg(N,Term,_Name,_OldCtx,Value):-trace,nb_setarg(N,Term,Value).
 
 % set_assoc as the "setter" means to use the term found in a assoc/1 .. change the calue and resave assoc/1 internal held term
 set_assoc(ASSOC,Name,_Ctx,Value):- ASSOC = assoc(Assoc), 
@@ -515,6 +531,9 @@ unwrapValue1(Value,Value):-!.
 
 bestSetterFn(v(_,Setter,_),_OuterSetter,Setter):-!.
 bestSetterFn(_Value,OuterSetter,OuterSetter).
+
+getCtxValueElse(Name,Ctx,Value,_Else):-getCtxValue(Name,Ctx,Value),!.
+getCtxValueElse(_Name,_Ctx,Else,Else).
 
 getCtxValue(Name,Ctx,Value):-checkCtx(CtxIn), hotrace(( get_ctx_holder(CtxIn,Ctx),get_o_value(Name,CtxIn,HValue,_Setter),!, unwrapValue(HValue,Value))),!.
 getCtxValue(Name,CtxI,Value):-checkCtx(CtxI),lastMember(Ctx,CtxI),hotrace(( get_ctx_holder(Ctx,CtxH),get_o_value(Name,CtxH,HValue,_Setter),!, unwrapValue(HValue,Value))),!.

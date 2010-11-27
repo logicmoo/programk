@@ -386,7 +386,7 @@ load_aiml_structure(Ctx,element(catagory,ALIST,LIST)):-load_aiml_structure(Ctx,e
 % aiml
 load_aiml_structure(Ctx,element(aiml,ALIST,LIST)):-
     replaceAttribute(Ctx,name,graph,ALIST,ATTRIBS),!,
- defaultPredicatesS(Defaults),
+ defaultCatePredicatesS(Defaults),
   withAttributes(Ctx,Defaults,
         %withAttributes(Ctx,ATTRIBS,load_aiml_structure_lineno(ATTRIBS,Ctx,LIST)),!.
      withAttributes(Ctx,ATTRIBS,maplist_safe(load_aiml_structure(Ctx),LIST))),!.
@@ -748,9 +748,9 @@ each_that(Ctx,M):-debugFmt('FAILURE'(each_that(Ctx,M))),trace.
 
 :-retractall(dict(_,_,_)).
 
-:- cateFallback(ATTRIBS), pushAttributes(_Ctx,default,ATTRIBS).
-:- cateFallback(ATTRIBS), popAttributes(_Ctx,default,ATTRIBS).
-:- cateFallback(ATTRIBS), pushAttributes(_Ctx,default,ATTRIBS).
+%:- cateFallback(ATTRIBS), pushAttributes(_Ctx,default,ATTRIBS).
+%:- cateFallback(ATTRIBS), popAttributes(_Ctx,default,ATTRIBS).
+%:- cateFallback(ATTRIBS), pushAttributes(_Ctx,default,ATTRIBS).
 
 :-pp_listing(dict(_,_,_)).
 

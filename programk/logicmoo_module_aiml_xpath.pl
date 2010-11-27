@@ -118,18 +118,23 @@ getAliceMem(Ctx,Dict,Name,ValueI):- getAliceMemComplete(Ctx,Dict,Name,ValueO),!,
 
 getAliceMemComplete(Ctx,Dict,Name,ValueO):-getInheritedStoredValue(Ctx,Dict,Name,ValueO),!.
 
-dictNameKey(Dict,Name,Dict:Name):-!.
+dictNameKey(_Dict,Dict:Name,Key):-!,dictNameKey(Dict,Name,Key).
+dictNameKey(Dict,Name,Dict:Name).
 dictNameKey(_Dict,NameKey,NameKey):-!.
 
 getStoredValue(_Ctx,_Dict,_Name,Value):-prolog_must(var(Value)),fail.
-getStoredValue(_Ctx,Dict,Name,Value):-dict(Dict,Name,Value),!.
-getStoredValue(Ctx,Dict,Name,Value):-dictNameKey(Dict,Name,Key),debugOnError(getCtxValue(Key,Ctx,Value)),!.
+
+getStoredValue(Ctx,Dict,Name,Value):-getContextStoredValue(Ctx,Dict,Name,Value),!.
 getStoredValue(Ctx,DictI,Name,Value):-unresultifyC(DictI,Dict),!,getStoredValue(Ctx,Dict,Name,Value),!.
 getStoredValue(Ctx,Dict,NameI,Value):-unresultifyC(NameI,Name),!,getStoredValue(Ctx,Dict,Name,Value),!.
 getStoredValue(Ctx,Dict,Name,ValueI):-unresultifyC(ValueI,Value),!,getStoredValue(Ctx,Dict,Name,Value),!,prolog_must(nonvar(ValueI)),!.
 getStoredValue(Ctx,Dict,Name,Value):-is_list(Dict),last(Dict,Last),!,getStoredValue(Ctx,Last,Name,Value),!.
 getStoredValue(Ctx,Dict,Name,Value):-atom(Dict),downcase_atom(Dict,Down),Dict\=Down,getStoredValue(Ctx,Down,Name,Value),!.
 
+
+%%getContextStoredValue(Ctx,Dict,Name,Value):-dictNameKey(Dict,Name,Key),debugOnError(getCtxValue(Key,Ctx,Value)),valuePresent(Value).
+getContextStoredValue(_Ctx,Dict,Name,Value):-dict(Dict,Name,Value),!.
+ 
 
 getInheritedStoredValue(Ctx,Scope,DEFAULT,ValueOut):- compound(DEFAULT),DEFAULT=default(Name,Default),!, 
          (getInheritedStoredValue(Ctx,Scope,Name,ValueO) -> xformOutput(ValueO, ValueOut)  ; xformOutput(Default, ValueOut)). 
@@ -444,12 +449,14 @@ defaultPredicatesS([
  
 cateMember(Tag):-cateMemberTags(List),member(Tag,List).
 
+defaultCatePredicatesS(Defaults):-cateFallback(Defaults).
+
 cateFallback([
        srcinfo=missinginfo,
        srcfile=missingfile,
        withCategory=[writeqnl,asserta_new],
        pattern='ERROR PATTERN',
-       template='ERROR TEMPLATE'|MORE]):-findall(N=V,defaultPredicates(N,V),MORE).
+       template=[]|MORE]):-findall(N=V,defaultPredicates(N,V),MORE).
 
 pathAttrib(S):-pathAttribS(SS),member(S,SS).
 pathAttribS([uri,loc,filename,url,path,dir,file,pathname,src,location]).
@@ -478,7 +485,7 @@ no_cyclic_terms.
 ndestruct:-trace.
 ndestruct(Holder):-debugFmt(unImplemented(ndestruct(Holder))).
 no_setter(Why,Name,Ctx,Value):-debugFmt(unImplemented2(no_setter(Why,Name,Ctx,Value))).
-nb_setarg(N,Term,Name,_Value,_FOO):-trace,nb_setarg(N,Term,Value).
+nb_setarg(N,Term,_Name,Value,_FOO):-trace,nb_setarg(N,Term,Value).
 
 % set_assoc as the "setter" means to use the term found in a assoc/1 .. change the calue and resave assoc/1 internal held term
 set_assoc(ASSOC,Name,_Ctx,Value):- ASSOC = assoc(Assoc), 

@@ -107,9 +107,19 @@ getAttributeOrTags1(Ctx,[N=Default|More],ATTRIBS,INNERXML,[N=Default|NormalProps
 % ===============================================================================================
 :-dynamic(dict/3).
 
+
+getAliceMemElse(Ctx,Dict,Name,ValueO):-getAliceMemComplete(Ctx,Dict,Name,ValueO),!.
+getAliceMemElse(_Ctx,Dict,Name,[Dict,(s),unknown,Name]).
+
 getAliceMem(Ctx,Dict,DEFAULT,ValueOut):- compound(DEFAULT),DEFAULT=default(Name,Default),!, 
      (getAliceMemComplete(Ctx,Dict,Name,ValueO) -> xformOutput(ValueO, ValueOut)  ; xformOutput(Default, ValueOut)). 
-getAliceMem(Ctx,Dict,Name,ValueO):- var(ValueO), !, once(getAliceMemComplete(Ctx,Dict,Name,ValueO);ValueO=[unknown,Name]).
+
+getAliceMem(Ctx,IDict,NameI,ValueO):-
+     dictNameDictNameC(Ctx,IDict,NameI,Dict,Name),!,
+     getAliceMem(Ctx,Dict,Name,ValueO).
+
+getAliceMem(Ctx,Dict,Name,ValueO):- var(ValueO), !, getAliceMemElse(Ctx,Dict,Name,ValueO),!.
+
 getAliceMem(Ctx,Dict,Name,'OM'):- !,not((getAliceMemComplete(Ctx,Dict,Name,ValueO),ValueO\=='OM')).
 %%getAliceMem(Ctx,Dict,Name,ValueI):- %%unresultifyC(ValueI,ValueM),!,getAliceMem(Ctx,Dict,Name,ValueO),!,sameBinding(ValueI,ValueO).%%prolog_must(nonvar(ValueI)),!.
 getAliceMem(Ctx,Dict,Name,ValueI):- getAliceMemComplete(Ctx,Dict,Name,ValueO),!,sameBinding(ValueI,ValueO).
@@ -122,26 +132,43 @@ dictNameKey(_Dict,NameKey,NameKey):-!.
 
 getStoredValue(_Ctx,_Dict,_Name,Value):-prolog_must(var(Value)),fail.
 
-getStoredValue(Ctx,Dict,Name,Value):-getContextStoredValue(Ctx,Dict,Name,Value),!.
-getStoredValue(Ctx,DictI,Name,Value):-unresultifyC(DictI,Dict),!,getStoredValue(Ctx,Dict,Name,Value),!.
-getStoredValue(Ctx,Dict,NameI,Value):-unresultifyC(NameI,Name),!,getStoredValue(Ctx,Dict,Name,Value),!.
-getStoredValue(Ctx,Dict,Name,ValueI):-unresultifyC(ValueI,Value),!,getStoredValue(Ctx,Dict,Name,Value),!,prolog_must(nonvar(ValueI)),!.
-getStoredValue(Ctx,Dict,Name,Value):-is_list(Dict),last(Dict,Last),!,getStoredValue(Ctx,Last,Name,Value),!.
-getStoredValue(Ctx,Dict,Name,Value):-atom(Dict),downcase_atom(Dict,Down),Dict\=Down,getStoredValue(Ctx,Down,Name,Value),!.
+getStoredValue(Ctx,IDict,NameI,ValueO):-
+     dictNameDictNameC(Ctx,IDict,NameI,Dict,Name),!,
+     getStoredValue(Ctx,Dict,Name,ValueO).
 
+getStoredValue(Ctx,Dict,Name,Value):-getContextStoredValue(Ctx,Dict,Name,Value),!.
+
+
+dictNameDictNameC(Ctx,IDict,NameI,Dict,Name):-dictNameDictName(Ctx,IDict,NameI,Dict,Name),!, IDict+NameI \==Dict+Name.
+
+dictNameDictName(Ctx,_Dict,D:NameI,Dict,Name):- nonvar(D),!,dictNameDictName(Ctx,D,NameI,Dict,Name).
+dictNameDictName(Ctx,IDict,NameI,Dict,Name):- convert_dictname(Ctx,IDict,Dict),unresultifyL(Ctx,NameI,Name).
+
+unresultifyL(Ctx,NameI,Name):-unresultifyLL(Ctx,NameI,NameU),toLowerIfAtom(NameU,Name),!.
+
+unresultifyLL(Ctx,NameI,NameO):-unresultify(NameI,Name),NameI \== Name,!,unresultifyLL(Ctx,Name,NameO).
+unresultifyLL(Ctx,NameI,NameO):-is_list(NameI),lastMember(Name,NameI),!,unresultifyLL(Ctx,Name,NameO).
+unresultifyLL(_Ctx,Name,Name).
+toLowerIfAtom(Dict,Down):-atom(Dict),downcase_atom(Dict,Down),!.
+toLowerIfAtom(Dict,Dict).
+
+getInheritedStoredValue(Ctx,IScope,NameI,Value):-dictNameDictNameC(Ctx,IScope,NameI,Scope,Name),!,getInheritedStoredValue(Ctx,Scope,Name,Value).
 getInheritedStoredValue(Ctx,Scope,DEFAULT,ValueOut):- compound(DEFAULT),DEFAULT=default(Name,Default),!, 
          (getInheritedStoredValue(Ctx,Scope,Name,ValueO) -> xformOutput(ValueO, ValueOut)  ; xformOutput(Default, ValueOut)). 
- 
+
 getInheritedStoredValue(Ctx,Scope,Name,Value):- getStoredValue(Ctx,Scope,Name,Value).
 getInheritedStoredValue(Ctx,Scope,Name,Value):- atom(Scope),inheritedFrom(Scope,InHerit),getInheritedStoredValue(Ctx,InHerit,Name,Value).
  
+inheritedFrom([Scope],To):-nonvar(Scope),!,inheritedFrom(Scope,To).
 inheritedFrom(default,_):-!,fail.
 inheritedFrom(defaultValue(_),_):-!,fail.
 inheritedFrom(Scope,defaultValue(Scope)).
 inheritedFrom(_Scope,default).
- 
+inheritedFrom(user,_):-!,fail.
+inheritedFrom(Atom,user):-atom(Atom).
 
-getIndexedValue(Ctx,DictI,Name,MajorMinor,Value):-unresultifyC(DictI,Dict),!,
+
+getIndexedValue(Ctx,IDict,Name,MajorMinor,Value):-unresultifyC(IDict,Dict),!,
     getIndexedValue(Ctx,Dict,Name,MajorMinor,Value),!.
 
 getIndexedValue(Ctx,Dict,Name,[],Value):-!,
@@ -225,48 +252,64 @@ getMinorSubscript(Items,1,Value):- xformOutput(Items,Value),!,trace.
 
 getUserDicts(User,Name,Value):-isPersonaUser(User),isPersonaPred(Name),once(getInheritedStoredValue(_Ctx,User,Name,Value)).
 
-isPersonaUser(User):-findall(User0,getContextStoredValue(User0,'is_type','agent'),Users),sort(Users,UsersS),!,member(User,UsersS).
+isPersonaUser(User):-findall(User0,getContextStoredValue(_Ctx,User0,'is_type','agent'),Users),sort(Users,UsersS),!,member(User,UsersS).
 isPersonaPred(Name):-findall(Pred,(getContextStoredValue(_Ctx,_Dict,Pred,_Value),atom(Pred)),Preds),sort(Preds,PredsS),!,member(Name,PredsS).
 
 
+
+
+addReplacement(Ctx,IDict,Find,Replace):-dictNameDictNameC(Ctx,IDict,before,Dict,before),!,addReplacement(Ctx,Dict,Find,Replace).
+addReplacement(Ctx,SubstsNameI,Find,Replace):-
+      convert_dictname(Ctx,SubstsNameI,SubstsName),SubstsNameI \== SubstsName,
+      addReplacement(Ctx,SubstsName,Find,Replace).
+addReplacement(Ctx,SubstsName,Find,Replace):-
+      convert_substs(Find,FindM),
+      convert_replacement(Ctx,Replace,ReplaceM),
+      (Replace\==ReplaceM;Find\==FindM),!,
+      addReplacement(Ctx,SubstsName,FindM,ReplaceM).
+addReplacement(Ctx,Dict,Find,Replace):- immediateCall(Ctx,addReplacement(Dict,Find,Replace)),fail.
+addReplacement(_Ctx,Dict,Find,Replace):- assertz(dict(substitutions(Dict),Find,Replace)),!.
+
+addReplacement(Dict,Find,Replace):-currentContext(addReplacement(Dict,Find,Replace),Ctx), addReplacement(Ctx,Dict,Find,Replace).
+
+
+setAliceMem(Ctx,IDict,NameI,Value):-dictNameDictNameC(Ctx,IDict,NameI,Dict,Name),!,setAliceMem(Ctx,Dict,Name,Value),!.
 setAliceMem(Ctx,Dict,Name,Var):-var(Var),!,setAliceMem(Ctx,Dict,Name,['$var'(Var)]).
 setAliceMem(Ctx,Dict,Name,Atomic):-atomic(Atomic),Atomic\==[],!,setAliceMem(Ctx,Dict,Name,[Atomic]).
 setAliceMem(Ctx,Dict,Name,NonList):-not(is_list(NonList)),trace,!,setAliceMem(Ctx,Dict,Name,[NonList]).
-
-setAliceMem(Ctx,DictI,Name,Value):-is_list(DictI),!,foreach(member(Dict,DictI),setAliceMem(Ctx,Dict,Name,Value)),!.
-setAliceMem(Ctx,DictI,Name,Value):-unresultifyC(DictI,Dict),!,setAliceMem(Ctx,Dict,Name,Value),!.
-setAliceMem(Ctx,Dict,NameI,Value):-unresultifyC(NameI,Name),!,setAliceMem(Ctx,Dict,Name,Value),!.
-%setAliceMem(Ctx,Dict,Name,ValueI):-unresultifyC(ValueI,Value),!,setAliceMem(Ctx,Dict,Name,Value),!.
-
+setAliceMem(Ctx,IDict,Name,Value):-is_list(IDict),!,foreach(member(Dict,IDict),setAliceMem(Ctx,Dict,Name,Value)),!.
 setAliceMem(Ctx,Dict,Name,Value):-immediateCall(Ctx,setCurrentAliceMem(Dict,Name,Value)),fail.
-%%setAliceMem(Ctx,'user','name',['Test',passed,'.']):-trace.
-setAliceMem(Ctx,Dict,Name,Value):-atom(Dict),downcase_atom(Dict,Down),Dict\=Down,!,setAliceMem(Ctx,Down,Name,Value).
-setAliceMem(Ctx,Dict,Name,Value):-atom(Name),downcase_atom(Name,Down),Name\=Down,!,setAliceMem(Ctx,Dict,Down,Value).
 setAliceMem(Ctx,Dict,Name,Value):-isStarValue(Value),debugFmt(setAliceMem(Ctx,Dict,Name,Value)),trace.
 setAliceMem(Ctx,Dict,default(Name),DefaultValue):-getAliceMem(Ctx,Dict,Name,'OM')->setAliceMem(Ctx,Dict,Name,DefaultValue);true.
 setAliceMem(Ctx,Dict,Name,Value):-resetAliceMem(Ctx,Dict,Name,Value),!.
 
-resetAliceMem(Ctx,Dict,Name,Value):-
+quitely(Ctx):-getCtxValueElse(quiteMemOps,Ctx,True,false),!,True=true.
+
+resetAliceMem(Ctx,IDict,NameI,Value):- dictNameDictName(Ctx,IDict,NameI,Dict,Name),
    % for printing
-   currentContextValue(Ctx,Dict,Name,B),
-   debugFmt('/* ~q. */',[dict(Dict,Name,B->Value)]),
+   currentContextValue(Ctx,Dict,Name,B),   
+   (atom_contains(Name,'(')->true;(not(quitely(Ctx))->true;debugFmt('/* ~q. */',[dict(Dict,Name,B->Value)]))),
    % for cleaning
    clearContextValues(Ctx,Dict,Name),
    % for setting
    addNewContextValue(Ctx,Dict,Name,Value),!.
-   
+
 setCurrentAliceMem(Dict,X,E):-currentContext(setCurrentAliceMem(Dict,X,E),Ctx), setAliceMem(Ctx,Dict,X,E).
 
 %%getContextStoredValue(Ctx,Dict,Name,Value):-dictNameKey(Dict,Name,Key),debugOnError(getCtxValue(Key,Ctx,Value)),valuePresent(Value).
 currentContextValue(Ctx,Dict,Name,Value):- getContextStoredValue(Ctx,Dict,Name,Value),!.
 currentContextValue(_Ctx,_Dict,_Name,'OM'):-!.
 
-getContextStoredValue(_Ctx,Dict,Name,Value):-dict(Dict,Name,Value),!.
-removeContextValue(_Ctx,Dict,Name,Value):-ignore(retract(dict(Dict,Name,Value))).
-clearContextValues(_Ctx,Dict,Name):-retractall(dict(Dict,Name,_Value)).
+getContextStoredValue(Ctx,IDict,NameI,Value):-dictNameDictNameC(Ctx,IDict,NameI,Dict,Name),!,getContextStoredValue(Ctx,Dict,Name,Value).
+getContextStoredValue(_Ctx,Dict,Name,ValueO):- copy_term(ValueO,ValueI),dict(Dict,Name,ValueI),valuePresent(ValueI), ValueO=ValueI.
 
+removeContextValue(Ctx,IDict,NameI,Value):-dictNameDictName(Ctx,IDict,NameI,Dict,Name),copy_term(Value,Kill),ignore(retract(dict(Dict,Name,Kill))).
+clearContextValues(Ctx,IDict,NameI):-dictNameDictName(Ctx,IDict,NameI,Dict,Name),retractall(dict(Dict,Name,_Value)).
+
+addNewContextValue(Ctx,IDict,NameI,Value):-dictNameDictNameC(Ctx,IDict,NameI,Dict,Name),!,addNewContextValue(Ctx,Dict,Name,Value).
 addNewContextValue(Ctx,Dict,Name,OM):-OM=='OM',!,clearContextValues(Ctx,Dict,Name),!.
-addNewContextValue(Ctx,Dict,Name,Value):-prolog_must(nonvar(Value)),dictNameKey(Dict,Name,Key),addCtxValue(Key,Ctx,Value),assertz(dict(Dict,Name,Value)).
+addNewContextValue(Ctx,Dict,Name,Value):-prolog_must(nonvar(Value)),dictNameKey(Dict,Name,Key),
+   addCtxValue(Key,Ctx,Value),asserta(dict(Dict,Name,Value)).
 
 % ===============================================================================================
 %    AIML Runtime Database
@@ -320,13 +363,15 @@ valuesMatch0(Ctx,[V],A):-!,valuesMatch(Ctx,V,A).
 valuesMatch0(Ctx,V,[A]):-!,valuesMatch(Ctx,V,A).
 
 
-valueMP(Var,M):- member(M, [var(Var), Var=missing, Var=[], Var=(*) , (Var=(-(_))) ]),M,!.
-valueMP(V,(V='ERROR')):-prolog_must(ground(V)),term_to_atom(V,A), concat_atom_safe([_,_|_],'ERROR',A),!.
+valueMP(Var,M):- member(M, [var(Var), Var=missing, Var=[], Var=(*) ,  Var=('_') , (Var=(-(_))) ]),M,!.
+valueMP(V,(V='ERROR')):-prolog_must(ground(V)),term_to_atom(V,A), concat_atom([_,_|_],'ERROR',A),!.
 
 
 checkValue(Value):- valueMP(Value,M),throw_safe(M),!.
 checkValue(_):-!.
 
+valuePresent(Value):- var(Value),!,fail.
+valuePresent(result(_)):- !.
 valuePresent(Value):- valueMP(Value,_M),!,fail.
 valuePresent(_):-!.
 

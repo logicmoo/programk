@@ -526,22 +526,39 @@ load_dict_structure(Ctx,element(substitute,ATTRIBS,LIST)):- load_substs(Ctx,elem
 load_dict_structure(Ctx,element(substitution,ATTRIBS,LIST)):- load_substs(Ctx,element(substitute,ATTRIBS,LIST)),!.
 
 
-load_dict_structure(Ctx,substitute(Dict,Find,Replace)):-
+% detect substitutions
+load_dict_structure(Ctx,dict(substitutions(Dict),Find,Replace)):-!,
+   debugOnFailureAiml(load_dict_structure(Ctx,substitute(Dict,Find,Replace))),!.
+
+load_dict_structure(Ctx,substitute(SubstsNameI,Find,Replace)):-!,
   debugOnFailureAiml((
-      convert_text(Find,File),!,convert_text(Replace,Resp),!,
-      load_dict_structure(Ctx,dict(substitutions(Dict),File,Resp)))),!.
+      convert_dictname(Ctx,SubstsNameI,SubstsName),
+      convert_substs(Find,FindM),
+      %%%convert_text
+      convert_replacement(Ctx,Replace,ReplaceM),
+      addReplacement(Ctx,SubstsName,FindM,ReplaceM))),!.
 
 % actual assertions
-load_dict_structure(Ctx,dict(Dict,Name,Value)):-
-    debugFmt(dict(Dict,Name,Value)),
+load_dict_structure(Ctx,dict(IDict,Name,Value)):-
+     %%%debugFmt(dict(Dict,Name,Value)),
+      convert_dictname(Ctx,IDict,Dict),
       setAliceMem(Ctx,Dict,Name,Value),!.
 
+convert_dictname(Ctx,A,D):-!,unresultifyL(Ctx,A,D),!.
+convert_dictname(Ctx,A,D):-convert_dictname0(Ctx,A,D),nop(traceIf((A\==D,A\==[D]))).
+
+convert_dictname0(_Ctx,A,A):-var(A),!.
+convert_dictname0(Ctx,A,D):-unresultifyL(Ctx,A,AD),A\==AD,!,convert_dictname0(Ctx,AD,D).
+convert_dictname0(Ctx,[A],D):-nonvar(A),!,convert_dictname0(Ctx,A,D).
+convert_dictname0(_Ctx,A,D):-atom(A),!,convert_name(A,D).
+convert_dictname0(_Ctx,A,D):-compound(A),functor(A,F,1),A=..[F,AA],convert_name(AA,DD),D=..[F,DD],!.
+convert_dictname0(_Ctx,A,A).
 
 
 :-dynamic(replace_t/5).
 :-dynamic(response_t/5).
 
-
+convert_replacement(Ctx,Replace,ReplaceMM):-convert_template(Ctx,Replace,ReplaceM),listify(ReplaceM,ReplaceMM),!.
 
 % ===============================================================================================
 %  UTILS

@@ -187,8 +187,9 @@ evalSRAI(Ctx,Votes,ATTRIBS,[I|Input0],Output,VotesO):-atom(I),atom_prefix(I,'@')
 
 evalSRAI(Ctx,Votes,ATTRIBS,Input0,Output,VotesO):-
   prolog_must(ground(Input0)),!,flatten([Input0],Input),  
+  evalsrai(SYM),
  withAttributes(Ctx,ATTRIBS,
-   withAttributes(Ctx,[proof=pp(Proof)],
+   withAttributes(Ctx,[proof=result(Proof),evalsrai=SYM],
   ( computeSRAI(Ctx,Votes,Input,MidIn,VotesM,Proof),      
     prolog_must(nonvar(MidIn)),
       debugFmt(sraiTRACE(Input,MidIn)),
@@ -197,6 +198,7 @@ evalSRAI(Ctx,Votes,ATTRIBS,Input0,Output,VotesO):-
       debugFmt(evalSRAI(Input,MidIn,MidIn9,Mid9)),
       prolog_must(computeAnswer(Ctx,VotesI9,Mid9,Output,VotesO))))).
 
+ evalsrai(SYM):-gensym(evalsrai,SYM).
 % ===============================================================================================
 % Expand Answers
 % ===============================================================================================
@@ -478,8 +480,13 @@ computeElement_subst(Ctx,Votes,_Gender,DictName,Attribs,Input,Result,VotesO):-
 % Substitution based on Pred like sameWordsDict(String,Pattern).
 % ===================================================================
 
-simplify_atom(A0,D):- is_list(A0),atomic_list_concat(A0,' ',A),!,simplify_atom(A,D).
-simplify_atom(A,D):- downcase_atom(A,B),atomic_list_concat(L0,'\\b',B),delete(L0,'',L),atomic_list_concat(L,' ',C),!,atomSplit(C,D),!.
+convert_substs(A,D):-simplify_atom0(A,M),A\==M,!,convert_substs(M,D).
+convert_substs(A,D):-A=D.
+
+simplify_atom0(A,A):-A==[],!.
+simplify_atom0(A0,D):- is_list(A0),atomic_list_concat(A0,' ',A),!,simplify_atom0(A,D).
+simplify_atom0(A,D):- atom(A),!,downcase_atom(A,B),atomic_list_concat(L0,'\\b',B),delete(L0,'',L),atomic_list_concat(L,' ',C),!,atomSplit(C,D),!.
+
 
 sameWordsDict([String|A],[Pattern|B]):-!,sameWordsDict0(String,Pattern),!,sameWordsDict_l(A,B),!.
 sameWordsDict(String,Pattern):-sameWordsDict0(String,Pattern),!.
@@ -528,7 +535,7 @@ nd_subst2(Pred, X, Sk, [A|As], [Ap|AS] ) :- nd_subst(Pred, A, X, Sk, Ap ),nd_sub
 nd_subst2(_Pred, _X, _Sk, L, L ).
 
 
-dictReplace(DictName,B,A):-dict(substitutions(DictName),Before,After),simplify_atom(Before,B),simplify_atom(After,A).
+dictReplace(DictName,Before,After):-dict(substitutions(DictName),Before,After).%%convert_substs(Before,B),convert_template(Ctx,After,A).
 
 substituteFromDict(Ctx,DictName,Hidden,Output):-answerOutput(Hidden,Mid),Hidden\==Mid,!,substituteFromDict(Ctx,DictName,Mid,Output),!.
 
@@ -637,7 +644,7 @@ computeStar1(Ctx,Votes,Star,Major,ATTRIBS,InnerXml,Proof,VotesO):-atomic(Major),
 computeStar1(Ctx,Votes,Star,Index,ATTRIBS,_InnerXml,proof(ValueO,StarVar=ValueI),VotesO):- is_list(Index),
       CALL=concat_atom([Star|Index],StarVar),
       prolog_must(catch(CALL,E,(debugFmt(CALL->E),fail))),      
-      getDictFromAttributes(ATTRIBS,Dict),
+      getDictFromAttributes(Ctx,ATTRIBS,Dict),
       getAliceMem(Ctx,Dict,StarVar,ValueI),!,
       computeTemplate(Ctx,Votes,element(template,ATTRIBS,ValueI),ValueO,VotesM),VotesO is VotesM * 1.1.
 
@@ -649,14 +656,16 @@ computeStar1(_Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Resp,VotesO):-
 computeMetaStar(Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Resp,VotesO):-computeStar0(Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Resp,VotesO).
 
 computeStar0(Ctx,Votes,Star,MajorMinor,ATTRIBS,_InnerXml,proof(ValueO,Star=ValueI),VotesO):- 
-      getDictFromAttributes(ATTRIBS,Dict),
+      getDictFromAttributes(Ctx,ATTRIBS,Dict),
       getIndexedValue(Ctx,Dict,Star,MajorMinor,ValueI),!,
       computeTemplate(Ctx,Votes,element(template,ATTRIBS,ValueI),ValueO,VotesM),VotesO is VotesM * 1.1.
 
 computeStar0(_Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Resp,VotesO):- 
       Resp = result(InnerXml,Star,Index,ATTRIBS),!,VotesO is Votes * 0.9. 
 
-getDictFromAttributes(_ATTRIBS,user):-!.
+getDictFromAttributes(Ctx,_ATTRIBS,SYM):-getCtxValue(evalsrai,Ctx,SYM).
+getDictFromAttributes(_Ctx,_ATTRIBS,'user').
+
 % ===============================================================================================
 % Compute Get/Set Probilities
 % ===============================================================================================
@@ -674,6 +683,9 @@ computeGetSet(Ctx,Votes,bot,ATTRIBS,InnerXml,Resp,VotesO):- !, computeGetSetVar(
 
 computeGetSet(Ctx,Votes,GetSet,ATTRIBS,InnerXml,Resp,VotesO):- computeGetSetVar(Ctx,Votes,user,GetSet,_VarName,ATTRIBS,InnerXml,Resp,VotesO),!.
 
+dictFromAttribs(Ctx,ATTRIBS,Dict,NEW):-
+      member(N,[dict,userdict,type,user,botname,username,you,me]),
+      lastMember(N=Dict,ATTRIBS,NEW),getContextStoredValue(Ctx,Dict,_Name,Value),valuePresent(Value),!.
 
 %%computeGetSetVar(Ctx,Votes,_Dict,bot,VarName,ATTRIBS,InnerXml,Resp,VotesO):- !,computeGetSetVar(Ctx,Votes,user,get,VarName,ATTRIBS,InnerXml,Resp,VotesO).
 %% computeGetSetVar(Ctx,Votes,Dict,GetSetBot,VarName,ATTRIBS,InnerXml,Resp,VotesO).
@@ -686,9 +698,8 @@ computeGetSetVar(Ctx,Votes,Dict,GetSet,_OVarName,ATTRIBS,InnerXml,Resp,VotesO):-
       lastMember(N=VarName,ATTRIBS,NEW),
       computeGetSetVar(Ctx,Votes,Dict,GetSet,VarName,NEW,InnerXml,Resp,VotesO).
 
-computeGetSetVar(Ctx,Votes,_Dict,GetSet,VarName,ATTRIBS,InnerXml,Resp,VotesO):- 
-      member(N,[type,dict,user,botname,username,you,me]),
-      lastMember(N=Dict,ATTRIBS,NEW),!,
+computeGetSetVar(Ctx,Votes,_Dict,GetSet,VarName,ATTRIBS,InnerXml,Resp,VotesO):-
+     dictFromAttribs(Ctx,ATTRIBS,Dict,NEW),
      %% MAYBE NEED THIS LATER ((member(EVarName,VarName),delete(ATTRIBS,EVarName,ATTRIBSOUT));ATTRIBSOUT=ATTRIBS),
       computeGetSetVar(Ctx,Votes,Dict,GetSet,VarName,NEW,InnerXml,Resp,VotesO).
 
@@ -705,8 +716,8 @@ computeGetSetVar(Ctx,Votes,Dict,set,VarName,ATTRIBS,InnerXml,proof(ReturnValue,V
 
 %%computeGetSetVar(_Ctx,_Votes,_Get,_,_,_,_):-!,fail.
 
-returnNameOrValue(Ctx,Dict,[VarName],ValueO,ReturnValueO):-!,returnNameOrValue(Ctx,Dict,VarName,ValueO,ReturnValueO).
-returnNameOrValue(Ctx,Dict,VarName,ValueO,ReturnValueO):-
+returnNameOrValue(Ctx,IDict,VarNameI,Value,ReturnValue):-dictNameDictNameC(Ctx,IDict,VarNameI,Scope,Name),!,returnNameOrValue(Ctx,Scope,Name,Value,ReturnValue).
+returnNameOrValue(Ctx,_Dict,VarName,ValueO,ReturnValueO):-
       once(getAliceMem(Ctx,setReturn(_Default),VarName,NameOrValue);NameOrValue=value),
       returnNameOrValue0(NameOrValue,VarName,ValueO,ReturnValue),!,listify(ReturnValue,ReturnValueO).
 
@@ -846,7 +857,7 @@ computeSRAI(Ctx,Votes,Input,Result,VotesO,Proof):-
    prolog_must(computeSRAI0(Ctx,Votes,fromTo(User,Robot),Input,Result,VotesO,Proof)).
 
 
-computeSRAI0(Ctx,Votes,ConvThread,Input,Result,VotesO,Proof):-
+computeSRAI0(Ctx,Votes,ConvThread,Input,Result,VotesO,Proof):-   
    computeTemplateOutput(Ctx,Votes,Input,NewIn,VotesM),NewIn \== Input,!,
    computeSRAI0(Ctx,VotesM,ConvThread,NewIn,Result,VotesO,Proof),!.
 
@@ -888,11 +899,15 @@ getAliceMemOrSetDefault(CtxIn,ConvThread,Name,Value,OrDefault):-
    setAliceMem(CtxIn,ConvThread,Name,OrDefault),!,OrDefault=Value.
 
 
+subclassMakeUserDict(Ctx,UserDict,SYM):-debugFmt(subclassMakeUserDict(Ctx,UserDict,SYM)),!.
+
 computeSRAI222(CtxIn,Votes,ConvThread,Pattern,Out,VotesO,ProofOut,OutputLevel):-    
    %%convertToMatchable(Pattern,InputPattern),
          getCategoryArg(Ctx,'template',Out, _Out_ ,CateSig),!,
          getAliceMemOrSetDefault(CtxIn,ConvThread,'topic',Topic,['Nothing']),
-         getAliceMemOrSetDefault(CtxIn,ConvThread,'userdict',_UserDict,'user'),
+         getAliceMemOrSetDefault(CtxIn,ConvThread,'userdict',UserDict,'user'),
+         getCtxValue(evalsrai,CtxIn,SYM),
+         subclassMakeUserDict(CtxIn,UserDict,SYM),
          PreTopic = (CtxIn=Ctx),
          CPreTopic = true,
          make_preconds_for_match(Ctx,'topic',Topic,CateSig,PreTopic,AfterTopic, CPreTopic,CAfterTopic, Out,MinedCates,Proof,OutputLevel1),
@@ -906,7 +921,7 @@ computeSRAI222(CtxIn,Votes,ConvThread,Pattern,Out,VotesO,ProofOut,OutputLevel):-
          must_be_openCate(CateSig),!,
          prolog_must(atLeastOne((AfterPattern,CateSig))),  
          clause(CateSig,true,ClauseNumber),
-         once((         
+         once((
             prolog_must(CAfterPattern),
             prolog_must(nonvar(Out)),
             OutputLevel = OutputLevel1 - OutputLevel2 - OutputLevel3,
@@ -976,7 +991,7 @@ make_prepost_conds(Ctx,StarName,TextPattern,CateSig,FindPattern,CommitPattern,Ou
            (CommitPattern = prolog_must(once((
               %%traceIf((StarName==pattern,TextPattern=[_,_|_])),
             once(
-             (atLeastOne(starSets(StarSets2)), 
+             (atLeastOne(starSets(Ctx,StarSets2)), 
               ignore(MatchLevel2 = MatchLevel),
               addKeyValue(ProofOut, StarName = (TextPattern:MatchPattern))
             ))))))
@@ -1152,12 +1167,12 @@ must_be_openCateArgs(Arg,_CateSig):-var(Arg),!.
 must_be_openCateArgs('*',_CateSig):-!.
 must_be_openCateArgs(List,CateSig):-trace, throw(List:CateSig),!.
 
-starSets(List):-prolog_must((mapsome_openlist(starMust0,List),mapsome_openlist(starMust1,List),mapsome_openlist(starMust2,List))),!.
+starSets(Ctx,List):-prolog_must((mapsome_openlist(starMust0,List),mapsome_openlist(starMust1(Ctx),List),mapsome_openlist(starMust2,List))),!.
 
 endOfList(EndOfList):-(var(EndOfList);atomic(EndOfList)),!.
 
 starMust0(StarName=_):-flag_safe(StarName,_,1).
-starMust1(StarName=Value):-starSet(StarName,Value).
+starMust1(Ctx,StarName=Value):-starSet(Ctx,StarName,Value).
 starMust2(call(Call)):-!,prolog_must(Call).
 starMust2(_Skip).
 
@@ -1166,9 +1181,10 @@ mapsome_openlist(Pred,[Item|List]):-call(Pred,Item),!,mapsome_openlist(Pred,List
 mapsome_openlist(Pred,[_|List]):- mapsome_openlist(Pred,List).
 mapsome_openlist(_Pred,_):-!.
 
-starSet(StarName,Pattern):- ignore((var(N),flag_safe(StarName,N,N))),
+starSet(Ctx,StarName,Pattern):- ignore((var(N),flag_safe(StarName,N,N))),
    nop(traceIf(isStarValue(Pattern))),
-   atom_concat(StarName,N,StarNameN),setAliceMem(_Ctx,user,StarNameN,Pattern),!,flag_safe(StarName,NN,NN+1).
+   getDictFromAttributes(Ctx,[],Dict),
+   atom_concat(StarName,N,StarNameN),setAliceMem(Ctx,Dict,StarNameN,Pattern),!,flag_safe(StarName,NN,NN+1).
 
 %%REAL-UNUSED  set_matchit1(StarName,Pattern,Matcher,OnBind):- length(Pattern,MaxLen0), MaxLen is MaxLen0 + 2,
 %%REAL-UNUSED    set_matchit2(StarName,Pattern,Matcher,MaxLen,OnBind).
@@ -1307,7 +1323,7 @@ splitSentences([],[]):-!.
 splitSentences(SR1,[SR0|SRMORE]):-grabFirstSetence(SR1,SR0,LeftOver),splitSentences(LeftOver,SRMORE),!.
 splitSentences(SR1,[SR1]):-!.
 
-grabFirstSetence(SR1,SRS,LeftOver):-sentenceEnder(EOS),LeftSide=[_|_],append(LeftSide,[EOS|LeftOver],SR1),append(LeftSide,[EOS],SR0),cleanSentence(SR0,SRS),!.
+grabFirstSetence(SR1,SRS,LeftOver):-sentenceBreakChar(EOS),LeftSide=[_|_],append(LeftSide,[EOS|LeftOver],SR1),append(LeftSide,[EOS],SR0),cleanSentence(SR0,SRS),!.
 cleanSentence(SR0,SRS):-prolog_must(leftTrim(SR0,sentenceEnderOrPunct,SRS)),!.
 
 getRobot(Robot):-trace,getAliceMem(_Ctx,'bot','me',Robot),!.
@@ -1326,7 +1342,7 @@ getLastSaidAsInput(LastSaidMatchable):-getLastSaid(That),convertToMatchable(That
 :-setCurrentAliceMem('user','is_type','agent').
 :-setCurrentAliceMem('bot','is_type','agent').
 :-setCurrentAliceMem('default','is_type','role').
-:-setCurrentAliceMem(substitutions(_DictName),'is_type','substitutions').
+%%:-setCurrentAliceMem(substitutions(_DictName),'is_type','substitutions').
 
 
 % ===============================================================================================

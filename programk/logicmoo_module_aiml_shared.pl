@@ -48,14 +48,16 @@ prolog_may(Call):-prolog_ecall(debugOnError,Call).
 :-'$hide'(debugOnError/1).
 :-'$hide'(debugOnError0/1).
 debugOnError(Call):-prolog_ecall(debugOnError0,Call).
-debugOnError0(Call):- catch(Call,E,(debugFmt(caugth(Call,E)),trace,Call)).
+debugOnError0(Call):- catch(Call,E,(trace,notrace(debugFmt(caugth(Call,E))),Call)).
 
 :-'$hide'(prolog_must_call/1).
+:-'$hide'(prolog_must_call0/1).
 prolog_must_call(Call):- prolog_ecall(prolog_must_call0,Call).   
 prolog_must_call0(Call):- atLeastOne((Call),(trace,Call)).
 
 
 :-'$hide'(prolog_must_tracing/1).
+:-'$hide'(prolog_must_tracing0/1).
 prolog_must_tracing(Call):- prolog_ecall(prolog_must_tracing0,Call).   
 prolog_must_tracing0(Call):-trace(Call,[-all,+fail]), atLeastOne(Call,hotrace(aiml_error(Call))).
 
@@ -79,7 +81,6 @@ prolog_ecall(Pred,Call):- debugOnError0(call(Pred,Call)).
 :-'$hide'(atLeastOne/1).
 :-'$hide'(atLeastOne/2).
 :-'$hide'(atLeastOne0/2).
-
 atLeastOne(OneA):- atLeastOne(OneA,(trace,OneA)).
 atLeastOne(OneA,Else):-atLeastOne0(OneA,Else).
 
@@ -138,10 +139,13 @@ list_to_set_safe(A,A):-(var(A);atomic(A)),!.
 list_to_set_safe([A|AA],BB):- (not(not(lastMember(A,AA))) -> list_to_set_safe(AA,BB) ; (list_to_set_safe(AA,NB),BB=[A|NB])),!.
 
 
-lastMember(_E,List):-var(List),!,fail.
-lastMember(E,[H|List]):-lastMember(E,List);E=H.
+lastMember(E,List):-lastMember0(E,List).
 
-lastMember(E,List,Rest):-lastMember(E,List),!,delete_safe(List,E,Rest),!.
+lastMember0(_E,List):-var(List),!,fail.
+lastMember0(E,[H|List]):-lastMember0(E,List);E=H.
+
+lastMember(E,List,Rest):-lastMember0(E,List),!,delete_safe(List,E,Rest),!.
+lastMember(E,List,Rest):-lastMember0(EE,List),!,lastMember(E,EE,Rest),!,trace. %%delete_safe(List,EE,Rest),!.
 
 delete_safe(List,_E,Rest):-var(List),!,Rest=List.
 delete_safe(List,E,Rest):-is_list(List),!,delete(List,E,Rest).
@@ -299,9 +303,10 @@ currentContext(Name,X):-makeAimlContext(Name,X),!.
 %is_string(S):-string(S).
 
 
-sentenceEnder(Last):-member(Last,[?,('.'),('\n'),('\r\n')]).
+sentenceBreakChar(Last):-member(Last,[?]);sentenceEnder_NoQuestion(Last).
 sentenceEnderOrPunct(Last):-member(Last,[?]);sentenceEnderOrPunct_NoQuestion(Last).
-sentenceEnderOrPunct_NoQuestion(Last):-member(Last,[('.'),(','),('\n'),('\r\n')]).
+sentenceEnderOrPunct_NoQuestion(Last):-member(Last,[(',')]);sentenceEnder_NoQuestion(Last).
+sentenceEnder_NoQuestion(Last):-member(Last,[('.'),('!'),('\n'),('\n\n'),('\r\n')]).
 
 removePMark(UCase,Atoms):-append(AtomsPre,[Last],UCase),sentenceEnderOrPunct(Last),!,removePMark(AtomsPre,Atoms).
 removePMark(Atoms,Atoms).
@@ -367,10 +372,12 @@ term_to_string(I,IS):- term_to_atom(I,A),string_to_atom(IS,A),!.
 %================================================================
 % so far only the findall version works .. the other runs out of local stack!?
 
+:-'$hide'(maplist_safe/2).
 maplist_safe(_Pred,[]):-!.
 maplist_safe(Pred,LIST):-findall(E,(member(E,LIST),debugOnFailureAiml(apply(Pred,[E]))),LISTO), debugOnFailureAiml(LIST=LISTO),!.
 %% though this should been fine %%  maplist_safe(Pred,[A|B]):- copy_term(Pred+A, Pred0+A0), debugOnFailureAiml(once(call(Pred0,A0))),     maplist_safe(Pred,B),!.
 
+:-'$hide'(maplist_safe/3).
 maplist_safe(_Pred,[],[]):-!.
 maplist_safe(Pred,LISTIN, LIST):-!, findall(EE, ((member(E,LISTIN),debugOnFailureAiml(apply(Pred,[E,EE])))), LISTO),  debugOnFailureAiml(LIST=LISTO),!.
 %% though this should been fine %% maplist_safe(Pred,[A|B],OUT):- copy_term(Pred+A, Pred0+A0), debugOnFailureAiml(once(call(Pred0,A0,AA))),  maplist_safe(Pred,B,BB), !, OUT=[AA|BB].
@@ -402,10 +409,12 @@ ifThen(When,Do):-When->Do;true.
 
 traceCall(A):-trace(A,[-all,+fail]),A,!.
 
+:-'$hide'(debugOnFailureAimlEach/1).
 debugOnFailureAimlEach((A,B)):- !,debugOnFailureAimlEach(A),debugOnFailureAimlEach(B).
 debugOnFailureAimlEach(Call):- once(prolog_must(Call)).
 
-
+:-'$hide'(debugOnFailureAiml/1).
+:-'$hide'(debugOnFailureAiml0/1).
 debugOnFailureAiml(Call):-prolog_ecall(debugOnFailureAiml0,Call).
 
 %%%%%%%%%%%%%5%%debugOnFailureAiml(Call):- clause(Call,(_A,_B)),!,clause(Call,Body),trace,debugOnFailureAiml(Body),!.

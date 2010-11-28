@@ -3,7 +3,7 @@
 % Purpose: An Implementation in SWI-Prolog of AIML
 % Maintainer: Douglas Miles
 % Contact: $Author: dmiles $@users.sourceforge.net ;
-% Version: 'logicmoo_module_aiml.pl' 1.0.0
+% Version: 'logicmoo_module_aiml_loader.pl' 1.0.0
 % Revision:  $Revision: 1.7 $
 % Revised At:   $Date: 2002/07/11 21:57:28 $
 % ===================================================================
@@ -95,8 +95,6 @@ withNamedValue(Ctx,[N=V],Call):-withAttributes(Ctx,[N=V],Call),!.
 % =================================================================================
 % AIML -> Prolog pretransating
 % =================================================================================
-
-withCurrentContext(Goal):-prolog_must(atom(Goal)),debugOnFailureAiml((currentContext(Goal,Ctx),call(Goal,Ctx))).
 
 :-dynamic(creating_aiml_file/2).
 :-dynamic(loaded_aiml_file/3).

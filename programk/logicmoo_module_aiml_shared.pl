@@ -1,9 +1,9 @@
 % ===================================================================
-% File 'logicmoo_module_aiml_loader.pl'
+% File 'logicmoo_module_aiml_shared.pl'
 % Purpose: An Implementation in SWI-Prolog of AIML
 % Maintainer: Douglas Miles
 % Contact: $Author: dmiles $@users.sourceforge.net ;
-% Version: 'logicmoo_module_aiml.pl' 1.0.0
+% Version: 'logicmoo_module_aiml_shared.pl' 1.0.0
 % Revision:  $Revision: 1.7 $
 % Revised At:   $Date: 2002/07/11 21:57:28 $
 % ===================================================================
@@ -25,6 +25,72 @@ exists_directory_safe(File):-prolog_must(atomic(File)),exists_directory(File).
 %%:- style_check(-discontiguous).
 :- style_check(-atom).
 :- style_check(-string).
+
+:- abolish(cyc:debugFmt/1).
+
+cyc:debugFmt(Stuff):- notrace((debugFmtS(Stuff))),!.
+
+debugFmtS([]):-!.
+debugFmtS([A|L]):-!,debugFmt('% ~q~n',[[A|L]]).
+debugFmtS(Comp):-hideIfNeeded(Comp,Comp2),!,debugFmt('% ~q~n',[Comp2]).
+debugFmtS(Stuff):-!,debugFmt('% ~q~n',[Stuff]).
+
+
+nop(_).
+
+
+% ===============================================================================================
+% unlistify / unresultify
+% ===============================================================================================
+
+unlistify([L],O):-nonvar(L),unlistify(L,O),!.
+unlistify(L,L).
+
+unresultify(Var,Var):-(var(Var);atomic(Var)),!.
+unresultify([DictI|NV],Dict):-nonvar(DictI),NV==[],!,unresultify(DictI,Dict),!.
+unresultify(Fun,Dict):-resultOrProof(Fun,DictI),!,unresultify(DictI,Dict),!.
+unresultify(Var,Var).
+
+resultOrProof(element(_,_,_),_):-!,fail.
+resultOrProof(Term,Mid):-compound(Term),resultOrProof0(Term,Mid).
+resultOrProof0(_=Mid,Mid):-!.
+resultOrProof0(Term,Mid):-Term=..[RP,Mid|_],member(RP,[result,proof,fromTo,verbatum]),!.
+
+%%unresultifyC(DictI,[Dict]):-atom(DictI),member(Chop,['0','1']),atom_concat(Dict,Chop,DictI),!.
+unresultifyC(DictI,Dict):-unresultify(DictI,Dict),DictI\==Dict,!.
+
+
+% ===============================================================================================
+%% join_path(CurrentDir,Filename,Name)
+% ===============================================================================================
+
+join_path(CurrentDir,Filename,Name):-
+         atom_ensure_endswith(CurrentDir,'/',Out),atom_ensure_endswith('./',Right,Filename),
+         atom_concat(Out,Right,Name),!.
+
+atom_ensure_endswith(A,E,A):-atom(E),atom_concat(_Left,E,A),!.
+atom_ensure_endswith(A,E,O):-atom(A),atom(E),atom_concat(A,E,O),!.
+atom_ensure_endswith(A,E,O):-atom(A),atom(O),atom_concat(A,E,O),!.
+atom_ensure_endswith(A,O,O):-atom(A),atom(O),!.
+
+
+os_to_prolog_filename(OS,_PL):-prolog_must(atom(OS)),fail.
+os_to_prolog_filename(_OS,PL):-prolog_must(var(PL)),fail.
+os_to_prolog_filename(OS,PL):-exists_file_safe(OS),!,PL=OS.
+os_to_prolog_filename(OS,PL):-exists_directory_safe(OS),!,PL=OS.
+os_to_prolog_filename(OS,PL):-local_directory_search(CurrentDir),join_path(CurrentDir,OS,PL),exists_file_safe(PL),!.
+os_to_prolog_filename(OS,PL):-local_directory_search(CurrentDir),join_path(CurrentDir,OS,PL),exists_directory_safe(PL),!.
+
+os_to_prolog_filename(OS,PL):-atom(OS),atomic_list_concat([X,Y|Z],'\\',OS),atomic_list_concat([X,Y|Z],'/',OPS),!,os_to_prolog_filename(OPS,PL).
+os_to_prolog_filename(OS,PL):-atom_concat_safe(BeforeSlash,'/',OS),os_to_prolog_filename(BeforeSlash,PL).
+os_to_prolog_filename(OS,PL):-absolute_file_name(OS,OSP),OS \= OSP,!,os_to_prolog_filename(OSP,PL).
+
+
+% ===============================================================================================
+%% dont really call_with_depth_limit/3 as it spoils the debugger
+% ===============================================================================================
+call_with_depth_limit_traceable(G,Depth,Used):-tracing,!,G,ignore(Depth=1),ignore(Used=1).
+call_with_depth_limit_traceable(G,_Depth,_Used):-G. %%call_with_depth_limit(G,Depth,Used).
 
 throw_safe(Exc):-trace,throw(Exc).
 
@@ -173,8 +239,6 @@ to_open_list(FullList,Closed,Open,FullList) :- append(Closed,Open,FullList),var(
 to_open_list(Closed,Closed,Open,FullList) :- append(Closed,Open,FullList),!.
 
 
-
-
 copy_term_numvars(OLD,NEW):-copy_term(OLD,NEW),numbervars(NEW,0,_).
 
 %%%retractall(E):- retractall(E),functor(E,File,A),dynamic(File/A),!.
@@ -301,9 +365,6 @@ callInteractive(Term,Var):-catch(callInteractive0(Term,Var),E,aiml_error(E)),!.
 %callInteractive0(Term,_):-atom(Term),!,Term,!,writeln(called(Term)),!.
 callInteractive0(Term,Var):- call(Term),writeq(Term:Var),nl,fail.
 callInteractive0(_,_):-!.
-
-currentContext(Name,X):-makeAimlContext(Name,X),!.
-
 
 %getWordTokens(WORDS,TOKENS):-concat_atom(TOKENS,' ',WORDS).
 %is_string(S):-string(S).
@@ -472,6 +533,49 @@ traceAll:-findall(_,(member(F,[member/2,debugFmt/1,takeout/3,findall/3,clearCate
 */
 traceAll:-!.
 
+
+
+% ===================================================================
+% When you trust the code enough you dont to debug it
+%  but if that code does something wrong while your not debugging, you want to see the error
+% ===================================================================
+
+hotrace(X):-tracing,!, notrace(X).
+hotrace(X):- call(X).
+
+% ===================================================================
+% tracing durring notrace
+% ===================================================================
+interactStep(_String):-!.  %%%debugFmt(interactStep(String)),!,get_char(_).
+
+% ===================================================================
+%%traceIf(_Call):-!.
+% ===================================================================
+traceIf(Call):-ignore((Call,trace)).
+
+% ===================================================================
+% Usage: pred_subst(+Pred, +Fml,+X,+Sk,?FmlSk)
+% ===================================================================
+
+pred_subst(Pred,A,[B],C,D):- nonvar(B),!,pred_subst(Pred,A,B,C,D).
+pred_subst(Pred,A,B,C,D):- catch(notrace(nd_subst(Pred,A,B,C,D)),E,(debugFmt(E),fail)),!.
+pred_subst(_Pred,A,_B,_C,A).
+
+nd_subst(Pred,  Var, VarS,SUB,SUB ) :- call(Pred,Var,VarS),!.
+nd_subst(Pred,  P, X, Sk, P1 ) :- functor(P,_,N),nd_subst1(Pred, X, Sk, P, N, P1 ).
+
+nd_subst1(_Pred, _,  _, P, 0, P  ).
+nd_subst1(Pred, X, Sk, P, N, P1 ) :- N > 0, P =.. [F|Args], 
+            nd_subst2(Pred, X, Sk, Args, ArgS ),
+            nd_subst2(Pred, X, Sk, [F], [FS] ),  
+            P1 =.. [FS|ArgS].
+
+nd_subst2(_Pred, _,  _, [], [] ).
+nd_subst2(Pred, X, Sk, [A|As], [A|AS]  ) :- nonvar(A), A=verbatum(_), !, nd_subst2(Pred, X, Sk, As, AS).
+nd_subst2(Pred, X, Sk, [A|As], [Sk|AS] ) :- call(Pred, X, A), !, nd_subst2(Pred, X, Sk, As, AS).
+nd_subst2(Pred, X, Sk, [A|As], [A|AS]  ) :- var(A), !, nd_subst2(Pred, X, Sk, As, AS).
+nd_subst2(Pred, X, Sk, [A|As], [Ap|AS] ) :- nd_subst(Pred, A, X, Sk, Ap ),nd_subst2(Pred, X, Sk, As, AS).
+nd_subst2(_Pred, _X, _Sk, L, L ).
 
 
 %%% peekAttributes/2,pushAttributes/2,pushCateElement/2.

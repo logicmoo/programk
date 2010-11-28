@@ -21,12 +21,6 @@
 :-dynamic(dict/3).
 :-multifile(dict/3).
 
-% When you trust the code enough you dont to debug it
-%  but if that code does something wrong while your not debugging, you want to see the error
-
-hotrace(X):-tracing,!, notrace(X).
-hotrace(X):-call(X).
-
 :-dynamic(lineInfoElement/4).
 
 :-ensure_loaded(library('programk/logicmoo_module_aiml_shared.pl')).
@@ -43,19 +37,6 @@ local_directory_search('programk').
 local_directory_search('programk/test_suite').
 local_directory_search('../aiml').
 
-
-%%traceIf(_Call):-!.
-traceIf(Call):-ignore((Call,trace)).
-
-:- abolish(cyc:debugFmt/1).
-
-cyc:debugFmt(Stuff):- notrace((debugFmtS(Stuff))),!.
-
-debugFmtS([]):-!.
-debugFmtS([A|L]):-!,debugFmt('% ~q~n',[[A|L]]).
-debugFmtS(Comp):-hideIfNeeded(Comp,Comp2),!,debugFmt('% ~q~n',[Comp2]).
-debugFmtS(Stuff):-!,debugFmt('% ~q~n',[Stuff]).
-
 run_chat_tests:-
    test_call(alicebot('Hi')),
    test_call(alicebot('What is your name')),
@@ -64,7 +45,6 @@ run_chat_tests:-
 
 test_call(G):-writeln(G),ignore(once(catch(G,E,writeln(E)))).
 
-nop(_).
 
 main_loop1(Atom):- current_input(In),!,
             read_line_to_codes(In,Codes),!,
@@ -103,7 +83,10 @@ makeAimlCateSig(Ctx,ListOfValues,Pred):-aimlCateSig(Pred),!,makeAimlCate(Ctx,Lis
 % ===============================================================================================
 
 say(X):-currentContext(say(X),Ctx),say(Ctx,X),!.
-say(Ctx,X):- aiml_eval(Ctx,X,Y),!,answerOutput(Y,O),debugFmt(say(O,Y)),!.
+say(Ctx,X):- aiml_eval(Ctx,X,Y),!,answerOutput(Y,O),showTransition(O,Y,Trans),debugFmt(say(Trans)),!.
+
+showTransition(O,Y,O):-O==Y,!.
+showTransition(O,Y,O=Y).
 
 alicebot:-repeat,
 	read_line_with_nl(user,CodesIn,[]),        
@@ -112,6 +95,9 @@ alicebot:-repeat,
 
 alicebot(Input):- currentContext(alicebot(Input),Ctx),!,alicebotCTX(Ctx,Input).
 
+% ===============================================================================================
+% Main Alice 
+% ===============================================================================================
 alicebotCTX(_Ctx,Input):- atom(Input),catch(((atom_to_term(Input,Term,Vars),callInteractive0(Term,Vars))),_,fail),!.
 alicebotCTX(Ctx,Input):- alicebotCTX(Ctx,Input,Resp),!,say(Ctx,Resp),!.
 %%alicebotCTX(Ctx,_):- trace, say(Ctx,'-no response-').
@@ -130,13 +116,10 @@ alicebotCTX(Ctx,Tokens,Resp):-
 alicebotCTX(_Ctx,In,Res):- !,ignore(Res='-no response-'(In)).
 
 
-
-
-alicebot2(Atoms,Resp):- currentContext(alicebot2(Atoms),Ctx),!,alicebot2(Ctx,Atoms,Resp).
-
-%% dont really call_with_depth_limit/3 as it spoils the debugger
-call_with_depth_limit_traceable(G,Depth,Used):-tracing,!,G,ignore(Depth=1),ignore(Used=1).
-call_with_depth_limit_traceable(G,_Depth,_Used):-G. %%call_with_depth_limit(G,Depth,Used).
+% ===============================================================================================
+% Main Alice 
+% ===============================================================================================
+%%alicebot2(Atoms,Resp):- currentContext(alicebot2(Atoms),Ctx),!,alicebot2(Ctx,Atoms,Resp).
 
 alicebot2(_Ctx,[],[]):-!.
 alicebot2(Ctx,[''|X],Resp):-!,alicebot2(Ctx,X,Resp).
@@ -159,10 +142,12 @@ alicebot2(Ctx,Atoms,Resp):-
    sort(L,S),
    dumpList(S),
    reverse(S,[Resp|_RR]),
-   setThatResponse(Ctx,Resp),!.
+   degrade(Resp),
+   rememberSaidIt(Ctx,Resp),!.
 
-setThatResponse(Ctx,Resp):- degrade(Resp),!, rememberSaidIt(Ctx,Resp).
-
+% ===============================================================================================
+% Call like a SRAI tag
+% ===============================================================================================
 computeInputOutput(Ctx,VoteIn,Input,Output,VotesOut):- prolog_must(computeAnswer(Ctx,VoteIn,element(srai,[],Input),Output,VotesOut)),!.
 
 % ===============================================================================================
@@ -510,31 +495,6 @@ sameWordsDict0(String,Pattern):-String==Pattern,!,debugFmt(sameWordsDict(String,
 
 answerOutput_atom(Pattern,Pattern1):-unresultify(Pattern,Pattern0),unlistify(Pattern0,Pattern1),!,prolog_must(atomic(Pattern1)).
 
-interactStep(_String):-!.  %%%debugFmt(interactStep(String)),!,get_char(_).
-
-% Usage: pred_subst(+Pred, +Fml,+X,+Sk,?FmlSk)
-
-pred_subst(Pred,A,[B],C,D):- nonvar(B),!,pred_subst(Pred,A,B,C,D).
-pred_subst(Pred,A,B,C,D):- catch(notrace(nd_subst(Pred,A,B,C,D)),E,(debugFmt(E),fail)),!.
-pred_subst(_Pred,A,_B,_C,A).
-
-nd_subst(Pred,  Var, VarS,SUB,SUB ) :- call(Pred,Var,VarS),!.
-nd_subst(Pred,  P, X, Sk, P1 ) :- functor(P,_,N),nd_subst1(Pred, X, Sk, P, N, P1 ).
-
-nd_subst1(_Pred, _,  _, P, 0, P  ).
-nd_subst1(Pred, X, Sk, P, N, P1 ) :- N > 0, P =.. [F|Args], 
-            nd_subst2(Pred, X, Sk, Args, ArgS ),
-            nd_subst2(Pred, X, Sk, [F], [FS] ),  
-            P1 =.. [FS|ArgS].
-
-nd_subst2(_Pred, _,  _, [], [] ).
-nd_subst2(Pred, X, Sk, [A|As], [A|AS]  ) :- nonvar(A), A=verbatum(_), !, nd_subst2(Pred, X, Sk, As, AS).
-nd_subst2(Pred, X, Sk, [A|As], [Sk|AS] ) :- call(Pred, X, A), !, nd_subst2(Pred, X, Sk, As, AS).
-nd_subst2(Pred, X, Sk, [A|As], [A|AS]  ) :- var(A), !, nd_subst2(Pred, X, Sk, As, AS).
-nd_subst2(Pred, X, Sk, [A|As], [Ap|AS] ) :- nd_subst(Pred, A, X, Sk, Ap ),nd_subst2(Pred, X, Sk, As, AS).
-nd_subst2(_Pred, _X, _Sk, L, L ).
-
-
 dictReplace(DictName,Before,After):-dict(substitutions(DictName),Before,After).%%convert_substs(Before,B),convert_template(Ctx,After,A).
 
 substituteFromDict(Ctx,DictName,Hidden,Output):-answerOutput(Hidden,Mid),Hidden\==Mid,!,substituteFromDict(Ctx,DictName,Mid,Output),!.
@@ -560,7 +520,7 @@ substituteFromDict_l(Ctx,DictName,Hidden,[verbatum(After)|Output]):-dictReplace(
    append(NewBefore,Rest,Hidden),sameBinding(NewBefore,Before),!,substituteFromDict_l(Ctx,DictName,Rest,Output).
 substituteFromDict_l(Ctx,DictName,[V|Hidden],[V|Output]):-substituteFromDict_l(Ctx,DictName,Hidden,Output).
 
-
+% .... formatters ....
 format_formal(_Ctx,In,Out):-toPropercase(In,Out),!.
 format_sentence(_Ctx,[In1|In],[Out1|Out]):-In=Out,toPropercase(In1,Out1),!.
 format_sentence(_Ctx,In,Out):-In=Out.
@@ -1169,27 +1129,28 @@ must_be_openCateArgs(List,CateSig):-trace, throw(List:CateSig),!.
 
 starSets(Ctx,List):-prolog_must((mapsome_openlist(starMust0,List),mapsome_openlist(starMust1(Ctx),List),mapsome_openlist(starMust2,List))),!.
 
-endOfList(EndOfList):-(var(EndOfList);atomic(EndOfList)),!.
-
-starMust0(StarName=_):-flag_safe(StarName,_,1).
-starMust1(Ctx,StarName=Value):-starSet(Ctx,StarName,Value).
-starMust2(call(Call)):-!,prolog_must(Call).
-starMust2(_Skip).
 
 mapsome_openlist(_Pred,EndOfList):-endOfList(EndOfList),!.
 mapsome_openlist(Pred,[Item|List]):-call(Pred,Item),!,mapsome_openlist(Pred,List).
 mapsome_openlist(Pred,[_|List]):- mapsome_openlist(Pred,List).
 mapsome_openlist(_Pred,_):-!.
 
-starSet(Ctx,StarName,Pattern):- ignore((var(N),flag_safe(StarName,N,N))),
+star_flag(Flag,Out,In):- starNameTransform(Flag,StarFlag), flag(StarFlag,Out,In),!. %%,prolog_must(atom_concat(_,'star',Flag)),!.
+
+endOfList(EndOfList):-(var(EndOfList);atomic(EndOfList)),!.
+
+starMust0(StarName=_):-star_flag(StarName,_,1).
+starMust1(Ctx,StarName=Value):-starSet(Ctx,StarName,Value).
+starMust2(call(Call)):-!,prolog_must(Call).
+starMust2(_Skip).
+
+starSet(Ctx,StarName,Pattern):- ignore((var(N),star_flag(StarName,N,N))),
    nop(traceIf(isStarValue(Pattern))),
    getDictFromAttributes(Ctx,[],Dict),
-   atom_concat(StarName,N,StarNameN),setAliceMem(Ctx,Dict,StarNameN,Pattern),!,flag_safe(StarName,NN,NN+1).
+   atom_concat(StarName,N,StarNameN),setAliceMem(Ctx,Dict,StarNameN,Pattern),!,star_flag(StarName,NN,NN+1).
 
 %%REAL-UNUSED  set_matchit1(StarName,Pattern,Matcher,OnBind):- length(Pattern,MaxLen0), MaxLen is MaxLen0 + 2,
 %%REAL-UNUSED    set_matchit2(StarName,Pattern,Matcher,MaxLen,OnBind).
-
-flag_safe(Flag,Out,In):- starNameTransform(Flag,StarFlag), flag(StarFlag,Out,In),!. %%,prolog_must(atom_concat(_,'star',Flag)),!.
 
 isStar0(Word1):- member(Word1,[*,'_']).
 sameWords(Word1,Word2):-atom(Word1),atom(Word2),atoms_match0(Word1,Word2).
@@ -1243,35 +1204,11 @@ choose_randomsentence(X):-
 		4 is random(10),!,
 		Y=X.
 
-
-% ===============================================================================================
-% unlistify / unresultify
-% ===============================================================================================
-
-unlistify([L],O):-nonvar(L),unlistify(L,O),!.
-unlistify(L,L).
-
-unresultify(Var,Var):-(var(Var);atomic(Var)),!.
-unresultify([DictI|NV],Dict):-nonvar(DictI),NV==[],!,unresultify(DictI,Dict),!.
-unresultify(Fun,Dict):-resultOrProof(Fun,DictI),!,unresultify(DictI,Dict),!.
-unresultify(Var,Var).
-
-resultOrProof(element(_,_,_),_):-!,fail.
-resultOrProof(Term,Mid):-compound(Term),resultOrProof0(Term,Mid).
-resultOrProof0(_=Mid,Mid):-!.
-resultOrProof0(Term,Mid):-Term=..[RP,Mid|_],member(RP,[result,proof,fromTo,verbatum]),!.
-
-%%unresultifyC(DictI,[Dict]):-atom(DictI),member(Chop,['0','1']),atom_concat(Dict,Chop,DictI),!.
-unresultifyC(DictI,Dict):-unresultify(DictI,Dict),DictI\==Dict,!.
-
 % ===============================================================================================
 % Get and rember Last Said
 % ===============================================================================================
-
-%%:-dynamic(getLastSaid/1). 
-
+%% using dict now :-dynamic(getLastSaid/1). 
 %%:-setAliceMem(_,_,that,(['where',am,'I'])).
-
 
 rememberSaidIt(_Ctx,[]):-!.
 rememberSaidIt(Ctx,_-R1):-!,rememberSaidIt(Ctx,R1).
@@ -1387,7 +1324,6 @@ convertToMatchable(That,LastSaid):-
 matchable_litteral_safe(A,B):-atom(A),litteral_atom(A,B),!.
 litteral_atom(A,B):-downcase_atom(A,B),!.
 is_litteral(X):-atom(X),litteral_atom(X,N),!,N=X.
-
 
 deleteAll(A,[],A):-!.
 deleteAll(A,[L|List],AA):-delete(A,L,AAA),deleteAll(AAA,List,AA),!.

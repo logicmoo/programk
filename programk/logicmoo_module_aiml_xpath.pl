@@ -1,9 +1,9 @@
 % ===================================================================
-% File 'logicmoo_module_aiml_loader.pl'
+% File 'logicmoo_module_aiml_xpath.pl'
 % Purpose: An Implementation in SWI-Prolog of AIML
 % Maintainer: Douglas Miles
 % Contact: $Author: dmiles $@users.sourceforge.net ;
-% Version: 'logicmoo_module_aiml.pl' 1.0.0
+% Version: 'logicmoo_module_aiml_xpath.pl' 1.0.0
 % Revision:  $Revision: 1.7 $
 % Revised At:   $Date: 2002/07/11 21:57:28 $
 % ===================================================================
@@ -535,10 +535,38 @@ pathAttribS([uri,loc,filename,url,path,dir,file,pathname,src,location]).
 %well i played with a couple few differnt environment impls.. they have their pros cons.. one impl.. that was unique is that an array of "binding pairs" live in an arraylist.. to be "in" an environment it meant that you held an "index" into the arry list that as you went backwards you'd find your bindings.. each symbol had a java int field "lastBindingIndex" .. that was a "hint" to where you could fastforward the backwards search .. end named binding context also had a "index" to when you leave a named block.. you could quickly reset the top of an index.
 
 % ===================================================================
+
+withCurrentContext(Goal):-prolog_must(atom(Goal)),debugOnFailureAiml((currentContext(Goal,Ctx),call(Goal,Ctx))).
+
+makeAimlContext(Name,Ctx):-makeContextBase(Name,Ctx),!,setCtxValue(ctx,Ctx,Name),!.
+
+currentContext(Name,X):-makeAimlContext(Name,X),!.
+
+makeContextBase(CtxNameKey, [frame(CtxNameKey,ndestruct,[assoc(AL)|_])|_]):- list_to_assoc([],AL).
+
+makeContextBase__only_ForTesting(Gensym_Key, [frame(Gensym_Key,ndestruct,[assoc(AL)|_])|_]):-    
+   list_to_assoc([
+    a-v(error_in_assoc,set_assoc,ndestruct(a)),
+    a-v(is_a2,set_assoc,ndestruct(a)),
+    b-v(is_b,set_assoc,ndestruct(b))],AL).
+
+
+% ===================================================================
+% push/pop frames
+% ===================================================================
+pushCtxFrame(Name,Ctx,NewValues):-checkCtx(Ctx),get_ctx_holderFreeSpot(Ctx,Holder,GuestDest),!,Holder=frame(Name,GuestDest,NewValues).
+popCtxFrame(Name,Ctx,PrevValues):-checkCtx(Ctx),get_ctx_frame_holder(Ctx,Name,Frame),Frame = frame(Name,Destructor,PrevValues),Destructor,!.
+checkCtx(Ctx):-prolog_must(nonvar(Ctx)).
+%%checkCtx(Ctx):-makeAimlContext(broken,Ctx),!.
+
 :-dynamic(no_cyclic_terms).
 
 no_cyclic_terms.
 
+
+% ===================================================================
+% value getter/setters
+% ===================================================================
 ndestruct:-trace.
 ndestruct(Holder):-debugFmt(unImplemented(ndestruct(Holder))).
 no_setter(Why,Name,Ctx,Value):-debugFmt(unImplemented2(no_setter(Why,Name,Ctx,Value))).
@@ -557,15 +585,6 @@ set_assoc(ASSOC,Name,_Ctx,Value):- ASSOC = assoc(Assoc),
 % set_v3 as the "setter" means to use the v3 data structure to set the value
 set_assoc(_OrigName,Name,CtxIn,Value):- prolog_must(setCtxValue(Name,CtxIn,Value)),!.
 
-makeAimlContext(Name,Ctx):-makeAimlContext1(Name,Ctx),!,setCtxValue(ctx,Ctx,Name),!.
-
-makeAimlContext1(CtxNameKey, [frame(CtxNameKey,ndestruct,[assoc(AL)|_])|_]):- list_to_assoc([],AL).
-
-makeAimlContext1__only_ForTesting(Gensym_Key, [frame(Gensym_Key,ndestruct,[assoc(AL)|_])|_]):-    
-   list_to_assoc([
-    a-v(error_in_assoc,set_assoc,ndestruct(a)),
-    a-v(is_a2,set_assoc,ndestruct(a)),
-    b-v(is_b,set_assoc,ndestruct(b))],AL).
 
 unwrapValue(HValue,TValue):-TValue==deleted,!,not(unwrapValue1(HValue,_)),!.
 unwrapValue(HValue,TValue):-unwrapValue1(HValue,Value),!,TValue=Value.
@@ -580,7 +599,7 @@ bestSetterFn(_Value,OuterSetter,OuterSetter).
 getCtxValueElse(Name,Ctx,Value,_Else):-getCtxValue(Name,Ctx,Value),!.
 getCtxValueElse(_Name,_Ctx,Else,Else).
 
-getCtxValue(Name,Ctx,Value):-checkCtx(CtxIn), hotrace(( get_ctx_holder(CtxIn,Ctx),get_o_value(Name,CtxIn,HValue,_Setter),!, unwrapValue(HValue,Value))),!.
+getCtxValue(Name,CtxIn,Value):-checkCtx(CtxIn), hotrace(( get_ctx_holder(CtxIn,Ctx),get_o_value(Name,Ctx,HValue,_Setter),!, unwrapValue(HValue,Value))),!.
 getCtxValue(Name,CtxI,Value):-checkCtx(CtxI),lastMember(Ctx,CtxI),hotrace(( get_ctx_holder(Ctx,CtxH),get_o_value(Name,CtxH,HValue,_Setter),!, unwrapValue(HValue,Value))),!.
 
 setCtxValue(Name,CtxIn,Value):-checkCtx(CtxIn),get_ctx_holder(CtxIn,Ctx),get_o_value(Name,Ctx,HValue,Setter),unwrapValue(HValue,CurrentValue),!,(CurrentValue=Value;call(Setter,Name,CtxIn,Value)),!.
@@ -590,14 +609,6 @@ addCtxValue(Name,Ctx,Value):-checkCtx(Ctx),addCtxValue1(Name,Ctx,Value),!.
 addCtxValue1(Name,Ctx,Value):-get_ctx_holderFreeSpot(Ctx,Name=v(Value,Setter,Destructor),Destructor),!,ignore(Setter=set_v3(Name)).
 
 remCtxValue(Name,Ctx,_Value):-checkCtx(Ctx),setCtxValue(Name,Ctx,deleted),!.
-
-
-pushCtxFrame(Name,Ctx,NewValues):-checkCtx(Ctx),get_ctx_holderFreeSpot(Ctx,Holder,GuestDest),!,Holder=frame(Name,GuestDest,NewValues).
-
-popCtxFrame(Name,Ctx,PrevValues):-checkCtx(Ctx),get_ctx_frame_holder(Ctx,Name,Frame),Frame = frame(Name,Destructor,PrevValues),Destructor,!.
-
-checkCtx(Ctx):-nonvar(Ctx),!.
-checkCtx(Ctx):-makeAimlContext(broken,Ctx),!.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%% get the frame holder

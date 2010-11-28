@@ -281,26 +281,6 @@ graph_or_file(Ctx,ATTRIBS, Filename, XML):-
 
 graph_or_file(_Ctx,ATTRIBS, Filename, [nosuchfile(Filename,ATTRIBS)]):-trace.
 
-join_path(CurrentDir,Filename,Name):-
-         atom_ensure_endswtih(CurrentDir,'/',Out),atom_ensure_endswtih('./',Right,Filename),
-         atom_concat(Out,Right,Name),!.
-
-atom_ensure_endswtih(A,E,A):-atom(E),atom_concat(_Left,E,A),!.
-atom_ensure_endswtih(A,E,O):-atom(A),atom(E),atom_concat(A,E,O),!.
-atom_ensure_endswtih(A,E,O):-atom(A),atom(O),atom_concat(A,E,O),!.
-atom_ensure_endswtih(A,O,O):-atom(A),atom(O),!.
-
-os_to_prolog_filename(OS,_PL):-prolog_must(atom(OS)),fail.
-os_to_prolog_filename(_OS,PL):-prolog_must(var(PL)),fail.
-os_to_prolog_filename(OS,PL):-exists_file_safe(OS),!,PL=OS.
-os_to_prolog_filename(OS,PL):-exists_directory_safe(OS),!,PL=OS.
-os_to_prolog_filename(OS,PL):-local_directory_search(CurrentDir),join_path(CurrentDir,OS,PL),exists_file_safe(PL),!.
-os_to_prolog_filename(OS,PL):-local_directory_search(CurrentDir),join_path(CurrentDir,OS,PL),exists_directory_safe(PL),!.
-
-os_to_prolog_filename(OS,PL):-atom(OS),atomic_list_concat([X,Y|Z],'\\',OS),atomic_list_concat([X,Y|Z],'/',OPS),!,os_to_prolog_filename(OPS,PL).
-os_to_prolog_filename(OS,PL):-atom_concat_safe(BeforeSlash,'/',OS),os_to_prolog_filename(BeforeSlash,PL).
-os_to_prolog_filename(OS,PL):-absolute_file_name(OS,OSP),OS \= OSP,!,os_to_prolog_filename(OSP,PL).
-
 
 graph_or_file_or_dir(Ctx,ATTRIBS, Filename, XML):- Filename=[A,B|_C],atom(A),atom(B),
                     concat_atom_safe(Filename,'',FileAtom),!,
@@ -363,6 +343,7 @@ containsEachBinding(Resp,ExpectedList):-maplist_safe(containsSubBinding(Resp),Ex
 containsSubBinding(X,Y):-hotrace((sameBinding_listify(X,X1),sameBinding_listify(Y,Y1))),!,subList(X1,Y1),!.
 
 sameBinding_listify(X,X1):-sameBinding1(X,X0),listify(X0,X1),!.
+
 subList(X1,Y1):-append(Y1,_,Y1Opened),!,append(_,Y1Opened,X1),!.
 
 
@@ -378,7 +359,6 @@ runUnitTest1(Req,Result):-hotrace(catch((Req-> Result=unit_passed(Req); Result=u
 runUnitTest2(Req,Result):-hotrace(catch((Req-> Result=unit_passed(Req); Result=unit_failed(Req)),E,Result=unit_error(E,Req))).
 
 sameBinding(X,Y):-hotrace((sameBinding1(X,X1),sameBinding1(Y,Y1),!,X1=Y1)),!.
-
 
 sameBinding1(X,X):-var(X),!.
 sameBinding1(_-X,Y):-nonvar(X),!,sameBinding1(X,Y).

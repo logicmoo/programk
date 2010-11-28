@@ -758,6 +758,10 @@ computeSRAI(Ctx,Votes,Input,Result,VotesO,Proof):-
    prolog_must(computeSRAI0(Ctx,Votes,fromTo(User,Robot),Input,Result,VotesO,Proof)).
 
 
+getConversationThread(Ctx,User,Robot,ConvThread):-
+   ConvThread = fromTo(User,Robot),
+   setCtxValue('convthread',Ctx,ConvThread),!.
+
 computeSRAI0(Ctx,Votes,ConvThread,Input,Result,VotesO,Proof):-   
    computeTemplateOutput(Ctx,Votes,Input,NewIn,VotesM),NewIn \== Input,!,
    computeSRAI0(Ctx,VotesM,ConvThread,NewIn,Result,VotesO,Proof),!.
@@ -772,11 +776,13 @@ computeSRAI0(Ctx,Votes,ConvThread,Input,Result,VotesO,Proof):- not(is_list(Input
 
 computeSRAI0(Ctx,Votes,ConvThread,Input,Result,VotesO,Proof):-
   Each = (MatchLevel - e(VotesM,Result,Proof)), %% VotesO make it sort/2-able
-  findall(Each, computeSRAI2(Ctx,Votes,ConvThread,Input,Result,VotesM,Proof,MatchLevel), FOUND),
+  Call = computeSRAI2(Ctx,Votes,ConvThread,Input,Result,VotesM,Proof,MatchLevel),
+  copy_term(Each:Call,EachFound:CallFound),
+  findall(EachFound:CallFound, CallFound, FOUND),
   FOUND=[_|_],
   sort(FOUND,ORDER),!,
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-   member(Each,ORDER),
+   member(Each:Call,ORDER),
    prolog_must(nonvar(Result)),
    debugFmt(computeSRAI(Input,Each)),
    VotesO is VotesM * 1.1.
@@ -801,9 +807,11 @@ getAliceMemOrSetDefault(CtxIn,ConvThread,Name,Value,OrDefault):-
 
 
 subclassMakeUserDict(Ctx,UserDict,SYM):-debugFmt(subclassMakeUserDict(Ctx,UserDict,SYM)),!.
+convThreadDict(_Ctx,ConvThreadHint,ConvThread):-answerOutput(ConvThreadHint,First),unlistify(First,ConvThread),!.
 
-computeSRAI222(CtxIn,Votes,ConvThread,Pattern,Out,VotesO,ProofOut,OutputLevel):-    
+computeSRAI222(CtxIn,Votes,ConvThreadHint,Pattern,Out,VotesO,ProofOut,OutputLevel):-    
    %%convertToMatchable(Pattern,InputPattern),
+      convThreadDict(Ctx,ConvThreadHint,ConvThread),
          getCategoryArg(Ctx,'template',Out, _Out_ ,CateSig),!,
          getAliceMemOrSetDefault(CtxIn,ConvThread,'topic',Topic,['Nothing']),
          getAliceMemOrSetDefault(CtxIn,ConvThread,'userdict',UserDict,'user'),

@@ -132,7 +132,7 @@ alicebot2(Ctx,Atoms,Resp):-
    getAliceMem(Ctx,'bot',default('minanswers',1),MinAns),
    getAliceMem(Ctx,'bot',default('maxanswers',1),_MaxAns),
    %%setAliceMem(Ctx,User,'input',Atoms),
-   pushInto1DAnd2DArray(Ctx,'request','input',10,Atoms,Robot->User),
+   pushInto1DAnd2DArray(Ctx,'request','input',10,Atoms,User),
    setAliceMem(Ctx,User,'rawinput',Atoms))),
    ((call_with_depth_limit_traceable(computeInputOutput(Ctx,1,Atoms,Output,N),8000,_DL),
 	 ignore((nonvar(N),nonvar(Output),savePosibleResponse(N,Output))),flag(a_answers,X,X+1),
@@ -173,15 +173,23 @@ evalSRAI(Ctx,Votes,ATTRIBS,[I|Input0],Output,VotesO):-atom(I),atom_prefix(I,'@')
 evalSRAI(Ctx,Votes,ATTRIBS,Input0,Output,VotesO):-
   prolog_must(ground(Input0)),!,flatten([Input0],Input),  
   evalsrai(SYM),
+  var(Proof),
  withAttributes(Ctx,ATTRIBS,
-   withAttributes(Ctx,[proof=result(Proof),evalsrai=SYM],
-  ( computeSRAI(Ctx,Votes,Input,MidIn,VotesM,Proof),      
+   withAttributes(Ctx,[evalsrai=SYM],
+  ( 
+    debugOnError(computeSRAI(Ctx,Votes,Input,MidIn,VotesM,Proof)),    
+     withAttributes(Ctx,[evalsrai=SYM,proof=Proof],
+      computeSRAIStars(Ctx,ATTRIBS,Input,MidIn,VotesM,SYM,Proof,Output,VotesO))))).
+
+computeSRAIStars(Ctx,ATTRIBS,Input,MidIn,VotesM,SYM,Proof,Output,VotesO):-
     prolog_must(nonvar(MidIn)),
-      debugFmt(sraiTRACE(Input,MidIn)),
+    prolog_must(nonvar(SYM)),
+    prolog_must(nonvar(Proof)),
+      debugFmt(computeSRAIStars(SYM,Input,MidIn)),
       computeElementMust(Ctx,VotesM,template,ATTRIBS,MidIn,MidIn9,VotesI9),
       prolog_must(answerOutput(MidIn9,Mid9)),
       debugFmt(evalSRAI(Input,MidIn,MidIn9,Mid9)),
-      prolog_must(computeAnswer(Ctx,VotesI9,Mid9,Output,VotesO))))).
+      prolog_must(computeAnswer(Ctx,VotesI9,Mid9,Output,VotesO)).
 
  evalsrai(SYM):-gensym(evalsrai,SYM).
 % ===============================================================================================
@@ -442,10 +450,20 @@ computeElement(Ctx,Votes,Tag,Attrib, Input, Output, VotesO) :- formatterProc(Tag
    prolog_must(computeTemplate(Ctx,Votes,Input,Mid,VotesO)),
    computeCall(Ctx,Method,Mid,Output,prologCall(Method, result(Mid,element(Tag,[type=Type|Attrib])))),!.
 
+% .... computeCall to formatter ....
 computeCall(Ctx,Method,Mid,Output,ElseResult):-
    catch(prolog_must(call(Method,Ctx,Mid,Output)),
      E, (debugFmt(error(E,call(Method,Mid,Output))), trace, Output = ElseResult)).
 computeCall(_Ctx,_Pred,_Mid,Result,ElseResult):-prolog_must(Result=ElseResult).
+
+% .... formatters ....
+format_formal(_Ctx,In,Out):-toPropercase(In,Out),!.
+format_sentence(_Ctx,[In1|In],[Out1|Out]):-In=Out,toPropercase(In1,Out1),!.
+format_sentence(_Ctx,In,Out):-In=Out.
+format_think(_Ctx,_In,Out):-[]=Out.
+format_gossip(_Ctx,In,Out):-In=Out.
+format_uppercase(_Ctx,In,Out):-toUppercase(In,Out),!.
+format_lowercase(_Ctx,In,Out):-toLowercase(In,Out),!.
 
 
 % <gender..>
@@ -460,15 +478,6 @@ computeElement_subst(Ctx,Votes,_Gender,DictName,Attribs,[],Result,VotesO):-
 computeElement_subst(Ctx,Votes,_Gender,DictName,Attribs,Input,Result,VotesO):-
       withAttributes(Ctx,Attribs,((computeTemplate(Ctx,Votes,Input,Hidden,VotesO),
       substituteFromDict(Ctx,DictName,Hidden,Result)))),!.
-
-% .... formatters ....
-format_formal(_Ctx,In,Out):-toPropercase(In,Out),!.
-format_sentence(_Ctx,[In1|In],[Out1|Out]):-In=Out,toPropercase(In1,Out1),!.
-format_sentence(_Ctx,In,Out):-In=Out.
-format_think(_Ctx,_In,Out):-[]=Out.
-format_gossip(_Ctx,In,Out):-In=Out.
-format_uppercase(_Ctx,In,Out):-toUppercase(In,Out),!.
-format_lowercase(_Ctx,In,Out):-toLowercase(In,Out),!.
 
 % <load...>
 computeElement(Ctx,Votes,Tag,ATTRIBS,Input,result(RESULT,Tag=EVAL),VotesO):- 
@@ -755,8 +764,8 @@ computeSRAI(_Ctx,_Votes,[],_,_,_Proof):- !,trace,fail.
 computeSRAI(Ctx,Votes,Input,Result,VotesO,Proof):-
    getAliceMem(Ctx,'bot','me',Robot),
    getAliceMem(Ctx,'bot','you',User),
-   prolog_must(computeSRAI0(Ctx,Votes,fromTo(User,Robot),Input,Result,VotesO,Proof)).
-
+   getConversationThread(Ctx,User,Robot,ConvThread),
+   prolog_must(computeSRAI0(Ctx,Votes,ConvThread,Input,Result,VotesO,Proof)).
 
 getConversationThread(Ctx,User,Robot,ConvThread):-
    ConvThread = fromTo(User,Robot),
@@ -814,8 +823,9 @@ computeSRAI222(CtxIn,Votes,ConvThreadHint,Pattern,Out,VotesO,ProofOut,OutputLeve
       convThreadDict(Ctx,ConvThreadHint,ConvThread),
          getCategoryArg(Ctx,'template',Out, _Out_ ,CateSig),!,
          getAliceMemOrSetDefault(CtxIn,ConvThread,'topic',Topic,['Nothing']),
-         getAliceMemOrSetDefault(CtxIn,ConvThread,'userdict',UserDict,'user'),
-         getCtxValue(evalsrai,CtxIn,SYM),
+         getAliceMemOrSetDefault(CtxIn,ConvThread,'userdict',UserDict,'user'), 
+         %%getAliceMemOrSetDefault(CtxIn,ConvThread,'convthread',ConvThread,ConvThreadHint), 
+         getCtxValue(evalsrai,CtxIn,SYM),         
          subclassMakeUserDict(CtxIn,UserDict,SYM),
          PreTopic = (CtxIn=Ctx),
          CPreTopic = true,
@@ -1176,17 +1186,17 @@ rememberSaidIt_SH(Ctx,_-R1,Robot,User):-!,rememberSaidIt_SH(Ctx,R1,Robot,User).
 rememberSaidIt_SH(Ctx,R1,Robot,User):-append(New,[Punct],R1),sentenceEnderOrPunct_NoQuestion(Punct),!,rememberSaidIt_SH(Ctx,New,Robot,User).
 rememberSaidIt_SH(Ctx,R1,Robot,User):-answerOutput(R1,SR1),!,
    setAliceMem(Ctx,Robot,'lastSaid',SR1),
-   pushInto1DAnd2DArray(Ctx,'response','that',10,SR1,Robot->User).
+   pushInto1DAnd2DArray(Ctx,'response','that',10,SR1,User).
 
 
-pushInto1DAnd2DArray(Ctx,Name,Name2,Ten,SR1,_Robot->User):-
+pushInto1DAnd2DArray(Ctx,Name,Name2,Ten,SR1,ConvThread):-
    splitSentences(SR1,SR2),
    addCtxValue(quiteMemOps,Ctx,true),
    previousVars(Name,PrevVars,Ten),
-   maplist_safe(setEachSentenceThat(Ctx,User,PrevVars),SR2),!,
+   maplist_safe(setEachSentenceThat(Ctx,ConvThread,PrevVars),SR2),!,
 
    previousVars(Name2,PrevVars2,Ten),
-   setEachSentenceThat(Ctx,User,PrevVars2,SR2),
+   setEachSentenceThat(Ctx,ConvThread,PrevVars2,SR2),
    setCtxValue(quiteMemOps,Ctx,false),
    !.
 
@@ -1343,8 +1353,8 @@ substituteFromDict(_Ctx,DictName,Hidden,result([substs,DictName,on,Hidden],Resul
 
 substituteFromDict_l(_Ctx,_DictName,Hidden,Output):-atomic(Hidden),!,Hidden=Output.
 substituteFromDict_l(Ctx,DictName,[V|Hidden],[V|Output]):-verbatum(_)==V,!,substituteFromDict_l(Ctx,DictName,Hidden,Output).
-substituteFromDict_l(Ctx,DictName,Hidden,[verbatum(After)|Output]):-dictReplace(DictName,Before,After),length(Before,Left),length(NewBefore,Left),
+substituteFromDict_l(Ctx,DictName,Hidden,[verbatum(After)|Output]):-dictReplace(DictName,Before,After),
+   debugOnError((length(Before,Left),length(NewBefore,Left))),
    append(NewBefore,Rest,Hidden),sameBinding(NewBefore,Before),!,substituteFromDict_l(Ctx,DictName,Rest,Output).
 substituteFromDict_l(Ctx,DictName,[V|Hidden],[V|Output]):-substituteFromDict_l(Ctx,DictName,Hidden,Output).
-
 

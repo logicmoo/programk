@@ -792,8 +792,8 @@ computeSRAI0(_Ctx,Votes,ConvThread,Input,Result,VotesO,Proof):- !, VotesO is Vot
 computeSRAI0(Ctx,Votes,ConvThread,[B|Flat],[B|Result],VotesO,Proof):- fail,
    computeSRAI2(Ctx,Votes,ConvThread,Flat,Result,VotesO,Proof,_PostMatchLevel3),prolog_must(nonvar(Result)).
 
-getAliceMemOrSetDefault(CtxIn,_ConvThread,Name,Value,_OrDefault):-
-   getCtxValue(Name,CtxIn,Value),!.
+getAliceMemOrSetDefault(CtxIn,ConvThread,Name,Value,_OrDefault):-
+   getCtxValue(ConvThread:Name,CtxIn,Value),!.
 getAliceMemOrSetDefault(CtxIn,ConvThread,Name,Value,_OrDefault):-
    getIndexedValue(CtxIn,ConvThread,Name,[],Value),!.
 getAliceMemOrSetDefault(CtxIn,ConvThread,Name,Value,OrDefault):-
@@ -1159,8 +1159,8 @@ rememberSaidIt(Ctx,_-R1):-!,rememberSaidIt(Ctx,R1).
 rememberSaidIt(Ctx,R1):-append(New,'.',R1),!,rememberSaidIt(Ctx,New).
 rememberSaidIt(Ctx,R1):-answerOutput(R1,SR1),R1\==SR1,!,rememberSaidIt(Ctx,SR1).
 rememberSaidIt(Ctx,R1):- !,
-   getItemValue('me',Ctx,Robot),
-   getItemValue('you',Ctx,User),
+   getAliceMem(Ctx,'bot','you',User),
+   getAliceMem(Ctx,'bot','me',Robot),
    rememberSaidIt_SH(Ctx,R1,Robot,User).
 
 rememberSaidIt_SH(_Ctx,[],_Robot,_User):-!.

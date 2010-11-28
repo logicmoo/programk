@@ -16,97 +16,11 @@
 :- style_check(-string).
 
 
-:-dynamic(dict/3).
-:-multifile(dict/3).
-
-
-% ===================================================================
-% attribute searching
-% ===================================================================
-
-attributeOrTagValue(Ctx,ATTRIBS,NameS,ValueO,_Else):- hotrace((attributeValue(Ctx,ATTRIBS,NameS,ValueO,'$failure'))),!.
-attributeOrTagValue(Ctx,XML,NameS,ValueO,_Else):- hotrace((findTagValue(Ctx,XML,NameS,ValueO,'$failure'))),!.
-attributeOrTagValue(Ctx,ATTRIBS,NameS,ValueO,_Else):-compound(ATTRIBS),ATTRIBS=..[_|LIST],member(E,LIST),
-   attributeOrTagValue(Ctx,E,NameS,ValueO,'$failure'),!.
-attributeOrTagValue(Ctx,_,NameS,ValueO,ElseVar):-ElseVar\=='$failure',makeParamFallback(Ctx,NameS,ValueO,ElseVar),!.
-
-attributeValue(Ctx,ATTRIBS,NameS,ValueO,Else):- hotrace((attributeValue0(Ctx,ATTRIBS,NameS,ValueI,Else), aiml_eval_to_unit(Ctx,ValueI,ValueO))),!.
-attributeValue(Ctx,ATTRIBS,NameS,ValueO,Else):-   Else\=='$failure',debugOnFailure((attributeValue0(Ctx,ATTRIBS,NameS,ValueI,Else), aiml_eval_to_unit(Ctx,ValueI,ValueO))),!.
-
-attributeValue0(_Ctx,ATTRIBS,NameS,ValueO,_Else):- member(Name,NameS), lastMember(NameE=ValueO,ATTRIBS), atomsSameCI(Name,NameE),!.
-attributeValue0(Ctx,_ATTRIBS,NameS,Value,ElseVar):- makeParamFallback(Ctx,NameS,Value,ElseVar),!.
-/*
-attributeValue0(Ctx,_ATTRIBS,NameS,ValueO,'$current_value'):-member(Name,NameS), current_value(Ctx,Name,ValueO),valuePresent(ValueO),!.
-attributeValue0(_Ctx,_ATTRIBS,_NameS,_Value,Failure):-'$failure'==Failure,!,fail.
-attributeValue0(Ctx,ATTRIBS,NameS,Value,Error):- '$error'==Error,  
-   aiml_error(attributeValue(Ctx,ATTRIBS,NameS,Value,'$error')).
-attributeValue0(_Ctx,_ATTRIBS,_Name,ValueO,Else):-ValueO=Else,!.
-*/
-
-findTagValue(_Ctx,XML,_NameS,_ValueO,_Else):-var(XML),!,fail.
-
-findTagValue(Ctx,XML,NameS,ValueO,Else):-
-      member(Name,NameS),
-      findTagValue(Ctx,XML,Name,ValueO,Else),!.
-
-findTagValue(Ctx,XML,NameS,ValueO,Else):-
-      member(element(NameE,ATTRIBS,ValueI),XML),
-      findTagValue(Ctx,element(NameE,ATTRIBS,ValueI),NameS,ValueO,Else),!.
-
-findTagValue(Ctx,XML,Name,ValueO,Else):-!,
-      findTagValue0_of_xml_element(Ctx,XML,Name,ValueO,Else).
-
-findTagValue(Ctx,XML,[NameE=_|_],ValueO,_Else):-
-      member(element(NameA,ATTRIBS,ValueI),XML),member(_=NameI,ATTRIBS),
-     atomsSameCI(NameA,NameE),atomsSameCI(NameA,NameI),
-     aiml_select_unit(Ctx,NameA,ValueI,ValueO),!.
-
-
-findTagValue0_of_xml_element(Ctx,element(NameE,ATTRIBS,ValueI),Name,ValueO,_Else):- 
-      atomsSameCI(Name,NameE),!,
-   aiml_select_unit(Ctx,NameE,element(NameE,ATTRIBS,ValueI),ValueO),!.
-
-findTagValue0_of_xml_element(Ctx,element(NameE,ATTRIBS,ValueI),Name,ValueO,_Else):-
-      lastMember(name=Name,ATTRIBS,Rest),atomsSameCI(Name,NameE),!,
-   aiml_select_unit(Ctx,Name,element(NameE,Rest,ValueI),ValueO),!.
-
-
-aiml_select_unit(Ctx,NameA,element(NameA,[],ValueI),ValueO):-aiml_eval_to_unit(Ctx,ValueI,ValueO),!.
-aiml_select_unit(Ctx,_NameA,ValueI,ValueO):-aiml_eval_to_unit(Ctx,ValueI,ValueO),!.
-
-%['name'='SomeName','Description'='some descr','Input'='$error','ExpectedAnswer'='SomeAnswwer']
-/*
-getAttributeOrTags(Ctx,[N=Default|More],ATTRIBS,INNERXML,Var):- var(Var),!,
-  hotrace((getAttributeOrTags1(Ctx,[N=Default|More],ATTRIBS,INNERXML,[_=Var|_NormalProps]))),!.
-
-getAttributeOrTags(Ctx,[N=Default|More],ATTRIBS,INNERXML,[N0=Var|NormalProps]):-
-  hotrace((getAttributeOrTags1(Ctx,[N=Default|More],ATTRIBS,INNERXML,[N0=Var|NormalProps]))),!.
-
-:-trace(getAttributeOrTags/5, -fail).
-
-getAttributeOrTags1(_Ctx,[],_ATTRIBS,_INNERXML,[]):-!.
-
-getAttributeOrTags1(Ctx,[N=_Default|More],ATTRIBS,INNERXML,[N0=ValueO|NormalProps]):- 
-      member(element(NE,_Atribs,           Value),INNERXML), atomsSameCI(N,NE), aiml_eval_to_unit(Ctx,Value,ValueO),ignore(N=N0),
-      getAttributeOrTags1(Ctx,More,ATTRIBS,INNERXML,NormalProps),!.
-
-getAttributeOrTags1(Ctx,[N=_Default|More],ATTRIBS,INNERXML,[N0=ValueO|NormalProps]):- 
-      member(element(_NE,[name=NE|_Atribs],Value),INNERXML), atomsSameCI(N,NE), aiml_eval_to_unit(Ctx,Value,ValueO),ignore(N=N0),
-      getAttributeOrTags1(Ctx,More,ATTRIBS,INNERXML,NormalProps),!.
-
-getAttributeOrTags1(Ctx,[N=Default|More],ATTRIBS,INNERXML,[N=Found|NormalProps]):- 
-      attributeOrTagValue(Ctx,ATTRIBS:INNERXML,[N],Found,Default),
-      getAttributeOrTags1(Ctx,More,ATTRIBS,INNERXML,NormalProps),!.
-
-getAttributeOrTags1(Ctx,[N=Default|More],ATTRIBS,INNERXML,[N=Default|NormalProps]):- 
-      getAttributeOrTags1(Ctx,More,ATTRIBS,INNERXML,NormalProps),!.
-*/
-
 % ===============================================================================================
 % get / set  Global Variables
 % ===============================================================================================
 :-dynamic(dict/3).
-
+:-multifile(dict/3).
 
 getAliceMemElse(Ctx,Dict,Name,ValueO):-getAliceMemComplete(Ctx,Dict,Name,ValueO),!.
 getAliceMemElse(_Ctx,Dict,Name,[Dict,(s),unknown,Name]).
@@ -117,7 +31,6 @@ getAliceMem(Ctx,Dict,DEFAULT,ValueOut):- compound(DEFAULT),DEFAULT=default(Name,
 getAliceMem(Ctx,IDict,NameI,ValueO):-
      dictNameDictNameC(Ctx,IDict,NameI,Dict,Name),!,
      getAliceMem(Ctx,Dict,Name,ValueO).
-
 getAliceMem(Ctx,Dict,Name,ValueO):- var(ValueO), !, getAliceMemElse(Ctx,Dict,Name,ValueO),!.
 
 getAliceMem(Ctx,Dict,Name,'OM'):- !,not((getAliceMemComplete(Ctx,Dict,Name,ValueO),ValueO\=='OM')).
@@ -138,19 +51,9 @@ getStoredValue(Ctx,IDict,NameI,ValueO):-
 
 getStoredValue(Ctx,Dict,Name,Value):-getContextStoredValue(Ctx,Dict,Name,Value),!.
 
-
-dictNameDictNameC(Ctx,IDict,NameI,Dict,Name):-dictNameDictName(Ctx,IDict,NameI,Dict,Name),!, IDict+NameI \==Dict+Name.
-
-dictNameDictName(Ctx,_Dict,D:NameI,Dict,Name):- nonvar(D),!,dictNameDictName(Ctx,D,NameI,Dict,Name).
-dictNameDictName(Ctx,IDict,NameI,Dict,Name):- convert_dictname(Ctx,IDict,Dict),unresultifyL(Ctx,NameI,Name).
-
-unresultifyL(Ctx,NameI,Name):-unresultifyLL(Ctx,NameI,NameU),toLowerIfAtom(NameU,Name),!.
-
-unresultifyLL(Ctx,NameI,NameO):-unresultify(NameI,Name),NameI \== Name,!,unresultifyLL(Ctx,Name,NameO).
-unresultifyLL(Ctx,NameI,NameO):-is_list(NameI),lastMember(Name,NameI),!,unresultifyLL(Ctx,Name,NameO).
-unresultifyLL(_Ctx,Name,Name).
-toLowerIfAtom(Dict,Down):-atom(Dict),downcase_atom(Dict,Down),!.
-toLowerIfAtom(Dict,Dict).
+% ===============================================================================================
+% named context via inheritance
+% ===============================================================================================
 
 getInheritedStoredValue(Ctx,IScope,NameI,Value):-dictNameDictNameC(Ctx,IScope,NameI,Scope,Name),!,getInheritedStoredValue(Ctx,Scope,Name,Value).
 getInheritedStoredValue(Ctx,Scope,DEFAULT,ValueOut):- compound(DEFAULT),DEFAULT=default(Name,Default),!, 
@@ -273,6 +176,26 @@ addReplacement(_Ctx,Dict,Find,Replace):- assertz(dict(substitutions(Dict),Find,R
 addReplacement(Dict,Find,Replace):-currentContext(addReplacement(Dict,Find,Replace),Ctx), addReplacement(Ctx,Dict,Find,Replace).
 
 
+% ===============================================================================================
+% context/name cleanups
+% ===============================================================================================
+dictNameDictNameC(Ctx,IDict,NameI,Dict,Name):-dictNameDictName(Ctx,IDict,NameI,Dict,Name),!, IDict+NameI \==Dict+Name.
+
+dictNameDictName(Ctx,_Dict,D:NameI,Dict,Name):- nonvar(D),!,dictNameDictName(Ctx,D,NameI,Dict,Name).
+dictNameDictName(Ctx,IDict,NameI,Dict,Name):- convert_dictname(Ctx,IDict,Dict),unresultifyL(Ctx,NameI,Name).
+
+unresultifyL(Ctx,NameI,Name):-unresultifyLL(Ctx,NameI,NameU),toLowerIfAtom(NameU,Name),!.
+
+unresultifyLL(Ctx,NameI,NameO):-unresultify(NameI,Name),NameI \== Name,!,unresultifyLL(Ctx,Name,NameO).
+unresultifyLL(Ctx,NameI,NameO):-is_list(NameI),lastMember(Name,NameI),!,unresultifyLL(Ctx,Name,NameO).
+unresultifyLL(_Ctx,Name,Name).
+toLowerIfAtom(Dict,Down):-atom(Dict),downcase_atom(Dict,Down),!.
+toLowerIfAtom(Dict,Dict).
+
+
+% ===============================================================================================
+% Setting globals
+% ===============================================================================================
 setAliceMem(Ctx,IDict,NameI,Value):-dictNameDictNameC(Ctx,IDict,NameI,Dict,Name),!,setAliceMem(Ctx,Dict,Name,Value),!.
 setAliceMem(Ctx,Dict,Name,Var):-var(Var),!,setAliceMem(Ctx,Dict,Name,['$var'(Var)]).
 setAliceMem(Ctx,Dict,Name,Atomic):-atomic(Atomic),Atomic\==[],!,setAliceMem(Ctx,Dict,Name,[Atomic]).
@@ -282,6 +205,10 @@ setAliceMem(Ctx,Dict,Name,Value):-immediateCall(Ctx,setCurrentAliceMem(Dict,Name
 setAliceMem(Ctx,Dict,Name,Value):-isStarValue(Value),debugFmt(setAliceMem(Ctx,Dict,Name,Value)),trace.
 setAliceMem(Ctx,Dict,default(Name),DefaultValue):-getAliceMem(Ctx,Dict,Name,'OM')->setAliceMem(Ctx,Dict,Name,DefaultValue);true.
 setAliceMem(Ctx,Dict,Name,Value):-resetAliceMem(Ctx,Dict,Name,Value),!.
+
+% ===============================================================================================
+%    AIML Runtime Database
+% ===============================================================================================
 
 quitely(Ctx):-getCtxValueElse(quiteMemOps,Ctx,True,false),!,True=true.
 
@@ -312,12 +239,8 @@ addNewContextValue(Ctx,Dict,Name,Value):-prolog_must(nonvar(Value)),dictNameKey(
    addCtxValue(Key,Ctx,Value),asserta(dict(Dict,Name,Value)).
 
 % ===============================================================================================
-%    AIML Runtime Database
+%    Context values API
 % ===============================================================================================
-:-dynamic(saveDFAttribute/3).
-                
-saveFAttribute(Ctx,File,A):-saveDFAttribute(Ctx,File,A),!.
-saveFAttribute(Ctx,File,A):-asserta(saveDFAttribute(Ctx,File,A)),dynamic(File/A).
 
 pushAttributes(Ctx,Scope,List):-pushCtxFrame(Scope,Ctx,List),pushAttributes0(Ctx,Scope,List),!.
 pushAttributes0(Ctx,Scope,[N=V|L]):-pushNameValue(Ctx,Scope,N,V),pushAttributes0(Ctx,Scope,L).
@@ -375,6 +298,9 @@ valuePresent(result(_)):- !.
 valuePresent(Value):- valueMP(Value,_M),!,fail.
 valuePresent(_):-!.
 
+% ===============================================================================================
+%    push/pop values API
+% ===============================================================================================
 
 popAttributes(Ctx,Scope,[N=V|L]):- !,checkAttribute(Scope,N,V),popNameValue(Ctx,Scope,N,V),!,popAttributes(Ctx,Scope,L),!.
 popAttributes(_Ctx,_Scope,[]).
@@ -676,4 +602,87 @@ get_n_value(Name,Pred,Name,_,Value,Setter):- arg(1,Pred,Value),!,arg(2,Pred,Sett
 get_n_value(Name,Pred,Dash,2,Value,nb_setarg(2,Pred)):-arg(1,Pred,Name),member(Dash,[=,-,vv]),!, arg(2,Pred,Value).
 %%get_n_value(Name,Pred,'.',2,Value,Setter):-arg(2,Pred,Try1), get_o_value0(Name,Try1,Value,Setter);(arg(1,Pred,Try2),get_o_value0(Name,Try2,Value,Setter)).
 %%get_n_value(Name,Pred,_,_,Value,Setter):- !, arg(_,Pred,Try2),get_o_value0(Name,Try2,Value,Setter).
+
+% ===================================================================
+% attribute searching (Document contexts)
+% ===================================================================
+
+attributeOrTagValue(Ctx,ATTRIBS,NameS,ValueO,_Else):- hotrace((attributeValue(Ctx,ATTRIBS,NameS,ValueO,'$failure'))),!.
+attributeOrTagValue(Ctx,XML,NameS,ValueO,_Else):- hotrace((findTagValue(Ctx,XML,NameS,ValueO,'$failure'))),!.
+attributeOrTagValue(Ctx,ATTRIBS,NameS,ValueO,_Else):-compound(ATTRIBS),ATTRIBS=..[_|LIST],member(E,LIST),
+   attributeOrTagValue(Ctx,E,NameS,ValueO,'$failure'),!.
+attributeOrTagValue(Ctx,_,NameS,ValueO,ElseVar):-ElseVar\=='$failure',makeParamFallback(Ctx,NameS,ValueO,ElseVar),!.
+
+attributeValue(Ctx,ATTRIBS,NameS,ValueO,Else):- hotrace((attributeValue0(Ctx,ATTRIBS,NameS,ValueI,Else), aiml_eval_to_unit(Ctx,ValueI,ValueO))),!.
+attributeValue(Ctx,ATTRIBS,NameS,ValueO,Else):-   Else\=='$failure',debugOnFailure((attributeValue0(Ctx,ATTRIBS,NameS,ValueI,Else), aiml_eval_to_unit(Ctx,ValueI,ValueO))),!.
+
+attributeValue0(_Ctx,ATTRIBS,NameS,ValueO,_Else):- member(Name,NameS), lastMember(NameE=ValueO,ATTRIBS), atomsSameCI(Name,NameE),!.
+attributeValue0(Ctx,_ATTRIBS,NameS,Value,ElseVar):- makeParamFallback(Ctx,NameS,Value,ElseVar),!.
+/*
+attributeValue0(Ctx,_ATTRIBS,NameS,ValueO,'$current_value'):-member(Name,NameS), current_value(Ctx,Name,ValueO),valuePresent(ValueO),!.
+attributeValue0(_Ctx,_ATTRIBS,_NameS,_Value,Failure):-'$failure'==Failure,!,fail.
+attributeValue0(Ctx,ATTRIBS,NameS,Value,Error):- '$error'==Error,  
+   aiml_error(attributeValue(Ctx,ATTRIBS,NameS,Value,'$error')).
+attributeValue0(_Ctx,_ATTRIBS,_Name,ValueO,Else):-ValueO=Else,!.
+*/
+
+findTagValue(_Ctx,XML,_NameS,_ValueO,_Else):-var(XML),!,fail.
+
+findTagValue(Ctx,XML,NameS,ValueO,Else):-
+      member(Name,NameS),
+      findTagValue(Ctx,XML,Name,ValueO,Else),!.
+
+findTagValue(Ctx,XML,NameS,ValueO,Else):-
+      member(element(NameE,ATTRIBS,ValueI),XML),
+      findTagValue(Ctx,element(NameE,ATTRIBS,ValueI),NameS,ValueO,Else),!.
+
+findTagValue(Ctx,XML,Name,ValueO,Else):-!,
+      findTagValue0_of_xml_element(Ctx,XML,Name,ValueO,Else).
+
+findTagValue(Ctx,XML,[NameE=_|_],ValueO,_Else):-
+      member(element(NameA,ATTRIBS,ValueI),XML),member(_=NameI,ATTRIBS),
+     atomsSameCI(NameA,NameE),atomsSameCI(NameA,NameI),
+     aiml_select_unit(Ctx,NameA,ValueI,ValueO),!.
+
+
+findTagValue0_of_xml_element(Ctx,element(NameE,ATTRIBS,ValueI),Name,ValueO,_Else):- 
+      atomsSameCI(Name,NameE),!,
+   aiml_select_unit(Ctx,NameE,element(NameE,ATTRIBS,ValueI),ValueO),!.
+
+findTagValue0_of_xml_element(Ctx,element(NameE,ATTRIBS,ValueI),Name,ValueO,_Else):-
+      lastMember(name=Name,ATTRIBS,Rest),atomsSameCI(Name,NameE),!,
+   aiml_select_unit(Ctx,Name,element(NameE,Rest,ValueI),ValueO),!.
+
+
+aiml_select_unit(Ctx,NameA,element(NameA,[],ValueI),ValueO):-aiml_eval_to_unit(Ctx,ValueI,ValueO),!.
+aiml_select_unit(Ctx,_NameA,ValueI,ValueO):-aiml_eval_to_unit(Ctx,ValueI,ValueO),!.
+
+%[''name'='SomeName','Description'='some descr','Input'='$error','ExpectedAnswer'='SomeAnswwer'']
+/*
+getAttributeOrTags(Ctx,[N=Default|More],ATTRIBS,INNERXML,Var):- var(Var),!,
+  hotrace((getAttributeOrTags1(Ctx,[N=Default|More],ATTRIBS,INNERXML,[_=Var|_NormalProps]))),!.
+
+getAttributeOrTags(Ctx,[N=Default|More],ATTRIBS,INNERXML,[N0=Var|NormalProps]):-
+  hotrace((getAttributeOrTags1(Ctx,[N=Default|More],ATTRIBS,INNERXML,[N0=Var|NormalProps]))),!.
+
+:-trace(getAttributeOrTags/5, -fail).
+
+getAttributeOrTags1(_Ctx,[],_ATTRIBS,_INNERXML,[]):-!.
+
+getAttributeOrTags1(Ctx,[N=_Default|More],ATTRIBS,INNERXML,[N0=ValueO|NormalProps]):- 
+      member(element(NE,_Atribs,           Value),INNERXML), atomsSameCI(N,NE), aiml_eval_to_unit(Ctx,Value,ValueO),ignore(N=N0),
+      getAttributeOrTags1(Ctx,More,ATTRIBS,INNERXML,NormalProps),!.
+
+getAttributeOrTags1(Ctx,[N=_Default|More],ATTRIBS,INNERXML,[N0=ValueO|NormalProps]):- 
+      member(element(_NE,[name=NE|_Atribs],Value),INNERXML), atomsSameCI(N,NE), aiml_eval_to_unit(Ctx,Value,ValueO),ignore(N=N0),
+      getAttributeOrTags1(Ctx,More,ATTRIBS,INNERXML,NormalProps),!.
+
+getAttributeOrTags1(Ctx,[N=Default|More],ATTRIBS,INNERXML,[N=Found|NormalProps]):- 
+      attributeOrTagValue(Ctx,ATTRIBS:INNERXML,[N],Found,Default),
+      getAttributeOrTags1(Ctx,More,ATTRIBS,INNERXML,NormalProps),!.
+
+getAttributeOrTags1(Ctx,[N=Default|More],ATTRIBS,INNERXML,[N=Default|NormalProps]):- 
+      getAttributeOrTags1(Ctx,More,ATTRIBS,INNERXML,NormalProps),!.
+*/
+
 

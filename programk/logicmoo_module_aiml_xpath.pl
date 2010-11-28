@@ -149,9 +149,9 @@ getMinorSubscript(Items,ANum,Value):-not(number(ANum)),!,prolog_must(atom_to_num
 %%%
 getMinorSubscript(Items,Num,Value):- prolog_must(is_list(Items)),length(Items,Len),Index is Len-Num,nth0(Index,Items,Value),is_list(Value),!.
 getMinorSubscript([],1,[]):-!.
-getMinorSubscript(Items,Num,Value):-debugFmt(getMinorSubscriptFailed(Items,Num,Value)),trace,fail.
 getMinorSubscript(Items,1,Value):- trace,last(Items,Last), (is_list(Last)->Value=Last;Value=Items),!.
 getMinorSubscript(Items,1,Value):- xformOutput(Items,Value),!,trace.
+getMinorSubscript(Items,Num,Value):-debugFmt(getMinorSubscriptFailed(Items,Num,Value)),trace,fail.
 
 getUserDicts(User,Name,Value):-isPersonaUser(User),isPersonaPred(Name),once(getInheritedStoredValue(_Ctx,User,Name,Value)).
 
@@ -160,7 +160,9 @@ isPersonaPred(Name):-findall(Pred,(getContextStoredValue(_Ctx,_Dict,Pred,_Value)
 
 
 
-
+% ===============================================================================================
+% substs dictionaries
+% ===============================================================================================
 addReplacement(Ctx,IDict,Find,Replace):-dictNameDictNameC(Ctx,IDict,before,Dict,before),!,addReplacement(Ctx,Dict,Find,Replace).
 addReplacement(Ctx,SubstsNameI,Find,Replace):-
       convert_dictname(Ctx,SubstsNameI,SubstsName),SubstsNameI \== SubstsName,
@@ -181,8 +183,9 @@ addReplacement(Dict,Find,Replace):-currentContext(addReplacement(Dict,Find,Repla
 % ===============================================================================================
 dictNameDictNameC(Ctx,IDict,NameI,Dict,Name):-dictNameDictName(Ctx,IDict,NameI,Dict,Name),!, IDict+NameI \==Dict+Name.
 
-dictNameDictName(Ctx,_Dict,D:NameI,Dict,Name):- nonvar(D),!,dictNameDictName(Ctx,D,NameI,Dict,Name).
-dictNameDictName(Ctx,IDict,NameI,Dict,Name):- convert_dictname(Ctx,IDict,Dict),unresultifyL(Ctx,NameI,Name).
+dictNameDictName(Ctx,IDict,NameI,Dict,Name):- hotrace(dictNameDictName0(Ctx,IDict,NameI,Dict,Name)).
+dictNameDictName0(Ctx,_Dict,D:NameI,Dict,Name):- nonvar(D),!,dictNameDictName(Ctx,D,NameI,Dict,Name).
+dictNameDictName0(Ctx,IDict,NameI,Dict,Name):- convert_dictname(Ctx,IDict,Dict),unresultifyL(Ctx,NameI,Name).
 
 unresultifyL(Ctx,NameI,Name):-unresultifyLL(Ctx,NameI,NameU),toLowerIfAtom(NameU,Name),!.
 
@@ -214,6 +217,7 @@ quitely(Ctx):-getCtxValueElse(quiteMemOps,Ctx,True,false),!,True=true.
 
 resetAliceMem(Ctx,IDict,NameI,Value):- dictNameDictName(Ctx,IDict,NameI,Dict,Name),
    % for printing
+   %%%traceIf(Dict==filelevel),
    currentContextValue(Ctx,Dict,Name,B),   
    (atom_contains(Name,'(')->true;(not(quitely(Ctx))->true;debugFmt('/* ~q. */',[dict(Dict,Name,B->Value)]))),
    % for cleaning
@@ -235,8 +239,11 @@ clearContextValues(Ctx,IDict,NameI):-dictNameDictName(Ctx,IDict,NameI,Dict,Name)
 
 addNewContextValue(Ctx,IDict,NameI,Value):-dictNameDictNameC(Ctx,IDict,NameI,Dict,Name),!,addNewContextValue(Ctx,Dict,Name,Value).
 addNewContextValue(Ctx,Dict,Name,OM):-OM=='OM',!,clearContextValues(Ctx,Dict,Name),!.
-addNewContextValue(Ctx,Dict,Name,Value):-prolog_must(nonvar(Value)),dictNameKey(Dict,Name,Key),
-   addCtxValue(Key,Ctx,Value),asserta(dict(Dict,Name,Value)).
+addNewContextValue(Ctx,Dict,Name,Value):- 
+   dictNameKey(Dict,Name,Key),
+   addCtxValue(Key,Ctx,Value),
+   ifThen(nonvar(Value),asserta(dict(Dict,Name,Value))),
+   ifThen(not(ground(Value)),debugFmt(addCtxValue(Key,Ctx,Value))).
 
 % ===============================================================================================
 %    Context values API
@@ -530,11 +537,13 @@ unwrapValue1(Value,Value):-!.
 bestSetterFn(v(_,Setter,_),_OuterSetter,Setter):-!.
 bestSetterFn(_Value,OuterSetter,OuterSetter).
 
-getCtxValueElse(Name,Ctx,Value,_Else):-getCtxValue(Name,Ctx,Value),!.
+getCtxValueElse(Name,Ctx,Value,_Else):-getCtxValue0(Name,Ctx,Value),!.
 getCtxValueElse(_Name,_Ctx,Else,Else).
 
-getCtxValue(Name,CtxIn,Value):-checkCtx(CtxIn), hotrace(( get_ctx_holder(CtxIn,Ctx),get_o_value(Name,Ctx,HValue,_Setter),!, unwrapValue(HValue,Value))),!.
-getCtxValue(Name,CtxI,Value):-checkCtx(CtxI),lastMember(Ctx,CtxI),hotrace(( get_ctx_holder(Ctx,CtxH),get_o_value(Name,CtxH,HValue,_Setter),!, unwrapValue(HValue,Value))),!.
+getCtxValue(Name,CtxI,Value):-getCtxValue0(Name,CtxI,Value).
+getCtxValue(Name,CtxI,Value):-debugFmt(not(getCtxValue(Name,CtxI,Value))),fail.
+getCtxValue0(Name,CtxIn,Value):-checkCtx(CtxIn), hotrace(( get_ctx_holder(CtxIn,Ctx),get_o_value(Name,Ctx,HValue,_Setter),!, unwrapValue(HValue,Value))),!.
+getCtxValue0(Name,CtxI,Value):-checkCtx(CtxI),lastMember(Ctx,CtxI),hotrace(( get_ctx_holder(Ctx,CtxH),get_o_value(Name,CtxH,HValue,_Setter),!, unwrapValue(HValue,Value))),!.
 
 setCtxValue(Name,CtxIn,Value):-checkCtx(CtxIn),get_ctx_holder(CtxIn,Ctx),get_o_value(Name,Ctx,HValue,Setter),unwrapValue(HValue,CurrentValue),!,(CurrentValue=Value;call(Setter,Name,CtxIn,Value)),!.
 setCtxValue(Name,Ctx,Value):-checkCtx(Ctx),addCtxValue1(Name,Ctx,Value),!.

@@ -6,6 +6,187 @@
 % Version: 'logicmoo_module_aiml_shared.pl' 1.0.0
 % Revision:  $Revision: 1.7 $
 % Revised At:   $Date: 2002/07/11 21:57:28 $
+
+
+
+/*
+dynamic_transparent([]):-!.
+dynamic_transparent([X]):-dynamic_transparent(X),!.
+dynamic_transparent([X|Xs]):-!,dynamic_transparent(X),dynamic_transparent(Xs),!.
+dynamic_transparent(M:F/A):-!, module_transparent(M:F/A),dynamic(M:F/A).
+dynamic_transparent(F/A):-!,multi_transparent(user:F/A).
+dynamic_transparent(X):-functor(X,F,A),dynamic_transparent(F/A),!.
+
+multi_transparent([]):-!.
+multi_transparent([X]):-multi_transparent(X),!.
+multi_transparent([X|Xs]):-!,multi_transparent(X),multi_transparent(Xs),!.
+multi_transparent(M:F/A):-!, module_transparent(M:F/A),dynamic(M:F/A),multifile(M:F/A).
+multi_transparent(F/A):-!,multi_transparent(user:F/A).
+multi_transparent(X):-functor(X,F,A),multi_transparent(F/A),!.
+*/
+
+:- module_transparent(library_directory/1).
+
+/*
+throw_safe(Exc):-trace,throw(Exc).
+string_to_atom_safe(ISO,LISTO):-LISTO==[],!,string_to_atom(ISO,'').
+string_to_atom_safe(ISO,LISTO):-string_to_atom(ISO,LISTO).
+atom_concat_safe(L,R,A):- ((atom(A),(atom(L);atom(R))) ; ((atom(L),atom(R)))), !, atom_concat(L,R,A),!.
+exists_file_safe(File):-prolog_must(atomic(File)),exists_file(File).
+exists_directory_safe(File):-prolog_must(atomic(File)),exists_directory(File).
+concat_atom_safe(List,Sep,[Atom]):-atom(Atom),!,concat_atom(List,Sep,Atom),!.
+concat_atom_safe(List,Sep,Atom):-atom(Atom),!,concat_atom(ListM,Sep,Atom),!,List = ListM.
+concat_atom_safe(List,Sep,Atom):- concat_atom(List,Sep,Atom),!.
+upcase_atom_safe(A,B):-atom(A),upcase_atom(A,B),!.
+time_file_safe(F,INNER_XML):-exists_file_safe(F),time_file(F,INNER_XML).
+list_to_set_safe(A,A):-(var(A);atomic(A)),!.
+list_to_set_safe([A|AA],BB):- (not(not(lastMember(A,AA))) -> list_to_set_safe(AA,BB) ; (list_to_set_safe(AA,NB),BB=[A|NB])),!.
+*/
+
+%================================================================
+% maplist/[2,3]
+% this must succeed  maplist_safe(=,[X,X,X],[1,2,3]).
+% well if its not "maplist" what shall we call it?
+%================================================================
+% so far only the findall version works .. the other runs out of local stack!?
+/*
+maplist_safe(_Pred,[]):-!.
+maplist_safe(Pred,LIST):-findall(E,(member(E,LIST),debugOnFailure(apply(Pred,[E]))),LISTO),!, ignore(LIST=LISTO),!.
+%% though this should been fine %%  maplist_safe(Pred,[A|B]):- copy_term(Pred+A, Pred0+A0), debugOnFailure(once(call(Pred0,A0))),     maplist_safe(Pred,B),!.
+
+maplist_safe(_Pred,[],[]):-!.
+maplist_safe(Pred,LISTIN, LIST):-!, findall(EE, ((member(E,LISTIN),debugOnFailure(apply(Pred,[E,EE])))), LISTO),  ignore(LIST=LISTO),!.
+%% though this should been fine %% maplist_safe(Pred,[A|B],OUT):- copy_term(Pred+A, Pred0+A0), debugOnFailureEach(once(call(Pred0,A0,AA))),  maplist_safe(Pred,B,BB), !, ignore(OUT=[AA|BB]).
+*/
+
+:- dynamic(buggerDir/1).
+:- abolish(buggerDir/1),prolog_load_context(directory,D),asserta(buggerDir(D)).
+:- dynamic(buggerFile/1).
+:- abolish(buggerFile/1),prolog_load_context(source,D),asserta(buggerFile(D)).
+
+
+hasLibraryBuggerySupport :- absolute_file_name(library('logicmoo/logicmoo_util_library.pl'),File),exists_file(File).
+
+throwNoLibBugger:- trace,absolute_file_name('.',Here), buggerFile(BuggerFile), listing(library_directory), throw(error(existence_error(url, BuggerFile), context(_, status(404, [BuggerFile, from( Here) ])))).
+
+addLibraryDir :- buggerDir(Here),atom_concat(Here,'/..',UpOne), absolute_file_name(UpOne,AUpOne),asserta(user:library_directory(AUpOne)).
+
+% if not has library suport, add this direcotry as a library directory
+:-not(hasLibraryBuggerySupport) -> addLibraryDir ; true .
+
+:-hasLibraryBuggerySupport->true;throwNoLibBugger.
+
+% TODO remove this next line
+% :-ensure_loaded(library('logicmoo/logicmoo_util_bugger.pl')).
+% and replace with...
+
+
+% ==========================================================
+%  can/will Tracer.
+% ==========================================================
+ 
+:-dynamic(canTrace/0).
+unused:canTrace.
+
+%isConsole :- telling(user).
+unused:isConsole :- current_output(X),!,stream_property(X,alias(user_output)).
+
+willTrace:-not(isConsole),!,fail.
+willTrace:-canTrace.
+
+hideTrace:-
+   hideTrace([hotrace/1], -all),
+   %%hideTrace(computeInnerEach/4, -all),
+
+   hideTrace(
+     [maplist_safe/2, 
+              maplist_safe/3], -all),
+
+
+   hideTrace([hideTrace/0,
+         canTrace/0,
+         ctrace/0,         
+         willTrace/0], -all),
+
+   hideTrace([
+         traceafter_call/1,
+
+         notrace_call/1], -all),
+
+   hideTrace(user:[
+      call/1,
+      call/2,
+      apply/2,
+      '$bags':findall/3,
+      '$bags':findall/4,
+      once/1,
+      ','/2,
+      catch/3,
+      member/2], -all),
+
+   hideTrace(user:setup_call_catcher_cleanup/4,-all),
+
+   hideTrace(system:throw/1, +all),
+   %%hideTrace(system:print_message/2, +all),
+   hideTrace(user:message_hook/3 , +all),
+   hideTrace(system:message_to_string/2, +all),
+   !,hideRest,!.
+   %%findall(File-F/A,(functor_source_file(M,P,F,A,File),M==user),List),sort(List,Sort),debugFmt(Sort),!.
+
+hideRest:- fail, logicmoo_util_library:buggerDir(BuggerDir),
+      functor_source_file(M,_P,F,A,File),atom_concat(BuggerDir,_,File),hideTraceMFA(M,F,A,-all),
+      fail.
+hideRest:- functor_source_file(system,_P,F,A,_File),hideTraceMFA(system,F,A,-all), fail.
+hideRest.
+
+:- meta_predicate(hideTrace(:,+)).
+
+functor_source_file(M,P,F,A,File):-functor_source_file0(M,P,F,A,File). %% prolog_must(ground((M,F,A,File))),prolog_must(user:nonvar(P)).
+functor_source_file0(M,P,F,A,File):-current_predicate(F/A),functor(P,F,A),source_file(P,File),predicate_module(P,M).
+
+predicate_module(P,M):- predicate_property(P,imported_from(M)),!.
+predicate_module(M:_,M):-!. %strip_module(P,M,_F),!.
+predicate_module(_P,user):-!. %strip_module(P,M,_F),!.
+%%predicate_module(P,M):- strip_module(P,M,_F),!.
+
+hideTrace(_:A, _) :-
+        var(A), !, trace, fail,
+        throw(error(instantiation_error, _)).
+hideTrace(_:[], _) :- !.
+hideTrace(A:[B|D], C) :- !,
+        hideTrace(A:B, C),
+        hideTrace(A:D, C),!.
+
+hideTrace(M:A,T):-!,hideTraceMP(M,A,T),!.
+hideTrace(MA,T):-hideTraceMP(_,MA,T),!.
+
+hideTraceMP(M,F/A,T):-!,hideTraceMFA(M,F,A,T),!.
+hideTraceMP(M,P,T):-functor(P,F,0),trace,hideTraceMFA(M,F,_A,T),!.
+hideTraceMP(M,P,T):-functor(P,F,A),hideTraceMFA(M,F,A,T),!.
+
+tryCatchIgnore(MFA):- catch(MFA,_E,true). %%debugFmt(tryCatchIgnoreError(MFA:E))),!.
+tryCatchIgnore(_MFA):- !. %%debugFmt(tryCatchIgnoreFailed(MFA)).
+
+tryHide(MFA):- tryCatchIgnore('$hide'(MFA)).
+
+hideTraceMFA(_,M:F,A,T):-!,hideTraceMFA(M,F,A,T),!. 
+hideTraceMFA(M,F,A,T):-user:nonvar(A),functor(P,F,A),predicate_property(P,imported_from(IM)),IM \== M,!,nop(debugFmt(doHideTrace(IM,F,A,T))),hideTraceMFA(IM,F,A,T),!.
+hideTraceMFA(M,F,A,T):-hideTraceMFAT(M,F,A,T),!.
+
+hideTraceMFAT(M,F,A,T):-doHideTrace(M,F,A,T),!.
+
+doHideTrace(_M,_F,_A,[]):-!.
+doHideTrace(M,F,A,[hide|T]):- tryHide(M:F/A),!,doHideTrace(M,F,A,T),!.
+doHideTrace(M,F,A,ATTRIB):- tryHide(M:F/A),!, 
+   tryCatchIgnore(trace(M:F/A,ATTRIB)),!.
+
+
+unused:ctrace:-willTrace->trace;notrace.
+
+bugger:-hideTrace,traceAll,guitracer,debug,list_undefined.
+
+singletons(_).
+
 % ===================================================================
 :-dynamic(lineInfoElement/4).
 
@@ -46,6 +227,7 @@ nop(_).
 unlistify([L],O):-nonvar(L),unlistify(L,O),!.
 unlistify(L,L).
 
+%%:-traceLevel(unresultify/2,+enter).
 unresultify(Var,Var):-(var(Var);atomic(Var)),!.
 unresultify([DictI|NV],Dict):-nonvar(DictI),NV==[],!,unresultify(DictI,Dict),!.
 unresultify(Fun,Dict):-resultOrProof(Fun,DictI),!,unresultify(DictI,Dict),!.
@@ -130,6 +312,7 @@ prolog_must_tracing0(Call):-trace(Call,[-all,+fail]), atLeastOne(Call,hotrace(ai
 
 :-'$hide'(prolog_ecall/2).
 prolog_ecall(_Pred,Call):-var(Call),!,trace,randomVars(Call).
+prolog_ecall(Pred,Call):-tracing,!,call(Pred,Call).
 prolog_ecall(Pred,(X->Y;Z)):-!,(call(X) -> prolog_ecall(Pred,Y) ; prolog_ecall(Pred,Z)).
 prolog_ecall(Pred,(X->Y)):-!,(call(X)->prolog_ecall(Pred,Y)).
 prolog_ecall(Pred,catch(C,E,H)):-!,catch(prolog_ecall(Pred,C),E,prolog_ecall(Pred,H)).
@@ -540,6 +723,7 @@ traceAll:-!.
 %  but if that code does something wrong while your not debugging, you want to see the error
 % ===================================================================
 
+:-'$hide'(hotrace/1).
 hotrace(X):-tracing,!, notrace(X).
 hotrace(X):- call(X).
 

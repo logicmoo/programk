@@ -221,7 +221,8 @@ systemCall_Bot(Ctx,[FIRST|REST],DONE):-atom_concat_safe('@',CMD,FIRST),CMD\=='',
 systemCall_Bot(_Ctx,['eval'|DONE],template([evaled,DONE])):-!.
 systemCall_Bot(_Ctx,['echo'|DONE],DONE):-!.
 systemCall_Bot(Ctx,['set'],template([setted,Ctx])):-!,unify_listing(getUserDicts(_User,_Name,_Value)),!.
-systemCall_Bot(Ctx,['get',Name|MajorMinor],template([getted,Dict,Value])):- getDictFromAttributes(Ctx,[],SYM),member(Dict,[SYM,user,robot,_]),debugOnFailure(getIndexedValue(Ctx,Dict,Name,MajorMinor,Value)),!.
+systemCall_Bot(Ctx,['get',Name|MajorMinor],template([getted,Dict,Value])):- getDictFromAttributes(Ctx,evalsrai,[],SYM),member(Dict,[SYM,user,robot,_]),
+  debugOnFailure(getIndexedValue(Ctx,Dict,Name,MajorMinor,Value)),!.
 systemCall_Bot(Ctx,['get'],template([getted,Passed])):- unify_listing(getContextStoredValue(Ctx,_,_,_),Passed).
 %systemCall_Bot(Ctx,['ctx'],template([ctxed,Ctx])):-!,showCtx.
 systemCall_Bot(Ctx,['load'|REST],OUT):- !, debugOnFailure(systemCall_Load(Ctx,REST,OUT)),!.

@@ -392,7 +392,7 @@ load_aiml_structure(Ctx,element(aiml,ALIST,LIST)):-
 
 
 % \n\n\n
-load_aiml_structure(Ctx,O):-atomic(O),!,aimlDebugFmt(load_aiml_structure(Ctx,O)),!.
+load_aiml_structure(Ctx,O):-atomic(O),!,debugFmt(load_aiml_structure(Ctx,O)),!.
 
 
 % topic/category/flags/that

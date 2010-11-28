@@ -753,7 +753,7 @@ computeAnswer(_Ctx,Votes,Resp,Resp,Votes):-trace,aiml_error(computeAnswer(Resp))
 computeSRAI(_Ctx,_Votes,[],_,_,_Proof):- !,trace,fail.
 
 computeSRAI(Ctx,Votes,Input,Result,VotesO,Proof):-
-   getAliceMem(Ctx,'bot','I',Robot),
+   getAliceMem(Ctx,'bot','me',Robot),
    getAliceMem(Ctx,'bot','you',User),
    prolog_must(computeSRAI0(Ctx,Votes,fromTo(User,Robot),Input,Result,VotesO,Proof)).
 
@@ -1159,19 +1159,19 @@ rememberSaidIt(Ctx,_-R1):-!,rememberSaidIt(Ctx,R1).
 rememberSaidIt(Ctx,R1):-append(New,'.',R1),!,rememberSaidIt(Ctx,New).
 rememberSaidIt(Ctx,R1):-answerOutput(R1,SR1),R1\==SR1,!,rememberSaidIt(Ctx,SR1).
 rememberSaidIt(Ctx,R1):- !,
-   getItemValue('me',Ctx,Speaker),
-   getItemValue('you',Ctx,Hearer),
-   rememberSaidIt_SH(Ctx,R1,Speaker,Hearer).
+   getItemValue('me',Ctx,Robot),
+   getItemValue('you',Ctx,User),
+   rememberSaidIt_SH(Ctx,R1,Robot,User).
 
-rememberSaidIt_SH(_Ctx,[],_Speaker,_Hearer):-!.
-rememberSaidIt_SH(Ctx,_-R1,Speaker,Hearer):-!,rememberSaidIt_SH(Ctx,R1,Speaker,Hearer).
-rememberSaidIt_SH(Ctx,R1,Speaker,Hearer):-append(New,[Punct],R1),sentenceEnderOrPunct_NoQuestion(Punct),!,rememberSaidIt_SH(Ctx,New,Speaker,Hearer).
-rememberSaidIt_SH(Ctx,R1,Speaker,Hearer):-answerOutput(R1,SR1),!,
-   setAliceMem(Ctx,Speaker,'lastSaid',SR1),
-   pushInto1DAnd2DArray(Ctx,'response','that',10,SR1,Speaker->Hearer).
+rememberSaidIt_SH(_Ctx,[],_Robot,_User):-!.
+rememberSaidIt_SH(Ctx,_-R1,Robot,User):-!,rememberSaidIt_SH(Ctx,R1,Robot,User).
+rememberSaidIt_SH(Ctx,R1,Robot,User):-append(New,[Punct],R1),sentenceEnderOrPunct_NoQuestion(Punct),!,rememberSaidIt_SH(Ctx,New,Robot,User).
+rememberSaidIt_SH(Ctx,R1,Robot,User):-answerOutput(R1,SR1),!,
+   setAliceMem(Ctx,Robot,'lastSaid',SR1),
+   pushInto1DAnd2DArray(Ctx,'response','that',10,SR1,Robot->User).
 
 
-pushInto1DAnd2DArray(Ctx,Name,Name2,Ten,SR1,_Speaker->User):-
+pushInto1DAnd2DArray(Ctx,Name,Name2,Ten,SR1,_Robot->User):-
    splitSentences(SR1,SR2),
    addCtxValue(quiteMemOps,Ctx,true),
    previousVars(Name,PrevVars,Ten),

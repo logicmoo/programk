@@ -81,11 +81,17 @@ prolog_ecall(Pred,Call):- debugOnError0(call(Pred,Call)).
 :-'$hide'(atLeastOne/1).
 :-'$hide'(atLeastOne/2).
 :-'$hide'(atLeastOne0/2).
+:-'$hide'(atLeastOne0/3).
 atLeastOne(OneA):- atLeastOne(OneA,(trace,OneA)).
-atLeastOne(OneA,Else):-atLeastOne0(OneA,Else).
+%%atLeastOne(OneA,Else):- !,atLeastOne0(OneA,Else).
+atLeastOne(OneA,Else):- gensym(atLeastOne,AtLeastOne),flag(AtLeastOne,_,0),atLeastOne0(AtLeastOne,OneA,Else).
 
-atLeastOne0(OneA,_Else):-copy_term(OneA,One),findall(One,call(One),OneL),[_|_]=OneL,!,member(OneA,OneL).
-atLeastOne0(OneA,Else):-debugFmt(failed(OneA)),!,Else,!,fail.
+atLeastOne0(AtLeastOne,OneA,_Else):- OneA, flag(AtLeastOne,X,X+1).
+atLeastOne0(AtLeastOne,OneA,Else):- flag(AtLeastOne,X,X),X=0, debugFmt(failed(OneA)),!,Else,!,fail.
+
+%%atLeastOne0(OneA,_Else):-copy_term(OneA,One),findall(One,call(One),OneL),[_|_]=OneL,!,member(OneA,OneL).
+%%atLeastOne0(OneA,Else):-debugFmt(failed(OneA)),!,Else,!,fail.
+
 
 
 randomVars(Term):- random(R), Start is round('*'(R,1000000)), !,

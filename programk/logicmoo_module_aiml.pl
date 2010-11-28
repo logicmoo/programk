@@ -243,7 +243,7 @@ expandVariable(_Ctx,mynick,'jllykifsh'):-!.
 expandVariable(_Ctx,version,[push_nobrkspace,'1','.','0','.','1',pop_nobrkspace]):-!.
 expandVariable(_Ctx,id,'$botnick$'):-!.
 expandVariable(_Ctx,size,Size):-aimlCateSig(X),predicate_property(X,number_of_clauses(Size)),!.
-%TODO extract the machine's TimeZone
+%TODO extract the machine TimeZone
 expandVariable(_Ctx,date,[Y,'-',M,'-',D]):-get_time(TimeStamp),stamp_date_time(TimeStamp,DateTime,'UTC'),date_time_value(date,DateTime,date(Y,M,D)),!.
 expandVariable(_Ctx,mychan,A):-!,default_channel(B),!,from_atom_codes(A,B),!.
 expandVariable(Ctx,NameVar,Result):-getAliceMem(Ctx,'bot',NameVar,Result),!.

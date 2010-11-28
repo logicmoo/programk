@@ -329,7 +329,7 @@ computeElement(_Ctx,Votes,srai,ATTRIBS,[],result([],srai=ATTRIBS),VotesO):-trace
 
 
 % <srai>s   
-computeElement(Ctx,Votes,srai,ATTRIBS,Input0,Output,VotesO):- 
+computeElement(Ctx,Votes,srai,ATTRIBS,Input0,Output,VotesO):- % for evalSRAI
   prolog_must(ground(Input0)),!,flatten([Input0],Input), !,
   withAttributes(Ctx,ATTRIBS,((computeTemplate(Ctx,Votes,Input,Middle,VotesM),
    evalSRAI(Ctx,VotesM,ATTRIBS,Middle,Output,VotesO)))).
@@ -461,65 +461,6 @@ computeElement_subst(Ctx,Votes,_Gender,DictName,Attribs,Input,Result,VotesO):-
       withAttributes(Ctx,Attribs,((computeTemplate(Ctx,Votes,Input,Hidden,VotesO),
       substituteFromDict(Ctx,DictName,Hidden,Result)))),!.
 
-% ===================================================================
-% Substitution based on Pred like sameWordsDict(String,Pattern).
-% ===================================================================
-
-convert_substs(A,D):-simplify_atom0(A,M),A\==M,!,convert_substs(M,D).
-convert_substs(A,D):-A=D.
-
-simplify_atom0(A,A):-A==[],!.
-simplify_atom0(A0,D):- is_list(A0),atomic_list_concat(A0,' ',A),!,simplify_atom0(A,D).
-simplify_atom0(A,D):- atom(A),!,downcase_atom(A,B),atomic_list_concat(L0,'\\b',B),delete(L0,'',L),atomic_list_concat(L,' ',C),!,atomSplit(C,D),!.
-
-
-sameWordsDict([String|A],[Pattern|B]):-!,sameWordsDict0(String,Pattern),!,sameWordsDict_l(A,B),!.
-sameWordsDict(String,Pattern):-sameWordsDict0(String,Pattern),!.
-
-sameWordsDict_l([String|A],[Pattern|B]):-sameWordsDict0(String,Pattern),sameWordsDict_l(A,B),!.
-sameWordsDict_l([],[]):-!.
-
-sameWordsDict0(verbatum(_String),_):-!,fail.
-sameWordsDict0(_,verbatum(_Pattern)):-!,fail.
-sameWordsDict0(String,Pattern):-compound(String), 
-   debugOnFailure((answerOutput_atom(String,String1),debugFmt(interactStep(String,String1,Pattern)),String \== String1)),!,
-   sameWordsDict0(String1,Pattern).
-
-sameWordsDict0(String,Pattern):-compound(Pattern), 
-   debugOnFailure((answerOutput_atom(Pattern,Pattern1),debugFmt(interactStep(Pattern,Pattern1,String)), Pattern \== Pattern1)),!,
-   sameWordsDict0(String,Pattern1).
-
-sameWordsDict0(String,Pattern):-String==Pattern,!,debugFmt(sameWordsDict(String,Pattern)).
-%sameWordsDict0(String,Pattern):-debugFmt(sameWordsDict0(String,Pattern)),wildcard_match(Pattern,String),!.
-%sameWordsDict0(String,Pattern):-dwim_match(Pattern,String),!.
-
-answerOutput_atom(Pattern,Pattern1):-unresultify(Pattern,Pattern0),unlistify(Pattern0,Pattern1),!,prolog_must(atomic(Pattern1)).
-
-dictReplace(DictName,Before,After):-dict(substitutions(DictName),Before,After).%%convert_substs(Before,B),convert_template(Ctx,After,A).
-
-substituteFromDict(Ctx,DictName,Hidden,Output):-answerOutput(Hidden,Mid),Hidden\==Mid,!,substituteFromDict(Ctx,DictName,Mid,Output),!.
-
-substituteFromDict(Ctx,DictName,Hidden,Output):- dictReplace(DictName,_,_),prolog_must(substituteFromDict_l(Ctx,DictName,Hidden,Output)),!.
-
-substituteFromDict(_Ctx,DictName,Hidden,Output):- dictReplace(DictName,_,_),!,
-      recorda(DictName,Hidden),
-      forall(dictReplace(DictName,Before,After),
-          (recorded(DictName,Start,Ref),
-          erase(Ref),              
-          pred_subst(sameWordsDict,Start,Before,verbatum(After),End),
-          recorda(DictName,End))),
-      recorded(DictName,Output,Ref),
-      debugFmt(substituteFromDict(Hidden,Output)),
-      erase(Ref),!.
-
-substituteFromDict(_Ctx,DictName,Hidden,result([substs,DictName,on,Hidden],Result)):-Result=..[DictName,Hidden].
-
-substituteFromDict_l(_Ctx,_DictName,Hidden,Output):-atomic(Hidden),!,Hidden=Output.
-substituteFromDict_l(Ctx,DictName,[V|Hidden],[V|Output]):-verbatum(_)==V,!,substituteFromDict_l(Ctx,DictName,Hidden,Output).
-substituteFromDict_l(Ctx,DictName,Hidden,[verbatum(After)|Output]):-dictReplace(DictName,Before,After),length(Before,Left),length(NewBefore,Left),
-   append(NewBefore,Rest,Hidden),sameBinding(NewBefore,Before),!,substituteFromDict_l(Ctx,DictName,Rest,Output).
-substituteFromDict_l(Ctx,DictName,[V|Hidden],[V|Output]):-substituteFromDict_l(Ctx,DictName,Hidden,Output).
-
 % .... formatters ....
 format_formal(_Ctx,In,Out):-toPropercase(In,Out),!.
 format_sentence(_Ctx,[In1|In],[Out1|Out]):-In=Out,toPropercase(In1,Out1),!.
@@ -588,7 +529,7 @@ starName(StarStar,StarStar):- atom_concat(_,'star',StarStar),!.
 starName(Star,StarStar):- atom_concat(Star,'star',StarStar),!.
 
 computeStar(Ctx,Votes,Star,Attribs,InnerXml,Resp,VotesO):- 
-   starName(Star,StarStar),Star \== StarStar,
+   starName(Star,StarStar),Star \== StarStar,!,
    computeStar(Ctx,Votes,StarStar,Attribs,InnerXml,Resp,VotesO),!.
 
 computeStar(Ctx,Votes,Star,Attribs,InnerXml,Resp,VotesO):- 
@@ -604,7 +545,7 @@ computeStar1(Ctx,Votes,Star,Major,ATTRIBS,InnerXml,Proof,VotesO):-atomic(Major),
 computeStar1(Ctx,Votes,Star,Index,ATTRIBS,_InnerXml,proof(ValueO,StarVar=ValueI),VotesO):- is_list(Index),
       CALL=concat_atom([Star|Index],StarVar),
       prolog_must(catch(CALL,E,(debugFmt(CALL->E),fail))),      
-      getDictFromAttributes(Ctx,ATTRIBS,Dict),
+      getDictFromAttributes(Ctx,evalsrai,ATTRIBS,Dict),
       getAliceMem(Ctx,Dict,StarVar,ValueI),!,
       computeTemplate(Ctx,Votes,element(template,ATTRIBS,ValueI),ValueO,VotesM),VotesO is VotesM * 1.1.
 
@@ -613,18 +554,18 @@ computeStar1(_Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Resp,VotesO):-
 
 
 
-computeMetaStar(Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Resp,VotesO):-computeStar0(Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Resp,VotesO).
+computeMetaStar(Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Resp,VotesO):-computeMetaStar0(Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Resp,VotesO).
 
-computeStar0(Ctx,Votes,Star,MajorMinor,ATTRIBS,_InnerXml,proof(ValueO,Star=ValueI),VotesO):- 
-      getDictFromAttributes(Ctx,ATTRIBS,Dict),
+computeMetaStar0(Ctx,Votes,Star,MajorMinor,ATTRIBS,_InnerXml,proof(ValueO,Star=ValueI),VotesO):- 
+      getDictFromAttributes(Ctx,evalsrai,ATTRIBS,Dict),
       getIndexedValue(Ctx,Dict,Star,MajorMinor,ValueI),!,
       computeTemplate(Ctx,Votes,element(template,ATTRIBS,ValueI),ValueO,VotesM),VotesO is VotesM * 1.1.
 
-computeStar0(_Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Resp,VotesO):- 
+computeMetaStar0(_Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Resp,VotesO):- 
       Resp = result(InnerXml,Star,Index,ATTRIBS),!,VotesO is Votes * 0.9. 
 
-getDictFromAttributes(Ctx,_ATTRIBS,SYM):-getCtxValue(evalsrai,Ctx,SYM).
-getDictFromAttributes(_Ctx,_ATTRIBS,'user').
+getDictFromAttributes(Ctx,VarHolder,_ATTRIBS,SYM):-getCtxValue(VarHolder,Ctx,SYM).
+getDictFromAttributes(_Ctx,_VarHolder,_ATTRIBS,'user').
 
 % ===============================================================================================
 % Compute Get/Set Probilities
@@ -1144,9 +1085,12 @@ starMust1(Ctx,StarName=Value):-starSet(Ctx,StarName,Value).
 starMust2(call(Call)):-!,prolog_must(Call).
 starMust2(_Skip).
 
-starSet(Ctx,StarName,Pattern):- ignore((var(N),star_flag(StarName,N,N))),
-   nop(traceIf(isStarValue(Pattern))),
-   getDictFromAttributes(Ctx,[],Dict),
+starSet(Ctx,StarNameI,Pattern):- 
+   starName(StarNameI,StarName),
+   ignore((var(N),star_flag(StarName,N,N))),
+   (traceIf(isStarValue(Pattern))),
+   getDictFromAttributes(Ctx,evalsrai,[],Dict),
+   prolog_must(Dict\==user),
    atom_concat(StarName,N,StarNameN),setAliceMem(Ctx,Dict,StarNameN,Pattern),!,star_flag(StarName,NN,NN+1).
 
 %%REAL-UNUSED  set_matchit1(StarName,Pattern,Matcher,OnBind):- length(Pattern,MaxLen0), MaxLen is MaxLen0 + 2,
@@ -1317,7 +1261,7 @@ lastMemberOrDefault(E,L,N,D):-L=N,E=D.
 
 convertToMatchable(That,LastSaid):-
       answerOutput(That,AA),!,
-      deleteAll(AA,['.','!','?','\'','!','','\n'],Words),
+      deleteAll(AA,['.','!','?','\'','!','','\n',',','\r\n','\n\n'],Words),
       toLowercase(Words,LastSaid),!.
 
 
@@ -1336,5 +1280,63 @@ deleteAll(A,[L|List],AA):-delete(A,L,AAA),deleteAll(AAA,List,AA),!.
 degrade(_-OR):-!,degrade(OR).
 degrade(OR):-asserta(degraded(OR)).
 
-aimlDebugFmt(X):-debugFmt(X),!.
+% ===================================================================
+% Substitution based on Pred like sameWordsDict(String,Pattern).
+% ===================================================================
+
+convert_substs(A,D):-simplify_atom0(A,M),A\==M,!,convert_substs(M,D).
+convert_substs(A,D):-A=D.
+
+simplify_atom0(A,A):-A==[],!.
+simplify_atom0(A0,D):- is_list(A0),atomic_list_concat(A0,' ',A),!,simplify_atom0(A,D).
+simplify_atom0(A,D):- atom(A),!,downcase_atom(A,B),atomic_list_concat(L0,'\\b',B),delete(L0,'',L),atomic_list_concat(L,' ',C),!,atomSplit(C,D),!.
+
+
+sameWordsDict([String|A],[Pattern|B]):-!,sameWordsDict0(String,Pattern),!,sameWordsDict_l(A,B),!.
+sameWordsDict(String,Pattern):-sameWordsDict0(String,Pattern),!.
+
+sameWordsDict_l([String|A],[Pattern|B]):-sameWordsDict0(String,Pattern),sameWordsDict_l(A,B),!.
+sameWordsDict_l([],[]):-!.
+
+sameWordsDict0(verbatum(_String),_):-!,fail.
+sameWordsDict0(_,verbatum(_Pattern)):-!,fail.
+sameWordsDict0(String,Pattern):-compound(String), 
+   debugOnFailure((answerOutput_atom(String,String1),debugFmt(interactStep(String,String1,Pattern)),String \== String1)),!,
+   sameWordsDict0(String1,Pattern).
+
+sameWordsDict0(String,Pattern):-compound(Pattern), 
+   debugOnFailure((answerOutput_atom(Pattern,Pattern1),debugFmt(interactStep(Pattern,Pattern1,String)), Pattern \== Pattern1)),!,
+   sameWordsDict0(String,Pattern1).
+
+sameWordsDict0(String,Pattern):-String==Pattern,!,debugFmt(sameWordsDict(String,Pattern)).
+%sameWordsDict0(String,Pattern):-debugFmt(sameWordsDict0(String,Pattern)),wildcard_match(Pattern,String),!.
+%sameWordsDict0(String,Pattern):-dwim_match(Pattern,String),!.
+
+answerOutput_atom(Pattern,Pattern1):-unresultify(Pattern,Pattern0),unlistify(Pattern0,Pattern1),!,prolog_must(atomic(Pattern1)).
+
+dictReplace(DictName,Before,After):-dict(substitutions(DictName),Before,After).%%convert_substs(Before,B),convert_template(Ctx,After,A).
+
+substituteFromDict(Ctx,DictName,Hidden,Output):-answerOutput(Hidden,Mid),Hidden\==Mid,!,substituteFromDict(Ctx,DictName,Mid,Output),!.
+
+substituteFromDict(Ctx,DictName,Hidden,Output):- dictReplace(DictName,_,_),prolog_must(substituteFromDict_l(Ctx,DictName,Hidden,Output)),!.
+
+substituteFromDict(_Ctx,DictName,Hidden,Output):- dictReplace(DictName,_,_),!,
+      recorda(DictName,Hidden),
+      forall(dictReplace(DictName,Before,After),
+          (recorded(DictName,Start,Ref),
+          erase(Ref),              
+          pred_subst(sameWordsDict,Start,Before,verbatum(After),End),
+          recorda(DictName,End))),
+      recorded(DictName,Output,Ref),
+      debugFmt(substituteFromDict(Hidden,Output)),
+      erase(Ref),!.
+
+substituteFromDict(_Ctx,DictName,Hidden,result([substs,DictName,on,Hidden],Result)):-Result=..[DictName,Hidden].
+
+substituteFromDict_l(_Ctx,_DictName,Hidden,Output):-atomic(Hidden),!,Hidden=Output.
+substituteFromDict_l(Ctx,DictName,[V|Hidden],[V|Output]):-verbatum(_)==V,!,substituteFromDict_l(Ctx,DictName,Hidden,Output).
+substituteFromDict_l(Ctx,DictName,Hidden,[verbatum(After)|Output]):-dictReplace(DictName,Before,After),length(Before,Left),length(NewBefore,Left),
+   append(NewBefore,Rest,Hidden),sameBinding(NewBefore,Before),!,substituteFromDict_l(Ctx,DictName,Rest,Output).
+substituteFromDict_l(Ctx,DictName,[V|Hidden],[V|Output]):-substituteFromDict_l(Ctx,DictName,Hidden,Output).
+
 

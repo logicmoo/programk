@@ -209,12 +209,12 @@ exists_directory_safe(File):-prolog_must(atomic(File)),exists_directory(File).
 
 :- abolish(cyc:debugFmt/1).
 
-cyc:debugFmt(Stuff):- notrace((debugFmtS(Stuff))),!.
+cyc:debugFmt(Stuff):- notrace((fresh_line,debugFmtS(Stuff),fresh_line)),!.
 
 debugFmtS([]):-!.
-debugFmtS([A|L]):-!,debugFmt('% ~q~n',[[A|L]]).
-debugFmtS(Comp):-hideIfNeeded(Comp,Comp2),!,debugFmt('% ~q~n',[Comp2]).
-debugFmtS(Stuff):-!,debugFmt('% ~q~n',[Stuff]).
+debugFmtS([A|L]):-!,debugFmt('% ~q',[[A|L]]).
+debugFmtS(Comp):-hideIfNeeded(Comp,Comp2),!,debugFmt('% ~q',[Comp2]).
+debugFmtS(Stuff):-!,debugFmt('% ~q',[Stuff]).
 
 
 nop(_).
@@ -329,10 +329,8 @@ prolog_ecall(Pred,Call):- debugOnError0(call(Pred,Call)).
 
 :-'$hide'(atLeastOne/1).
 :-'$hide'(atLeastOne/2).
-:-'$hide'(atLeastOne0/2).
 :-'$hide'(atLeastOne0/3).
 atLeastOne(OneA):- atLeastOne(OneA,(trace,OneA)).
-%%atLeastOne(OneA,Else):- !,atLeastOne0(OneA,Else).
 atLeastOne(OneA,Else):- gensym(atLeastOne,AtLeastOne),flag(AtLeastOne,_,0),atLeastOne0(AtLeastOne,OneA,Else).
 
 atLeastOne0(AtLeastOne,OneA,_Else):- OneA, flag(AtLeastOne,X,X+1).
@@ -437,6 +435,10 @@ printPredCount(Msg,Pred,N1):- compound(Pred), debugOnFailureAimlEach((arg(_,Pred
 
 printPredCount(Msg,Pred,N1):-!,functor(Pred,File,A),functor(FA,File,A), predicate_property(FA,number_of_clauses(N1)),debugFmt(num_clauses(Msg,File/A,N1)),!.
 
+fresh_line:-current_output(Strm),fresh_line(Strm),!.
+fresh_line(Strm):-stream_property(Strm,position('$stream_position'(_,_,POS,_))),ifThen(POS>0,nl(Strm)),!.
+fresh_line(Strm):-trace,nl(Strm),!.
+
 % =================================================================================
 % Loader Utils
 % =================================================================================
@@ -499,12 +501,12 @@ unify_listing0(FileMatch):-functor(FileMatch,F,A),unify_listing(FileMatch,F,A),!
 
 unify_listing_header(FileMatch):-functor(FileMatch,F,A),unify_listing_header(FileMatch,F,A),!.
 
-unify_listing_header(FileMatch,F,A):- (format('~n/* Prediate:  ~q / ~q  ~n',[F,A,FileMatch])),fail.
+unify_listing_header(FileMatch,F,A):- fresh_line,(format('~n/* Prediate:  ~q/~q ',[F,A,FileMatch])),fresh_line,fail.
 unify_listing_header(FileMatch,_F,_A):- forall(predicate_property(FileMatch,Print),(format('~q.~n',[Print]))),fail.
-unify_listing_header(FileMatch,_F,_A):- (format('Pattern: ~q. ~n */~n~n',[FileMatch])),fail.
-unify_listing_header(FileMatch,F,A):-predicate_property(FileMatch,dynamic),(format(':-dynamic(~q).~n',[F/A])),fail.
-unify_listing_header(FileMatch,F,A):-predicate_property(FileMatch,multifile),(format(':-multifile(~q).~n',[F/A])),fail.
-unify_listing_header(_FileMatch,_F,_A).
+unify_listing_header(FileMatch,_F,_A):- (format('Pattern: ~q. ~n */~n',[FileMatch])),fresh_line,fail.
+unify_listing_header(FileMatch,F,A):-predicate_property(FileMatch,dynamic),(format(':-dynamic(~q).~n',[F/A])),fresh_line,fail.
+unify_listing_header(FileMatch,F,A):-predicate_property(FileMatch,multifile),(format(':-multifile(~q).~n',[F/A])),fresh_line,fail.
+unify_listing_header(_FileMatch,_F,_A):-fresh_line.
 
 unify_listing(FileMatch,F,A):- unify_listing_header(FileMatch,F,A), printAll(FileMatch).
 
@@ -546,8 +548,8 @@ alldiscontiguous:-!.
 callInteractive(Term,Var):-catch(callInteractive0(Term,Var),E,aiml_error(E)),!.
 
 %callInteractive0(Term,_):-atom(Term),!,Term,!,writeln(called(Term)),!.
-callInteractive0(Term,Var):- call(Term),writeq(Term:Var),nl,fail.
-callInteractive0(_,_):-!.
+callInteractive0(Term,Var):- fresh_line,call(Term),writeq(Term:Var),fresh_line,fail.
+callInteractive0(_,_):-fresh_line,!.
 
 %getWordTokens(WORDS,TOKENS):-concat_atom(TOKENS,' ',WORDS).
 %is_string(S):-string(S).

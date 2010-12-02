@@ -423,7 +423,7 @@ load_aiml_structure(_Ctx,element(Tag,ALIST,LIST)):- member(Tag,[meta]),!,debugFm
 
 % special dictionaries
 load_aiml_structure(Ctx,element(Tag,ALIST,LIST)):- %% member(Tag,[predicates,vars,properties,predicate,property,var,item]),
-   load_dict_structure(Ctx,element(Tag,ALIST,LIST)),!.
+   notrace(load_dict_structure(Ctx,element(Tag,ALIST,LIST))),!.
 
 /*
 % ============================================
@@ -462,7 +462,7 @@ dictionaryTypeTags(Tag,[bot]):-member(Tag,[bots,bot,entry]).
 dictionaryTypeTags(Tag,default):-member(Tag,[predicate,predicates]).
 dictionaryTypeTags(Tag,user):-member(Tag,[var,vars,set]).
 
-obtainDictionaryName(Ctx,_Tag,ALIST,Dict):- peekNameValue(Ctx,ALIST,[dict,user,type],Dict,'$failure'),!.
+obtainDictionaryName(Ctx,_Tag,ALIST,Dict):- dictVarName(N), peekNameValue(Ctx,ALIST,N,Dict,'$failure'),!.
 obtainDictionaryName(_Ctx,Tag,_ALIST,Dict):- dictionaryTypeTags(Tag,Dict),!.
 obtainDictionaryName(Ctx,_Tag,ALIST,Dict):- peekNameValue(Ctx,ALIST,[dictionary,name],Dict,'$error'),!.
 

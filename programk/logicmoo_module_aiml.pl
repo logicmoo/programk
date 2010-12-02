@@ -128,7 +128,7 @@ alicebot2(Ctx,Atoms,Resp):-
    flag(a_answers,_,0),!,
    prolog_must((
    getAliceMem(Ctx,'bot','you',User),
-   getAliceMem(Ctx,'bot','me',Robot),
+   getAliceMem(Ctx,'bot','me',_Robot),
    getAliceMem(Ctx,'bot',default('minanswers',1),MinAns),
    getAliceMem(Ctx,'bot',default('maxanswers',1),_MaxAns),
    %%setAliceMem(Ctx,User,'input',Atoms),
@@ -182,14 +182,27 @@ evalSRAI(Ctx,Votes,ATTRIBS,Input0,Output,VotesO):-
       computeSRAIStars(Ctx,ATTRIBS,Input,MidIn,VotesM,SYM,Proof,Output,VotesO))))).
 
 computeSRAIStars(Ctx,ATTRIBS,Input,MidIn,VotesM,SYM,Proof,Output,VotesO):-
-    prolog_must(nonvar(MidIn)),
-    prolog_must(nonvar(SYM)),
-    prolog_must(nonvar(Proof)),
+    prolog_must((nonvar(MidIn),
+                 nonvar(SYM),
+                 singletons([Ctx,ATTRIBS]),
+                 nonvar(Proof))),
+      %% Proof = Output, 
+      MidIn = Output, 
+      VotesM = VotesO,
+      debugFmt(computeSRAIStars(SYM,Input,Output)),
+      %%%trace,
+      prolog_must((ground(Output),number(VotesO))),!.
+
+computeSRAIStars(Ctx,ATTRIBS,Input,MidIn,VotesM,SYM,Proof,Output,VotesO):-
+    prolog_must((nonvar(MidIn),
+                 nonvar(SYM),
+                 nonvar(Proof))),
       debugFmt(computeSRAIStars(SYM,Input,MidIn)),
       computeElementMust(Ctx,VotesM,template,ATTRIBS,MidIn,MidIn9,VotesI9),
       prolog_must(answerOutput(MidIn9,Mid9)),
       debugFmt(evalSRAI(Input,MidIn,MidIn9,Mid9)),
-      prolog_must(computeAnswer(Ctx,VotesI9,Mid9,Output,VotesO)).
+      prolog_must(computeAnswer(Ctx,VotesI9,Mid9,Output,VotesO)),
+      prolog_must((ground(Output),number(VotesO))),!.
 
  evalsrai(SYM):-gensym(evalsrai,SYM).
 % ===============================================================================================
@@ -310,7 +323,7 @@ still_computeElement(Ctx,Votes, Tag, ATTRIBS, [DO|IT], OUT, VotesO) :- recursive
      withAttributes(_Ctx,ATTRIBS_NEW,
        ((findall(OutVoteMid,((member(In,[DO|IT]),computeInner(Ctx,Votes, In, OutVoteMid))),INNERDONE),
         NOUT=..[Tag,ATTRIBS,INNERDONE]))),!,
-         withAttributes(Ctx,ATTRIBS,computeAnswer(Ctx,Votes,NOUT,OUT,VotesO)).
+         withAttributes(Ctx,ATTRIBS,computeInnerTemplate(Ctx,Votes,NOUT,OUT,VotesO)).
 
 :-discontiguous(computeElement/7).
 
@@ -339,15 +352,17 @@ computeElement(_Ctx,Votes,srai,ATTRIBS,[],result([],srai=ATTRIBS),VotesO):-trace
 % <srai>s   
 computeElement(Ctx,Votes,srai,ATTRIBS,Input0,Output,VotesO):- % for evalSRAI
   prolog_must(ground(Input0)),!,flatten([Input0],Input), !,
-  withAttributes(Ctx,ATTRIBS,((computeTemplate(Ctx,Votes,Input,Middle,VotesM),
-   evalSRAI(Ctx,VotesM,ATTRIBS,Middle,Output,VotesO)))).
+  withAttributes(Ctx,ATTRIBS,
+   prolog_must((computeInnerTemplate(Ctx,Votes,Input,Middle,VotesM),
+    evalSRAI(Ctx,VotesM,ATTRIBS,Middle,OutputM,VotesOM),
+    computeTemplateOutput(Ctx,VotesOM,OutputM,Output,VotesO) ))).
 
 % <li...>
 computeElement(Ctx,Votes,li,Preconds,InnerXml,OutProof,VotesO):- !, computeElement_li(Ctx,Votes,Preconds,InnerXml,OutProof,VotesO).
 
 % <li> PASSED
 computeElement_li(Ctx,Votes,Preconds,InnerXml,OutProof,VotesO):-
-     precondsTrue(Ctx,Preconds),!,computeTemplate(Ctx,Votes,InnerXml,Output,VotesM),VotesO is VotesM * 1.1,!,
+     precondsTrue(Ctx,Preconds),!,computeInnerTemplate(Ctx,Votes,InnerXml,Output,VotesM),VotesO is VotesM * 1.1,!,
      prolog_must(OutProof = proof(Output,Preconds)).
 
 % <li> FAILED ==> []
@@ -398,15 +413,18 @@ computeElement(Ctx,Votes,InputResponse,Attribs,InnerXml,Resp,VotesO):-member(Inp
 computeElement(Ctx,Votes,gossip,_Attribs,Input,Output,VotesO):-!,computeAnswer(Ctx,Votes,Input,Output,VotesO).
 
 % <think...>
-computeElement(Ctx,Votes,think,_Attribs,Input,proof([],Hidden),VotesO):-!,computeTemplate(Ctx,Votes,Input,Hidden,VotesO).
+computeElement(Ctx,Votes,think,_Attribs,Input,proof([],think=Hidden),VotesO):-!,computeInnerTemplate(Ctx,Votes,Input,Hidden,VotesO).
 
-% <formatter...>
+% <formatter type="prologcall">
 computeElement(Ctx,Votes,formatter,Attribs,Input,Result,VotesO):- 
-      computeTemplateOutput(Ctx,Votes,Input,Mid,VotesO),
-      lastMember(type=ProcI,Attribs,_NEW),unlistify(ProcI,Proc),atom(Proc),atom_concat('format_',Proc,Pred),
-      computeCall(Ctx,Pred,Mid,Result,error),Result\==error.
+      computeInnerTemplate(Ctx,Votes,Input,Mid,VotesO),
+      lastMember(type=ProcI,Attribs,_NEW),listify(ProcI,[Proc|More]),atom(Proc),atomic_list_concat(['format_',Proc|More],Pred),
+      functor(Callable,Pred,3),predicate_property(Callable,_),
+      computeCall(Ctx,Pred,Mid,Result,'$error'),Result\=='$error'.
+
+% <formatter type="sometag">
 computeElement(Ctx,Votes,formatter,Attribs,Input,Result,VotesO):- !,
-      computeTemplate(Ctx,Votes,Input,Hidden,VotesO),
+      computeInnerTemplate(Ctx,Votes,Input,Hidden,VotesO),
       lastMember(type=ProcI,Attribs,NEW),unlistify(ProcI,Proc),!,
       withAttributes(Ctx,NEW,computeElement(Ctx,Votes,Proc,NEW,Hidden,Result,VotesO)),!.
 
@@ -430,14 +448,14 @@ computeElement(Ctx,Votes,cycrandom,_Attribs,RAND,Output,VotesO):-!, computeAnswe
 computeElement(Ctx,Votes,Tag,Attribs,Input,result(RESULT,Tag=EVAL),VotesO):- 
    member(Tag,[system]),
    checkNameValue(Ctx,Attribs,[lang],Lang, 'bot'),
-   computeAnswer(Ctx,Votes,Input,EVAL,VotesO),
+   computeInnerTemplate(Ctx,Votes,Input,EVAL,VotesO),
    systemCall(Ctx,Lang,EVAL,RESULT).
 
 % <cyc..>
 computeElement(Ctx,Votes,Tag,Attribs,Input,result(RESULT,Tag=EVAL),VotesO):- 
    member(Tag,[cycsystem,cyceval,cycquery]),
    checkNameValue(Ctx,Attribs,[lang],Lang, Tag),  
-   computeAnswer(Ctx,Votes,Input,EVAL,VotesO),
+   computeInnerTemplate(Ctx,Votes,Input,EVAL,VotesO),
    systemCall(Ctx,Lang,EVAL,RESULT).
 
 % <template, pre ...>
@@ -447,7 +465,7 @@ computeElement(Ctx,Votes,Tag,Attrib, DOIT, result(OUT,Tag=Attrib), VotesO) :- me
 % <uppercase, lowercase ...>
 computeElement(Ctx,Votes,Tag,Attrib, Input, Output, VotesO) :- formatterProc(Tag),
    formatterTypeMethod(Tag,Type,Method),!, 
-   prolog_must(computeTemplate(Ctx,Votes,Input,Mid,VotesO)),
+   computeInnerTemplate(Ctx,Votes,Input,Mid,VotesO),
    computeCall(Ctx,Method,Mid,Output,prologCall(Method, result(Mid,element(Tag,[type=Type|Attrib])))),!.
 
 % .... computeCall to formatter ....
@@ -476,13 +494,13 @@ computeElement_subst(Ctx,Votes,_Gender,DictName,Attribs,[],Result,VotesO):-
     substituteFromDict(Ctx,DictName,Hidden,Result),!.
 
 computeElement_subst(Ctx,Votes,_Gender,DictName,Attribs,Input,Result,VotesO):-
-      withAttributes(Ctx,Attribs,((computeTemplate(Ctx,Votes,Input,Hidden,VotesO),
+      withAttributes(Ctx,Attribs,((computeInnerTemplate(Ctx,Votes,Input,Hidden,VotesO),
       substituteFromDict(Ctx,DictName,Hidden,Result)))),!.
 
 % <load...>
 computeElement(Ctx,Votes,Tag,ATTRIBS,Input,result(RESULT,Tag=EVAL),VotesO):- 
    member(Tag,[load]),!,
-   computeAnswer(Ctx,Votes,Input,EVAL,VotesO),
+   computeInnerTemplate(Ctx,Votes,Input,EVAL,VotesO),
    tag_eval(Ctx,element(Tag,ATTRIBS,EVAL),RESULT).
 
 % <learn...>
@@ -510,7 +528,7 @@ computeElement(Ctx,Votes,Tag,ATTRIBS, DOIT, RESULT, Votes) :- member(Tag,[eval])
 
 % other evals
 computeElement(Ctx,Votes,Tag,ATTRIBS,Input,RESULT,VotesO):- evaluatorTag(Tag),
-   computeTemplate(Ctx,Votes,Input,EVAL,VotesO),!,
+   computeInnerTemplate(Ctx,Votes,Input,EVAL,VotesO),!,
    tag_eval(Ctx,element(Tag,ATTRIBS,EVAL),RESULT),!.
 
 % maybe not for sure botvar-ish 
@@ -559,7 +577,7 @@ computeStar1(Ctx,Votes,Star,Index,ATTRIBS,_InnerXml,proof(ValueO,StarVar=ValueI)
       computeTemplate(Ctx,Votes,element(template,ATTRIBS,ValueI),ValueO,VotesM),VotesO is VotesM * 1.1.
 
 computeStar1(_Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Resp,VotesO):- 
-      Resp = result(InnerXml,Star,Index,ATTRIBS),!,VotesO is Votes * 1.1. 
+      traceIf(Resp = result(InnerXml,Star,Index,ATTRIBS)),!,VotesO is Votes * 1.1. 
 
 
 
@@ -568,10 +586,10 @@ computeMetaStar(Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Resp,VotesO):-computeMetaS
 computeMetaStar0(Ctx,Votes,Star,MajorMinor,ATTRIBS,_InnerXml,proof(ValueO,Star=ValueI),VotesO):- 
       getDictFromAttributes(Ctx,evalsrai,ATTRIBS,Dict),
       getIndexedValue(Ctx,Dict,Star,MajorMinor,ValueI),!,
-      computeTemplate(Ctx,Votes,element(template,ATTRIBS,ValueI),ValueO,VotesM),VotesO is VotesM * 1.1.
+      computeInnerTemplate(Ctx,Votes,element(template,ATTRIBS,[ValueI]),ValueO,VotesM),VotesO is VotesM * 1.1.
 
-computeMetaStar0(_Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Resp,VotesO):- 
-      Resp = result(InnerXml,Star,Index,ATTRIBS),!,VotesO is Votes * 0.9. 
+computeMetaStar0(_Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Resp,VotesO):- trace,
+      traceIf(Resp = result(InnerXml,Star,Index,ATTRIBS)),!,VotesO is Votes * 0.9. 
 
 getDictFromAttributes(Ctx,VarHolder,_ATTRIBS,SYM):-getCtxValue(VarHolder,Ctx,SYM).
 getDictFromAttributes(_Ctx,_VarHolder,_ATTRIBS,'user').
@@ -593,8 +611,9 @@ computeGetSet(Ctx,Votes,bot,ATTRIBS,InnerXml,Resp,VotesO):- !, computeGetSetVar(
 
 computeGetSet(Ctx,Votes,GetSet,ATTRIBS,InnerXml,Resp,VotesO):- computeGetSetVar(Ctx,Votes,user,GetSet,_VarName,ATTRIBS,InnerXml,Resp,VotesO),!.
 
+dictVarName(N):-member(N,[dictionary,dict,userdict,type,user,botname,username,you,me]).
 dictFromAttribs(Ctx,ATTRIBS,Dict,NEW):-
-      member(N,[dict,userdict,type,user,botname,username,you,me]),
+      dictVarName(N),
       lastMember(N=Dict,ATTRIBS,NEW),getContextStoredValue(Ctx,Dict,_Name,Value),valuePresent(Value),!.
 
 %%computeGetSetVar(Ctx,Votes,_Dict,bot,VarName,ATTRIBS,InnerXml,Resp,VotesO):- !,computeGetSetVar(Ctx,Votes,user,get,VarName,ATTRIBS,InnerXml,Resp,VotesO).
@@ -619,7 +638,7 @@ computeGetSetVar(Ctx,Votes,Dict,get,VarName,ATTRIBS,_InnerXml,proof(ValueO,VarNa
 
 computeGetSetVar(Ctx,Votes,Dict,set,VarName,ATTRIBS,InnerXml,proof(ReturnValue,VarName=InnerXml),VotesO):-!,
       computeAnswer(Ctx,Votes,element(template,ATTRIBS,InnerXml),ValueM,VotesM),
-      computeTemplateOutput(Ctx,VotesM,ValueM,ValueO,VotesMO),
+      computeInnerTemplate(Ctx,VotesM,ValueM,ValueO,VotesMO),
       setAliceMem(Ctx,Dict,VarName,ValueO),!,
       returnNameOrValue(Ctx,Dict,VarName,ValueO,ReturnValue),
       VotesO is VotesMO * 1.1.
@@ -684,7 +703,7 @@ computeAnswer(_Ctx,Votes,'$stringCodes'(List),AA,Votes):-!,from_atom_codes(AA,Li
 % list-check
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
 % (should be no stars)
-computeAnswer(_Ctx,_Votes,Pattern,_,_):- isStarValue(Pattern),trace,fail.
+computeAnswer(_Ctx,_Votes,Pattern,_,_):- traceIf(isStarValue(Pattern)),fail.
 
 computeAnswer(_Ctx,Votes,[],[],Votes):-!.
 computeAnswer(Ctx,Votes,[A|B],OO,VotesO):- 
@@ -772,7 +791,7 @@ getConversationThread(Ctx,User,Robot,ConvThread):-
    setCtxValue('convthread',Ctx,ConvThread),!.
 
 computeSRAI0(Ctx,Votes,ConvThread,Input,Result,VotesO,Proof):-   
-   computeTemplateOutput(Ctx,Votes,Input,NewIn,VotesM),NewIn \== Input,!,
+   computeInnerTemplate(Ctx,Votes,Input,NewIn,VotesM),NewIn \== Input,!,
    computeSRAI0(Ctx,VotesM,ConvThread,NewIn,Result,VotesO,Proof),!.
 
 computeSRAI0(Ctx,Votes,ConvThread,Input,Result,VotesO,Proof):- not(is_list(Input)),compound(Input),
@@ -808,9 +827,9 @@ computeSRAI0(Ctx,Votes,ConvThread,[B|Flat],[B|Result],VotesO,Proof):- fail,
    computeSRAI2(Ctx,Votes,ConvThread,Flat,Result,VotesO,Proof,_PostMatchLevel3),prolog_must(nonvar(Result)).
 
 getAliceMemOrSetDefault(CtxIn,ConvThread,Name,Value,_OrDefault):-
-   getCtxValue(ConvThread:Name,CtxIn,Value),!.
+   notrace(getCtxValue(ConvThread:Name,CtxIn,Value)),!.
 getAliceMemOrSetDefault(CtxIn,ConvThread,Name,Value,_OrDefault):-
-   getIndexedValue(CtxIn,ConvThread,Name,[],Value),!.
+   notrace(getIndexedValue(CtxIn,ConvThread,Name,[],Value)),!.
 getAliceMemOrSetDefault(CtxIn,ConvThread,Name,Value,OrDefault):-
    setAliceMem(CtxIn,ConvThread,Name,OrDefault),!,OrDefault=Value.
 
@@ -982,7 +1001,7 @@ debugFmtList1(Value,shown(Value)).
 
 canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern,MatchLevel,StarSets):- 
     make_star_binders(Ctx,StarName,InputPattern,MatchPattern,MatchLevelInv,StarSets),!,MatchLevel is 1/MatchLevelInv ,
-    (debugFmt(pass_canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern,MatchLevel,StarSets))),!.
+    nop(debugFmt(pass_canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern,MatchLevel,StarSets))),!.
 
 canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern,_MatchLevel,_StarSets):-
     nop(debugFmt(fail_canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern))),!,fail.
@@ -1247,8 +1266,13 @@ getLastSaidAsInput(LastSaidMatchable):-getLastSaid(That),convertToMatchable(That
 % ===============================================================================================
 % Template Output to text
 % ===============================================================================================
-computeTemplateOutput(Ctx,Votes,Input,Output,VotesO):-
-    computeTemplate(Ctx,Votes,Input,Mid,VotesO),answerOutput(Mid,Output),!.
+
+%% <template> Used as a return result (non text maybe)(
+computeTemplateOutput(Ctx,Votes,Input,Output,VotesO):-prolog_must(computeTemplate(Ctx,Votes,Input,Output,VotesO)),!.
+
+%% like the above howeverr since its job is to be submitted to anohjter evaluator.. it needs to make "text" ussually
+computeInnerTemplate(Ctx,Votes,Input,Output,VotesO):-
+    computeTemplateOutput(Ctx,Votes,Input,Mid,VotesO),answerOutput(Mid,Output),!.
 
 answerOutput(Output,NonVar):-nonvar(NonVar),answerOutput(Output,Var),!,valuesMatch(_Ctx,Var,NonVar).
 answerOutput(Output,[Output]):-var(Output),!.

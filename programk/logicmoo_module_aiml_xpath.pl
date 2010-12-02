@@ -129,7 +129,7 @@ numberFyList([A|MajorMinor],[B|MajorMinorM]):-
   numberFyList(MajorMinor,MajorMinorM),!.
 numberFyList([A|MajorMinor],[A|MajorMinorM]):-numberFyList(MajorMinor,MajorMinorM).
 
-isStarValue(Value):-nonvar(Value),member(Value,[[ValueM],ValueM]),!,member(ValueM,['*','_']),!.
+isStarValue(Value):-ground(Value),not([_,_|_]=Value),member(Value,[[ValueM],ValueM]),!,member(ValueM,['*','_']),!.
 
 xformOutput(Value,ValueO):-isStarValue(Value),!,trace,Value=ValueO.
 xformOutput(Value,ValueO):-listify(Value,ValueL),Value\==ValueL,!,xformOutput(ValueL,ValueO).
@@ -266,7 +266,7 @@ current_value(Ctx,Name,Value):-peekNameValue(Ctx,_,Name,Value,'$error').
 %%peekNameValue(Ctx,Scope,Name,Value):-Failed='$error',peekNameValue(Ctx,Scope,Name,Value,Failed),ignore((Value==Failed,trace,Value = '*')),!.
 
 peekNameValue(Ctx,Scope,Name,Value,Else):-nonvar(Value),!,checkNameValue(Ctx,Scope,Name,Value,Else).
-peekNameValue(Ctx,_Scope,Name,Value,_ElseVar):-getCtxValue(Name,Ctx,Value),!.
+peekNameValue(Ctx,_Scope,Name,Value,_ElseVar):-notrace(getCtxValue(Name,Ctx,Value)),!.
 peekNameValue(Ctx,List,Name,Value,_ElseVar):- nonvar(List),not(atom(List)),attributeOrTagValue(Ctx,List,Name,Value,'$failure'),!.
 peekNameValue(Ctx,Scope,Name,Value,_ElseVar):-getStoredValue(Ctx,Scope,Name,Value),checkAttribute(Scope,Name,Value),!.
 %%%%%%peekNameValue(Ctx,Scope,Name,Value,_ElseVar):-nonvar(Scope),getStoredValue(Ctx,Scope2,Name,Value),Scope\=Scope2,checkAttribute(Scope2,Name,Value),!,checkValue(Value),!.
@@ -276,8 +276,8 @@ peekNameValue(Ctx,_Scope,Name,Value,ElseVar):-makeParamFallback(Ctx,Name,Value,E
 
 %%peekNameValue(_Ctx,_Scope,_Name,Value,ElseVar):-ignore(Value=ElseVar),!.
 
-checkNameValue(Ctx,Scope,[Name],Value,Else):-!,peekNameValue(Ctx,Scope,Name,ValueVar,Else),!,checkValue(ValueVar),valuesMatch(Ctx,ValueVar,Value),!.
-checkNameValue(Ctx,Scope,Name,Value,Else):-peekNameValue(Ctx,Scope,Name,ValueVar,Else),!,checkValue(ValueVar),valuesMatch(Ctx,ValueVar,Value),!.
+checkNameValue(Ctx,Scope,[Name],Value,Else):- nonvar(Name),!,checkNameValue(Ctx,Scope,Name,Value,Else).
+checkNameValue(Ctx,Scope,Name,Value,Else):-notrace(( peekNameValue(Ctx,Scope,Name,ValueVar,Else),!,checkValue(ValueVar),valuesMatch(Ctx,ValueVar,Value))),!. %%,trace.
 
 valuesMatch(_Ctx,V,A):-V=A,!.
 valuesMatch(_Ctx,_V,A):-A=='*',!.

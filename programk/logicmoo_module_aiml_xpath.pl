@@ -70,6 +70,9 @@ inheritedFrom(_Scope,default).
 inheritedFrom(user,_):-!,fail.
 inheritedFrom(Atom,user):-atom(Atom).
 
+% ===============================================================================================
+% getIndexedValue
+% ===============================================================================================
 
 getIndexedValue(Ctx,IDict,Name,MajorMinor,Value):-unresultifyC(IDict,Dict),!,
     getIndexedValue(Ctx,Dict,Name,MajorMinor,Value),!.
@@ -92,16 +95,19 @@ getIndexedValue(Ctx,Dict,Name,MajorMinor,ValueO):- numberFyList(MajorMinor,Major
 getIndexedValue(Ctx,Dict,DEFAULT,MajorMinor,ValueOut):- compound(DEFAULT),DEFAULT=default(Name,Default),!,
     (getIndexedValue(Ctx,Dict,Name,MajorMinor,ValueO)  -> xformOutput(ValueO, ValueOut)  ; xformOutput(Default, ValueOut)). 
 
-
 getIndexedValue(Ctx,Dict,Name,MajorMinor,ValueO):-
     notrace(getIndexedValue0(Ctx,Dict,Name,MajorMinor,Value)),
     xformOutput(Value,ValueO).
    
-getIndexedValue(Ctx,Dict,Name,MajorMinor,ValueO):-
+getIndexedValue(Ctx,Dict,Name,MajorMinor,ValueO):- fail,   
     unify_listing(getContextStoredValue(Ctx,Dict,_N,_V)),
     %%unify_listing(getContextStoredValue(Ctx,_,Name,_)),
     getIndexedValue0(Ctx,Dict,Name,MajorMinor,Value),
     xformOutput(Value,ValueO).
+
+% ===============================================================================================
+% getIndexedValue0
+% ===============================================================================================
 
 getIndexedValue0(Ctx,Dict,Name,[Major|Minor],Value):-
    getMajorMinorIndexedValue(Ctx,Dict,Name,Major,Minor,Value),!.

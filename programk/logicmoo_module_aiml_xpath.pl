@@ -23,7 +23,7 @@
 :-multifile(dict/3).
 
 getAliceMemElse(Ctx,Dict,Name,ValueO):-getAliceMemComplete(Ctx,Dict,Name,ValueO),!.
-getAliceMemElse(_Ctx,Dict,Name,[Dict,(s),unknown,Name]).
+getAliceMemElse(_Ctx,Dict,Name,[Dict,(s),unknown,Name]):-trace.
 
 getAliceMem(Ctx,Dict,DEFAULT,ValueOut):- compound(DEFAULT),DEFAULT=default(Name,Default),!, 
      (getAliceMemComplete(Ctx,Dict,Name,ValueO) -> xformOutput(ValueO, ValueOut)  ; xformOutput(Default, ValueOut)). 
@@ -245,6 +245,15 @@ clearContextValues(Ctx,IDict,NameI):-dictNameDictName(Ctx,IDict,NameI,Dict,Name)
 
 addNewContextValue(Ctx,IDict,NameI,Value):-dictNameDictNameC(Ctx,IDict,NameI,Dict,Name),!,addNewContextValue(Ctx,Dict,Name,Value).
 addNewContextValue(Ctx,Dict,Name,OM):-OM=='OM',!,clearContextValues(Ctx,Dict,Name),!.
+addNewContextValue(Ctx,Dict,Key,Name,Value):- 
+   dictNameKey(Dict,Name,Key),addNewContextValue(Ctx,Dict,Key,Name,Value),!.
+
+addNewContextValue(Ctx,Dict,Key,Name,Value):- 
+   ifThen(nonvar(Key),addCtxValue(Key,Ctx,Value)),
+   ifThen(nonvar(Dict),ifThen(nonvar(Value),asserta(dict(Dict,Name,Value)))),
+   ifThen(not(ground(Value)),debugFmt(addCtxValue(Key,Ctx,Value))).
+
+
 addNewContextValue(Ctx,Dict,Name,Value):- 
    dictNameKey(Dict,Name,Key),
    addCtxValue(Key,Ctx,Value),
@@ -316,7 +325,7 @@ valuePresent(_):-!.
 % ===============================================================================================
 
 popAttributes(Ctx,Scope,[N=V|L]):- !,checkAttribute(Scope,N,V),popNameValue(Ctx,Scope,N,V),!,popAttributes(Ctx,Scope,L),!.
-popAttributes(_Ctx,_Scope,[]).
+popAttributes(_Ctx,Scope,[]):-unify_listing(retract(dict(Scope,_,_))).
 
 withAttributes(_Ctx,ATTRIBS,Call):-ATTRIBS==[],!,Call.
 withAttributes(Ctx,ATTRIBS,Call):-
@@ -327,6 +336,7 @@ withAttributes(Ctx,ATTRIBS,Call):-
     once(hotrace(pushAttributes(Ctx,Scope,ATTRIBS))),
       Call),
     once(hotrace(popAttributes(Ctx,Scope,ATTRIBS)))).
+    
 
 checkAttributes(Scope,ATTRIBS):-prolog_must(nonvar(ATTRIBS)),maplist(checkAttribute(Scope),ATTRIBS).
 checkAttribute(Scope,N=V):-checkAttribute(Scope,N,V).
@@ -347,7 +357,7 @@ popNameValue(Ctx,Scope,N,V):-
 %dyn_retract(dict(Scope,N,V)):-(retract(dict(Scope,N,V))),!.
 
 ensureScope(_Ctx,_ATTRIBS,Scope):-nonvar(Scope),!.
-ensureScope(_Ctx,_ATTRIBS,filelevel):-!.
+ensureScope(_Ctx,_ATTRIBS,Scope):-gensym(scope,Scope),!.
 
 
 

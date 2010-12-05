@@ -171,7 +171,7 @@ alicebot2(Ctx,Atoms,Resp):-
 % Call like a SRAI tag
 % ===============================================================================================
 computeInputOutput(Ctx,VoteIn,Input,Output,VotesOut):-
-   notrace((debugOnFailureAimlEach((computeAnswer(Ctx,VoteIn,element(srai,[],Input),OutputM,VotesOM),
+   ((debugOnFailureAimlEach((computeAnswer(Ctx,VoteIn,element(srai,[],Input),OutputM,VotesOM),
                           computeTemplateOutput(Ctx,VotesOM,OutputM,Output,VotesOut))))),!.
 
 
@@ -564,6 +564,7 @@ computeStar2(Ctx,Votes,Dict,ATTRIBS,StarVar,ValueI,ValueO,VotesM):-
    computeTemplate(Ctx,Votes,element(template,ATTRIBS,ValueI),ValueO,VotesM),
    !.
 
+getStoredStarValue(Ctx,_Dict,StarVar,ValueI):-getCtxValue(StarVar,Ctx,ValueI),!.
 getStoredStarValue(Ctx,Dict,StarVar,ValueI):-getStoredValue(Ctx,Dict,StarVar,ValueI),!.
 getStoredStarValue(_Ctx,Dict,StarVar,[starvar,StarVar,Dict]):-!,unify_listing(dict(Dict,_,_)),trace.
    
@@ -734,6 +735,8 @@ computeAnswer(Ctx,Votes,Input,Output,VotesO):- functor(Input,withAttributes,_),
 computeAnswer(Ctx,Votes,withAttributes(OuterAttribs,InnerXml),Output,VotesO):- 
   withAttributes(Ctx,OuterAttribs,once(computeAnswer(Ctx,Votes,InnerXml,Output,VotesO);Failed=failed)),!,Failed \== failed.
 
+computeAnswer(Ctx,Votes,compute(InnerXml),Output,VotesO):-!, computeAnswer(Ctx,Votes,InnerXml,Output,VotesO).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
 % Result or Proof already
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
@@ -802,6 +805,7 @@ computeSRAIStars(Ctx,ATTRIBS,Input,MidIn,VotesM,SYM,Proof,Output,VotesO):-
                  nonvar(SYM),
                  nonvar(Proof))),
       setCtxValue('evalsrai',Ctx,SYM),
+      %%MidProof = Proof, 
       computeElementMust(Ctx,VotesM,template,ATTRIBS,MidIn,MidIn9,VotesI9),
       prolog_must(answerOutput(MidIn9,Mid9)),
       debugFmt(evalSRAI(SYM,Input,MidIn,MidIn9,Mid9)),
@@ -875,7 +879,7 @@ checkSym(_SYM).
 subclassMakeUserDict(Ctx,UserDict,SYM):-debugFmt(subclassMakeUserDict(Ctx,UserDict,SYM)),!.
 convThreadDict(_Ctx,ConvThreadHint,ConvThread):-answerOutput(ConvThreadHint,First),unlistify(First,ConvThread),!.
 
-computeSRAI222(CtxIn,Votes,ConvThreadHint,SYM,Pattern,Out,VotesO,ProofOut,OutputLevel):-    
+computeSRAI222(CtxIn,Votes,ConvThreadHint,SYM,Pattern,Compute,VotesO,ProofOut,OutputLevel):-    
    %%convertToMatchable(Pattern,InputPattern),
    prolog_must(getCtxValue('evalsrai',CtxIn,SYM2)),
    ifThen(var(SYM),SYM=SYM2),
@@ -888,12 +892,12 @@ computeSRAI222(CtxIn,Votes,ConvThreadHint,SYM,Pattern,Out,VotesO,ProofOut,Output
          subclassMakeUserDict(CtxIn,UserDict,SYM),
          PreTopic = (CtxIn=Ctx),
          CPreTopic = true,
-         make_preconds_for_match(Ctx,'topic',Topic,CateSig,PreTopic,AfterTopic, CPreTopic,CAfterTopic, Out,MinedCates,Proof,OutputLevel1),
+         make_preconds_for_match(Ctx,'topic',Topic,CateSig,PreTopic,AfterTopic, CPreTopic,CAfterTopic, Out,MinedCates,StarSets_Topic,OutputLevel1),
          must_be_openCate(CateSig),         
          getAliceMemOrSetDefault(CtxIn,ConvThread,SYM,'that',That,['Nothing']),
-         make_preconds_for_match(Ctx,'that',That,CateSig,AfterTopic,AfterThat,CAfterTopic,CAfterThat,Out,MinedCates,Proof,OutputLevel2),
+         make_preconds_for_match(Ctx,'that',That,CateSig,AfterTopic,AfterThat,CAfterTopic,CAfterThat,Out,MinedCates,StarSets_That,OutputLevel2),
          must_be_openCate(CateSig),
-         make_preconds_for_match(Ctx,'pattern',Pattern,CateSig,AfterThat,AfterPattern,CAfterThat,CAfterPattern,Out,MinedCates,Proof,OutputLevel3),!,
+         make_preconds_for_match(Ctx,'pattern',Pattern,CateSig,AfterThat,AfterPattern,CAfterThat,CAfterPattern,Out,MinedCates,StarSets_Pattern,OutputLevel3),!,
          debugFmt(topicThatPattern(Topic,That,Pattern)),
          prolog_must(var(Out)),
          must_be_openCate(CateSig),!,       
@@ -907,11 +911,14 @@ computeSRAI222(CtxIn,Votes,ConvThreadHint,SYM,Pattern,Out,VotesO,ProofOut,Output
             cateStrength(CateSig,Mult),
             (contains_term(Ctx,CateSig)->not(contains_term(Ctx,ClauseNumber));not(contains_term(Ctx,ClauseNumber))),
             VotesO is Votes * Mult,
-           %% append([Out],Proof,FinalProof),
-            FinalProof=Proof,
-            append(FinalProof,[cn(ClauseNumber),CateSig],FinalProofClosed),
-            %%debugFmt(result(out(Out),from(Pattern),FinalProofClosed)),
-            ProofOut=..[proof,Out|FinalProofClosed])).
+            append(StarSets_Topic,StarSets_That,StarSets_TopicThat),
+            append(StarSets_Pattern,StarSets_TopicThat,StarSets_All),
+            makeWithAttributes(StarSets_All,Out,Compute),       
+            ProofOut=..[proof,Compute,cn(ClauseNumber),CateSig])).
+
+
+makeWithAttributes([],Proof,Proof):-!.
+makeWithAttributes(StarSets_All,Proof,withAttributes(StarSets_All,Proof)).
 
 retractallSrais(SYM):-prolog_must(nonvar(SYM)),ifThen(nonvar(SYM),retractall(dict(SYM,_,_))).
 
@@ -966,17 +973,8 @@ make_prepost_conds(Ctx,StarName,TextPattern,CateSig,FindPattern,CommitPattern,Ou
       ((
         member(lsp(MatchLevel,_StarSets,MatchPattern),EachMatchSig),           
           getCategoryArg(Ctx,StarName,MatchPattern,Out,CateSig),
-           prolog_must(make_star_binders(Ctx,StarName,TextPattern,MatchPattern,MatchLevel2,StarSets2)),
-           %%prolog_must(StarSets=StarSets2),
-           (CommitPattern = prolog_must(once((
-              %%traceIf((StarName==pattern,TextPattern=[_,_|_])),
-            once(
-             (atLeastOne(starSets(Ctx,StarSets2)), 
-              ignore(MatchLevel2 = MatchLevel),
-              addKeyValue(ProofOut, StarName = (TextPattern:MatchPattern))
-            ))))))
-         )),!.
-         
+           prolog_must(make_star_binders(Ctx,StarName,1,TextPattern,MatchPattern,MatchLevel2,ProofOut)),
+           (CommitPattern = ignore(MatchLevel2 = MatchLevel)))).         
 
 notSingletons(_Singleton_List):-!.
 
@@ -1042,7 +1040,7 @@ debugFmtList1(Value,shown(Value)).
 % ========================================================================================
 
 canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern,MatchLevel,StarSets):- 
-    make_star_binders(Ctx,StarName,InputPattern,MatchPattern,MatchLevelInv,StarSets),!,MatchLevel is 1/MatchLevelInv ,
+    make_star_binders(Ctx,StarName,1,InputPattern,MatchPattern,MatchLevelInv,StarSets),!,MatchLevel is 1/MatchLevelInv ,
     nop(debugFmt(pass_canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern,MatchLevel,StarSets))),!.
 
 canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern,_MatchLevel,_StarSets):-
@@ -1054,37 +1052,38 @@ consumeSkippables([Skipable|B],BB):- isIgnoreableWord(Skipable),!,consumeSkippab
 consumeSkippables(A,A).
 
 
-make_star_binders(_Ctx,StarName,InputPattern,MatchPattern,MatchLevel,StarSets):- 
+make_star_binders(_Ctx,StarName,_N,InputPattern,MatchPattern,MatchLevel,StarSets):- 
    prolog_must(var(StarSets)),prolog_must(var(MatchLevel)),prolog_must(ground(StarName:InputPattern:MatchPattern)),fail.  
 
 :-setLogLevel(make_star_binders,none).
 
 %end check
-make_star_binders(_Ctx,_StarName,L,R,1,[]):-R==[],!,consumeSkippables(L,LL),!,LL==[].
-make_star_binders(_Ctx,_StarName,L,R,1,[]):-L==[],!,consumeSkippables(R,RR),!,RR==[].
+make_star_binders(_Ctx,_StarName,_N,L,R,1,[]):-R==[],!,consumeSkippables(L,LL),!,LL==[].
+make_star_binders(_Ctx,_StarName,_N,L,R,1,[]):-L==[],!,consumeSkippables(R,RR),!,RR==[].
 
 % left hand star/wild  (cannot really happen (i hope))
-%make_star_binders(_Ctx,StarName,Star,_Match,_MatchLevel,_StarSets):- fail, not([StarName]=Star),isStarOrWild(StarName,Star,_WildValue,_WMatch,_Pred),!,trace,fail. 
+%make_star_binders(_Ctx,StarName,_N,Star,_Match,_MatchLevel,_StarSets):- fail, not([StarName]=Star),isStarOrWild(StarName,Star,_WildValue,_WMatch,_Pred),!,trace,fail. 
 
 
 % simplify
-make_star_binders(Ctx,StarName,[Word1|B],[Word2|BB],CountO,StarSets):-
-     sameWords(Word1,Word2),!,make_star_binders(Ctx,StarName,B,BB,Count,StarSets),CountO is Count + 1.
+make_star_binders(Ctx,StarName,N,[Word1|B],[Word2|BB],CountO,StarSets):-
+     sameWords(Word1,Word2),!,make_star_binders(Ctx,StarName,N,B,BB,Count,StarSets),CountO is Count + 1.
 
 % tail (all now in) star/wildcard
-make_star_binders(_Ctx,StarName,InputText,WildCard,WildValue,[Pred]):-isStarOrWild(StarName,WildCard,WildValue,InputText,Pred),!.
+make_star_binders(_Ctx,StarName,N,InputText,WildCard,WildValue,[Pred]):-isStarOrWild(StarName,N,WildCard,WildValue,InputText,Pred),!.
 
 % once in star.. walk past star
-make_star_binders(Ctx,StarName,InputText,[WildCard,M0|More],ValueO,[Pred|StarSets]):-isStarOrWild(StarName,WildCard,WildValue,SkipedSTAR,Pred),
-         append(SkipedSTAR,[M1|LeftMore],InputText),sameWords(M0,M1),
-         make_star_binders(Ctx,StarName,LeftMore,More,Value,StarSets),!,ValueO is WildValue + Value.
+make_star_binders(Ctx,StarName,N,InputText,[WildCard,M0|More],ValueO,[Pred|StarSets]):-isStarOrWild(StarName,N,WildCard,WildValue,SkipedSTAR,Pred),
+         append(SkipedSTAR,[M1|LeftMore],InputText),sameWords(M0,M1),N2 is N+1,
+         make_star_binders(Ctx,StarName,N2,LeftMore,More,Value,StarSets),!,ValueO is WildValue + Value.
 
 % is mid-right hand wildcard (this should be the last test)
-make_star_binders(Ctx,StarName,[Match|B],[WildCard|BB],ValueO,[Pred|StarSets]):- isStarOrWild(StarName,WildCard,WildValue,Match, Pred),!,
-     make_star_binders(Ctx,StarName,B,BB,Value,StarSets),!,ValueO is WildValue + Value.
+make_star_binders(Ctx,StarName,N,[Match|B],[WildCard|BB],ValueO,[Pred|StarSets]):- isStarOrWild(StarName,N,WildCard,WildValue,Match, Pred),!,
+     N2 is N+1,
+     make_star_binders(Ctx,StarName,N2,B,BB,Value,StarSets),!,ValueO is WildValue + Value.
 
 % skip over skippable words
-make_star_binders(Ctx,StarName,[Skipable|B],BB,CountO,StarSets):- isIgnoreableWord(Skipable),!,make_star_binders(Ctx,StarName,B,BB,Count,StarSets),CountO is Count + 1.
+make_star_binders(Ctx,StarName,N,[Skipable|B],BB,CountO,StarSets):- isIgnoreableWord(Skipable),!,make_star_binders(Ctx,StarName,N,B,BB,Count,StarSets),CountO is Count + 1.
 
 isIgnoreableWord(Skipable):-member(Skipable,['-','\n','(',')',',','?','.']).
 %
@@ -1120,11 +1119,11 @@ starNameTransform(Star,StarStar):-starName(Star,StarStar),!.
 starNameTransform(StarName,StarName):-atom_concat(_,'star',StarName),!.
 starNameTransform(StarName,StarNameStar):-atom_concat(StarName,'star',StarNameStar),!.
 
-isStarOrWild(StarName,[StarNameText],WildValue,InputText,Pred):-nonvar(StarNameText),!,isStarOrWild(StarName,StarNameText,WildValue,InputText,Pred),!.
+isStarOrWild(StarName,[StarNameText],WildValue,InputText,Pred):-nonvar(StarNameText),!,isStarOrWild(StarName,_,StarNameText,WildValue,InputText,Pred),!.
 
-isStarOrWild(StarName,StarNameText,WildValue,InputText,StarNameStar=InputText):-
-   isStar(StarName,StarNameText,WildValue),!,starNameTransform(StarName,StarNameStar),!,traceIf(isStarValue(InputText)).
-isStarOrWild(StarName,WildCardText,WildValue,InputText,Pred):- isWildCard(StarName,WildCardText,WildValue,InputText,Pred),!.
+isStarOrWild(StarName,N,StarNameText,WildValue,InputText,StarNameStarN=InputText):-
+   isStar(StarName,StarNameText,WildValue),!,starNameTransform(StarName,StarNameStar),atom_concat(StarNameStar,N,StarNameStarN),!,traceIf(isStarValue(InputText)).
+isStarOrWild(StarName,_N,WildCardText,WildValue,InputText,Pred):- isWildCard(StarName,WildCardText,WildValue,InputText,Pred),!.
 
 isWildCard(StarName,Wild,1,InputText,call(sameBinding(Wild,InputText))):- not(is_list(Wild)),compound(Wild),Wild=..LWild,not(not(member(StarName,LWild))),!.
 
@@ -1140,7 +1139,7 @@ isStar(StarName,'input'):-!.
 */
 isStar(StarName,StarNameText):-isStar(StarName,StarNameText,_Order),!.
 isStar(StarName,StarNameText,WildValue):-not(ground(StarNameText)),trace,debugFmt(isStar(StarName,StarNameText,WildValue)),!,fail.
-isStar(StarName,[StarNameText],WildValue):-trace,isStar(StarName,StarNameText,WildValue),!.
+isStar(StarName,[StarNameText],WildValue):-isStar(StarName,StarNameText,WildValue),!.
 isStar(_StarName,'*',0.3).
 isStar(_StarName,'_',0.8).
 %%WAS VERY BAD IDEA:  isStar(StarName,StarNameText,6):-atom(StarName),!,StarNameText==StarName,writeq(qqqq-qq),trace.

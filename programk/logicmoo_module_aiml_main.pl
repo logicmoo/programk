@@ -54,8 +54,12 @@ dttt:-time(consult(aimlCate_checkpoint)),alicebot.
 %:-main_loop.
 :-'trace'(findall/3,[-all]).
 
+:-assert_cate_in_load(aimlCate(*,*,*,*,*,*,*,*,*,*,[element(srai,[],['STDCATCHALL',star(pattern,[],[])])],element(category,[],[element(pattern,[],[*]),element(template,[],[element(srai,[],['STDCATCHALL',element(star,[],[])])])]),'c:/development/opensim4opencog/bin/cynd/programk/test_suite/customtagtest.aiml':737-20056)).
+:-assert_cate_in_load(aimlCate(*,*,*,*,*,['STDCATCHALL',*],*,*,*,*,['ERROR',understanding,:,star(pattern,[],[])],element(category,[],[element(pattern,[],['STDCATCHALL *']),element(template,[],['ERROR understanding:',element(star,[],[])])]),'c:/development/opensim4opencog/bin/cynd/programk/test_suite/customtagtest.aiml':44-3205)).
 
-chomskyAIML:-once(load_aiml_files('programk/test_suite/chomskyAIML/*.aiml')).
+
+chomskyAIML:-catch(consult(chomskyAIML),_,fail),!.
+chomskyAIML:-once(load_aiml_files(library('programk/test_suite/chomskyAIML/*.aiml'))).
 
 test_suite_files:-once(load_aiml_files(library('programk/test_suite/*.aiml'))).
 

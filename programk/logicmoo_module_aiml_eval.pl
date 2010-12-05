@@ -141,8 +141,8 @@ aiml_eval0(_Ctx,A,B):-atomic(A),!,B=A.
 
 aiml_eval0(Ctx,element(Srai,ATTRIBS,DOIT),RETURN):- memberchk(Srai,[srai,template]),
       withAttributes(Ctx,ATTRIBS,
-         (hotrace(aiml_eval_each(Ctx,DOIT,INNER),
-          computeAnswer(Ctx,1,element(Srai,ATTRIBS,INNER),RMID,_Votes)))),
+         (hotrace((aiml_eval_each(Ctx,DOIT,INNER),
+          computeAnswer(Ctx,1,element(Srai,ATTRIBS,INNER),RMID,_Votes))))),
        RMID=RETURN.
 
 aiml_eval0(Ctx,element(A, B, C), XML):-tagType(A, immediate),

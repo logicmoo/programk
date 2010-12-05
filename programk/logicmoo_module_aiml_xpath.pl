@@ -244,20 +244,13 @@ removeContextValue(Ctx,IDict,NameI,Value):-dictNameDictName(Ctx,IDict,NameI,Dict
 clearContextValues(Ctx,IDict,NameI):-dictNameDictName(Ctx,IDict,NameI,Dict,Name),retractall(dict(Dict,Name,_Value)).
 
 addNewContextValue(Ctx,IDict,NameI,Value):-dictNameDictNameC(Ctx,IDict,NameI,Dict,Name),!,addNewContextValue(Ctx,Dict,Name,Value).
-addNewContextValue(Ctx,Dict,Name,OM):-OM=='OM',!,clearContextValues(Ctx,Dict,Name),!.
-addNewContextValue(Ctx,Dict,Key,Name,Value):- 
-   dictNameKey(Dict,Name,Key),addNewContextValue(Ctx,Dict,Key,Name,Value),!.
-
-addNewContextValue(Ctx,Dict,Key,Name,Value):- 
-   ifThen(nonvar(Key),addCtxValue(Key,Ctx,Value)),
-   ifThen(nonvar(Dict),ifThen(nonvar(Value),asserta(dict(Dict,Name,Value)))),
-   ifThen(not(ground(Value)),debugFmt(addCtxValue(Key,Ctx,Value))).
-
-
+addNewContextValue(Ctx,Dict,Name,OM):- OM=='OM',!,clearContextValues(Ctx,Dict,Name),!.
 addNewContextValue(Ctx,Dict,Name,Value):- 
-   dictNameKey(Dict,Name,Key),
-   addCtxValue(Key,Ctx,Value),
-   ifThen(nonvar(Value),asserta(dict(Dict,Name,Value))),
+   debugOnFailure((dictNameKey(Dict,Name,Key), addNewContextValue(Ctx,Dict,Key,Name,Value))),!.
+
+addNewContextValue(Ctx,Dict,Key,Name,Value):- 
+   ifThen(nonvar(Key),addCtxValue(Key,Ctx,Value)),   
+   ifThen(nonvar(Dict),ifThen(nonvar(Value),asserta(dict(Dict,Name,Value)))),
    ifThen(not(ground(Value)),debugFmt(addCtxValue(Key,Ctx,Value))).
 
 % ===============================================================================================
@@ -265,6 +258,7 @@ addNewContextValue(Ctx,Dict,Name,Value):-
 % ===============================================================================================
 
 pushAttributes(Ctx,Scope,List):-pushCtxFrame(Scope,Ctx,List),pushAttributes0(Ctx,Scope,List),!.
+pushAttributes0(_Ctx,_Scope,_AnyPushed):-!.
 pushAttributes0(Ctx,Scope,[N=V|L]):-pushNameValue(Ctx,Scope,N,V),pushAttributes0(Ctx,Scope,L).
 pushAttributes0(_Ctx,_Scope,[]).
 
@@ -323,9 +317,11 @@ valuePresent(_):-!.
 % ===============================================================================================
 %    push/pop values API
 % ===============================================================================================
+popAttributes(Ctx,Scope,OldVals):-popCtxFrame(Scope,Ctx,PrevValues),!,ignore(PrevValues=OldVals).
+popAttributes(Ctx,Scope,List):- trace, prolog_must(ground(Scope)),popAttributes0(Ctx,Scope,List).
 
-popAttributes(Ctx,Scope,[N=V|L]):- !,checkAttribute(Scope,N,V),popNameValue(Ctx,Scope,N,V),!,popAttributes(Ctx,Scope,L),!.
-popAttributes(_Ctx,Scope,[]):-unify_listing(retract(dict(Scope,_,_))).
+popAttributes0(Ctx,Scope,[N=V|L]):- !,checkAttribute(Scope,N,V),popNameValue(Ctx,Scope,N,V),!,popAttributes0(Ctx,Scope,L),!.
+popAttributes0(_Ctx,Scope,[]):-unify_listing(retract(dict(Scope,_,_))).
 
 withAttributes(_Ctx,ATTRIBS,Call):-ATTRIBS==[],!,Call.
 withAttributes(Ctx,ATTRIBS,Call):-
@@ -512,9 +508,12 @@ makeContextBase__only_ForTesting(Gensym_Key, [frame(Gensym_Key,ndestruct,[assoc(
 % push/pop frames
 % ===================================================================
 pushCtxFrame(Name,Ctx,NewValues):-checkCtx(Ctx),get_ctx_holderFreeSpot(Ctx,Holder,GuestDest),!,Holder=frame(Name,GuestDest,NewValues).
-popCtxFrame(Name,Ctx,PrevValues):-checkCtx(Ctx),get_ctx_frame_holder(Ctx,Name,Frame),Frame = frame(Name,Destructor,PrevValues),Destructor,!.
+popCtxFrame(Name,Ctx,PrevValuesIn):-checkCtx(Ctx),get_ctx_frame_holder(Ctx,Name,Frame),Frame = frame(Name,Destructor,PrevValues),
+      call(Destructor,Name,Ctx,Frame),!,mustMatch(PrevValues,PrevValuesIn).
 checkCtx(Ctx):-prolog_must(nonvar(Ctx)).
 %%checkCtx(Ctx):-makeAimlContext(broken,Ctx),!.
+
+mustMatch(PrevValues,PrevValuesIn):-ignore(PrevValues=PrevValuesIn).
 
 :-dynamic(no_cyclic_terms).
 
@@ -526,6 +525,10 @@ no_cyclic_terms.
 % ===================================================================
 ndestruct:-trace.
 ndestruct(Holder):-debugFmt(unImplemented(ndestruct(Holder))).
+
+mdestruct(_Why,Name,_Ctx,Frame):-Frame=frame(NameF,_,_),prolog_must(Name==NameF),Dest = destroyed(Name),
+   setarg(1,Frame,Dest),setarg(2,Frame,Dest),setarg(3,Frame,Dest),!,Frame=Frame.
+mdestruct(Why,Name,Ctx,Value):-debugFmt(unImplemented11(mdestruct(Why,Name,Ctx,Value))).
 no_setter(Why,Name,Ctx,Value):-debugFmt(unImplemented2(no_setter(Why,Name,Ctx,Value))).
 
 
@@ -598,7 +601,7 @@ get_ctx_holder1(Ctx,Ctx).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%% get_ctx_holderFreeSpot(+Ctx, -Put_NV, -CallToRemoveNV)
 
-get_ctx_holderFreeSpot(Ctx,NamedValue,ndestruct(holder)):-no_cyclic_terms,!,get_ctx_holderFreeSpot0(Ctx,NamedValue,_NO_Destruct),!.
+get_ctx_holderFreeSpot(Ctx,NamedValue,mdestruct(no_cyclic_terms)):-no_cyclic_terms,!,get_ctx_holderFreeSpot0(Ctx,NamedValue,_NO_Destruct),!.
 get_ctx_holderFreeSpot(Ctx,NamedValue,Destruct):-get_ctx_holderFreeSpot0(Ctx,NamedValue,Destruct).
 
 get_ctx_holderFreeSpot0(Ctx,NamedValue,Destruct):-compound(Ctx),get_ctx_holderFreeSpot1(Ctx,NamedValue,Destruct).

@@ -49,13 +49,14 @@ local_directory_search('programk').
 local_directory_search('programk/test_suite').
 local_directory_search('../aiml').
 local_directory_search('aiml').
+local_directory_search('special').
 
 local_directory_search_combined2(PL):-local_directory_search(A),local_directory_search(B),join_path(A,B,PL),exists_directory_safe(PL).
 
 local_directory_search_combined(X):-local_directory_search(X).
 local_directory_search_combined(X):-local_directory_search_combined2(X).
 %% for now dont do the concat 3 version
-%% local_directory_search_combined(PL):-local_directory_search_combined2(A),local_directory_search(B),join_path(A,B,PL),exists_directory_safe(PL).
+local_directory_search_combined(PL):-local_directory_search_combined2(A),local_directory_search(B),join_path(A,B,PL),exists_directory_safe(PL).
 
 run_chat_tests:-
    test_call(alicebot('Hi')),
@@ -165,10 +166,14 @@ alicebot2(Ctx,Atoms,Resp):-
    degrade(Resp),
    rememberSaidIt(Ctx,Resp),!.
 
+
 % ===============================================================================================
 % Call like a SRAI tag
 % ===============================================================================================
-computeInputOutput(Ctx,VoteIn,Input,Output,VotesOut):- prolog_must(computeAnswer(Ctx,VoteIn,element(srai,[],Input),Output,VotesOut)),!.
+computeInputOutput(Ctx,VoteIn,Input,Output,VotesOut):-
+   notrace((debugOnFailureAimlEach((computeAnswer(Ctx,VoteIn,element(srai,[],Input),OutputM,VotesOM),
+                          computeTemplateOutput(Ctx,VotesOM,OutputM,Output,VotesOut))))),!.
+
 
 % ===============================================================================================
 % Save Possible Responses (Degrade them as well)
@@ -182,49 +187,6 @@ savePosibleResponse(N,Output):-
    SN is N - (K * 0.6)  , !,
    asserta(posibleResponse(SN,Output)).
 
-
-% ===============================================================================================
-% Eval a SRAI
-% ===============================================================================================
-evalSRAI(Ctx,Votes,ATTRIBS,[I|Input0],Output,VotesO):-atom(I),atom_prefix(I,'@'),!,
-  % re-direct to input
-  withAttributes(Ctx,ATTRIBS,prolog_must(computeAnswer(Ctx,Votes,[I|Input0],Output,VotesO))),!.
-
-evalSRAI(Ctx,Votes,ATTRIBS,Input0,Output,VotesO):-
-  prolog_must(ground(Input0)),!,flatten([Input0],Input),  
-  evalsrai(SYM),
-  var(Proof),
- withAttributes(Ctx,ATTRIBS,
-   withAttributes(Ctx,[evalsrai=SYM],
-  ( 
-    debugOnError(computeSRAI(Ctx,Votes,Input,MidIn,VotesM,Proof)),    
-     withAttributes(Ctx,[evalsrai=SYM,proof=Proof],
-      computeSRAIStars(Ctx,ATTRIBS,Input,MidIn,VotesM,SYM,Proof,Output,VotesO))))).
-
-computeSRAIStars(Ctx,ATTRIBS,Input,MidIn,VotesM,SYM,Proof,Output,VotesO):-
-    prolog_must((nonvar(MidIn),
-                 nonvar(SYM),
-                 singletons([Ctx,ATTRIBS]),
-                 nonvar(Proof))),
-      %% Proof = Output, 
-      MidIn = Output, 
-      VotesM = VotesO,
-      debugFmt(computeSRAIStars(SYM,Input,Output)),
-      %%%trace,
-      prolog_must((ground(Output),number(VotesO))),!.
-
-computeSRAIStars(Ctx,ATTRIBS,Input,MidIn,VotesM,SYM,Proof,Output,VotesO):-
-    prolog_must((nonvar(MidIn),
-                 nonvar(SYM),
-                 nonvar(Proof))),
-      debugFmt(computeSRAIStars(SYM,Input,MidIn)),
-      computeElementMust(Ctx,VotesM,template,ATTRIBS,MidIn,MidIn9,VotesI9),
-      prolog_must(answerOutput(MidIn9,Mid9)),
-      debugFmt(evalSRAI(Input,MidIn,MidIn9,Mid9)),
-      prolog_must(computeAnswer(Ctx,VotesI9,Mid9,Output,VotesO)),
-      prolog_must((ground(Output),number(VotesO))),!.
-
- evalsrai(SYM):-gensym(evalsrai,SYM).
 % ===============================================================================================
 % Expand Answers
 % ===============================================================================================
@@ -368,14 +330,11 @@ computeElement(Ctx,Votes,sr,ATTRIBS,Input,Output,VotesO):- !,
 % <srai/>s   
 computeElement(_Ctx,Votes,srai,ATTRIBS,[],result([],srai=ATTRIBS),VotesO):-trace,!,VotesO is Votes * 0.6.
 
-
 % <srai>s   
-computeElement(Ctx,Votes,srai,ATTRIBS,Input0,Output,VotesO):- % for evalSRAI
-  prolog_must(ground(Input0)),!,flatten([Input0],Input), !,
+computeElement(Ctx,Votes,srai,ATTRIBS,Input,Output,VotesO):- % for evalSRAI
   withAttributes(Ctx,ATTRIBS,
-   prolog_must((computeInnerTemplate(Ctx,Votes,Input,Middle,VotesM),
-    evalSRAI(Ctx,VotesM,ATTRIBS,Middle,OutputM,VotesOM),
-    computeTemplateOutput(Ctx,VotesOM,OutputM,Output,VotesO) ))).
+    computeInnerTemplate(Ctx,Votes,Input,Middle,VotesM)),
+  computeSRAIElement(Ctx,VotesM,ATTRIBS,Middle,Output,VotesO),!.
 
 % <li...>
 computeElement(Ctx,Votes,li,Preconds,InnerXml,OutProof,VotesO):- !, computeElement_li(Ctx,Votes,Preconds,InnerXml,OutProof,VotesO).
@@ -591,20 +550,29 @@ computeStar1(Ctx,Votes,Star,Major,ATTRIBS,InnerXml,Proof,VotesO):-atomic(Major),
 
 computeStar1(Ctx,Votes,Star,Index,ATTRIBS,_InnerXml,proof(ValueO,StarVar=ValueI),VotesO):- is_list(Index),
       CALL=concat_atom([Star|Index],StarVar),
-      prolog_must(catch(CALL,E,(debugFmt(CALL->E),fail))),      
-      getDictFromAttributes(Ctx,evalsrai,ATTRIBS,Dict),
-      getAliceMem(Ctx,Dict,StarVar,ValueI),!,
-      computeTemplate(Ctx,Votes,element(template,ATTRIBS,ValueI),ValueO,VotesM),VotesO is VotesM * 1.1.
+      prolog_must(catch(CALL,E,(debugFmt(CALL->E),fail))),   
+   getDictFromAttributes(Ctx,'evalsrai',ATTRIBS,Dict),
+   computeStar2(Ctx,Votes,Dict,ATTRIBS,StarVar,ValueI,ValueO,VotesM),!,
+   VotesO is VotesM * 1.1.
 
 computeStar1(_Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Resp,VotesO):- 
       traceIf(Resp = result(InnerXml,Star,Index,ATTRIBS)),!,VotesO is Votes * 1.1. 
 
+computeStar2(Ctx,Votes,Dict,ATTRIBS,StarVar,ValueI,ValueO,VotesM):-   
+   getStoredStarValue(Ctx,Dict,StarVar,ValueI),
+   %%ValueO=ValueI,VotesM=Votes,
+   computeTemplate(Ctx,Votes,element(template,ATTRIBS,ValueI),ValueO,VotesM),
+   !.
+
+getStoredStarValue(Ctx,Dict,StarVar,ValueI):-getStoredValue(Ctx,Dict,StarVar,ValueI),!.
+getStoredStarValue(_Ctx,Dict,StarVar,[starvar,StarVar,Dict]):-!,unify_listing(dict(Dict,_,_)),trace.
+   
 
 
 computeMetaStar(Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Resp,VotesO):-computeMetaStar0(Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Resp,VotesO).
 
 computeMetaStar0(Ctx,Votes,Star,MajorMinor,ATTRIBS,_InnerXml,proof(ValueO,Star=ValueI),VotesO):- 
-      getDictFromAttributes(Ctx,evalsrai,ATTRIBS,Dict),
+      getDictFromAttributes(Ctx,'evalsrai',ATTRIBS,Dict),
       getIndexedValue(Ctx,Dict,Star,MajorMinor,ValueI),!,
       computeInnerTemplate(Ctx,Votes,element(template,ATTRIBS,[ValueI]),ValueO,VotesM),VotesO is VotesM * 1.1.
 
@@ -612,7 +580,7 @@ computeMetaStar0(_Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Resp,VotesO):- trace,
       traceIf(Resp = result(InnerXml,Star,Index,ATTRIBS)),!,VotesO is Votes * 0.9. 
 
 getDictFromAttributes(Ctx,VarHolder,_ATTRIBS,SYM):-getCtxValue(VarHolder,Ctx,SYM).
-getDictFromAttributes(_Ctx,_VarHolder,_ATTRIBS,'user').
+getDictFromAttributes(_Ctx,_VarHolder,_ATTRIBS,'user'):-trace.
 
 % ===============================================================================================
 % Compute Get/Set Probilities
@@ -640,7 +608,7 @@ dictFromAttribs(Ctx,ATTRIBS,Dict,NEW):-
 %% computeGetSetVar(Ctx,Votes,Dict,GetSetBot,VarName,ATTRIBS,InnerXml,Resp,VotesO).
 
 computeGetSetVar(Ctx,Votes,Dict,GetSet,_OVarName,ATTRIBS,InnerXml,Resp,VotesO):- atom(ATTRIBS),ATTRIBS \= [],!, VarName = ATTRIBS,
-     computeGetSetVar(Ctx,Votes,Dict,GetSet,VarName,[],InnerXml,Resp,VotesO).
+     computeGetSetVar(Ctx,Votes,Dict,GetSet,VarName,[],InnerXml,Resp,VotesO),!.
 
 computeGetSetVar(Ctx,Votes,Dict,GetSet,_OVarName,ATTRIBS,InnerXml,Resp,VotesO):-  
       member(N,[name,var]),
@@ -667,7 +635,7 @@ computeGetSetVar(Ctx,Votes,Dict,set,VarName,ATTRIBS,InnerXml,proof(ReturnValue,V
 
 returnNameOrValue(Ctx,IDict,VarNameI,Value,ReturnValue):-dictNameDictNameC(Ctx,IDict,VarNameI,Scope,Name),!,returnNameOrValue(Ctx,Scope,Name,Value,ReturnValue).
 returnNameOrValue(Ctx,_Dict,VarName,ValueO,ReturnValueO):-
-      once(getAliceMem(Ctx,setReturn(_Default),VarName,NameOrValue);NameOrValue=value),
+      once(getStoredValue(Ctx,setReturn(_Default),VarName,NameOrValue);NameOrValue=value),
       returnNameOrValue0(NameOrValue,VarName,ValueO,ReturnValue),!,listify(ReturnValue,ReturnValueO).
 
 returnNameOrValue0([NameOrValue],VarName,ValueO,ReturnValue):-!,returnNameOrValue0(NameOrValue,VarName,ValueO,ReturnValue),!.
@@ -795,90 +763,143 @@ computeAnswer(_Ctx,Votes,Resp,Resp,Votes):-trace,aiml_error(computeAnswer(Resp))
 
 
 % ===============================================================================================
+% Eval a SRAI
+% ===============================================================================================
+computeSRAIElement(Ctx,Votes,ATTRIBS,Input0,Output,VotesO):-
+  prolog_must(ground(Input0)),!,
+  flatten([Input0],Input),
+  evalSRAI(Ctx,Votes,ATTRIBS,Input,Output,VotesO),!.
+
+evalSRAI(Ctx,Votes,ATTRIBS,[I|Input0],Output,VotesO):-atom(I),atom_prefix(I,'@'),!,
+  % re-direct to input
+  withAttributes(Ctx,ATTRIBS,prolog_must(computeAnswer(Ctx,Votes,[I|Input0],Output,VotesO))),!.
+
+evalSRAI(Ctx,Votes,ATTRIBS,Input,Output,VotesO):-
+ ifThen(var(SYM),evalsrai(SYM)),
+ var(Proof),
+ withAttributes(Ctx,ATTRIBS,
+   withAttributes(Ctx,['evalsrai'=SYM,proof=Proof],
+  ((
+    debugOnError(computeSRAI(Ctx,Votes,SYM,Input,MidIn,VotesM,Proof)),      
+    computeSRAIStars(Ctx,ATTRIBS,Input,MidIn,VotesM,SYM,Proof,OutputM,VotesOM),  
+    ifThen(nonvar(SYM),retractallSrais(SYM)),
+    computeTemplateOutput(Ctx,VotesOM,OutputM,Output,VotesO))))),!.
+
+    
+computeSRAIStars(Ctx,ATTRIBS,Input,MidIn,VotesM,SYM,Proof,Output,VotesO):- fail,
+    prolog_must((nonvar(MidIn),
+                 nonvar(SYM),
+                 singletons([Ctx,ATTRIBS]),
+                 nonvar(Proof))),
+      %% Proof = Output,       
+      MidIn = Output, 
+      VotesM = VotesO,
+      nop(debugFmt(computeSRAIStars(SYM,Input,Output))),
+      prolog_must((ground(Output),number(VotesO))),!.
+
+computeSRAIStars(Ctx,ATTRIBS,Input,MidIn,VotesM,SYM,Proof,Output,VotesO):-
+    prolog_must((nonvar(MidIn),
+                 nonvar(SYM),
+                 nonvar(Proof))),
+      setCtxValue('evalsrai',Ctx,SYM),
+      computeElementMust(Ctx,VotesM,template,ATTRIBS,MidIn,MidIn9,VotesI9),
+      prolog_must(answerOutput(MidIn9,Mid9)),
+      debugFmt(evalSRAI(SYM,Input,MidIn,MidIn9,Mid9)),
+      prolog_must(computeAnswer(Ctx,VotesI9,Mid9,Output,VotesO)),
+      prolog_must((ground(Output),number(VotesO))),!.
+
+ evalsrai(SYM):-gensym('evalsrai',SYM).
+
+% ===============================================================================================
 % Apply Input Match
 % ===============================================================================================
 
-computeSRAI(_Ctx,_Votes,[],_,_,_Proof):- !,trace,fail.
+computeSRAI(_Ctx,_Votes,_SYM,[],_,_,_Proof):- !,trace,fail.
 
-computeSRAI(Ctx,Votes,Input,Result,VotesO,Proof):-
+computeSRAI(Ctx,Votes,SYM,Input,Result,VotesO,Proof):-
    getAliceMem(Ctx,'bot','me',Robot),
    getAliceMem(Ctx,'bot','you',User),
+   ifThen(var(SYM),evalsrai(SYM)),
    getConversationThread(Ctx,User,Robot,ConvThread),
-   prolog_must(computeSRAI0(Ctx,Votes,ConvThread,Input,Result,VotesO,Proof)).
+   prolog_must(computeSRAI0(Ctx,Votes,ConvThread,SYM,Input,Result,VotesO,Proof)).
 
 getConversationThread(Ctx,User,Robot,ConvThread):-
    ConvThread = fromTo(User,Robot),
    setCtxValue('convthread',Ctx,ConvThread),!.
 
-computeSRAI0(Ctx,Votes,ConvThread,Input,Result,VotesO,Proof):-   
+computeSRAI0(Ctx,Votes,ConvThread,SYM,Input,Result,VotesO,Proof):-   
    computeInnerTemplate(Ctx,Votes,Input,NewIn,VotesM),NewIn \== Input,!,
-   computeSRAI0(Ctx,VotesM,ConvThread,NewIn,Result,VotesO,Proof),!.
+   computeSRAI0(Ctx,VotesM,ConvThread,SYM,NewIn,Result,VotesO,Proof),!.
 
-computeSRAI0(Ctx,Votes,ConvThread,Input,Result,VotesO,Proof):- not(is_list(Input)),compound(Input),
+computeSRAI0(Ctx,Votes,ConvThread,SYM,Input,Result,VotesO,Proof):- not(is_list(Input)),compound(Input),
    answerOutput(Input,InputO),Input\==InputO,!,trace,
-   computeSRAI0(Ctx,Votes,ConvThread,InputO,Result,VotesO,Proof).
+   computeSRAI0(Ctx,Votes,ConvThread,SYM,InputO,Result,VotesO,Proof).
 
-computeSRAI0(Ctx,Votes,ConvThread,Input,Result,VotesO,Proof):- not(is_list(Input)),compound(Input),
+computeSRAI0(Ctx,Votes,ConvThread,SYM,Input,Result,VotesO,Proof):- not(is_list(Input)),compound(Input),
    computeAnswer(Ctx,Votes,Input,InputO,VotesM),Input\==InputO,!,trace,
-   computeSRAI0(Ctx,VotesM,ConvThread,InputO,Result,VotesO,Proof).
+   computeSRAI0(Ctx,VotesM,ConvThread,SYM,InputO,Result,VotesO,Proof).
 
-computeSRAI0(Ctx,Votes,ConvThread,Input,Result,VotesO,Proof):-
+computeSRAI0(Ctx,Votes,ConvThread,SYM,Input,Result,VotesO,Proof):-
   Each = (MatchLevel - e(VotesM,Result,Proof)), %% VotesO make it sort/2-able
-  Call = computeSRAI2(Ctx,Votes,ConvThread,Input,Result,VotesM,Proof,MatchLevel),
-  copy_term(Each:Call,EachFound:CallFound),
+  Call = computeSRAI2(Ctx,Votes,ConvThread,SYM,Input,Result,VotesM,Proof,MatchLevel),
+  copy_term(Each:Call,EachFound:CallFound),  
   findall(EachFound:CallFound, CallFound, FOUND),
   FOUND=[_|_],
   sort(FOUND,ORDER),!,
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    member(Each:Call,ORDER),
    prolog_must(nonvar(Result)),
-   debugFmt(computeSRAI(Input,Each)),
+   debugFmt(computeSRAI(Input,SYM,Each)),
    VotesO is VotesM * 1.1.
 
-computeSRAI0(_Ctx,Votes,ConvThread,Input,Result,VotesO,Proof):- !, VotesO is Votes * 0.7,
-     Result = ['I',heard,you,'say:'|Input],
+computeSRAI0(_Ctx,Votes,ConvThread,SYM,Input,Result,VotesO,Proof):- !, VotesO is Votes * 0.7,
+     Result = ['I',heard,you,think,SYM,and,'say:'|Input],
       Proof = result(Result,failed_computeSRAI2(Votes,Input,ConvThread)),
       debugFmt(Proof),!.
 
 % now trace is ok
 
 % this next line is what it does on fallback
-computeSRAI0(Ctx,Votes,ConvThread,[B|Flat],[B|Result],VotesO,Proof):- fail,
-   computeSRAI2(Ctx,Votes,ConvThread,Flat,Result,VotesO,Proof,_PostMatchLevel3),prolog_must(nonvar(Result)).
+computeSRAI0(Ctx,Votes,ConvThread,SYM,[B|Flat],[B|Result],VotesO,Proof):- fail,
+   computeSRAI2(Ctx,Votes,ConvThread,SYM,Flat,Result,VotesO,Proof,_PostMatchLevel3),prolog_must(nonvar(Result)).
 
-getAliceMemOrSetDefault(CtxIn,ConvThread,Name,Value,_OrDefault):-
+getAliceMemOrSetDefault(CtxIn,ConvThread,SYM,Name,Value,_OrDefault):-checkSym(SYM),
    notrace(getCtxValue(ConvThread:Name,CtxIn,Value)),!.
-getAliceMemOrSetDefault(CtxIn,ConvThread,Name,Value,_OrDefault):-
+getAliceMemOrSetDefault(CtxIn,ConvThread,SYM,Name,Value,_OrDefault):-checkSym(SYM),
    notrace(getIndexedValue(CtxIn,ConvThread,Name,[],Value)),!.
-getAliceMemOrSetDefault(CtxIn,ConvThread,Name,Value,OrDefault):-
+getAliceMemOrSetDefault(CtxIn,ConvThread,SYM,Name,Value,OrDefault):-checkSym(SYM),
    setAliceMem(CtxIn,ConvThread,Name,OrDefault),!,OrDefault=Value.
 
+checkSym(_SYM).
 
 subclassMakeUserDict(Ctx,UserDict,SYM):-debugFmt(subclassMakeUserDict(Ctx,UserDict,SYM)),!.
 convThreadDict(_Ctx,ConvThreadHint,ConvThread):-answerOutput(ConvThreadHint,First),unlistify(First,ConvThread),!.
 
-computeSRAI222(CtxIn,Votes,ConvThreadHint,Pattern,Out,VotesO,ProofOut,OutputLevel):-    
+computeSRAI222(CtxIn,Votes,ConvThreadHint,SYM,Pattern,Out,VotesO,ProofOut,OutputLevel):-    
    %%convertToMatchable(Pattern,InputPattern),
+   prolog_must(getCtxValue('evalsrai',CtxIn,SYM2)),
+   ifThen(var(SYM),SYM=SYM2),
+   ifThen(SYM\==SYM2,debugFmt(syms(SYM\==SYM2))),
       convThreadDict(Ctx,ConvThreadHint,ConvThread),
          getCategoryArg(Ctx,'template',Out, _Out_ ,CateSig),!,
-         getAliceMemOrSetDefault(CtxIn,ConvThread,'topic',Topic,['Nothing']),
-         getAliceMemOrSetDefault(CtxIn,ConvThread,'userdict',UserDict,'user'), 
-         %%getAliceMemOrSetDefault(CtxIn,ConvThread,'convthread',ConvThread,ConvThreadHint), 
-         getCtxValue(evalsrai,CtxIn,SYM),         
+         getAliceMemOrSetDefault(CtxIn,ConvThread,SYM,'topic',Topic,['Nothing']),
+         getAliceMemOrSetDefault(CtxIn,ConvThread,SYM,'userdict',UserDict,'user'), 
+         %%getAliceMemOrSetDefault(CtxIn,ConvThread,SYM,'convthread',ConvThread,SYM,ConvThreadHint), 
          subclassMakeUserDict(CtxIn,UserDict,SYM),
          PreTopic = (CtxIn=Ctx),
          CPreTopic = true,
          make_preconds_for_match(Ctx,'topic',Topic,CateSig,PreTopic,AfterTopic, CPreTopic,CAfterTopic, Out,MinedCates,Proof,OutputLevel1),
          must_be_openCate(CateSig),         
-         getAliceMemOrSetDefault(CtxIn,ConvThread,'that',That,['Nothing']),
+         getAliceMemOrSetDefault(CtxIn,ConvThread,SYM,'that',That,['Nothing']),
          make_preconds_for_match(Ctx,'that',That,CateSig,AfterTopic,AfterThat,CAfterTopic,CAfterThat,Out,MinedCates,Proof,OutputLevel2),
          must_be_openCate(CateSig),
          make_preconds_for_match(Ctx,'pattern',Pattern,CateSig,AfterThat,AfterPattern,CAfterThat,CAfterPattern,Out,MinedCates,Proof,OutputLevel3),!,
          debugFmt(topicThatPattern(Topic,That,Pattern)),
          prolog_must(var(Out)),
-         must_be_openCate(CateSig),!,
-         prolog_must(atLeastOne((AfterPattern,CateSig))),  
+         must_be_openCate(CateSig),!,       
+         prolog_must(atLeastOne((AfterPattern,CateSig))),
          clause(CateSig,true,ClauseNumber),
+         retractallSrais(SYM),
          once((
             prolog_must(CAfterPattern),
             prolog_must(nonvar(Out)),
@@ -892,11 +913,12 @@ computeSRAI222(CtxIn,Votes,ConvThreadHint,Pattern,Out,VotesO,ProofOut,OutputLeve
             %%debugFmt(result(out(Out),from(Pattern),FinalProofClosed)),
             ProofOut=..[proof,Out|FinalProofClosed])).
 
+retractallSrais(SYM):-prolog_must(nonvar(SYM)),ifThen(nonvar(SYM),retractall(dict(SYM,_,_))).
 
 cateStrength(_CateSig,1.1):-!.
 
-computeSRAI2(Ctx,Votes,ConvThread,Pattern,Out,VotesO,ProofOut,MatchLevel):- !, %% avoid next one
-    computeSRAI222(Ctx,Votes,ConvThread,Pattern,Out,VotesO,ProofOut,MatchLevel).
+computeSRAI2(Ctx,Votes,ConvThread,_SYM1,Pattern,Out,VotesO,ProofOut,MatchLevel):- !, %% avoid next one    
+    computeSRAI222(Ctx,Votes,ConvThread,_SYM2,Pattern,Out,VotesO,ProofOut,MatchLevel).
 
 getCategoryArg(Ctx,StarName,MatchPattern,Out,CateSig):-
    prolog_must(getCategoryArg0(Ctx,StarName,MatchPattern,Out,CateSig)),!.
@@ -1026,15 +1048,20 @@ canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern,MatchLevel,StarSets):
 canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern,_MatchLevel,_StarSets):-
     nop(debugFmt(fail_canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern))),!,fail.
 
+% skip over skipable words
+consumeSkippables([],[]).
+consumeSkippables([Skipable|B],BB):- isIgnoreableWord(Skipable),!,consumeSkippables(B,BB).
+consumeSkippables(A,A).
+
+
 make_star_binders(_Ctx,StarName,InputPattern,MatchPattern,MatchLevel,StarSets):- 
    prolog_must(var(StarSets)),prolog_must(var(MatchLevel)),prolog_must(ground(StarName:InputPattern:MatchPattern)),fail.  
 
 :-setLogLevel(make_star_binders,none).
 
 %end check
-make_star_binders(_Ctx,_StarName,L,R,1,[]):-R==[],!,L==[].
-make_star_binders(_Ctx,_StarName,L,R,1,[]):-L==[],!,R==[].
-
+make_star_binders(_Ctx,_StarName,L,R,1,[]):-R==[],!,consumeSkippables(L,LL),!,LL==[].
+make_star_binders(_Ctx,_StarName,L,R,1,[]):-L==[],!,consumeSkippables(R,RR),!,RR==[].
 
 % left hand star/wild  (cannot really happen (i hope))
 %make_star_binders(_Ctx,StarName,Star,_Match,_MatchLevel,_StarSets):- fail, not([StarName]=Star),isStarOrWild(StarName,Star,_WildValue,_WMatch,_Pred),!,trace,fail. 
@@ -1053,10 +1080,13 @@ make_star_binders(Ctx,StarName,InputText,[WildCard,M0|More],ValueO,[Pred|StarSet
          make_star_binders(Ctx,StarName,LeftMore,More,Value,StarSets),!,ValueO is WildValue + Value.
 
 % is mid-right hand wildcard (this should be the last test)
-make_star_binders(Ctx,StarName,[Match|B],[WildCard|BB],ValueO,[Pred|StarSets]):-!, isStarOrWild(StarName,WildCard,WildValue,Match, Pred),!,
+make_star_binders(Ctx,StarName,[Match|B],[WildCard|BB],ValueO,[Pred|StarSets]):- isStarOrWild(StarName,WildCard,WildValue,Match, Pred),!,
      make_star_binders(Ctx,StarName,B,BB,Value,StarSets),!,ValueO is WildValue + Value.
 
+% skip over skippable words
+make_star_binders(Ctx,StarName,[Skipable|B],BB,CountO,StarSets):- isIgnoreableWord(Skipable),!,make_star_binders(Ctx,StarName,B,BB,Count,StarSets),CountO is Count + 1.
 
+isIgnoreableWord(Skipable):-member(Skipable,['-','\n','(',')',',','?','.']).
 %
 % re-write section
 %
@@ -1146,9 +1176,11 @@ starSet(Ctx,StarNameI,Pattern):-
    starName(StarNameI,StarName),
    ignore((var(N),star_flag(StarName,N,N))),
    (traceIf(isStarValue(Pattern))),
-   getDictFromAttributes(Ctx,evalsrai,[],Dict),
+   getDictFromAttributes(Ctx,'evalsrai',[],Dict),
    prolog_must(Dict\==user),
-   atom_concat(StarName,N,StarNameN),setAliceMem(Ctx,Dict,StarNameN,Pattern),!,star_flag(StarName,NN,NN+1).
+   atom_concat(StarName,N,StarNameN),
+   prolog_must(not((getAliceMemComplete(Ctx,Dict,StarNameN,Old),debugFmt(getAliceMemComplete(Ctx,Dict,StarNameN,Old))))),
+   setAliceMem(Ctx,Dict,StarNameN,Pattern),!,star_flag(StarName,NN,NN+1).
 
 %%REAL-UNUSED  set_matchit1(StarName,Pattern,Matcher,OnBind):- length(Pattern,MaxLen0), MaxLen is MaxLen0 + 2,
 %%REAL-UNUSED    set_matchit2(StarName,Pattern,Matcher,MaxLen,OnBind).
@@ -1229,11 +1261,12 @@ rememberSaidIt_SH(Ctx,R1,Robot,User):-answerOutput(R1,SR1),!,
 
 
 pushInto1DAnd2DArray(Ctx,Name,Name2,Ten,SR1,ConvThread):-
+   %%trace,
    splitSentences(SR1,SR2),
    addCtxValue(quiteMemOps,Ctx,true),
    previousVars(Name,PrevVars,Ten),
    maplist_safe(setEachSentenceThat(Ctx,ConvThread,PrevVars),SR2),!,
-
+   
    previousVars(Name2,PrevVars2,Ten),
    setEachSentenceThat(Ctx,ConvThread,PrevVars2,SR2),
    setCtxValue(quiteMemOps,Ctx,false),
@@ -1258,10 +1291,10 @@ setEachSentenceThat(Ctx,User,[PrevVar,Var|MORE],SR0):-
    setEachSentenceThat(Ctx,User,[Var|MORE],SR0).
 
 splitSentences([],[]):-!.   
-splitSentences(SR1,[SR0|SRMORE]):-grabFirstSetence(SR1,SR0,LeftOver),splitSentences(LeftOver,SRMORE),!.
+splitSentences(SR1,[SR0|SRMORE]):-grabFirstSetence(SR1,SR0,LeftOver),!,splitSentences(LeftOver,SRMORE),!.
 splitSentences(SR1,[SR1]):-!.
 
-grabFirstSetence(SR1,SRS,LeftOver):-sentenceBreakChar(EOS),LeftSide=[_|_],append(LeftSide,[EOS|LeftOver],SR1),append(LeftSide,[EOS],SR0),cleanSentence(SR0,SRS),!.
+grabFirstSetence(SR1,SRS,LeftOver):-LeftSide=[_|_],append(LeftSide,[EOS|LeftOver],SR1),sentenceBreakChar(EOS),append(LeftSide,[EOS],SR0),cleanSentence(SR0,SRS),!.
 cleanSentence(SR0,SRS):-prolog_must(leftTrim(SR0,sentenceEnderOrPunct,SRS)),!.
 
 getRobot(Robot):-trace,getAliceMem(_Ctx,'bot','me',Robot),!.
@@ -1292,7 +1325,7 @@ computeTemplateOutput(Ctx,Votes,Input,Output,VotesO):-prolog_must(computeTemplat
 
 %% like the above howeverr since its job is to be submitted to anohjter evaluator.. it needs to make "text" ussually
 computeInnerTemplate(Ctx,Votes,Input,Output,VotesO):-
-    computeTemplateOutput(Ctx,Votes,Input,Mid,VotesO),answerOutput(Mid,Output),!.
+    debugOnFailureAimlEach((computeTemplateOutput(Ctx,Votes,Input,Mid,VotesO),answerOutput(Mid,Output))),!.
 
 answerOutput(Output,NonVar):-nonvar(NonVar),answerOutput(Output,Var),!,valuesMatch(_Ctx,Var,NonVar).
 answerOutput(Output,[Output]):-var(Output),!.

@@ -207,6 +207,7 @@ argNFound(aimlCate,'9',_).
 assert_cate_in_load(NEW):-isRetraction(_Ctx,NEW,OF),!,retractall(OF),!.
 assert_cate_in_load(NEW):-asserta(NEW),makeArgIndexes(NEW),!.
 
+makeArgIndexes(_CateSig):-!.
 makeArgIndexes(CateSig):-functor(CateSig,F,_),makeArgIndexes(CateSig,F),!.
 makeArgIndexes(CateSig,F):- argNumsTracked(F,Atom,Number),arg(Number,CateSig,Arg),nonvar(Arg),
          %%Number<10,nonvar(Arg),atom_number(Atom,Number),

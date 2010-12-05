@@ -23,6 +23,16 @@
 
 :-dynamic(lineInfoElement/4).
 
+%% ======================================================
+%% Add a library directory 2 levels above this file
+%% ======================================================
+asserta_if_new_hlper1(C):-catch(C,_,fail),!.
+asserta_if_new_hlper1(C):-asserta(C),!.
+:-source_location(File,_Line),file_directory_name(File, Directory),
+   file_directory_name(Directory,ParentDir),
+   writeq(logicmoo_module_aiml:asserta(library_directory(ParentDir))),
+   asserta_if_new_hlper1(library_directory(ParentDir)).
+
 :-ensure_loaded(library('programk/logicmoo_module_aiml_shared.pl')).
 :-ensure_loaded(library('programk/logicmoo_module_aiml_xpath.pl')).
 :-ensure_loaded(library('programk/logicmoo_module_aiml_loader.pl')).
@@ -33,9 +43,19 @@
 :-multifile(local_directory_search/1).
 :-module_transparent(local_directory_search/1).
 
+local_directory_search('cynd').
+local_directory_search('cynd/programk').
 local_directory_search('programk').
 local_directory_search('programk/test_suite').
 local_directory_search('../aiml').
+local_directory_search('aiml').
+
+local_directory_search_combined2(PL):-local_directory_search(A),local_directory_search(B),join_path(A,B,PL),exists_directory_safe(PL).
+
+local_directory_search_combined(X):-local_directory_search(X).
+local_directory_search_combined(X):-local_directory_search_combined2(X).
+%% for now dont do the concat 3 version
+%% local_directory_search_combined(PL):-local_directory_search_combined2(A),local_directory_search(B),join_path(A,B,PL),exists_directory_safe(PL).
 
 run_chat_tests:-
    test_call(alicebot('Hi')),

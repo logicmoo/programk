@@ -6,7 +6,7 @@
 % Version: 'logicmoo_module_aiml_shared.pl' 1.0.0
 % Revision:  $Revision: 1.7 $
 % Revised At:   $Date: 2002/07/11 21:57:28 $
-
+% ===================================================================
 
 
 /*
@@ -183,7 +183,7 @@ doHideTrace(M,F,A,ATTRIB):- tryHide(M:F/A),!,
 
 unused:ctrace:-willTrace->trace;notrace.
 
-bugger:-hideTrace,traceAll,guitracer,debug,list_undefined.
+bugger:-hideTrace,traceAll,catch(guitracer,_,true),debug,list_undefined.
 
 singletons(_).
 
@@ -192,11 +192,11 @@ singletons(_).
 
 nthAnswerOf(Call,Nth):-flag(nthAnswerOf,_,Nth), Call,flag(nthAnswerOf,R,R-1),R=1,!.
 
-hideIfNeeded(I,I):- (var(I);atomic(I)),!.
-hideIfNeeded([I|_],ctx):-nonvar(I),I=frame(_,_,_),!.
-hideIfNeeded([I|N],[I0|N0]):-!,hideIfNeeded(I,I0),hideIfNeeded(N,N0),!.
-hideIfNeeded(Comp,Comp2):-compound(Comp),Comp=..[L,I|ST],hideIfNeeded([I|ST],[OI|OIST]),Comp2=..[L,OI|OIST],!.
-hideIfNeeded(I,I):-!.
+toReadableObject(I,I):- (var(I);atomic(I)),!.
+toReadableObject([I|_],ctx):-nonvar(I),I=frame(_,_,_),!.
+toReadableObject([I|N],[I0|N0]):-!,toReadableObject(I,I0),toReadableObject(N,N0),!.
+toReadableObject(Comp,Comp2):-compound(Comp),Comp=..[L,I|ST],toReadableObject([I|ST],[OI|OIST]),Comp2=..[L,OI|OIST],!.
+toReadableObject(I,I):-!.
 
 exists_file_safe(File):-prolog_must(atomic(File)),exists_file(File).
 exists_directory_safe(File):-prolog_must(atomic(File)),exists_directory(File).
@@ -213,7 +213,7 @@ cyc:debugFmt(Stuff):- notrace((fresh_line,debugFmtS(Stuff),fresh_line)),!.
 
 debugFmtS([]):-!.
 debugFmtS([A|L]):-!,debugFmt('% ~q',[[A|L]]).
-debugFmtS(Comp):-hideIfNeeded(Comp,Comp2),!,debugFmt('% ~q',[Comp2]).
+debugFmtS(Comp):-toReadableObject(Comp,Comp2),!,debugFmt('% ~q',[Comp2]).
 debugFmtS(Stuff):-!,debugFmt('% ~q',[Stuff]).
 
 
@@ -260,8 +260,8 @@ os_to_prolog_filename(OS,_PL):-prolog_must(atom(OS)),fail.
 os_to_prolog_filename(_OS,PL):-prolog_must(var(PL)),fail.
 os_to_prolog_filename(OS,PL):-exists_file_safe(OS),!,PL=OS.
 os_to_prolog_filename(OS,PL):-exists_directory_safe(OS),!,PL=OS.
-os_to_prolog_filename(OS,PL):-local_directory_search(CurrentDir),join_path(CurrentDir,OS,PL),exists_file_safe(PL),!.
-os_to_prolog_filename(OS,PL):-local_directory_search(CurrentDir),join_path(CurrentDir,OS,PL),exists_directory_safe(PL),!.
+os_to_prolog_filename(OS,PL):-local_directory_search_combined(CurrentDir),join_path(CurrentDir,OS,PL),exists_file_safe(PL),!.
+os_to_prolog_filename(OS,PL):-local_directory_search_combined(CurrentDir),join_path(CurrentDir,OS,PL),exists_directory_safe(PL),!.
 
 os_to_prolog_filename(OS,PL):-atom(OS),atomic_list_concat([X,Y|Z],'\\',OS),atomic_list_concat([X,Y|Z],'/',OPS),!,os_to_prolog_filename(OPS,PL).
 os_to_prolog_filename(OS,PL):-atom_concat_safe(BeforeSlash,'/',OS),os_to_prolog_filename(BeforeSlash,PL).
@@ -511,7 +511,7 @@ unify_listing_header(_FileMatch,_F,_A):-fresh_line.
 unify_listing(FileMatch,F,A):- unify_listing_header(FileMatch,F,A), printAll(FileMatch).
 
 printAll(FileMatch):-printAll(FileMatch,FileMatch).
-printAll(Call,Print):- flag(printAll,_,0), forall((Call,flag(printAll,N,N+1)),(format('~q.~n',[Print]))),fail.
+printAll(Call,Print):- flag(printAll,_,0), forall((Call,flag(printAll,N,N+1)),(toReadableObject(Print,Print2),(format('~q.~n',[Print2])))),fail.
 printAll(_Call,Print):- flag(printAll,PA,PA),(format('~n /* found ~q for ~q. */ ~n',[PA,Print])),!.
 
 

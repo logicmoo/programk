@@ -119,7 +119,7 @@ aiml_eval_now(Ctx,TAGATTRXML):-aiml_eval(Ctx,TAGATTRXML,RESULT),!,debugFmt(aiml_
 %%immediateCall(Ctx,_):- getCtxValueElse(quiteMemOps,Ctx,True,false),True=true,!.
 immediateCall(Ctx,:-(Call)):-!,immediateCall0(Ctx,:-(Call)),!.
 immediateCall(Ctx,Call):-immediateCall0(Ctx,:-(Call)),!.
-immediateCall0(Ctx,C):-hideIfNeeded(C,Call),immediateCall1(Ctx,Call),!.
+immediateCall0(Ctx,C):-toReadableObject(C,Call),immediateCall1(Ctx,Call),!.
 %%immediateCall1(_Ctx,C):- prolog_mostly_ground((C)),fail.
 immediateCall1(_Ctx,Call):- fresh_line,(format('~q.',[Call])),fresh_line. %%,debugFmt(Call),!.
 
@@ -305,7 +305,7 @@ getCurrentFile(Ctx,_ATTRIBS,CurrentFile):-getItemValue(proof,Ctx,Proof),nonvar(P
 getCurrentFileDir(Ctx,ATTRIBS,Dir):- prolog_must((getCurrentFile(Ctx, ATTRIBS, CurrentFile),atom(CurrentFile),
       file_directory_name(CurrentFile,Dir0),absolute_file_name(Dir0,Dir))).
 
-getCurrentFileDir(_Ctx,_ATTRIBS,Dir):- local_directory_search(Dir).
+getCurrentFileDir(_Ctx,_ATTRIBS,Dir):- local_directory_search_combined(Dir).
 
 getItemValue(Name,Ctx,Value):-nonvar(Ctx),getCtxValue(Name,Ctx,Value),!.
 getItemValue(Name,Ctx,Value):-current_value(Ctx,Name,Value),!.
@@ -328,8 +328,8 @@ testIt(ATTRIBS,Input,ExpectedAnswer,ExpectedKeywords,Result,Name,Description,Ctx
    notrace(ExpectedKeywords==[[noExpectedKeywords]] -> PASSGOAL = sameBinding(Resp,ExpectedAnswer);  PASSGOAL = containsEachBinding(Resp,ExpectedKeywords)),    
   %% traceIf(ExpectedKeywords \== [[noExpectedKeywords]]),
     withAttributes(Ctx,ATTRIBS,(( runUnitTest(alicebot2(Ctx,Input,Resp),PASSGOAL,Result),
-    hideIfNeeded(testIt(Input,Name,Description,PASSGOAL),PRINTRESULT),
-    hideIfNeeded([Result,Name,Description,Input], STORERESULT),
+    toReadableObject(testIt(Input,Name,Description,PASSGOAL),PRINTRESULT),
+    toReadableObject([Result,Name,Description,Input], STORERESULT),
     debugFmt(PRINTRESULT)))),flush_output,
     once(
      contains_term(STORERESULT,unit_failed) ->

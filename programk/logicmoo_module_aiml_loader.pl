@@ -37,7 +37,7 @@ load_aiml_files.
 
 load_aiml_files(Files):-currentContext(load_aiml_files,Ctx),load_aiml_files(Ctx,Files),!,do_pending_loads(Ctx).
 
-load_aiml_files(Ctx,File):- not(is_list(File);atom(File)),!, debugOnFailureAiml((load_aiml_structure(Ctx,File),!,do_pending_loads(Ctx))).
+load_aiml_files(Ctx,element(Tag,Attribs,ContentIn)):- !, debugOnFailureAiml((load_aiml_structure(Ctx,element(Tag,Attribs,ContentIn)),!,do_pending_loads(Ctx))).
 load_aiml_files(Ctx,File):- withAttributes(Ctx,[withCategory=[writeqnl,asserta_new]],with_files(load_single_aiml_file(Ctx),File)),!,do_pending_loads(Ctx).
 
 
@@ -49,7 +49,8 @@ translate_aiml_files(Ctx,File):-with_files(translate_single_aiml_file(Ctx),File)
 
 with_files(_Verb,[]):-!.
 with_files(Verb,[File|Rest]):-!,maplist_safe(Verb,[File|Rest]),!,do_pending_loads.
-with_files(Verb,File):-exists_directory(File),!,prolog_must(atomic(File)),aiml_files(File,Files),!,with_files(Verb,Files),!.
+with_files(Verb,File):-compound(File),not(is_list(File)),global_pathname(File,FILES),not(File=FILES),!,with_files(Verb,FILES),!.
+with_files(Verb,File):-exists_directory_safe(File),!,prolog_must(atomic(File)),aiml_files(File,Files),!,with_files(Verb,Files),!.
 with_files(Verb,File):-exists_file_safe(File),!,with_files(Verb,[File]).
 with_files(Verb,File):-file_name_extension(File,'aiml',Aiml), exists_file_safe(Aiml),!,with_files(Verb,[File]).
 with_files(Verb,File):-expand_file_name(File,FILES),not([File]=FILES),!,with_files(Verb,FILES),!.
@@ -63,6 +64,8 @@ aiml_files(File,Files):-exists_directory_safe(File), %absolute_file_name(File,_F
 
 
 aimlOption(rebuild_Aiml_Files,false).
+
+load_single_aiml_file(Ctx,F0):-global_pathname(F0,File),F0\==File,!,load_single_aiml_file(Ctx,File).
 
 load_single_aiml_file(Ctx,F0):-
   debugOnFailureAimlEach((
@@ -778,8 +781,6 @@ save:-tell(aimlCate),
    predicate_property(CateSig,number_of_clauses(N)),
    predicate_property(dict(_,_,_),number_of_clauses(ND)),
    debugFmt([aimlCate=N,dict=ND]),!.
-
-:-guitracer.
 
 dt:- withAttributes(Ctx,[graph='ChomskyAIML'],load_aiml_files(Ctx,'aiml/chomskyAIML/*.aiml')).
 

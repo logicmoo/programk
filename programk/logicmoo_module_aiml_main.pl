@@ -14,13 +14,16 @@ hasLibrarySupport :- absolute_file_name(library('programk/logicmoo_module_aiml.p
 throwNoLib:-  absolute_file_name('.',Here),throw(error(existence_error(url, Here), context(_, status(404, Here)))).
 
 % up one if we are in same directory
-:-absolute_file_name('logicmoo_module_aiml.pl',File),exists_file(File),cd('../').
+:-absolute_file_name('logicmoo_module_aiml.pl',File),(exists_file(File)->cd('../');true).
 
-% if not has library suport, add this direcotry as a library directory
-:-not(hasLibrarySupport),
-  absolute_file_name('programk/logicmoo_module_aiml.pl',File),exists_file(File),
+% if not has library suport, add this directory as a library directory
+addSupportHere:-
+  absolute_file_name('programk/logicmoo_module_aiml.pl',File),
+  (exists_file(File)-> ((
   absolute_file_name('.',Here),
-  asserta(library_directory(Here)).
+  asserta(library_directory(Here))));true).
+
+:-not(hasLibrarySupport)->addSupportHere;true.
 
 :-hasLibrarySupport->true;throwNoLib.
 
@@ -38,8 +41,8 @@ dtt:- time(dt),statistics,alicebot.
 
 dttt:-time(consult(aimlCate_checkpoint)),alicebot.
 
+:-catch(guitracer,_,true).
 :-traceAll.
-:-guitracer.
 :-list_undefined.
 
 :-debug.
@@ -54,7 +57,7 @@ dttt:-time(consult(aimlCate_checkpoint)),alicebot.
 
 chomskyAIML:-once(load_aiml_files('programk/test_suite/chomskyAIML/*.aiml')).
 
-test_suite_files:-once(load_aiml_files('programk/test_suite/*.aiml')).
+test_suite_files:-once(load_aiml_files(library('programk/test_suite/*.aiml'))).
 
 run_chat_tests_here:-     
    test_suite_files,

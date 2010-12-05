@@ -80,7 +80,7 @@ load_single_aiml_file(Ctx,File,PLNAME,FileMatch):-
    assertz(pending_aiml_file(File,PLNAME)),!.
 
 
-
+translate_single_aiml_file(Ctx,F0):-global_pathname(F0,File),F0\==File,!,translate_single_aiml_file(Ctx,File).
 translate_single_aiml_file(Ctx,F0):-
   debugOnFailureAimlEach((
    global_pathname(F0,File),!,
@@ -110,9 +110,7 @@ load_pending_aiml_file(Ctx,File,PLNAME):- debugFmt(load_pending_aiml_file(Ctx,Fi
   catch(debugOnFailureAiml(dynamic_load(File,PLNAME)),E,(debugFmt(E),assert(pending_aiml_file(File,PLNAME)))),!.
 
 translate_single_aiml_file(_Ctx,File,PLNAME,FileMatch):- creating_aiml_file(File,PLNAME),!,
-   throw_safe(already(creating_aiml_file(File,PLNAME),FileMatch)),!.
-
-translate_single_aiml_file(_Ctx,File,PLNAME,FileMatch):- loaded_aiml_file(File,PLNAME,Time),!, throw_safe(already(loaded_aiml_file(File,PLNAME,Time),FileMatch)).
+  throw_safe(already(creating_aiml_file(File,PLNAME),FileMatch)),!.
 
 translate_single_aiml_file(_Ctx,File,PLNAME,_FileMatch):-  fail, %% fail if want to always remake file
    exists_file_safe(PLNAME),
@@ -122,6 +120,14 @@ translate_single_aiml_file(_Ctx,File,PLNAME,_FileMatch):-  fail, %% fail if want
    PLTime > FTime,!,
    debugFmt(up_to_date(create_aiml_file(File,PLNAME))),!,
    retractall(creating_aiml_file(File,PLNAME)).
+
+%%translate_single_aiml_file(_Ctx,File,PLNAME,FileMatch):- loaded_aiml_file(File,PLNAME,Time),!, throw_safe(already(loaded_aiml_file(File,PLNAME,Time),FileMatch)).
+translate_single_aiml_file(Ctx,File,PLNAME,FileMatch):- loaded_aiml_file(File,PLNAME,Time),!,
+   debugFmt(translate_single_aiml_file(loaded_aiml_file(File,PLNAME,Time),FileMatch)),
+   prolog_must(retract(loaded_aiml_file(File,PLNAME,Time))),
+   retractall(pending_aiml_file(File,PLNAME)),
+   assertz(pending_aiml_file(File,PLNAME)),!,
+   translate_single_aiml_file(Ctx,File,PLNAME,FileMatch).
 
 translate_single_aiml_file(Ctx,File,PLNAME,FileMatch):-
   call_cleanup(

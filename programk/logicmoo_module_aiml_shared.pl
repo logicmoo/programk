@@ -221,8 +221,11 @@ nop(_).
 
 
 % ===============================================================================================
-% unlistify / unresultify
+% listify/ unlistify / unresultify
 % ===============================================================================================
+
+listify(OUT,OUT):-not(not(is_list(OUT))),!.
+listify(OUT,[OUT]).
 
 unlistify([L],O):-nonvar(L),unlistify(L,O),!.
 unlistify(L,L).
@@ -488,6 +491,12 @@ showProfilerStatistics(FileMatch):-
 aimlPredCount:-printAll(aimlPredCount(_,_,0)),printAll((aimlPredCount(Pred,File,Count),Count>0),aimlPredCount(Pred,File,Count)).
 aimlPredCount(Pred,File,Count):-source_file(File),atom_contains(File,'aiml'),source_file(Pred,File),functor(Pred,F,A),current_predicate(F/A),
     predicate_property(Pred,dynamic),predicate_property(Pred,number_of_clauses(Count)).
+
+% =================================================================================
+% list_to_set_preserve_order/2
+% =================================================================================
+list_to_set_preserve_order([],[]):-!.
+list_to_set_preserve_order([H|T],[H|TT]):-delete(T,H,M),list_to_set_preserve_order(M,TT).
 
 % =================================================================================
 % Utils

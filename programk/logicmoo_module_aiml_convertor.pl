@@ -65,9 +65,6 @@ convert_template(Ctx,[I|P],GOOD):- convert_template(Ctx,I,O),!,convert_template(
 convert_template(Ctx,element(TAG,ATTRIBS,P),POL):-!, convert_element(Ctx,element(TAG,ATTRIBS,P),OUT),!,listify(OUT,POL).
 convert_template(Ctx,P,POL):-convert_element(Ctx,P,PO),!,listify(PO,POL).
 
-listify(OUT,OUT):-not(not(is_list(OUT))),!.
-listify(OUT,[OUT]).
-
 toAtomList(A,O):-delete(A,'',O),!.
 
 convert_element(Ctx,element(Tag, A, B),Out):-!,convert_ele(Ctx,element(Tag, A, B),M),!,M=Out,!.
@@ -174,7 +171,7 @@ convert_ele(Ctx,element(Tag, A, B),element(Tag, A, BB)):- member(Tag,[srai]),tra
 convert_ele(_Ctx,O,O).
 
 
-convert_attributes(Ctx,A,AAA):- convert_attributes0(Ctx,A,AA),list_to_set_safe(AA,AAA).
+convert_attributes(Ctx,A,AAA):- hotrace(debugOnFailure((convert_attributes0(Ctx,A,AA),list_to_set_safe(AA,AAA)))).
 convert_attributes0(Ctx,[B|A],[BB|AA]):-convert_attribute(B,BB),convert_attributes0(Ctx,A,AA).
 convert_attributes0(_Ctx,[],[]).
 

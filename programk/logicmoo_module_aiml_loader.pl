@@ -283,7 +283,9 @@ load_inner_aiml_w_lineno(SrcFile,[OuterTag|PREV],Parent,Attributes,Ctx,element(T
    ignore(Line = nonfile),
    ignore(Offset = nonfile),
    appendAttributes(Ctx,Attributes,Attribs,RightAttribs),
-   appendAttributes(Ctx,[srcfile=SrcFile:Line-Offset,srcinfo=element(Tag,Attribs,ContentIn)],RightAttribs,NewAttribs),
+   %% Src = element(Tag,Attribs,ContentIn),
+   Src = nosrc,
+   appendAttributes(Ctx,[srcfile=SrcFile:Line-Offset,srcinfo=Src],RightAttribs,NewAttribs),
    ignore(retract(MATCH)),
    (member(Tag,[aiml,topic]) ->  NextAttribs = NewAttribs ; NextAttribs = []),
    maplist_safe(load_inner_aiml_w_lineno(SrcFile,[Tag,OuterTag|PREV],Parent,NextAttribs,Ctx),ContentIn,ContentOut),!.

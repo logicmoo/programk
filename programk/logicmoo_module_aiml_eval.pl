@@ -220,8 +220,10 @@ systemCall_Bot(Ctx,[FIRST|REST],DONE):-atom_concat_safe('@',CMD,FIRST),CMD\=='',
 systemCall_Bot(_Ctx,['eval'|DONE],template([evaled,DONE])):-!.
 systemCall_Bot(_Ctx,['echo'|DONE],DONE):-!.
 systemCall_Bot(Ctx,['set'],template([setted,Ctx])):-!,unify_listing(getUserDicts(_User,_Name,_Value)),!.
-systemCall_Bot(Ctx,['get',Name|MajorMinor],template([getted,Dict,Value])):- getDictFromAttributes(Ctx,evalsrai,[],SYM),member(Dict,[SYM,user,robot,_]),
-  debugOnFailure(getIndexedValue(Ctx,Dict,Name,MajorMinor,Value)),!.
+systemCall_Bot(Ctx,['get',Name|MajorMinor],template([getted,Dict,Value,Found1])):- getDictFromAttributes(Ctx,evalsrai,[],SYM),
+  list_to_set_preserve_order([SYM,user,robot,Name],List),
+  debugFmt(getIndexedValue(Ctx,List,Name,MajorMinor,values)),
+  forall(member(Dict,List),ignore((unify_listing(getIndexedValue(Ctx,Dict,Name,MajorMinor,Value),Found),Found>0,Found1=Found))).
 systemCall_Bot(Ctx,['get'],template([getted,Passed])):- unify_listing(getContextStoredValue(Ctx,_,_,_),Passed).
 %systemCall_Bot(Ctx,['ctx'],template([ctxed,Ctx])):-!,showCtx.
 systemCall_Bot(Ctx,['load'|REST],OUT):- !, debugOnFailure(systemCall_Load(Ctx,REST,OUT)),!.
@@ -235,7 +237,7 @@ systemCall_Bot(_Ctx,DONE,template([delayed,DONE])):-!.
 systemCall_Load(Ctx,[],template([loaded,Ctx])):-!.
 systemCall_Load(Ctx,[File,Name|S],Output):-concat_atom_safe([File,Name|S],'',Filename),!,systemCall(Ctx,'bot',['load',Filename],Output).
 systemCall_Load(Ctx,[Filename],template([loaded,Filename])):-
-    current_value(Ctx,graph,GraphI), 
+    peekNameValue(Ctx,_,graph,GraphI,'*'), 
     (GraphI=='*'->Graph=default; Graph=GraphI),
     ATTRIBS=[srcfile=Filename,graph=Graph],
     gather_aiml_graph(Ctx,ATTRIBS,Graph,Filename,AIML),
@@ -286,8 +288,9 @@ graph_or_file_or_dir(Ctx,ATTRIBS, Filename, XML):- Filename=[A,B|_C],atom(A),ato
                     concat_atom_safe(Filename,'',FileAtom),!,
                     prolog_must(graph_or_file_or_dir(Ctx,ATTRIBS, FileAtom, XML)),!.
 
-graph_or_file_or_dir(_Ctx,_ATTRIBS, Filename, XML):- os_to_prolog_filename(Filename,AFName),
-               exists_file_safe(AFName),!,load_structure(AFName,XML,[dialect(xml),space(remove)]),!.
+graph_or_file_or_dir(_Ctx,_ATTRIBS, Filename,[element(aiml, [srcfile=AbsoluteFilename], XML)]):- os_to_prolog_filename(Filename,AFName),
+               exists_file_safe(AFName),global_pathname(AFName,AbsoluteFilename),!,
+               load_structure(AFName,XML,[dialect(xml),space(remove)]),!.
 
 graph_or_file_or_dir(Ctx,ATTRIBS, F, [element(aiml,DIRTRIBS,OUT)]):- DIRTRIBS = [srcdir=F|ATTRIBS],
       os_to_prolog_filename(F,ADName),

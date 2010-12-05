@@ -532,7 +532,7 @@ contains_term(SearchThis,Find):-compound(SearchThis),functor(SearchThis,Func,_),
 % Utils
 % =================================================================================
 
-global_pathname(B,A):-absolute_file_name(B,A),!.
+global_pathname(B,C):-absolute_file_name(B,A),!,canonical_pathname(A,C),!.
 global_pathname(B,A):-relative_pathname(B,A).
 
 relative_pathname(Path,Relative):-absolute_file_name(Path,[relative_to('./')],Absolute),member(Rel,['./','../','../../']),absolute_file_name(Rel,Clip),
@@ -541,7 +541,10 @@ relative_pathname(Path,Relative):-absolute_file_name(Path,[relative_to('./')],Ab
    atom_concat_safe(ClipA,RelativeA,AbsoluteA),!,atom_concat_safe(Rel,RelativeA,Relative),!.
 relative_pathname(Path,Relative):-canonical_pathname(Path,Relative),!.
 
-canonical_pathname(Absolute,AbsoluteB):-prolog_to_os_filename(AbsoluteA,Absolute),expand_file_name(AbsoluteA,[AbsoluteB]),!.
+canonical_pathname(Absolute,AbsoluteB):-prolog_to_os_filename(AbsoluteA,Absolute),canonical_pathname0(AbsoluteA,AbsoluteB),!.
+
+canonical_pathname0(AbsoluteA,AbsoluteB):-catch(expand_file_name(AbsoluteA,[AbsoluteB]),E,(debugFmt(E:AbsoluteA),fail)),!.
+canonical_pathname0(AbsoluteA,AbsoluteA).
 
 alldiscontiguous:-!.
 

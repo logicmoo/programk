@@ -608,7 +608,7 @@ varize(Find,Replace,FindO,ReplaceO):-
       subst((FindM,ReplaceM),'*','$VAR'(0),(FindO,ReplaceO)),!.
 
 
-aiml_error(E):-trace,  randomVars(E),debugFmt('~q~n',[error(E)]),trace,randomVars(E),!,safe_throw(E).
+aiml_error(E):-trace,randomVars(E),debugFmt('~q~n',[error(E)]),trace,randomVars(E),!,throw_safe(error(aiml_error,E)).
 
 
 % ===============================================================================================

@@ -358,8 +358,8 @@ preserveTag(In,Out):- member(Out,['input','description',expectedAnswer,expectedk
 
 runUnitTest(Call,Req,Result):-runUnitTest1(Call,Result1),!,runUnitTest2(Req,Result2),!,Result=unit(Result1,Result2),debugFmt(Result),!.
 
-runUnitTest1(Req,Result):-hotrace(catch((Req-> Result=unit_passed(Req); Result=unit_failed(Req)),E,Result=unit_error(E,Req))).
-runUnitTest2(Req,Result):-hotrace(catch((Req-> Result=unit_passed(Req); Result=unit_failed(Req)),E,Result=unit_error(E,Req))).
+runUnitTest1(Req,Result):-hotrace(error_catch((Req-> Result=unit_passed(Req); Result=unit_failed(Req)),E,Result=unit_error(E,Req))).
+runUnitTest2(Req,Result):-hotrace(error_catch((Req-> Result=unit_passed(Req); Result=unit_failed(Req)),E,Result=unit_error(E,Req))).
 
 sameBinding(X,Y):-hotrace((sameBinding1(X,X1),sameBinding1(Y,Y1),!,X1=Y1)),!.
 

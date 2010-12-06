@@ -64,7 +64,7 @@ run_chat_tests:-
    test_call(alicebot('My name is Fred.')),
    test_call(alicebot('what is my name?')).
 
-test_call(G):-writeln(G),ignore(once(catch(G,E,writeln(E)))).
+test_call(G):-writeln(G),ignore(once(error_catch(G,E,writeln(E)))).
 
 
 main_loop1(Atom):- current_input(In),!,
@@ -73,6 +73,7 @@ main_loop1(Atom):- current_input(In),!,
             alicebot(Atom),!.
 
 main_loop:-repeat,main_loop1(_),fail.
+
 
 % ===================================================================
 %  aimlCate database decl
@@ -119,7 +120,7 @@ alicebot(Input):- currentContext(alicebot(Input),Ctx),!,alicebotCTX(Ctx,Input).
 % ===============================================================================================
 % Main Alice 
 % ===============================================================================================
-alicebotCTX(_Ctx,Input):- atom(Input),catch(((atom_to_term(Input,Term,Vars),callInteractive0(Term,Vars))),_,fail),!.
+alicebotCTX(_Ctx,Input):- atom(Input),error_catch(((atom_to_term(Input,Term,Vars),callInteractive0(Term,Vars))),_,fail),!.
 alicebotCTX(Ctx,Input):- alicebotCTX(Ctx,Input,Resp),!,say(Ctx,Resp),!.
 %%alicebotCTX(Ctx,_):- trace, say(Ctx,'-no response-').
 
@@ -216,7 +217,7 @@ expandVar(_Ctx,Var,Var):-var(Var),!,traceAIML.
 expandVar(_Ctx,[Var|_],Var):- !,trace,traceAIML.
 expandVar(Ctx,In,Out):-atom(In),atom_concat('$',NameVar,In),!,expandVariable(Ctx,NameVar,Out),!.
 expandVar(_Ctx,In,Out):-atomic(In),Out=In,!.
-expandVar(Ctx,element(A,B,C),Out):-computeElementMust(Ctx,1,A,B,C,Out,_VotesO),!.
+%%expandVar(Ctx,element(A,B,C),Out):-!,computeElementMust(Ctx,1,A,B,C,Out,_VotesO),!.
 expandVar(Ctx,In,Out):-computeAnswerMaybe(Ctx,1,In,Out,_VotesO),!.
 expandVar(_Ctx,In,Out):-trace,Out=In,!.
 
@@ -331,10 +332,10 @@ computeElement(Ctx,Votes,sr,ATTRIBS,Input,Output,VotesO):- !,
 computeElement(_Ctx,Votes,srai,ATTRIBS,[],result([],srai=ATTRIBS),VotesO):-trace,!,VotesO is Votes * 0.6.
 
 % <srai>s   
-computeElement(Ctx,Votes,srai,ATTRIBS,Input,Output,VotesO):- % for evalSRAI
-  withAttributes(Ctx,ATTRIBS,
-    computeInnerTemplate(Ctx,Votes,Input,Middle,VotesM)),
-  computeSRAIElement(Ctx,VotesM,ATTRIBS,Middle,Output,VotesO),!.
+computeElement(Ctx,Votes,srai,ATTRIBS,Input,Output,VotesO):- !, % for evalSRAI
+  withAttributes(Ctx,ATTRIBS,((
+    computeInnerTemplate(Ctx,Votes,Input,Middle,VotesM),!,
+     prolog_must(computeSRAIElement(Ctx,VotesM,ATTRIBS,Middle,Output,VotesO))))),!.
 
 % <li...>
 computeElement(Ctx,Votes,li,Preconds,InnerXml,OutProof,VotesO):- !, computeElement_li(Ctx,Votes,Preconds,InnerXml,OutProof,VotesO).
@@ -342,10 +343,10 @@ computeElement(Ctx,Votes,li,Preconds,InnerXml,OutProof,VotesO):- !, computeEleme
 % <li> PASSED
 computeElement_li(Ctx,Votes,Preconds,InnerXml,OutProof,VotesO):-
      precondsTrue(Ctx,Preconds),!,computeInnerTemplate(Ctx,Votes,InnerXml,Output,VotesM),VotesO is VotesM * 1.1,!,
-     prolog_must(OutProof = proof(Output,Preconds)).
+     prolog_must(OutProof = proof(Output,li(Preconds))).
 
 % <li> FAILED ==> []
-computeElement_li(Ctx,Votes,Preconds,_InnerXml,OutProof,VotesO):-makeBlank(Ctx,Votes,failed(Preconds),OutProof,VotesO),!.
+computeElement_li(Ctx,Votes,Preconds,_InnerXml,OutProof,VotesO):-makeBlank(Ctx,Votes,failed(li(Preconds)),OutProof,VotesO),!.
 
   precondsTrue(Ctx,PC):-lastMember(name=Name,PC,WO),lastMember(value=Value,WO,Rest),!,precondsTrue0(Ctx,[Name=Value|Rest]).
   precondsTrue(_Ctx,PC):-PC==[];var(PC),!.
@@ -368,6 +369,18 @@ computeElement_condition(Ctx,Votes,CondAttribs,InnerXml,Result,VotesO):-
    copy_term(CondAttribs,CondAttribsCopy),
      attributesContainOneOf0(CondAttribsCopy,[value=_]),attributesContainOneOf0(CondAttribsCopy,[var=_,name=_]),!,
       prolog_must(prolog_may(computeAnswerMaybe(Ctx,Votes,element(li,CondAttribs,InnerXml),Result,VotesO));makeBlank(Ctx,Votes,failed(CondAttribs),Result,VotesO)),!.
+
+% <condition name="foo"> <li value="bar"...>
+computeElement_condition(Ctx,Votes,CondAttribs,InnerXml,Result,VotesO):- 
+   last(InnerXml,Last),
+   copy_term(CondAttribs,CondAttribsCopy),
+     not(attributesContainOneOf0(CondAttribsCopy,[value=_])),attributesContainOneOf0(CondAttribsCopy,[var=VarName,name=VarName]),!,
+   lastKVMember(Ctx,[var,name],VarName,CondAttribs,_NEWCondAttribs),
+   isValid(VarName),
+   debugFmt(condition(varname=VarName,InnerXml)),
+   withAttributes(Ctx, [name=VarName|CondAttribs],     
+      once((member(Pick,InnerXml),once((computeAnswerMaybe(Ctx,Votes,withAttributes(CondAttribs,Pick),Result,VotesO),isNonBlank(Result)))))
+         ; (Result = Last,VotesO is Votes * 0.9)),!.
 
 % <condition><li..>
 computeElement_condition(Ctx,Votes,CondAttribs,InnerXml,Result,VotesO):-
@@ -449,7 +462,7 @@ computeElement(Ctx,Votes,Tag,Attrib, Input, Output, VotesO) :- formatterProc(Tag
 
 % .... computeCall to formatter ....
 computeCall(Ctx,Method,Mid,Output,ElseResult):-
-   catch(prolog_must(call(Method,Ctx,Mid,Output)),
+   error_catch(prolog_must(call(Method,Ctx,Mid,Output)),
      E, (debugFmt(error(E,call(Method,Mid,Output))), trace, Output = ElseResult)).
 computeCall(_Ctx,_Pred,_Mid,Result,ElseResult):-prolog_must(Result=ElseResult).
 
@@ -550,7 +563,7 @@ computeStar1(Ctx,Votes,Star,Major,ATTRIBS,InnerXml,Proof,VotesO):-atomic(Major),
 
 computeStar1(Ctx,Votes,Star,Index,ATTRIBS,_InnerXml,proof(ValueO,StarVar=ValueI),VotesO):- is_list(Index),
       CALL=concat_atom([Star|Index],StarVar),
-      prolog_must(catch(CALL,E,(debugFmt(CALL->E),fail))),   
+      prolog_must(error_catch(CALL,E,(debugFmt(CALL->E),fail))),   
    getDictFromAttributes(Ctx,'evalsrai',ATTRIBS,Dict),
    computeStar2(Ctx,Votes,Dict,ATTRIBS,StarVar,ValueI,ValueO,VotesM),!,
    VotesO is VotesM * 1.1.
@@ -601,23 +614,27 @@ computeGetSet(Ctx,Votes,bot,ATTRIBS,InnerXml,Resp,VotesO):- !, computeGetSetVar(
 computeGetSet(Ctx,Votes,GetSet,ATTRIBS,InnerXml,Resp,VotesO):- computeGetSetVar(Ctx,Votes,user,GetSet,_VarName,ATTRIBS,InnerXml,Resp,VotesO),!.
 
 dictVarName(N):-member(N,[dictionary,dict,userdict,type,user,botname,username,you,me]).
-dictFromAttribs(Ctx,ATTRIBS,Dict,NEW):-
-      dictVarName(N),
-      lastMember(N=Dict,ATTRIBS,NEW),getContextStoredValue(Ctx,Dict,_Name,Value),valuePresent(Value),!.
+dictFromAttribs(Ctx,ATTRIBS,Dict,NEW):-dictVarName(N),lastMember(N=Dict,ATTRIBS,NEW),getContextStoredValue(Ctx,Dict,_Name,Value),valuePresent(Value),!.
+
+lastKVMember(_Ctx,Keys,Value,ATTRIBS,NEW):-member(N,Keys),lastMember(N=Value,ATTRIBS,NEW),prolog_must(isValid(Value)),!.
+lastKVMember(Ctx,Keys,Value,ATTRIBS,ATTRIBS):-member(N,Keys),getCtxValue(N,Ctx,Value),prolog_must(isValid(Value)),!.
+lastKVMember(Ctx,Keys,Value,ATTRIBS,ATTRIBS):-member(N,Keys),peekNameValue(Ctx,ATTRIBS,N,Value,'$failure'),prolog_must(isValid(Value)),!.
 
 %%computeGetSetVar(Ctx,Votes,_Dict,bot,VarName,ATTRIBS,InnerXml,Resp,VotesO):- !,computeGetSetVar(Ctx,Votes,user,get,VarName,ATTRIBS,InnerXml,Resp,VotesO).
 %% computeGetSetVar(Ctx,Votes,Dict,GetSetBot,VarName,ATTRIBS,InnerXml,Resp,VotesO).
 
-computeGetSetVar(Ctx,Votes,Dict,GetSet,_OVarName,ATTRIBS,InnerXml,Resp,VotesO):- atom(ATTRIBS),ATTRIBS \= [],!, VarName = ATTRIBS,
+computeGetSetVar(Ctx,Votes,Dict,GetSet,OVarName,ATTRIBS,InnerXml,Resp,VotesO):- atom(ATTRIBS),ATTRIBS \= [],!, VarName = ATTRIBS,
+   debugFmt(computeGetSetVar(GetSet,Dict:OVarName->VarName)),
      computeGetSetVar(Ctx,Votes,Dict,GetSet,VarName,[],InnerXml,Resp,VotesO),!.
 
-computeGetSetVar(Ctx,Votes,Dict,GetSet,_OVarName,ATTRIBS,InnerXml,Resp,VotesO):-  
-      member(N,[name,var]),
-      lastMember(N=VarName,ATTRIBS,NEW),
+computeGetSetVar(Ctx,Votes,Dict,GetSet,OVarName,ATTRIBS,InnerXml,Resp,VotesO):-  
+      member(N,[var,name]),lastMember(N=VarName,ATTRIBS,NEW),!,
+   debugFmt(computeGetSetVar(GetSet,Dict:OVarName->VarName)),
       computeGetSetVar(Ctx,Votes,Dict,GetSet,VarName,NEW,InnerXml,Resp,VotesO).
 
-computeGetSetVar(Ctx,Votes,_Dict,GetSet,VarName,ATTRIBS,InnerXml,Resp,VotesO):-
+computeGetSetVar(Ctx,Votes,OldDict,GetSet,VarName,ATTRIBS,InnerXml,Resp,VotesO):-
      dictFromAttribs(Ctx,ATTRIBS,Dict,NEW),
+   debugFmt(computeDict(GetSet,OldDict->Dict,VarName)),
      %% MAYBE NEED THIS LATER ((member(EVarName,VarName),delete(ATTRIBS,EVarName,ATTRIBSOUT));ATTRIBSOUT=ATTRIBS),
       computeGetSetVar(Ctx,Votes,Dict,GetSet,VarName,NEW,InnerXml,Resp,VotesO).
 
@@ -625,7 +642,10 @@ computeGetSetVar(Ctx,Votes,Dict,get,VarName,ATTRIBS,_InnerXml,proof(ValueO,VarNa
       getAliceMemComplete(Ctx,Dict,VarName,ValueI),!,
       computeAnswer(Ctx,Votes,element(template,ATTRIBS,ValueI),ValueO,VotesM),VotesO is VotesM * 1.1.
 
-computeGetSetVar(_Ctx,Votes,Dict,get,VarName,ATTRIBS,_InnerXml,proof([],Dict:VarName='OM',ATTRIBS),VotesO):-!,VotesO is Votes * 0.9.
+% GET no value found    
+computeGetSetVar(Ctx,Votes,Dict,get,VarName,ATTRIBS,_InnerXml,proof(ReturnValueO,Dict:VarName='OM',ATTRIBS),VotesO):-!,VotesO is Votes * 0.7,
+     lastMemberOrDefault('default'=DefaultValue,ATTRIBS,_AttribsNew,[]),
+     returnNameOrValue(Ctx,Dict,VarName,DefaultValue,ReturnValueO),!.
 
 computeGetSetVar(Ctx,Votes,Dict,set,VarName,ATTRIBS,InnerXml,proof(ReturnValue,VarName=InnerXml),VotesO):-!,
       computeAnswer(Ctx,Votes,element(template,ATTRIBS,InnerXml),ValueM,VotesM),
@@ -773,7 +793,21 @@ computeAnswer(_Ctx,Votes,Resp,Resp,Votes):-trace,aiml_error(computeAnswer(Resp))
 computeSRAIElement(Ctx,Votes,ATTRIBS,Input0,Output,VotesO):-
   prolog_must(ground(Input0)),!,
   flatten([Input0],Input),
+  getAliceMem(Ctx,'user',default('sraiinput','uncaught'),Status),!,
+  computeSRAIElement(Ctx,Votes,Status,ATTRIBS,Input,Output,VotesO).
+
+computeSRAIElement(Ctx,Votes,'uncaught',ATTRIBS,Input,Output,VotesO):-
+  setAliceMem(Ctx,'user','sraiinput','caught'),!,
+  catch(evalSRAI(Ctx,Votes,ATTRIBS,Input,Output,VotesO),aiml_goto(Output,VotesO),setAliceMem(Ctx,'user','sraiinput','uncaught')),!.
+
+computeSRAIElement(Ctx,Votes,_Unc,ATTRIBS,Input,Output,VotesO):-
   evalSRAI(Ctx,Votes,ATTRIBS,Input,Output,VotesO),!.
+
+frame_depth(Depth):-prolog_current_frame(Frame),prolog_frame_attribute(Frame,level,Depth).
+
+evalSRAI(Ctx,Votes,ATTRIBS,Input,proof(Output,loop(Depth>3000,ATTRIBS,Input)),VotesO):-
+ frame_depth(Depth),Depth>3000,getAliceMem(Ctx,bot,'infinite-loop-input',Output),!,VotesO is Votes * 0.8,
+ notrace,throw(aiml_goto(Output,VotesO)).
 
 evalSRAI(Ctx,Votes,ATTRIBS,[I|Input0],Output,VotesO):-atom(I),atom_prefix(I,'@'),!,
   % re-direct to input
@@ -786,7 +820,7 @@ evalSRAI(Ctx,Votes,ATTRIBS,Input,Output,VotesO):-
    withAttributes(Ctx,['evalsrai'=SYM,proof=Proof],
   ((
     debugOnError(computeSRAI(Ctx,Votes,SYM,Input,MidIn,VotesM,Proof)),      
-    computeSRAIStars(Ctx,ATTRIBS,Input,MidIn,VotesM,SYM,Proof,OutputM,VotesOM),  
+    computeSRAIStars(Ctx,ATTRIBS,Input,MidIn,VotesM,SYM,Proof,OutputM,VotesOM),!, 
     ifThen(nonvar(SYM),retractallSrais(SYM)),
     computeTemplateOutput(Ctx,VotesOM,OutputM,Output,VotesO))))),!.
 
@@ -911,13 +945,14 @@ computeSRAI222(CtxIn,Votes,ConvThreadHint,SYM,Pattern,Compute,VotesO,ProofOut,Ou
             prolog_must(nonvar(Out)),
             OutputLevel = OutputLevel1 - OutputLevel2 - OutputLevel3,
             cateStrength(CateSig,Mult),
-            (contains_term(Ctx,CateSig)->not(contains_term(Ctx,ClauseNumber));not(contains_term(Ctx,ClauseNumber))),
+           %% not(contextUsedClaused(Ctx,CateSig,ClauseNumber)),
             VotesO is Votes * Mult,
             append(StarSets_Topic,StarSets_That,StarSets_TopicThat),
             append(StarSets_Pattern,StarSets_TopicThat,StarSets_All),
             makeWithAttributes(StarSets_All,Out,Compute),       
             ProofOut=..[proof,Compute,cn(ClauseNumber),CateSig])).
 
+contextUsedClaused(Ctx,CateSig,ClauseNumber):- fail, contains_term(Ctx,CateSig)->not(contains_term(Ctx,ClauseNumber));not(contains_term(Ctx,ClauseNumber)).
 
 makeWithAttributes([],Proof,Proof):-!.
 makeWithAttributes(StarSets_All,Proof,withAttributes(StarSets_All,Proof)).
@@ -1314,6 +1349,7 @@ getLastSaidAsInput(LastSaidMatchable):-getLastSaid(That),convertToMatchable(That
 :-setCurrentAliceMem('user','is_type','agent').
 :-setCurrentAliceMem('bot','is_type','agent').
 :-setCurrentAliceMem('default','is_type','role').
+:-setCurrentAliceMem('bot','infinite-loop-input',['INFINITE','LOOP']).
 %%:-setCurrentAliceMem(substitutions(_DictName),'is_type','substitutions').
 
 

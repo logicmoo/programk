@@ -314,14 +314,21 @@ valuePresent(result(_)):- !.
 valuePresent(Value):- valueMP(Value,_M),!,fail.
 valuePresent(_):-!.
 
+isValid(Value):- var(Value),!,fail.
+isValid([X]):-!,isValid(X).
+isValid(result(_)):- !.
+isValid([]):-!.
+isValid(Value):- valueMP(Value,_M),!,fail.
+isValid(_):-!.
+
 % ===============================================================================================
 %    push/pop values API
 % ===============================================================================================
-popAttributes(Ctx,Scope,OldVals):-popCtxFrame(Scope,Ctx,PrevValues),!,ignore(PrevValues=OldVals).
-popAttributes(Ctx,Scope,List):- trace, prolog_must(ground(Scope)),popAttributes0(Ctx,Scope,List).
+popAttributes(Ctx,Scope,OldVals):- popCtxFrame(Scope,Ctx,PrevValues),ignore(PrevValues=OldVals),!.
+popAttributes(Ctx,Scope,List):- prolog_must(ground(Scope)),popAttributes0(Ctx,Scope,List),!.
 
 popAttributes0(Ctx,Scope,[N=V|L]):- !,checkAttribute(Scope,N,V),popNameValue(Ctx,Scope,N,V),!,popAttributes0(Ctx,Scope,L),!.
-popAttributes0(_Ctx,Scope,[]):-unify_listing(retract(dict(Scope,_,_))).
+popAttributes0(_Ctx,Scope,[]):-unify_listing(retract(dict(Scope,_,_))),!.
 
 withAttributes(_Ctx,ATTRIBS,Call):-ATTRIBS==[],!,Call.
 withAttributes(Ctx,ATTRIBS,Call):-
@@ -510,6 +517,8 @@ makeContextBase__only_ForTesting(Gensym_Key, [frame(Gensym_Key,ndestruct,[assoc(
 pushCtxFrame(Name,Ctx,NewValues):-checkCtx(Ctx),get_ctx_holderFreeSpot(Ctx,Holder,GuestDest),!,Holder=frame(Name,GuestDest,NewValues).
 popCtxFrame(Name,Ctx,PrevValuesIn):-checkCtx(Ctx),get_ctx_frame_holder(Ctx,Name,Frame),Frame = frame(Name,Destructor,PrevValues),
       call(Destructor,Name,Ctx,Frame),!,mustMatch(PrevValues,PrevValuesIn).
+
+checkCtx(_):-!.
 checkCtx(Ctx):-prolog_must(nonvar(Ctx)).
 %%checkCtx(Ctx):-makeAimlContext(broken,Ctx),!.
 

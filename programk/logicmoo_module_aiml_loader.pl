@@ -107,7 +107,7 @@ do_pending_loads:-withCurrentContext(do_pending_loads).
 do_pending_loads(Ctx):-forall(retract(pending_aiml_file(File,PLNAME)),load_pending_aiml_file(Ctx,File,PLNAME)).
 
 load_pending_aiml_file(Ctx,File,PLNAME):- debugFmt(load_pending_aiml_file(Ctx,File,PLNAME)),
-  catch(debugOnFailureAiml(dynamic_load(File,PLNAME)),E,(debugFmt(E),assert(pending_aiml_file(File,PLNAME)))),!.
+  error_catch(debugOnFailureAiml(dynamic_load(File,PLNAME)),E,(debugFmt(E),assert(pending_aiml_file(File,PLNAME)))),!.
 
 translate_single_aiml_file(_Ctx,File,PLNAME,FileMatch):- creating_aiml_file(File,PLNAME),!,
   throw_safe(already(creating_aiml_file(File,PLNAME),FileMatch)),!.
@@ -608,7 +608,7 @@ varize(Find,Replace,FindO,ReplaceO):-
       subst((FindM,ReplaceM),'*','$VAR'(0),(FindO,ReplaceO)),!.
 
 
-aiml_error(E):-trace,  randomVars(E),debugFmt('~q~n',[error(E)]),trace,randomVars(E),!,throw(E).
+aiml_error(E):-trace,  randomVars(E),debugFmt('~q~n',[error(E)]),trace,randomVars(E),!,safe_throw(E).
 
 
 % ===============================================================================================

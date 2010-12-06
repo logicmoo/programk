@@ -217,7 +217,7 @@ expandVar(_Ctx,Var,Var):-var(Var),!,traceAIML.
 expandVar(_Ctx,[Var|_],Var):- !,trace,traceAIML.
 expandVar(Ctx,In,Out):-atom(In),atom_concat('$',NameVar,In),!,expandVariable(Ctx,NameVar,Out),!.
 expandVar(_Ctx,In,Out):-atomic(In),Out=In,!.
-%%expandVar(Ctx,element(A,B,C),Out):-!,computeElementMust(Ctx,1,A,B,C,Out,_VotesO),!.
+expandVar(Ctx,element(A,B,C),Out):-!,computeElementMust(Ctx,1,A,B,C,Out,_VotesO),!.
 expandVar(Ctx,In,Out):-computeAnswerMaybe(Ctx,1,In,Out,_VotesO),!.
 expandVar(_Ctx,In,Out):-trace,Out=In,!.
 
@@ -638,7 +638,7 @@ computeGetSetVar(Ctx,Votes,OldDict,GetSet,VarName,ATTRIBS,InnerXml,Resp,VotesO):
      %% MAYBE NEED THIS LATER ((member(EVarName,VarName),delete(ATTRIBS,EVarName,ATTRIBSOUT));ATTRIBSOUT=ATTRIBS),
       computeGetSetVar(Ctx,Votes,Dict,GetSet,VarName,NEW,InnerXml,Resp,VotesO).
 
-computeGetSetVar(Ctx,Votes,Dict,get,VarName,ATTRIBS,_InnerXml,proof(ValueO,VarName=ValueI),VotesO):-!,
+computeGetSetVar(Ctx,Votes,Dict,get,VarName,ATTRIBS,_InnerXml,proof(ValueO,VarName=ValueI),VotesO):-
       getAliceMemComplete(Ctx,Dict,VarName,ValueI),!,
       computeAnswer(Ctx,Votes,element(template,ATTRIBS,ValueI),ValueO,VotesM),VotesO is VotesM * 1.1.
 

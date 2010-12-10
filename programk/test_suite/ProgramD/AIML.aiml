@@ -1011,7 +1011,7 @@ DDDDDDDDDD</html:pre>
     <topic name="SW1">
         <category>
             <pattern>* *</pattern>
-            <template></template>
+            <template><think>SW1111111111111111</think></template>
         </category>
     </topic>
     <topic name="SW2">

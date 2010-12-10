@@ -17,6 +17,9 @@
 <!-- custom tag tests -->
 <category><pattern>CTEST A</pattern><template>Passed Ctest A</template></category>
 <category><pattern>CTEST * B</pattern><template>Passed Ctest <star/> B</template></category>
+<category><pattern>CTEST * B</pattern><template>Passed Ctest <star/> B</template></category>
+<category><pattern>DTEST * * * D</pattern><template>Passed Ctest <star/> <star index="1"/> <star index="2"/> D</template></category>
+<category><pattern>DTEST * * * E</pattern><template>Passed Ctest <star/> <star index="1"/> <star index="2"/> EE</template></category>
 <category><pattern>WHAT IS YOUR *</pattern><template>whatis <star/></template></category>
 <category><pattern>CUSTOM TAG FORTUNE</pattern><template><fortunecookie/></template></category>
 <category><pattern>CUSTOM TAG PIG LATIN *</pattern><template><piglatin><star/></piglatin></template></category>
@@ -41,6 +44,11 @@
 <!--CUSTOM TAG SYSTEM look 5-->
 <category><pattern>CUSTOM TAG SYSTEM *</pattern><template><system><star/></system></template></category>
   
+ <category>
+    <pattern>STDCATCHALL *</pattern>
+    <template>ERROR understanding: <star/></template>
+ </category>
+
   <!--Multiple patterns-->
 
   <category>
@@ -504,7 +512,7 @@ Found the hyphen+done. star= 1
  <category>
     <pattern>*</pattern>
     <template>
-      <srai>STDCATCHALL-NEXVER</srai>
+      <srai>STDCATCHALL <star/></srai>
     </template>
   </category>
 
@@ -524,6 +532,7 @@ Found the hyphen+done. star= 1
         <template>Test case #15 setup. THAT plus two. THAT plus one. THAT.</template>
     </category>
 
+
     <category>
         <pattern>doug2</pattern>
         <template>Test case #15.<html:br/>
@@ -533,6 +542,32 @@ Found the hyphen+done. star= 1
             THAT+2: <that index="1,3"/><html:br/>
         </template>
     </category>
+
+    <category>
+        <pattern>doug3</pattern>
+        <template>Test case #06.<html:br/>
+            <think><set name="topic">Test passed TOPICDOUG</set></think>
+            <get name="topic"/>.
+        </template>
+    </category>
+    
+    <topic name="TEST PASSED TOPICDOUG">
+        <category>
+            <pattern>doug4</pattern>
+            <that>TEST PASSED TOPICDOUG</that>
+            <template> Test case #06a.<html:br/>
+                Test with THATDOUG passed.
+            </template>
+        </category>
+        <category>
+            <pattern>doug5</pattern>
+            <template> Test case #06b.<html:br/>
+                Test without THATDOUG passed.
+                <think><set name="topic"/></think>
+            </template>
+        </category>
+    </topic>
+
 
   <category>
     <pattern>QTP</pattern>
@@ -608,11 +643,14 @@ Found the hyphen+done. star= 1
   <category>
     <pattern>QT</pattern>
     <template>
-      <load graph="ProgramD" dir="ProgramD/"/>
+      <load graph="ProgramD" dir="ProgramD/"/>     
       <srai>@chgraph programd</srai>
+      <!--
       <srai>@load ProgramD\AIML.xml</srai>
+      -->
     </template>
   </category>
+
 
   <category>
     <pattern>YES</pattern>
@@ -701,10 +739,10 @@ Found the hyphen+done. star= 1
   <load path="aiml/nephrael_rae/ZZ_Stu.aiml" />
   <load path="aiml\bina_v1\ZZ_Stu.aiml" />
    -->
-  <category>
+ <category>
     <pattern>*</pattern>
     <template>
-      STDCATCHALL-NEXVER
+      <srai>STDCATCHALL <star/></srai>
     </template>
   </category>
 
@@ -719,6 +757,18 @@ Found the hyphen+done. star= 1
       </learn>
     </template>
   </category>
+
+    <category>
+        <pattern>doug6</pattern>
+        <template>
+            Test case #46.
+            <html:br/>
+            <think><set name="oldtopic"><get name="topic"/></set></think>
+            <think><set name="topic">SW0</set></think>
+            <srai>WILDCARD AND RECURSION TEST</srai>
+            <think><set name="topic"><get name="oldtopic"/></set></think>
+        </template>
+    </category>
 
 </aiml>
 

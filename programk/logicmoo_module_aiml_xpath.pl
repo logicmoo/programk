@@ -500,9 +500,9 @@ withCurrentContext(Goal):-prolog_must(atom(Goal)),debugOnFailureAiml((currentCon
 
 makeAimlContext(Name,Ctx):-makeContextBase(Name,Ctx),!,setCtxValue(ctx,Ctx,Name),!.
 
-currentContext(Name,X):-makeAimlContext(Name,X),!.
+currentContext(Name,Ctx):-ifThen(var(Ctx),makeAimlContext(Name,Ctx)),!.
 
-makeContextBase(CtxNameKey, frame(CtxNameKey,ndestruct,[assoc(AL)|_])):- list_to_assoc([],AL).
+makeContextBase(CtxNameKey, [frame(CtxNameKey,ndestruct,[assoc(AL)|_])|_]):- list_to_assoc([],AL).
 %% WAS makeContextBase(CtxNameKey, [frame(CtxNameKey,ndestruct,[assoc(AL)|_])|_]):- list_to_assoc([],AL).
 
 makeContextBase__only_ForTesting(Gensym_Key, [frame(Gensym_Key,ndestruct,[assoc(AL)|_])|_]):-    
@@ -594,7 +594,7 @@ setCtxValue(Name,Ctx,Value):-(getCtxValue0(Name,Ctx,PrevValue),!, Value==PrevVal
 
 addCtxValue(Name,Ctx,Value):-checkCtx(Ctx),addCtxValue1(Name,Ctx,Value),!.
 %%addCtxValue1(Name,Ctx,Value):-get_ctx_holderFreeSpot(Ctx,Name=v(Value,Setter,Destructor),Destructor),!,ignore(Setter=set_v3(Name)).
-addCtxValue1(Name,Ctx,Value):-get_ctx_holderFreeSpot(Ctx,NameValue,Destructor), NameValue = (Name=v(Value,set_v3(Name),Destructor)).
+addCtxValue1(Name,CtxIn,Value):-get_ctx_frame_holder1(CtxIn,_Dict,Ctx,_Held),get_ctx_holderFreeSpot(Ctx,NameValue,Destructor), NameValue = (Name=v(Value,set_v3(Name),Destructor)).
                                                                                              
 
 remCtxValue(Name,Ctx,_Value):-checkCtx(Ctx),setCtxValue(Name,Ctx,deleted),!.
@@ -639,7 +639,7 @@ get_ctx_holderFreeSpot0(Ctx,NamedValue,Destruct):-compound(Ctx),get_ctx_holderFr
 
 get_ctx_holderFreeSpot1(assoc(_Ctx),_,_):-!,fail.
 get_ctx_holderFreeSpot1(frame(Key,_Inner_Dest,Ctx),NamedValue,Destruct):- nonvar(Key), !, get_ctx_holderFreeSpot1(Ctx,NamedValue,Destruct).
-get_ctx_holderFreeSpot1(Ctx,NamedValue,Destruct):-get_ctx_holderFreeSpot2(Ctx,Ctx,NamedValue,Destruct).
+get_ctx_holderFreeSpot1(Ctx,NamedValue,Destruct):-get_ctx_holderFreeSpot2(Ctx,Ctx,NamedValue,Destruct),!.
 
 get_ctx_holderFreeSpot2(_,Try1,NamedValue,nb_setarg(1,Try1)):- var(Try1),!, Try1 = [NamedValue|_NEXT],trace.
 get_ctx_holderFreeSpot2(_,[_|Try1],NamedValue,nb_setarg(1,Try1)):- var(Try1),!, Try1 = [NamedValue|_NEXT].

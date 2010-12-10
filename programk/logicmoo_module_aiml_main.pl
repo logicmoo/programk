@@ -63,20 +63,20 @@ chomskyAIML:-once(load_aiml_files(library('programk/test_suite/chomskyAIML/*.aim
 
 test_suite_files:-once(load_aiml_files(library('programk/test_suite/*.aiml'))).
 
-run_chat_tests_here:-     
+run_chat_tests_here(Ctx):-     
    test_suite_files,
-   test_call(alicebot('qt')),
-   test_call(alicebot('qt1')),!.
+   test_call(alicebot(Ctx,'qt')),
+   test_call(alicebot(Ctx,'qt1')),!.
 
-run2:-
-   %%test_call(alicebot('Hi')),
-   test_call(alicebot('What is your name')),
-   test_call(alicebot('What is your thing')),
-   test_call(alicebot('My name is Fred.')),
-   test_call(alicebot('what is my name?')).
+run2(Ctx):-
+   %%test_call(alicebot(Ctx,'Hi')),
+   test_call(alicebot(Ctx,'What is your name')),
+   test_call(alicebot(Ctx,'What is your thing')),
+   test_call(alicebot(Ctx,'My name is Fred.')),
+   test_call(alicebot(Ctx,'what is my name?')).
 
 
-annie:-run_chat_tests_here.
+annie:-makeAimlContext(toplevel,Ctx),run_chat_tests_here(Ctx),alicebot(Ctx).
 
 %:-test_suite_files.
 

@@ -111,12 +111,18 @@ showTransition(O,Y,O):-O==Y,!.
 showTransition(O,Y,O=Y).
 
 alicebot:-
-        makeAimlContext(alicebot,Ctx),
+        currentContext(alicebot,Ctx),
+        alicebot(Ctx).
+
+alicebot(__Ctx):-        
         repeat,
+        currentContext(alicebot,Ctx),
 	read_line_with_nl(user,CodesIn,[]),        
         once((trim(CodesIn,Codes),atom_codes(Atom,Codes),alicebotCTX(Ctx,Atom))),fail.
 
-alicebot(Input):- currentContext(alicebot(Input),Ctx),!,alicebotCTX(Ctx,Input).
+alicebot(__Ctx,Input):- 
+  currentContext(alicebot(Input),Ctx),!,
+  alicebotCTX(Ctx,Input).
 
 % ===============================================================================================
 % Main Alice 

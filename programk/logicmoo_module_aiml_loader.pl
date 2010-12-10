@@ -435,7 +435,7 @@ load_aiml_structure(_Ctx,element(Tag,ALIST,LIST)):- member(Tag,[meta]),!,debugFm
 
 % special dictionaries
 load_aiml_structure(Ctx,element(Tag,ALIST,LIST)):- %% member(Tag,[predicates,vars,properties,predicate,property,var,item]),
-   notrace(load_dict_structure(Ctx,element(Tag,ALIST,LIST))),!.
+   hotrace(load_dict_structure(Ctx,element(Tag,ALIST,LIST))),!.
 
 /*
 % ============================================

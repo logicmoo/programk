@@ -295,7 +295,7 @@ computeInnerEach(_Ctx, _Votes, In, Out) :- !, Out=In,  prolog_mostly_ground((Out
 % ===============================================================================================
 % Compute Answer Element Probilities
 % ===============================================================================================
-computeElementMust(Ctx,Votes,Tag,Attribs,InnerXml,Resp,VotesO):-computeElement(Ctx,Votes,Tag,Attribs,InnerXml,Resp,VotesO),!.
+computeElementMust(Ctx,Votes,Tag,Attribs,InnerXml,Resp,VotesO):-catch(computeElement(Ctx,Votes,Tag,Attribs,InnerXml,Resp,VotesO),E,throw(E)),!.
 computeElementMust(Ctx,Votes,Tag,Attribs,InnerXml,Resp,VotesO):-trace,computeElement(Ctx,Votes,Tag,Attribs,InnerXml,Resp,VotesO),!.
 
 computeAnswerMaybe(Ctx,Votes,element(Tag,Attribs,InnerXml),Output,VotesO):-!,computeElement(Ctx,Votes,Tag,Attribs,InnerXml,Output,VotesO),!.
@@ -819,10 +819,10 @@ frame_depth(Depth):-prolog_current_frame(Frame),prolog_frame_attribute(Frame,lev
 
 throw_aiml_goto(Output,VotesO):- notrace,throw(aiml_goto(Output,VotesO)).
 
-evalSRAI(Ctx,Votes,SraiDepth,ATTRIBS,_Input,_Unusued,_VotesO):- SraiDepth>100,
+evalSRAI(Ctx,Votes,SraiDepth,ATTRIBS,_Input,_Unusued,_VotesO):- SraiDepth>200,
   getAliceMem(Ctx,bot,'infinite-loop-input',Output),!,VotesO is Votes * 0.8,
   throw_aiml_goto(element(srai,ATTRIBS,Output),VotesO).
-    %%throw_aiml_goto(proof(element(template,ATTRIBS,[element(srai,ATTRIBS,Output)]),loop(sraiDepth,SraiDepth,100,ATTRIBS,Input)),VotesO).
+  %%throw_aiml_goto(proof(element(template,ATTRIBS,[element(srai,ATTRIBS,Output)]),loop(sraiDepth,SraiDepth,200,ATTRIBS,Input)),VotesO).
 
 /*
 evalSRAI(Ctx,Votes,_SraiDepth,ATTRIBS,Input,_Unusued,_VotesO):-
@@ -832,7 +832,7 @@ evalSRAI(Ctx,Votes,_SraiDepth,ATTRIBS,Input,_Unusued,_VotesO):-
 
 evalSRAI(Ctx,Votes,_SraiDepth,ATTRIBS,[I|Input0],Output,VotesO):-atom(I),atom_prefix(I,'@'),!,
   % re-direct to input
-  withAttributes(Ctx,ATTRIBS,prolog_must(computeAnswer(Ctx,Votes,[I|Input0],Output,VotesO))),!.
+  withAttributes(Ctx,ATTRIBS,prolog_must(computeAnswer(Ctx,Votes,element(system,ATTRIBS,[I|Input0]),Output,VotesO))),!.
 
 evalSRAI(Ctx,Votes,_SraiDepth,ATTRIBS,Input,Output,VotesO):-
  ifThen(var(SYM),evalsrai(SYM)),
@@ -923,9 +923,9 @@ computeSRAI0(Ctx,Votes,ConvThread,SYM,[B|Flat],[B|Result],VotesO,Proof):- fail,
    computeSRAI2(Ctx,Votes,ConvThread,SYM,Flat,Result,VotesO,Proof,_PostMatchLevel3),prolog_must(nonvar(Result)).
 
 getAliceMemOrSetDefault(CtxIn,ConvThread,SYM,Name,Value,_OrDefault):-checkSym(SYM),
-   notrace(getCtxValue(ConvThread:Name,CtxIn,Value)),!.
+   hotrace(getCtxValue(ConvThread:Name,CtxIn,Value)),!.
 getAliceMemOrSetDefault(CtxIn,ConvThread,SYM,Name,Value,_OrDefault):-checkSym(SYM),
-   notrace(getIndexedValue(CtxIn,ConvThread,Name,[],Value)),!.
+   hotrace(getIndexedValue(CtxIn,ConvThread,Name,[],Value)),!.
 getAliceMemOrSetDefault(CtxIn,ConvThread,SYM,Name,Value,OrDefault):-checkSym(SYM),
    setAliceMem(CtxIn,ConvThread,Name,OrDefault),!,OrDefault=Value.
 
@@ -947,13 +947,14 @@ computeSRAI222(CtxIn,Votes,ConvThreadHint,SYM,Pattern,Compute,VotesO,ProofOut,Ou
          subclassMakeUserDict(CtxIn,UserDict,SYM),
          PreTopic = (CtxIn=Ctx),
          CPreTopic = true,
+         getAliceMemOrSetDefault(CtxIn,ConvThread,SYM,'that',That,['Nothing']),
+         %%traceIf(That=['Nothing']),
+   debugFmt(topicThatPattern(Topic,That,Pattern)),
          make_preconds_for_match(Ctx,'topic',Topic,CateSig,PreTopic,AfterTopic, CPreTopic,CAfterTopic, Out,MinedCates,StarSets_Topic,OutputLevel1),
          must_be_openCate(CateSig),         
-         getAliceMemOrSetDefault(CtxIn,ConvThread,SYM,'that',That,['Nothing']),
          make_preconds_for_match(Ctx,'that',That,CateSig,AfterTopic,AfterThat,CAfterTopic,CAfterThat,Out,MinedCates,StarSets_That,OutputLevel2),
          must_be_openCate(CateSig),
          make_preconds_for_match(Ctx,'pattern',Pattern,CateSig,AfterThat,AfterPattern,CAfterThat,CAfterPattern,Out,MinedCates,StarSets_Pattern,OutputLevel3),!,
-         debugFmt(topicThatPattern(Topic,That,Pattern)),
          prolog_must(var(Out)),
          must_be_openCate(CateSig),!,       
          prolog_must(atLeastOne((AfterPattern,CateSig))),
@@ -1345,12 +1346,26 @@ setEachSentenceThat(Ctx,User,[PrevVar,Var|MORE],SR0):-
    setAliceMem(Ctx,User,PrevVar,Prev),
    setEachSentenceThat(Ctx,User,[Var|MORE],SR0).
 
-splitSentences([],[]):-!.   
-splitSentences(SR1,[SR0|SRMORE]):-grabFirstSetence(SR1,SR0,LeftOver),!,splitSentences(LeftOver,SRMORE),!.
-splitSentences(SR1,[SR1]):-!.
+splitSentences(In,Out):- notrace(splitSentences0(In,Out)),flatten(Out,OutL),traceIf(member(xml,OutL)),!.
+splitSentences0([],[]):-!.   
+splitSentences0(SR1,[SR0|SRMORE]):-grabFirstSetence(SR1,SR0,LeftOver),!,splitSentences0(LeftOver,SRMORE),!.
+splitSentences0(SR1,[SR1]):-!.
+
+splitSentencesOn(Starters,Enders,In,Out):- hotrace(splitSentencesOn0(Starters,Enders,In,Out)),flatten(Out,OutL),traceIf(member(xml,OutL)),!.
+splitSentencesOn0(_Starters,_Enders,[],[]):-!.   
+splitSentencesOn0(Starters,Enders,SR1,[SR0|SRMORE]):-grabFirstSetenceOn(Starters,Enders,SR1,SR0,LeftOver),!,splitSentencesOn0(Starters,Enders,LeftOver,SRMORE),!.
+splitSentencesOn0(_Starters,_Enders,SR1,[SR1]):-!.
 
 grabFirstSetence(SR1,SRS,LeftOver):-LeftSide=[_|_],append(LeftSide,[EOS|LeftOver],SR1),sentenceBreakChar(EOS),append(LeftSide,[EOS],SR0),cleanSentence(SR0,SRS),!.
 cleanSentence(SR0,SRS):-prolog_must(leftTrim(SR0,sentenceEnderOrPunct,SRS)),!.
+
+
+grabFirstSetenceOn(Starters,Enders,SR1,SRS,LeftOver):-LeftSide=[_|_],append(LeftSide,[EOS|LeftOver],SR1),
+    ((member(EOS,Enders)->append(LeftSide,[EOS],SR0));
+    (member(EOS,Starters)->append(LeftSide,[],SR0));
+    fail),cleanSentence(SR0,SRS),!.
+
+
 
 getRobot(Robot):-trace,getAliceMem(_Ctx,'bot','me',Robot),!.
 

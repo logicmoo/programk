@@ -347,7 +347,7 @@ atLeastOne(OneA):- atLeastOne(OneA,(trace,OneA)).
 atLeastOne(OneA,Else):- gensym(atLeastOne,AtLeastOne),flag(AtLeastOne,_,0),atLeastOne0(AtLeastOne,OneA,Else).
 
 atLeastOne0(AtLeastOne,OneA,_Else):- OneA, flag(AtLeastOne,X,X+1).
-atLeastOne0(AtLeastOne,OneA,Else):- flag(AtLeastOne,X,X),X=0, debugFmt(failed(OneA)),!,Else,!,fail.
+atLeastOne0(AtLeastOne,OneA,Else):- flag(AtLeastOne,X,X),X=0, debugFmt(failed(OneA)),trace,!,Else,!,fail.
 
 %%atLeastOne0(OneA,_Else):-copy_term(OneA,One),findall(One,call(One),OneL),[_|_]=OneL,!,member(OneA,OneL).
 %%atLeastOne0(OneA,Else):-debugFmt(failed(OneA)),!,Else,!,fail.

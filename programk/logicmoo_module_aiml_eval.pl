@@ -229,9 +229,9 @@ systemCall_Bot(Ctx,['ctx'],template([ctxed,Atom])):-!,term_to_atom(Ctx,Atom),!.
 systemCall_Bot(Ctx,['ctx'],template([ctxed,prologCall(Atom,term_to_atom(Ctx,Atom))])):-!,showCtx(Ctx).
 systemCall_Bot(Ctx,['load'|REST],OUT):- !, debugOnFailure(systemCall_Load(Ctx,REST,OUT)),!.
 systemCall_Bot(Ctx,['find'|REST],OUT):- !, debugOnFailure(systemCall_Find(Ctx,REST,OUT)),!.
-systemCall_Bot(Ctx,['chgraph',Graph],['chgraph',Graph]):- setAliceMem(Ctx,user,graph,Graph),!.
+systemCall_Bot(Ctx,['chgraph',Graph],['successfully','set','to','graph',Graph]):- setAliceMem(Ctx,user,graph,Graph),!.
 systemCall_Bot(_Ctx,['substs',DictName],['substsof',DictName]):- unify_listing(dictReplace(DictName,_,_)),!.
-systemCall_Bot(_Ctx,['substs'],['substsof',all]):- unify_listing(dictReplace(_DictName,_,_)),!.
+systemCall_Bot(_Ctx,['substs'],['substsof','all']):- unify_listing(dictReplace(_DictName,_,_)),!.
 
 
 systemCall_Bot(Ctx,['ctxlist'],template([ctxed])):-!,showCtx(Ctx),!.
@@ -348,6 +348,7 @@ testIt(ATTRIBS,Input,ExpectedAnswer,ExpectedKeywords,Result,Name,Description,Ctx
    notrace(ExpectedKeywords==[[noExpectedKeywords]] -> PASSGOAL = sameBinding(Resp,ExpectedAnswer);  PASSGOAL = containsEachBinding(Resp,ExpectedKeywords)),    
   %% traceIf(ExpectedKeywords \== [[noExpectedKeywords]]),
     withAttributes(Ctx,ATTRIBS,(( runUnitTest(alicebot2(Ctx,Input,Resp),PASSGOAL,Result),
+     prolog_must(ground(Resp)),
     toReadableObject(testIt(Input,Name,Description,PASSGOAL),PRINTRESULT),
     toReadableObject([Result,Name,Description,Input], STORERESULT),
     debugFmt(PRINTRESULT)))),flush_output,

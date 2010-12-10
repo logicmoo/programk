@@ -3,7 +3,7 @@
 % Purpose: An Implementation in SWI-Prolog of AIML
 % Maintainer: Douglas Miles
 % Contact: $Author: dmiles $@users.sourceforge.net ;
-% Version: 'logicmoo_module_aiml_loader.pl' 1.0.0
+% Version: 'logicmoo_module_aiml.pl' 1.0.0
 % Revision:  $Revision: 1.7 $
 % Revised At:   $Date: 2002/07/11 21:57:28 $
 % ===================================================================
@@ -15,10 +15,48 @@
 :- style_check(-atom).
 :- style_check(-string).
 
+:-discontiguous(convert_ele/3).
 
-:-ensure_loaded(library('programk/logicmoo_module_aiml_convertor.pl')).
-:-ensure_loaded(library('programk/logicmoo_module_aiml_xpath.pl')).
-:-discontiguous(load_dict_structure/2).
+% =================================================================================
+% Entity Loading
+% =================================================================================
+
+graph_or_file(_Ctx,_ATTRIBS, [], []):-!.
+graph_or_file(Ctx,ATTRIBS, [Filename], XML):-atomic(Filename),!,graph_or_file(Ctx,ATTRIBS, Filename, XML),!.
+
+graph_or_file(Ctx,ATTRIBS,Filename,XML):-graph_or_file_or_dir(Ctx,ATTRIBS,Filename,XML),!.
+graph_or_file(Ctx,ATTRIBS, Filename, XML):- 
+     prolog_must((getCurrentFileDir(Ctx, ATTRIBS, CurrentDir),join_path(CurrentDir,Filename,Name))),
+     prolog_must(graph_or_file_or_dir(Ctx,[currentDir=CurrentDir|ATTRIBS],Name,XML)),!.
+
+graph_or_file(_Ctx,ATTRIBS, Filename, [nosuchfile(Filename,ATTRIBS)]):-trace.
+
+
+graph_or_file_or_dir(Ctx,ATTRIBS, Filename, XML):- Filename=[A,B|_C],atom(A),atom(B),
+                    concat_atom_safe(Filename,'',FileAtom),!,
+                    prolog_must(graph_or_file_or_dir(Ctx,ATTRIBS, FileAtom, XML)),!.
+
+graph_or_file_or_dir(_Ctx,_ATTRIBS, Filename,[element(aiml, [srcfile=AbsoluteFilename], XML)]):- os_to_prolog_filename(Filename,AFName),
+               exists_file_safe(AFName),global_pathname(AFName,AbsoluteFilename),!,
+               load_structure(AFName,XML,[dialect(xml),space(remove)]),!.
+
+graph_or_file_or_dir(Ctx,ATTRIBS, F, [element(aiml,DIRTRIBS,OUT)]):- DIRTRIBS = [srcdir=F|ATTRIBS],
+      os_to_prolog_filename(F,ADName),
+      exists_directory_safe(ADName),
+      aiml_files(ADName,Files),!, 
+      findall(X, ((member(FF,Files), 
+                   graph_or_file_or_dir(Ctx,[srcfile=FF|DIRTRIBS],FF,X))), OUT),!.
+
+
+getCurrentFile(Ctx,_ATTRIBS,CurrentFile):-getItemValue(proof,Ctx,Proof),nonvar(Proof),            
+            getItemValue(lastArg,Proof,CurrentFile1),getItemValue(lastArg,CurrentFile1,CurrentFile2),
+            getItemValue(arg(1),CurrentFile2,CurrentFile3),!,
+            absolute_file_name(CurrentFile3,CurrentFile),!.
+
+getCurrentFileDir(Ctx,ATTRIBS,Dir):- prolog_must((getCurrentFile(Ctx, ATTRIBS, CurrentFile),atom(CurrentFile),
+      file_directory_name(CurrentFile,Dir0),absolute_file_name(Dir0,Dir))).
+
+getCurrentFileDir(_Ctx,_ATTRIBS,Dir):- local_directory_search_combined(Dir).
 
 
 % =================================================================================
@@ -79,166 +117,6 @@ load_single_aiml_file(Ctx,File,PLNAME,FileMatch):-
    translate_single_aiml_file(Ctx,File,PLNAME,FileMatch),!,
    assertz(pending_aiml_file(File,PLNAME)),!.
 
-
-translate_single_aiml_file(Ctx,F0):-global_pathname(F0,File),F0\==File,!,translate_single_aiml_file(Ctx,File).
-translate_single_aiml_file(Ctx,F0):-
-  debugOnFailureAimlEach((
-   global_pathname(F0,File),!,
-   cateForFile(Ctx,File,FileMatch),!,
-   atom_concat_safe(File,'.pl',PLNAME),
-   translate_single_aiml_file(Ctx,File,PLNAME,FileMatch))),!.
-
-translate_aiml_structure(X,X).
-
-cateForFile(_Ctx,SRCFILE,aimlCate(_GRAPH,_PRECALL,_TOPIC,_THAT,_INPUT,_PATTERN,_FLAGS,_CALL,_GUARD,_USERDICT,_TEMPLATE,_LINENO,SRCFILE:_-_)):-!.
-cateForFile(Ctx,File,FileMatch):- trace,withNamedValue(Ctx,[anonvarsFroCate=true], makeAimlCate(Ctx,[srcfile=File:_-_],FileMatch)),!.
-
-withNamedValue(Ctx,[N=V],Call):-withAttributes(Ctx,[N=V],Call),!.
-
-% =================================================================================
-% AIML -> Prolog pretransating
-% =================================================================================
-
-:-dynamic(creating_aiml_file/2).
-:-dynamic(loaded_aiml_file/3).
-:-dynamic(pending_aiml_file/2).
-
-do_pending_loads:-withCurrentContext(do_pending_loads).
-do_pending_loads(Ctx):-forall(retract(pending_aiml_file(File,PLNAME)),load_pending_aiml_file(Ctx,File,PLNAME)).
-
-load_pending_aiml_file(Ctx,File,PLNAME):- debugFmt(load_pending_aiml_file(Ctx,File,PLNAME)),
-  error_catch(debugOnFailureAiml(dynamic_load(File,PLNAME)),E,(debugFmt(E),assert(pending_aiml_file(File,PLNAME)))),!.
-
-translate_single_aiml_file(_Ctx,File,PLNAME,FileMatch):- creating_aiml_file(File,PLNAME),!,
-  throw_safe(already(creating_aiml_file(File,PLNAME),FileMatch)),!.
-
-translate_single_aiml_file(_Ctx,File,PLNAME,_FileMatch):-  fail, %% fail if want to always remake file
-   exists_file_safe(PLNAME),
-   time_file_safe(PLNAME,PLTime), % fails on non-existent
-   time_file_safe(File,FTime),
-   %not(aimlOption(rebuild_Aiml_Files,true)),
-   PLTime > FTime,!,
-   debugFmt(up_to_date(create_aiml_file(File,PLNAME))),!,
-   retractall(creating_aiml_file(File,PLNAME)).
-
-%%translate_single_aiml_file(_Ctx,File,PLNAME,FileMatch):- loaded_aiml_file(File,PLNAME,Time),!, throw_safe(already(loaded_aiml_file(File,PLNAME,Time),FileMatch)).
-translate_single_aiml_file(Ctx,File,PLNAME,FileMatch):- loaded_aiml_file(File,PLNAME,Time),!,
-   debugFmt(translate_single_aiml_file(loaded_aiml_file(File,PLNAME,Time),FileMatch)),
-   prolog_must(retract(loaded_aiml_file(File,PLNAME,Time))),
-   retractall(pending_aiml_file(File,PLNAME)),
-   assertz(pending_aiml_file(File,PLNAME)),!,
-   translate_single_aiml_file(Ctx,File,PLNAME,FileMatch).
-
-translate_single_aiml_file(Ctx,File,PLNAME,FileMatch):-
-  call_cleanup(
-     translate_single_aiml_file0(Ctx,File,PLNAME,FileMatch),
-     translate_single_aiml_file1(File,PLNAME,FileMatch)).
-
-translate_single_aiml_file0(Ctx,File,PLNAME,FileMatch):-
- debugOnFailureAimlEach((
-        asserta(creating_aiml_file(File,PLNAME)),
-        debugFmt(doing(create_aiml_file(File,PLNAME))),
-        aimlCateSig(CateSig),!,
-   (format('%-----------------------------------------~n')),
-        printPredCount('Cleaning',FileMatch,_CP),
-   (format('%-----------------------------------------~n')),
-        unify_listing(FileMatch),
-        retractall(FileMatch),
-   (format('%-----------------------------------------~n')),
- tell(PLNAME),
-        flag(cateSigCount,PREV_cateSigCount,0),
-   (format('%-----------------------------------------~n')),
-      withAttributes(Ctx,[withCategory=[translate_cate]], %% asserta_cate = load it as well .. but interferes with timesrtamp
-               ( fileToLineInfoElements(Ctx,File,AILSTRUCTURES),
-                  load_aiml_structure(Ctx,AILSTRUCTURES))),
-
-   (format('%-----------------------------------------~n')),
-         unify_listing_header(FileMatch),
-         %printAll(FileMatch),
-   (format('%-----------------------------------------~n')),
-        listing(xmlns),
-   (format('%-----------------------------------------~n')),
-        told,
-        flag(cateSigCount,NEW_cateSigCount,PREV_cateSigCount),
-        printPredCount('Errant Lines',lineInfoElement(File,_,_,_),_EL),
-        printPredCount('Total Categories',CateSig,_TC),!,
-        debugFmt('NEW_cateSigCount=~q~n',[NEW_cateSigCount]),!,
-        statistics(global,Mem),MU is (Mem / 1024 / 1024),
-        debugFmt(statistics(global,MU)),!,
-        printPredCount('Loaded',FileMatch, _FM),
-        retractall(creating_aiml_file(File,PLNAME)))),!.
-
-
-translate_single_aiml_file1(File,PLNAME,FileMatch):-
-    ignore((telling(PLNAME),told(PLNAME))),
-    ignore((creating_aiml_file(File,PLNAME),delete_file(PLNAME))),
-    retractall(lineInfoElement(File,_,_,_)),
-    retractall(FileMatch),
-    retractall(xmlns(_,_,_)),
-    retractall(creating_aiml_file(File,PLNAME)),!,
-    retractall(loaded_aiml_file(File,PLNAME,_Time)).
-
-
-translate_cate(Ctx,CateSig):-replaceArgsVar(Ctx,[srcinfo],CateSig,_),immediateCall(Ctx,assert_cate_in_load(CateSig)).
-asserta_cate(Ctx,CateSig):-prolog_must(ground(CateSig)),assert_cate_in_load(CateSig),immediateCall(Ctx,assert_cate_in_load(CateSig)).
-
-is_xml_missing(Var):-var(Var),!.
-is_xml_missing([]).
-
-isRetraction(Ctx,CateSig,OF):-getCategoryArg(Ctx,'template',NULL,_Out_,CateSig),is_xml_missing(NULL),!,
-   replaceArgsVar(Ctx,['template',srcinfo,srcfile],CateSig,_),
-   OF=CateSig.
-
-replaceArgsVar(_Ctx,[],_CateSig,_With):-!.
-replaceArgsVar(Ctx,[E|L],CateSig,With):-copy_term(With,Replacement),
-    getCategoryArg1(Ctx,E,_NULL,StarNumber,CateSig),nb_setarg(StarNumber,CateSig,Replacement),
-    replaceArgsVar(Ctx,L,CateSig,With),!.
-
-:-dynamic(argNumsTracked/3).
-:-dynamic(argNFound/3).
-:-index(argNFound(1,1,1)).
-
-
-%% aimlCateOrder([graph,precall,topic,that,request,pattern,flags,call,guard,userdict,template,srcinfo,srcfile]).
-argNumsTracked(aimlCate,topic,3).
-argNumsTracked(aimlCate,that,4).
-argNumsTracked(aimlCate,pattern,6).
-
-argNFound(aimlCate,'13',_).
-argNFound(aimlCate,'12',_).
-argNFound(aimlCate,'11',_).
-argNFound(aimlCate,'10',_).
-argNFound(aimlCate,'9',_).
-
-assert_cate_in_load(NEW):-isRetraction(_Ctx,NEW,OF),!,retractall(OF),!.
-assert_cate_in_load(NEW):-asserta(NEW),makeArgIndexes(NEW),!.
-
-makeArgIndexes(_CateSig):-!.
-makeArgIndexes(CateSig):-functor(CateSig,F,_),makeArgIndexes(CateSig,F),!.
-makeArgIndexes(CateSig,F):- argNumsTracked(F,Atom,Number),arg(Number,CateSig,Arg),nonvar(Arg),
-         %%Number<10,nonvar(Arg),atom_number(Atom,Number),
-         assert_if_new(argNFound(F,Atom,Arg)),fail.
-makeArgIndexes(_NEW,_F).
-
-
-assert_if_new(N):-N,!.
-assert_if_new(N):-assert(N),!.
-
-/*
-translate_single_aiml_filexxx(Ctx,File,PLNAME):-
-  debugOnFailureAiml((
-     Dofile = true,
-     aimlCateSig(CateSig),
-   ifThen(Dofile,tell(PLNAME)),
-   (format(user_error,'%~w~n',[File])),
-   load_structure(File,X,[dialect(xml),space(remove)]),!,
-   ATTRIBS = [srcfile=File],!,
-   pushAttributes(Ctx,filelevel,ATTRIBS),
-   load_aiml_structure_list(Ctx,X),!,
-   popAttributes(Ctx,filelevel,ATTRIBS),!,
-   ifThen(Dofile,((listing(CateSig),retractall(CateSig)))),
-   ifThen(Dofile,(told /*,[PLNAME]*/ )))),!.
-*/
 
 %% sgml_parser_defs(PARSER_DEFAULTS,PARSER_CALLBACKS) /*shorttag(false),*/
 sgml_parser_defs(
@@ -535,7 +413,6 @@ load_substs(Ctx,element(Tag,ATTRIBS,LIST)):-member(Tag,[substitution,substitute]
 load_dict_structure(Ctx,element(substitute,ATTRIBS,LIST)):- load_substs(Ctx,element(substitute,ATTRIBS,LIST)),!.
 load_dict_structure(Ctx,element(substitution,ATTRIBS,LIST)):- load_substs(Ctx,element(substitute,ATTRIBS,LIST)),!.
 
-
 % detect substitutions
 load_dict_structure(Ctx,dict(substitutions(Dict),Find,Replace)):-!,
    debugOnFailureAiml(load_dict_structure(Ctx,substitute(Dict,Find,Replace))),!.
@@ -608,38 +485,6 @@ varize(Find,Replace,FindO,ReplaceO):-
       subst((FindM,ReplaceM),'*','$VAR'(0),(FindO,ReplaceO)),!.
 
 
-aiml_error(E):-trace,randomVars(E),debugFmt('~q~n',[error(E)]),trace,randomVars(E),!,throw_safe(error(aiml_error,E)).
-
-
-% ===============================================================================================
-%  Save Categories
-% ===============================================================================================
-assertCate(Ctx,Cate,DoWhat):-
-      makeAimlCate(Ctx,Cate,Value),!,
-      assertCate3(Ctx,Value,DoWhat),!.
-
-%% todo maybe this.. once((retract(NEW),asserta(NEW)) ; (asserta(NEW),(debugFmt('~q.~n',[NEW])))),!.
-% assertCate3(Ctx,NEW,DoWhat):-NEW,!.
- assertCate3(Ctx,NEW,DoWhat):-
-  flag(cateSigCount,X,X+1), forall(member(Pred,DoWhat),call(Pred,Ctx,NEW)).
-
-% ===============================================================================================
-%  Make AIML Categories
-% ===============================================================================================
-makeAimlCate(Ctx,Cate,Value):-makeAimlCate(Ctx,Cate,Value,'$first'(['$value'('*'),'$current_value'])),!.
-makeAimlCate(Ctx,Cate,Value,UnboundDefault):- debugOnFailureAiml((convert_template(Ctx,Cate,Assert),!,makeAimlCate1(Ctx,Assert,Value,UnboundDefault))).
-
-makeAimlCate1(Ctx,Assert,Value,UnboundDefault):-
-   aimlCateOrder(Order),
-   makeAllParams(Ctx,Order,Assert,UnboundDefault,Result),
-   makeAimlCate2(Ctx,Result,UnboundDefault,Value),!.
-
-arg2OfList(UnboundDefault,LIST,LISTO):-maplist_safe(arg2(UnboundDefault),LIST,LISTO),!.
-arg2(_UnboundDefault,_=Value,Value):-!.
-arg2(_UnboundDefault,Value,Value):-!,trace.
-
-makeAimlCate2(_Ctx,LIST,UnboundDefault,Value):- arg2OfList(UnboundDefault,LIST,LISTO), Value =.. [aimlCate|LISTO],!.
-
 % ===============================================================================================
 %  Load Categories
 % ===============================================================================================
@@ -647,19 +492,6 @@ makeAimlCate2(_Ctx,LIST,UnboundDefault,Value):- arg2OfList(UnboundDefault,LIST,L
 innerTagLikeThat(That):-hotrace(innerTagLike(That,prepattern)).
 
 innerTagLike(That,Like):-hotrace((innerTagPriority(That,Atts),memberchk(Like,Atts))).
-
-innerTagPriority(graph,[topic,prepattern]).
-innerTagPriority(precall,[that,prepattern]).
-innerTagPriority(topic,[topic,prepattern]).
-innerTagPriority(that,[that,prepattern]).
-innerTagPriority(request,[that,prepattern]).
-innerTagPriority(response,[that,prepattern]).
-innerTagPriority(pattern,[pattern]).
-innerTagPriority(flags,[pattern,prepattern]).
-innerTagPriority(call,[that,postpattern]).
-innerTagPriority(guard,[that,postpattern]).
-innerTagPriority(userdict,[template,postpattern]).
-innerTagPriority(template,[template,postpattern]).
 
 
 infoTagLikeLineNumber(X):-member(X,[lineno,srcdir,srcfile,srcinfo]).
@@ -682,7 +514,6 @@ each_category(Ctx,ATTRIBS,NOPATTERNS,element(TAG,ALIST,PATTERN)):-
    appendAttributes(Ctx,PATTRIBS,ATTRIBS,NEWATTRIBS),
    gatherEach(Ctx,[TAG=PATTERN|NEWATTRIBS],NOPATTERNS,Results),!,
    prolog_must(dumpListHere(Ctx,Results)))),!.
-
 
 
 %catagory
@@ -767,31 +598,3 @@ gatherEach0(Ctx,NEWATTRIBS,[element(TAG,ALIST,PATTERN_IN)|NOPATTERNS],[TAG=PATTE
 
 each_template(Ctx,M):-debugFmt('FAILURE'(each_template(Ctx,M))),trace.
 each_that(Ctx,M):-debugFmt('FAILURE'(each_that(Ctx,M))),trace.
-
-
-% ===============================================================================================
-% ===============================================================================================
-%%:-abolish(dict/3).
-
-:-retractall(dict(_,_,_)).
-
-%:- cateFallback(ATTRIBS), pushAttributes(_Ctx,default,ATTRIBS).
-%:- cateFallback(ATTRIBS), popAttributes(_Ctx,default,ATTRIBS).
-%:- cateFallback(ATTRIBS), pushAttributes(_Ctx,default,ATTRIBS).
-
-:-pp_listing(dict(_,_,_)).
-
-
-save:-tell(aimlCate),
-   aimlCateSig(CateSig),
-   listing(CateSig),
-   listing(dict),
-   told,
-   predicate_property(CateSig,number_of_clauses(N)),
-   predicate_property(dict(_,_,_),number_of_clauses(ND)),
-   debugFmt([aimlCate=N,dict=ND]),!.
-
-dt:- withAttributes(Ctx,[graph='ChomskyAIML'],load_aiml_files(Ctx,'aiml/chomskyAIML/*.aiml')).
-
-do:-load_aiml_files,alicebot.
-

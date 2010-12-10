@@ -289,49 +289,6 @@ gather_aiml_graph(Ctx,XML,Graph,Filename,AIML):-
  ATTRIBS=[srcfile=Filename,graph=Graph|XML],
  withAttributes(Ctx,ATTRIBS,graph_or_file(Ctx,ATTRIBS, Filename, AIML)),!.
 
-
-graph_or_file(_Ctx,_ATTRIBS, [], []):-!.
-graph_or_file(Ctx,ATTRIBS, [Filename], XML):-atomic(Filename),!,graph_or_file(Ctx,ATTRIBS, Filename, XML),!.
-
-graph_or_file(Ctx,ATTRIBS,Filename,XML):-graph_or_file_or_dir(Ctx,ATTRIBS,Filename,XML),!.
-graph_or_file(Ctx,ATTRIBS, Filename, XML):- 
-     prolog_must((getCurrentFileDir(Ctx, ATTRIBS, CurrentDir),join_path(CurrentDir,Filename,Name))),
-     prolog_must(graph_or_file_or_dir(Ctx,[currentDir=CurrentDir|ATTRIBS],Name,XML)),!.
-
-graph_or_file(_Ctx,ATTRIBS, Filename, [nosuchfile(Filename,ATTRIBS)]):-trace.
-
-
-graph_or_file_or_dir(Ctx,ATTRIBS, Filename, XML):- Filename=[A,B|_C],atom(A),atom(B),
-                    concat_atom_safe(Filename,'',FileAtom),!,
-                    prolog_must(graph_or_file_or_dir(Ctx,ATTRIBS, FileAtom, XML)),!.
-
-graph_or_file_or_dir(_Ctx,_ATTRIBS, Filename,[element(aiml, [srcfile=AbsoluteFilename], XML)]):- os_to_prolog_filename(Filename,AFName),
-               exists_file_safe(AFName),global_pathname(AFName,AbsoluteFilename),!,
-               load_structure(AFName,XML,[dialect(xml),space(remove)]),!.
-
-graph_or_file_or_dir(Ctx,ATTRIBS, F, [element(aiml,DIRTRIBS,OUT)]):- DIRTRIBS = [srcdir=F|ATTRIBS],
-      os_to_prolog_filename(F,ADName),
-      exists_directory_safe(ADName),
-      aiml_files(ADName,Files),!, 
-      findall(X, ((member(FF,Files), 
-                   graph_or_file_or_dir(Ctx,[srcfile=FF|DIRTRIBS],FF,X))), OUT),!.
-
-
-getCurrentFile(Ctx,_ATTRIBS,CurrentFile):-getItemValue(proof,Ctx,Proof),nonvar(Proof),            
-            getItemValue(lastArg,Proof,CurrentFile1),getItemValue(lastArg,CurrentFile1,CurrentFile2),
-            getItemValue(arg(1),CurrentFile2,CurrentFile3),!,
-            absolute_file_name(CurrentFile3,CurrentFile),!.
-
-getCurrentFileDir(Ctx,ATTRIBS,Dir):- prolog_must((getCurrentFile(Ctx, ATTRIBS, CurrentFile),atom(CurrentFile),
-      file_directory_name(CurrentFile,Dir0),absolute_file_name(Dir0,Dir))).
-
-getCurrentFileDir(_Ctx,_ATTRIBS,Dir):- local_directory_search_combined(Dir).
-
-getItemValue(Name,Ctx,Value):-nonvar(Ctx),getCtxValue(Name,Ctx,Value),!.
-getItemValue(Name,Ctx,Value):-current_value(Ctx,Name,Value),!.
-getItemValue(Name,Ctx,Value):-getAliceMem(Ctx,_,Name,Value),!.
-getItemValue(Name,Ctx,Value):-findTagValue(Ctx,[],Name,Value,'$current_value').%%current_value(Ctx,Name,Value),!.
-
 % ============================================
 % Test Suite  (now uses aiml_call/2 instead of tag_eval/3)
 % ============================================

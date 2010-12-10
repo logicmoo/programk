@@ -1,5 +1,3 @@
-:-'trace'(findall/3,[-all]).
-
 % ===================================================================
 % File 'logicmoo_module_aiml_main.pl'
 % Purpose: To load and test the AIML interpretor (sanity checks)
@@ -9,6 +7,20 @@
 % Revision:  $Revision: 1.7 $
 % Revised At:   $Date: 2002/07/11 21:57:28 $
 % ===================================================================
+
+save:-tell(aimlCate),
+   aimlCateSig(CateSig),
+   listing(CateSig),
+   listing(dict),
+   told,
+   predicate_property(CateSig,number_of_clauses(N)),
+   predicate_property(dict(_,_,_),number_of_clauses(ND)),
+   debugFmt([aimlCate=N,dict=ND]),!.
+
+dt:- withAttributes(Ctx,[graph='ChomskyAIML'],load_aiml_files(Ctx,'aiml/chomskyAIML/*.aiml')).
+
+do:-load_aiml_files,alicebot.
+
 
 hasLibrarySupport :- absolute_file_name(library('programk/logicmoo_module_aiml.pl'),File),exists_file(File).
 throwNoLib:-  absolute_file_name('.',Here),throw(error(existence_error(url, Here), context(_, status(404, Here)))).

@@ -8,12 +8,41 @@
 % Revised At:   $Date: 2002/07/11 21:57:28 $
 % ===================================================================
 
+:-'trace'(findall/3,[-all]).
+
+aiml_error(E):-trace,randomVars(E),debugFmt('~q~n',[error(E)]),trace,randomVars(E),!,throw_safe(error(aiml_error,E)).
+
+
 error_catch(C,E,F):-nonvar(E),!,catch(C,E,F).
 %%error_catch(C,E,F):-var(E),E=error(E1,E2),!,catch(C,error(E1,E2),F).
 error_catch(C,E,F):-catch(C,E,(needs_rethrown(E),F)).
 needs_rethrown(E):- functor(aiml_goto,E,_),!,throw(E).
 needs_rethrown(_).
 
+frame_depth(Depth):-prolog_current_frame(Frame),prolog_frame_attribute(Frame,level,Depth).
+
+throw_aiml_goto(Output,VotesO):- notrace,throw(aiml_goto(Output,VotesO)).
+
+
+thread_local_flag(F,B,A):-flag(F,B,A).
+
+debugFmtList(ListI):-notrace((copy_term(ListI,List),debugFmtList0(List,List0),randomVars(List0),debugFmt(List0))),!.
+debugFmtList0([],[]):-!.
+debugFmtList0([A|ListA],[B|ListB]):-debugFmtList1(A,B),!,debugFmtList0(ListA,ListB),!.
+
+debugFmtList1(Value,Value):-var(Value),!.
+debugFmtList1(Name=Number,Name=Number):-number(Number).
+debugFmtList1(Name=Value,Name=Value):-var(Value),!.
+debugFmtList1(Name=Value,Name=(len:Len)):-copy_term(Value,ValueO),append(ValueO,[],ValueO),is_list(ValueO),length(ValueO,Len),!.
+debugFmtList1(Name=Value,Name=(F:A)):-functor(Value,F,A).
+debugFmtList1(Value,shown(Value)).
+
+
+
+mapsome_openlist(_Pred,EndOfList):-endOfList(EndOfList),!.
+mapsome_openlist(Pred,[Item|List]):-call(Pred,Item),!,mapsome_openlist(Pred,List).
+mapsome_openlist(Pred,[_|List]):- mapsome_openlist(Pred,List).
+mapsome_openlist(_Pred,_):-!.
 
 
 /*
@@ -251,6 +280,9 @@ resultOrProof0(Term,Mid):-Term=..[RP,Mid|_],member(RP,[result,proof,fromTo,verba
 
 %%unresultifyC(DictI,[Dict]):-atom(DictI),member(Chop,['0','1']),atom_concat(Dict,Chop,DictI),!.
 unresultifyC(DictI,Dict):-unresultify(DictI,Dict),DictI\==Dict,!.
+
+deleteAll(A,[],A):-!.
+deleteAll(A,[L|List],AA):-delete(A,L,AAA),deleteAll(AAA,List,AA),!.
 
 
 % ===============================================================================================

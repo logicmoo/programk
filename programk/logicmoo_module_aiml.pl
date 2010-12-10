@@ -114,13 +114,13 @@ alicebot:-
         currentContext(alicebot,Ctx),
         alicebot(Ctx).
 
-alicebot(__Ctx):-        
+alicebot(Ctx):-        
         repeat,
         currentContext(alicebot,Ctx),
 	read_line_with_nl(user,CodesIn,[]),        
         once((trim(CodesIn,Codes),atom_codes(Atom,Codes),alicebotCTX(Ctx,Atom))),fail.
 
-alicebot(__Ctx,Input):- 
+alicebot(__Ctx__,Input):- 
   currentContext(alicebot(Input),Ctx),!,
   alicebotCTX(Ctx,Input).
 
@@ -161,7 +161,7 @@ alicebot2(Ctx,Atoms,Resp):-
    getAliceMem(Ctx,'bot',default('minanswers',1),MinAns),
    getAliceMem(Ctx,'bot',default('maxanswers',1),_MaxAns),   
    %%setAliceMem(Ctx,User,'input',Atoms),
-   pushInto1DAnd2DArray(Ctx,'request','input',10,Atoms,User),
+   pushInto1DAnd2DArray(Ctx,'request','input',5,Atoms,User),
    setAliceMem(Ctx,User,'rawinput',Atoms))),
    thread_local_flag(sraiDepth,_,0),
    ((call_with_depth_limit_traceable(computeInputOutput(Ctx,1,Atoms,Output,N),8000,_DL),
@@ -945,39 +945,46 @@ computeSRAI222(CtxIn,Votes,ConvThreadHint,SYM,Pattern,Compute,VotesO,ProofOut,Ou
          getAliceMemOrSetDefault(CtxIn,ConvThread,SYM,'userdict',UserDict,'user'), 
          %%getAliceMemOrSetDefault(CtxIn,ConvThread,SYM,'convthread',ConvThread,SYM,ConvThreadHint), 
          subclassMakeUserDict(CtxIn,UserDict,SYM),
-         PreTopic = (CtxIn=Ctx),
-         CPreTopic = true,
-         getAliceMemOrSetDefault(CtxIn,ConvThread,SYM,'that',That,['Nothing']),
-         %%traceIf(That=['Nothing']),
-   debugFmt(topicThatPattern(Topic,That,Pattern)),
-         make_preconds_for_match(Ctx,'topic',Topic,CateSig,PreTopic,AfterTopic, CPreTopic,CAfterTopic, Out,MinedCates,StarSets_Topic,OutputLevel1),
-         must_be_openCate(CateSig),         
-         make_preconds_for_match(Ctx,'that',That,CateSig,AfterTopic,AfterThat,CAfterTopic,CAfterThat,Out,MinedCates,StarSets_That,OutputLevel2),
-         must_be_openCate(CateSig),
-         make_preconds_for_match(Ctx,'pattern',Pattern,CateSig,AfterThat,AfterPattern,CAfterThat,CAfterPattern,Out,MinedCates,StarSets_Pattern,OutputLevel3),!,
-         prolog_must(var(Out)),
-         must_be_openCate(CateSig),!,       
-         prolog_must(atLeastOne((AfterPattern,CateSig))),
-         clause(CateSig,true,ClauseNumber),
-         retractallSrais(SYM),
+   getAliceMemOrSetDefault(CtxIn,ConvThread,SYM,'that',That,['Nothing']),
+  
+   PreTopic = (CtxIn=Ctx),
+
+   prolog_must(topicThatPattern(Ctx,Topic,That,Pattern,PreTopic,Out,CateSig,OutputLevel,StarSets_All,ClauseNumber,CAfterPattern)),
          once((
+            retractallSrais(SYM),
             prolog_must(CAfterPattern),
             prolog_must(nonvar(Out)),
-            OutputLevel = OutputLevel1 - OutputLevel2 - OutputLevel3,
             cateStrength(CateSig,Mult),
            %% not(contextUsedClaused(Ctx,CateSig,ClauseNumber)),
             VotesO is Votes * Mult,
-            append(StarSets_Topic,StarSets_That,StarSets_TopicThat),
-            append(StarSets_Pattern,StarSets_TopicThat,StarSets_All),
+
             makeWithAttributes(StarSets_All,Out,Compute),       
             ProofOut=..[proof,Compute,cn(ClauseNumber),CateSig])).
+
+
+topicThatPattern(Ctx,Topic,That,Pattern,PreTopic,Out,CateSig,OutputLevel,StarSets_All,ClauseNumber,CAfterPattern):-
+   debugFmt(topicThatPattern(Topic,That,Pattern)),
+   CPreTopic = true,
+   make_preconds_for_match(Ctx,'topic',Topic,CateSig,PreTopic,AfterTopic, CPreTopic,CAfterTopic, Out,MinedCates,StarSets_Topic,OutputLevel1),
+   must_be_openCate(CateSig),         
+   make_preconds_for_match(Ctx,'that',That,CateSig,AfterTopic,AfterThat,CAfterTopic,CAfterThat,Out,MinedCates,StarSets_That,OutputLevel2),
+   must_be_openCate(CateSig),
+   make_preconds_for_match(Ctx,'pattern',Pattern,CateSig,AfterThat,AfterPattern,CAfterThat,CAfterPattern,Out,MinedCates,StarSets_Pattern,OutputLevel3),!,
+   prolog_must(var(Out)),
+   must_be_openCate(CateSig),!,       
+   prolog_must(atLeastOne((AfterPattern,CateSig))),
+   clause(CateSig,true,ClauseNumber),
+   append(StarSets_Topic,StarSets_That,StarSets_TopicThat),
+   append(StarSets_Pattern,StarSets_TopicThat,StarSets_All),
+   OutputLevel = OutputLevel1 - OutputLevel2 - OutputLevel3.
 
 contextUsedClaused(Ctx,CateSig,ClauseNumber):- fail, contains_term(Ctx,CateSig)->not(contains_term(Ctx,ClauseNumber));not(contains_term(Ctx,ClauseNumber)).
 
 makeWithAttributes([],Proof,Proof):-!.
 makeWithAttributes(StarSets_All,Proof,withAttributes(StarSets_All,Proof)).
 
-retractallSrais(SYM):-prolog_must(nonvar(SYM)),ifThen(nonvar(SYM),retractall(dict(SYM,_,_))).
+retractallSrais(SYM):-prolog_must(nonvar(SYM)),ifThen(nonvar(SYM),(retractall(dict(SYM,_,_)))),fail.
+retractallSrais(_SYM):-!.
 
 cateStrength(_CateSig,1.1):-!.
 
@@ -1313,18 +1320,18 @@ rememberSaidIt_SH(Ctx,_-R1,Robot,User):-!,rememberSaidIt_SH(Ctx,R1,Robot,User).
 rememberSaidIt_SH(Ctx,R1,Robot,User):-append(New,[Punct],R1),sentenceEnderOrPunct_NoQuestion(Punct),!,rememberSaidIt_SH(Ctx,New,Robot,User).
 rememberSaidIt_SH(Ctx,R1,Robot,User):-answerOutput(R1,SR1),!,
    setAliceMem(Ctx,Robot,'lastSaid',SR1),
-   pushInto1DAnd2DArray(Ctx,'response','that',10,SR1,User).
+   pushInto1DAnd2DArray(Ctx,'response','that',5,SR1,User).
 
 
-pushInto1DAnd2DArray(Ctx,Name,Name2,Ten,SR1,ConvThread):-
+pushInto1DAnd2DArray(Ctx,Tall,Wide,Ten,MultiSent,ConvThread):-
    %%trace,
-   splitSentences(SR1,SR2),
+   splitSentences(MultiSent,Elements),
    addCtxValue(quiteMemOps,Ctx,true),
-   previousVars(Name,PrevVars,Ten),
-   maplist_safe(setEachSentenceThat(Ctx,ConvThread,PrevVars),SR2),!,
+   previousVars(Tall,TallPrevVars,Ten),
+   maplist_safe(setEachSentenceThat(Ctx,ConvThread,TallPrevVars),Elements),!,
    
-   previousVars(Name2,PrevVars2,Ten),
-   setEachSentenceThat(Ctx,ConvThread,PrevVars2,SR2),
+   previousVars(Wide,WidePrevVars,Ten),
+   setEachSentenceThat(Ctx,ConvThread,WidePrevVars,Elements),
    setCtxValue(quiteMemOps,Ctx,false),
    !.
 

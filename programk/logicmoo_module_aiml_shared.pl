@@ -200,7 +200,7 @@ singletons(_).
 nthAnswerOf(Call,Nth):-flag(nthAnswerOf,_,Nth), Call,flag(nthAnswerOf,R,R-1),R=1,!.
 
 toReadableObject(I,I):- (var(I);atomic(I)),!.
-%%toReadableObject([I|_],[fctx]):-nonvar(I),I=frame(_,_,_),!.
+toReadableObject([I|_],[[fctx]]):-nonvar(I),I=frame(_,_,_),!.
 toReadableObject(I,fctxa(Name)):-nonvar(I),I=frame(Name,_,_),!.
 toReadableObject([I|N],[I0|N0]):-!,toReadableObject(I,I0),toReadableObject(N,N0),!.
 toReadableObject(Comp,Comp2):-compound(Comp),Comp=..[L,I|ST],toReadableObject([I|ST],[OI|OIST]),debugOnError(Comp2=..[L,OI|OIST]),!.

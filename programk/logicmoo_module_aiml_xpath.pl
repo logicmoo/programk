@@ -39,9 +39,9 @@ getAliceMem(Ctx,Dict,Name,ValueI):- getAliceMemComplete(Ctx,Dict,Name,ValueO),!,
 
 getAliceMemComplete(Ctx,Dict,Name,ValueO):-getInheritedStoredValue(Ctx,Dict,Name,ValueO),!.
 
-dictNameKey(_Dict,Dict:Name,Key):-!,dictNameKey(Dict,Name,Key).
-dictNameKey(Dict,Name,Dict:Name).
-dictNameKey(_Dict,NameKey,NameKey):-!.
+dictNameKey(_Dict,DictName,Key):- nonvar(DictName),DictName=Dict:Name,!,dictNameKey(Dict,Name,Key).
+dictNameKey(Dict,Name,Dict:Name):-!.%%nonvar(Dict),!.
+dictNameKey(_Dict,NameKey,NameKey).
 
 getStoredValue(_Ctx,_Dict,_Name,Value):-prolog_must(var(Value)),fail.
 
@@ -502,7 +502,8 @@ makeAimlContext(Name,Ctx):-makeContextBase(Name,Ctx),!,setCtxValue(ctx,Ctx,Name)
 
 currentContext(Name,X):-makeAimlContext(Name,X),!.
 
-makeContextBase(CtxNameKey, [frame(CtxNameKey,ndestruct,[assoc(AL)|_])|_]):- list_to_assoc([],AL).
+makeContextBase(CtxNameKey, frame(CtxNameKey,ndestruct,[assoc(AL)|_])):- list_to_assoc([],AL).
+%% WAS makeContextBase(CtxNameKey, [frame(CtxNameKey,ndestruct,[assoc(AL)|_])|_]):- list_to_assoc([],AL).
 
 makeContextBase__only_ForTesting(Gensym_Key, [frame(Gensym_Key,ndestruct,[assoc(AL)|_])|_]):-    
    list_to_assoc([
@@ -515,8 +516,8 @@ makeContextBase__only_ForTesting(Gensym_Key, [frame(Gensym_Key,ndestruct,[assoc(
 % push/pop frames
 % ===================================================================
 pushCtxFrame(Name,Ctx,NewValues):-checkCtx(Ctx),get_ctx_holderFreeSpot(Ctx,Holder,GuestDest),!,Holder=frame(Name,GuestDest,NewValues).
-popCtxFrame(Name,Ctx,PrevValuesIn):-checkCtx(Ctx),get_ctx_frame_holder(Ctx,Name,Frame),Frame = frame(Name,Destructor,PrevValues),
-      call(Destructor,Name,Ctx,Frame),!,mustMatch(PrevValues,PrevValuesIn).
+popCtxFrame(Name,Ctx,PrevValuesIn):- notrace((checkCtx(Ctx),get_ctx_frame_holder(Ctx,Name,Frame,_Held),Frame = frame(Name,Destructor,PrevValues),
+      call(Destructor,Name,Ctx,Frame),!,mustMatch(PrevValues,PrevValuesIn))).
 
 checkCtx(_):-!.
 checkCtx(Ctx):-prolog_must(nonvar(Ctx)).
@@ -558,8 +559,10 @@ set_assoc(_OrigName,Name,CtxIn,Value):- prolog_must(setCtxValue(Name,CtxIn,Value
 unwrapValue(HValue,TValue):-TValue==deleted,!,not(unwrapValue1(HValue,_)),!.
 unwrapValue(HValue,TValue):-unwrapValue1(HValue,Value),!,TValue=Value.
 
-unwrapValue1(v(ValueHolder,_SetterFun,_KeyDestroyer),Value):-!,unwrapValue1(ValueHolder,Value).
+unwrapValue1(Value,ValueOut):-var(Value),!,trace,throw_safe(unwrapValue1(Value,ValueOut)),Value=ValueOut.
+unwrapValue1(v(ValueHolder,_SetterFun,_KeyDestroyer),Value):-!,unwrapValue1(ValueHolder,Value),!.
 unwrapValue1(deleted,_):-!,fail.
+unwrapValue1(Deleted,_):-compound(Deleted),functor(Deleted,deleted,_),!,fail.
 unwrapValue1(Value,Value):-!.
 
 bestSetterFn(v(_,Setter,_),_OuterSetter,Setter):-!.
@@ -569,25 +572,44 @@ getCtxValueElse(Name,Ctx,Value,_Else):-getCtxValue0(Name,Ctx,Value),!.
 getCtxValueElse(_Name,_Ctx,Else,Else).
 
 getCtxValue(Name,CtxI,Value):-getCtxValue0(Name,CtxI,Value).
-getCtxValue(Name,CtxI,Value):-debugFmt(not(getCtxValue(Name,CtxI,Value))),fail.
+getCtxValue(Name,CtxI,Value):-debugFmt(not(getCtxValue(Name,CtxI,Value))),!,fail.
 getCtxValue0(Name,CtxIn,Value):-checkCtx(CtxIn), hotrace(( get_ctx_holder(CtxIn,Ctx),get_o_value(Name,Ctx,HValue,_Setter),!, unwrapValue(HValue,Value))),!.
 getCtxValue0(Name,CtxI,Value):-checkCtx(CtxI),lastMember(Ctx,CtxI),hotrace(( get_ctx_holder(Ctx,CtxH),get_o_value(Name,CtxH,HValue,_Setter),!, unwrapValue(HValue,Value))),!.
 
-setCtxValue(Name,CtxIn,Value):-checkCtx(CtxIn),get_ctx_holder(CtxIn,Ctx),get_o_value(Name,Ctx,HValue,Setter),unwrapValue(HValue,CurrentValue),!,(CurrentValue=Value;call(Setter,Name,CtxIn,Value)),!.
-setCtxValue(Name,Ctx,Value):-checkCtx(Ctx),addCtxValue1(Name,Ctx,Value),!.
+
+getCtxValue_nd(Key,Ctx,Value):- getNamedCtxValue(Ctx,Dict,Name,Value),dictNameKey(Dict,Name,Key).
+
+getNamedCtxValue(CtxIn,Dict,Name,Value):-get_ctx_frame_holder1(CtxIn,Dict,_Frame,Held),trace,get_c_value_wrapped(Held,Name,Value).
+getNamedCtxValue(CtxIn,Dict,Name,Value):-lastMember(Ctx,CtxIn),hotrace((get_ctx_holder(Ctx,CtxHolder),ctxDict(CtxHolder,Dict,Held),get_c_value_wrapped(Held,Name,Value) )).
+getNamedCtxValue(CtxIn,Dict,Name,deleted(CtxIn,Dict,Name)):-ignore(Dict=nodict),ignore(Name=noname).
+
+ctxDict(Ctx,Dict,[]):-var(Ctx),!,Dict=noctx.
+ctxDict(frame(Named,_,Held),Dict,Held):-!,Named=Dict.
+ctxDict(Ctx,Dict,Ctx):-!,Dict=unnamedctx.
+
+get_c_value_wrapped(Ctx,Name,Value):-get_o_value(Name,Ctx,Value,_Setter).%%,unwrapValue(HValue,Value).
+get_c_value_wrapped(_Ctx,Name,deleted(Name)):-ignore(Name=noname).
+
+setCtxValue(Name,Ctx,Value):-(getCtxValue0(Name,Ctx,PrevValue),!, Value==PrevValue) -> true; addCtxValue1(Name,Ctx,Value).
 
 addCtxValue(Name,Ctx,Value):-checkCtx(Ctx),addCtxValue1(Name,Ctx,Value),!.
-addCtxValue1(Name,Ctx,Value):-get_ctx_holderFreeSpot(Ctx,Name=v(Value,Setter,Destructor),Destructor),!,ignore(Setter=set_v3(Name)).
+%%addCtxValue1(Name,Ctx,Value):-get_ctx_holderFreeSpot(Ctx,Name=v(Value,Setter,Destructor),Destructor),!,ignore(Setter=set_v3(Name)).
+addCtxValue1(Name,Ctx,Value):-get_ctx_holderFreeSpot(Ctx,NameValue,Destructor), NameValue = (Name=v(Value,set_v3(Name),Destructor)).
+                                                                                             
 
 remCtxValue(Name,Ctx,_Value):-checkCtx(Ctx),setCtxValue(Name,Ctx,deleted),!.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%% get the frame holder
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-get_ctx_frame_holder(Ctx,Name,R):-compound(Ctx),get_ctx_frame_holder1(Ctx,Name,R).
-get_ctx_frame_holder1(v(_,_,_),_Name,_R):-!,fail.
-get_ctx_frame_holder1(frame(Name,Dest,Ctx),Name,R):- R = frame(Name,Dest,Ctx),!.
-get_ctx_frame_holder1([H|T],Name,R):- nonvar(H), !, ( get_ctx_frame_holder(T,Name,R);get_ctx_frame_holder1(H,Name,R)) .
+get_ctx_frame_holder(Ctx,Name,R,Held):-compound(Ctx),get_ctx_frame_holder1(Ctx,Name,R,Held).
+
+get_ctx_frame_holder1(v(_,_,_),_Name,_R,_Held):-!,fail.
+get_ctx_frame_holder1(R,NameIn,Frame,Held):- R = frame(Name,_,Inner),!, 
+                        (  get_ctx_frame_holder1(Inner,NameIn,Frame,Held); 
+                           debugOnFailureAimlEach((Held=Inner,R=Frame,Name=NameIn,!))).
+
+get_ctx_frame_holder1([H|T],Name,R,Held):- nonvar(H), !, ( get_ctx_frame_holder(T,Name,R,Held);get_ctx_frame_holder1(H,Name,R,Held)) .
 %%get_ctx_frame_holder1(Ctx,Name,Ctx):-!,get_ctx_frame_holder1(Ctx,Name,R).
 
 
@@ -600,8 +622,8 @@ get_ctx_holder(Ctx,R):-compound(Ctx),get_ctx_holder1(Ctx,R).
 get_ctx_holder1([H|T],R):- nonvar(H), !, ( get_ctx_holder(T,R);get_ctx_holder1(H,R)) .
 get_ctx_holder1(v(_,_,_),_R):-!,fail.%% get_ctx_holder(Ctx,R).
 get_ctx_holder1(frame(_N,_Dest,Ctx),R):-!,get_ctx_holder(Ctx,R).
-%get_ctx_holder1(Ctx,R):- functor(Ctx,F,A),A<3,!,fail.
 get_ctx_holder1(assoc(Ctx),assoc(Ctx)):-!.
+%get_ctx_holder1(Ctx,R):- functor(Ctx,F,A),A<3,!,fail.
 get_ctx_holder1(Ctx,Ctx).
 
 
@@ -617,10 +639,11 @@ get_ctx_holderFreeSpot0(Ctx,NamedValue,Destruct):-compound(Ctx),get_ctx_holderFr
 
 get_ctx_holderFreeSpot1(assoc(_Ctx),_,_):-!,fail.
 get_ctx_holderFreeSpot1(frame(Key,_Inner_Dest,Ctx),NamedValue,Destruct):- nonvar(Key), !, get_ctx_holderFreeSpot1(Ctx,NamedValue,Destruct).
-get_ctx_holderFreeSpot1(Ctx,NamedValue,Destruct):-functor(Ctx,F,A),!,get_ctx_holderFreeSpot1(Ctx,F,A,NamedValue,Destruct).
+get_ctx_holderFreeSpot1(Ctx,NamedValue,Destruct):-get_ctx_holderFreeSpot2(Ctx,Ctx,NamedValue,Destruct).
 
-get_ctx_holderFreeSpot1(Ctx,'.',2,NamedValue,nb_setarg(2,NEXT)):-arg(2,Ctx,Try1), var(Try1),!, Try1 = [NamedValue|NEXT].
-get_ctx_holderFreeSpot1(Ctx,'.',2,NamedValue,Destruct):-arg(2,Ctx,Try2),get_ctx_holderFreeSpot0(Try2,NamedValue,Destruct).
+get_ctx_holderFreeSpot2(_,Try1,NamedValue,nb_setarg(1,Try1)):- var(Try1),!, Try1 = [NamedValue|_NEXT],trace.
+get_ctx_holderFreeSpot2(_,[_|Try1],NamedValue,nb_setarg(1,Try1)):- var(Try1),!, Try1 = [NamedValue|_NEXT].
+get_ctx_holderFreeSpot2(_,[_|Try2],NamedValue,Destruct):-get_ctx_holderFreeSpot0(Try2,NamedValue,Destruct).
 
 %%get_ctx_holderFreeSpot1(Ctx,_,_,NamedValue,_):-!,fail.
 %%get_ctx_holderFreeSpot1(Ctx,_,_,NamedValue,nb_setarg(N,NEXT)):-arg(N,Ctx,Try3),var(Try3),!, Try3 = [NamedValue|NEXT].
@@ -632,14 +655,14 @@ get_ctx_holderFreeSpot1(Ctx,'.',2,NamedValue,Destruct):-arg(2,Ctx,Try2),get_ctx_
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 get_ctx_value(Name,Ctx,Value,Setter):-nonvar(Name),var(Value),get_o_value(Name,Ctx,Value,OuterSetter),bestSetterFn(Value,OuterSetter,Setter).
 
-get_o_value00(Name,Ctx,Value,Setter):-get_o_value0(Name,Ctx,Value,HIDE_Setter),!,((no_cyclic_terms,cyclic_term(HIDE_Setter))-> Setter=no_setter(cyclicOn(Name)) ; Setter =HIDE_Setter).
-get_o_value(Name,Ctx,Value,Setter):-hotrace(get_o_value00(Name,Ctx,Value,Setter)),!.
+get_o_value00(Name,Ctx,Value,Setter):-get_o_value0(Name,Ctx,Value,HIDE_Setter),((no_cyclic_terms,cyclic_term(HIDE_Setter))-> Setter=no_setter(cyclicOn(Name)) ; Setter =HIDE_Setter).
+get_o_value(Name,Ctx,Value,Setter):-hotrace(get_o_value00(Name,Ctx,Value,Setter)).
 
 get_o_value0(Name,Ctx,Value,Setter):-compound(Ctx),get_o_value1(Name,Ctx,Value,Setter).
 get_o_value1(Name,[H|T],Value,Setter):- !,(get_o_value0(Name,T,Value,Setter);get_o_value1(Name,H,Value,Setter)).
-get_o_value1(Name,ASSOC,Value,set_assoc(ASSOC)):- ASSOC = assoc(Ctx),!, get_assoc(Name,Ctx,Value),!.
-get_o_value1(Name,frame(Key,_Inner_Dest,Ctx),Value,Setter):- nonvar(Key), get_o_value0(Name,Ctx,Value,Setter),!.
-get_o_value1(Name,Pred,Value,Setter):-functor(Pred,F,A),!,get_n_value(Name,Pred,F,A,Value,Setter).
+get_o_value1(Name,ASSOC,Value,set_assoc(ASSOC)):- ASSOC = assoc(Ctx),!, get_assoc(Name,Ctx,Value).
+get_o_value1(Name,frame(Key,_Inner_Dest,Ctx),Value,Setter):- nonvar(Key),!, get_o_value0(Name,Ctx,Value,Setter).
+get_o_value1(Name,Pred,Value,Setter):-functor(Pred,F,A),!,get_n_value(Name,Pred,F,A,Value,Setter),!.
 
 get_n_value(Name,Name,_F,_A,_Value,_):-!,fail.
 get_n_value(Name,Pred,Name,1,Value,nb_setarg(1,Pred)):-arg(1,Pred,Value).

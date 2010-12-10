@@ -225,14 +225,31 @@ systemCall_Bot(Ctx,['get',Name|MajorMinor],template([getted,Dict,Value,Found1]))
   debugFmt(getIndexedValue(Ctx,List,Name,MajorMinor,values)),
   forall(member(Dict,List),ignore((unify_listing(getIndexedValue(Ctx,Dict,Name,MajorMinor,Value),Found),Found>0,Found1=Found))).
 systemCall_Bot(Ctx,['get'],template([getted,Passed])):- unify_listing(getContextStoredValue(Ctx,_,_,_),Passed).
-%systemCall_Bot(Ctx,['ctx'],template([ctxed,Ctx])):-!,showCtx.
+systemCall_Bot(Ctx,['ctx'],template([ctxed,Atom])):-!,term_to_atom(Ctx,Atom),!.
+systemCall_Bot(Ctx,['ctx'],template([ctxed,prologCall(Atom,term_to_atom(Ctx,Atom))])):-!,showCtx(Ctx).
 systemCall_Bot(Ctx,['load'|REST],OUT):- !, debugOnFailure(systemCall_Load(Ctx,REST,OUT)),!.
 systemCall_Bot(Ctx,['find'|REST],OUT):- !, debugOnFailure(systemCall_Find(Ctx,REST,OUT)),!.
 systemCall_Bot(Ctx,['chgraph',Graph],['chgraph',Graph]):- setAliceMem(Ctx,user,graph,Graph),!.
 systemCall_Bot(_Ctx,['substs',DictName],['substsof',DictName]):- unify_listing(dictReplace(DictName,_,_)),!.
 systemCall_Bot(_Ctx,['substs'],['substsof',all]):- unify_listing(dictReplace(_DictName,_,_)),!.
 
+
+systemCall_Bot(Ctx,['ctxlist'],template([ctxed])):-!,showCtx(Ctx),!.
+systemCall_Bot(Ctx,['ctxlist'],template([ctxed,getCtxValue(Name,Ctx,Value),Count])):-!,unify_listing(getCtxValue_nd(Name,Ctx,Value),Count),!.
+
+
+
+
+systemCall_Bot(Ctx,[FIRST|REST],DONE):-atom(FIRST),downcase_atom(FIRST,CMD),FIRST\==CMD,!,systemCall_Bot(Ctx,[CMD|REST],DONE).
+
+
+
+
 systemCall_Bot(_Ctx,DONE,template([delayed,DONE])):-!.
+
+showCtx(Ctx):-forall(
+  (get_ctx_frame_holder(Ctx,Dict,Frame,Held)),
+  writeq(get_ctx_frame_holder(Ctx,Dict,Frame,Held))).
 
 systemCall_Load(Ctx,[],template([loaded,Ctx])):-!.
 systemCall_Load(Ctx,[File,Name|S],Output):-concat_atom_safe([File,Name|S],'',Filename),!,systemCall(Ctx,'bot',['load',Filename],Output).

@@ -200,9 +200,10 @@ singletons(_).
 nthAnswerOf(Call,Nth):-flag(nthAnswerOf,_,Nth), Call,flag(nthAnswerOf,R,R-1),R=1,!.
 
 toReadableObject(I,I):- (var(I);atomic(I)),!.
-toReadableObject([I|_],ctx):-nonvar(I),I=frame(_,_,_),!.
+%%toReadableObject([I|_],[fctx]):-nonvar(I),I=frame(_,_,_),!.
+toReadableObject(I,fctxa(Name)):-nonvar(I),I=frame(Name,_,_),!.
 toReadableObject([I|N],[I0|N0]):-!,toReadableObject(I,I0),toReadableObject(N,N0),!.
-toReadableObject(Comp,Comp2):-compound(Comp),Comp=..[L,I|ST],toReadableObject([I|ST],[OI|OIST]),Comp2=..[L,OI|OIST],!.
+toReadableObject(Comp,Comp2):-compound(Comp),Comp=..[L,I|ST],toReadableObject([I|ST],[OI|OIST]),debugOnError(Comp2=..[L,OI|OIST]),!.
 toReadableObject(I,I):-!.
 
 exists_file_safe(File):-prolog_must(atomic(File)),exists_file(File).
@@ -404,13 +405,15 @@ list_to_set_safe(A,A):-(var(A);atomic(A)),!.
 list_to_set_safe([A|AA],BB):- (not(not(lastMember(A,AA))) -> list_to_set_safe(AA,BB) ; (list_to_set_safe(AA,NB),BB=[A|NB])),!.
 
 
-lastMember(E,List):-lastMember0(E,List).
+lastMember(E,List):-hotrace(lastMember0(E,List)).
 
 lastMember0(_E,List):-var(List),!,fail.
 lastMember0(E,[H|List]):-lastMember0(E,List);E=H.
 
-lastMember(E,List,Rest):-lastMember0(E,List),!,delete_safe(List,E,Rest),!.
-lastMember(E,List,Rest):-lastMember0(EE,List),!,lastMember(E,EE,Rest),!,trace. %%delete_safe(List,EE,Rest),!.
+lastMember(E,List,Rest):-hotrace(lastMember0(E,List,Rest)).
+
+lastMember0(E,List,Rest):-lastMember0(E,List),!,delete_safe(List,E,Rest),!.
+lastMember0(E,List,Rest):-lastMember0(EE,List),!,lastMember0(E,EE,Rest),!,trace. %%delete_safe(List,EE,Rest),!.
 
 delete_safe(List,_E,Rest):-var(List),!,Rest=List.
 delete_safe(List,E,Rest):-is_list(List),!,delete(List,E,Rest).

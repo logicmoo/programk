@@ -110,9 +110,10 @@ say(Ctx,X):- aiml_eval(Ctx,X,Y),!,answerOutput(Y,O),showTransition(O,Y,Trans),de
 showTransition(O,Y,O):-O==Y,!.
 showTransition(O,Y,O=Y).
 
-alicebot:-repeat,
-	read_line_with_nl(user,CodesIn,[]),        
+alicebot:-
         makeAimlContext(alicebot,Ctx),
+        repeat,
+	read_line_with_nl(user,CodesIn,[]),        
         once((trim(CodesIn,Codes),atom_codes(Atom,Codes),alicebotCTX(Ctx,Atom))),fail.
 
 alicebot(Input):- currentContext(alicebot(Input),Ctx),!,alicebotCTX(Ctx,Input).
@@ -152,10 +153,11 @@ alicebot2(Ctx,Atoms,Resp):-
    getAliceMem(Ctx,'bot','you',User),
    getAliceMem(Ctx,'bot','me',_Robot),
    getAliceMem(Ctx,'bot',default('minanswers',1),MinAns),
-   getAliceMem(Ctx,'bot',default('maxanswers',1),_MaxAns),
+   getAliceMem(Ctx,'bot',default('maxanswers',1),_MaxAns),   
    %%setAliceMem(Ctx,User,'input',Atoms),
    pushInto1DAnd2DArray(Ctx,'request','input',10,Atoms,User),
    setAliceMem(Ctx,User,'rawinput',Atoms))),
+   thread_local_flag(sraiDepth,_,0),
    ((call_with_depth_limit_traceable(computeInputOutput(Ctx,1,Atoms,Output,N),8000,_DL),
 	 ignore((nonvar(N),nonvar(Output),savePosibleResponse(N,Output))),flag(a_answers,X,X+1),
                 X<MinAns)),!,
@@ -790,39 +792,50 @@ computeAnswer(_Ctx,Votes,Resp,Resp,Votes):-trace,aiml_error(computeAnswer(Resp))
 % ===============================================================================================
 % Eval a SRAI
 % ===============================================================================================
+thread_local_flag(F,B,A):-flag(F,B,A).
+
 computeSRAIElement(Ctx,Votes,ATTRIBS,Input0,Output,VotesO):-
+ withAttributes(Ctx,ATTRIBS, ((
+   computeSRAIElement0(Ctx,Votes,ATTRIBS,Input0,OutputM,VotesOM),
+   computeTemplateOutput(Ctx,VotesOM,OutputM,Output,VotesO)))),!.
+
+computeSRAIElement0(Ctx,Votes,ATTRIBS,Input0,Output,VotesO):-
   prolog_must(ground(Input0)),!,
   flatten([Input0],Input),
-  getAliceMem(Ctx,'user',default('sraiinput','uncaught'),Status),!,
-  computeSRAIElement(Ctx,Votes,Status,ATTRIBS,Input,Output,VotesO).
+  thread_local_flag(sraiDepth,SraiDepth,SraiDepth+1),
+  computeSRAIElement1(Ctx,Votes,SraiDepth,ATTRIBS,Input,Output,VotesO),
+  thread_local_flag(sraiDepth,_,SraiDepth),!.
 
-computeSRAIElement(Ctx,Votes,'uncaught',ATTRIBS,Input,Output,VotesO):-
-  setAliceMem(Ctx,'user','sraiinput','caught'),!,
-  catch(evalSRAI(Ctx,Votes,ATTRIBS,Input,Output,VotesO),aiml_goto(Output,VotesO),setAliceMem(Ctx,'user','sraiinput','uncaught')),!.
-
-computeSRAIElement(Ctx,Votes,_Unc,ATTRIBS,Input,Output,VotesO):-
-  evalSRAI(Ctx,Votes,ATTRIBS,Input,Output,VotesO),!.
+computeSRAIElement1(Ctx,Votes,SraiDepth,ATTRIBS,Input,Output,VotesO):-SraiDepth>1,!,evalSRAI(Ctx,Votes,SraiDepth,ATTRIBS,Input,Output,VotesO),!.
+computeSRAIElement1(Ctx,Votes,SraiDepth,ATTRIBS,Input,Output,VotesO):-catch(evalSRAI(Ctx,Votes,SraiDepth,ATTRIBS,Input,Output,VotesO),aiml_goto(Output,VotesO),thread_local_flag(sraiDepth,_,0)),!.
 
 frame_depth(Depth):-prolog_current_frame(Frame),prolog_frame_attribute(Frame,level,Depth).
 
-evalSRAI(Ctx,Votes,ATTRIBS,Input,proof(Output,loop(Depth>3000,ATTRIBS,Input)),VotesO):-
- frame_depth(Depth),Depth>3000,getAliceMem(Ctx,bot,'infinite-loop-input',Output),!,VotesO is Votes * 0.8,
- notrace,throw(aiml_goto(Output,VotesO)).
+throw_aiml_goto(Output,VotesO):- notrace,throw(aiml_goto(Output,VotesO)).
 
-evalSRAI(Ctx,Votes,ATTRIBS,[I|Input0],Output,VotesO):-atom(I),atom_prefix(I,'@'),!,
+evalSRAI(Ctx,Votes,SraiDepth,ATTRIBS,_Input,_Unusued,_VotesO):- SraiDepth>100,
+  getAliceMem(Ctx,bot,'infinite-loop-input',Output),!,VotesO is Votes * 0.8,
+  throw_aiml_goto(element(srai,ATTRIBS,Output),VotesO).
+    %%throw_aiml_goto(proof(element(template,ATTRIBS,[element(srai,ATTRIBS,Output)]),loop(sraiDepth,SraiDepth,100,ATTRIBS,Input)),VotesO).
+
+/*
+evalSRAI(Ctx,Votes,_SraiDepth,ATTRIBS,Input,_Unusued,_VotesO):-
+ frame_depth(Depth),Depth>3000,getAliceMem(Ctx,bot,'infinite-loop-input',Output),!,VotesO is Votes * 0.8,
+ throw_aiml_goto(proof(element(template,ATTRIBS,[element(srai,ATTRIBS,Output)]),loop(frameDepth,Depth,3000,ATTRIBS,Input)),VotesO).
+*/
+
+evalSRAI(Ctx,Votes,_SraiDepth,ATTRIBS,[I|Input0],Output,VotesO):-atom(I),atom_prefix(I,'@'),!,
   % re-direct to input
   withAttributes(Ctx,ATTRIBS,prolog_must(computeAnswer(Ctx,Votes,[I|Input0],Output,VotesO))),!.
 
-evalSRAI(Ctx,Votes,ATTRIBS,Input,Output,VotesO):-
+evalSRAI(Ctx,Votes,_SraiDepth,ATTRIBS,Input,Output,VotesO):-
  ifThen(var(SYM),evalsrai(SYM)),
- var(Proof),
- withAttributes(Ctx,ATTRIBS,
+ var(Proof), 
    withAttributes(Ctx,['evalsrai'=SYM,proof=Proof],
   ((
     debugOnError(computeSRAI(Ctx,Votes,SYM,Input,MidIn,VotesM,Proof)),      
-    computeSRAIStars(Ctx,ATTRIBS,Input,MidIn,VotesM,SYM,Proof,OutputM,VotesOM),!, 
-    ifThen(nonvar(SYM),retractallSrais(SYM)),
-    computeTemplateOutput(Ctx,VotesOM,OutputM,Output,VotesO))))),!.
+    computeSRAIStars(Ctx,ATTRIBS,Input,MidIn,VotesM,SYM,Proof,Output,VotesO),!, 
+    ifThen(nonvar(SYM),retractallSrais(SYM))))).
 
     
 computeSRAIStars(Ctx,ATTRIBS,Input,MidIn,VotesM,SYM,Proof,Output,VotesO):- fail,

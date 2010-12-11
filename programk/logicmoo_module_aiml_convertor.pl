@@ -335,7 +335,7 @@ transformTagData0(Ctx,TAG,_Default,PATTERN_IN,PATTERN_OUT):-
 transformTagData1(_Ctx,TAG,_Default,PATTERN_IN,PATTERN_OUT):- member(TAG,[userdict,graph]),matchable_litteral_safe(PATTERN_IN,PATTERN_OUT),!.
 transformTagData1(_Ctx,TAG,_Default,PATTERN_IN,PATTERN_OUT):-infoTagLikeLineNumber(TAG),!,PATTERN_IN=PATTERN_OUT.
 
-transformTagData1(Ctx,TAG,Default,PATTERN_IN,PATTERN_OUT):- debugFmt(transformTagData(TAG,Default,PATTERN_IN)), 
+transformTagData1(Ctx,_TAG,_Default,PATTERN_IN,PATTERN_OUT):- %%% debugFmt(transformTagData(TAG,Default,PATTERN_IN)), 
                  convert_template_pred(Ctx,matchable_litteral_safe,PATTERN_IN,PATTERN_OUT),!.
 transformTagData1(Ctx,_N,_Default,R,RR):-convert_template(Ctx,R,RR),!. 
 transformTagData1(_Ctx,_TAG,_Default,PATTERN,PATTERN):-!.

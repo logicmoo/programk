@@ -65,14 +65,15 @@ makeAimlCateSig(Ctx,ListOfValues,Pred):-aimlCateSig(Pred),!,makeAimlCate(Ctx,Lis
 
 :- aimlCateOrder(List),length(List,L),dynamic(aimlCate/L),multifile(aimlCate/L). 
 
-replaceArgsVar(_Ctx,[],_CateSig,_With):-!.
-replaceArgsVar(Ctx,[E|L],CateSig,With):-copy_term(With,Replacement),
-    getCategoryArg1(Ctx,E,_NULL,StarNumber,CateSig),nb_setarg(StarNumber,CateSig,Replacement),
-    replaceArgsVar(Ctx,L,CateSig,With),!.
+replaceArgsVar(_Ctx,[],_CateSig):-!.
+replaceArgsVar(Ctx,[E=Replacement|L],CateSig):-
+    getCategoryArg1(Ctx,E,_Old,StarNumber,CateSig),
+    nb_setarg(StarNumber,CateSig,Replacement),
+    replaceArgsVar(Ctx,L,CateSig),!.
 
 :-dynamic(argNumsTracked/3).
-:-dynamic(argNFound/3).
-:-index(argNFound(1,1,1)).
+:-dynamic(argNFound/4).
+:-index(argNFound(1,1,1,1)).
 
 
 %% aimlCateOrder([graph,precall,topic,that,request,pattern,flags,call,guard,userdict,template,srcinfo,srcfile]).
@@ -80,25 +81,85 @@ argNumsTracked(aimlCate,topic,3).
 argNumsTracked(aimlCate,that,4).
 argNumsTracked(aimlCate,pattern,6).
 
+argNFound(F,A,P,P):-argNFound(F,A,P).
 argNFound(aimlCate,'13',_).
 argNFound(aimlCate,'12',_).
 argNFound(aimlCate,'11',_).
 argNFound(aimlCate,'10',_).
 argNFound(aimlCate,'9',_).
 
-assert_cate_in_load(NEW):-isRetraction(_Ctx,NEW,OF),!,retractall(OF),!.
-assert_cate_in_load(NEW):-asserta(NEW),makeArgIndexes(NEW),!.
+assert_cate_in_load(NEW) :- assert_cate_in_load(_Ctx,NEW),!.
 
-makeArgIndexes(_CateSig):-!.
-makeArgIndexes(CateSig):-functor(CateSig,F,_),makeArgIndexes(CateSig,F),!.
-makeArgIndexes(CateSig,F):- argNumsTracked(F,Atom,Number),arg(Number,CateSig,Arg),nonvar(Arg),
+assert_cate_in_load(Ctx,CateSig):-
+      debugOnFailureAimlEach((
+       %  prolog_must(ground(CateSig)),
+         toIndexable(CateSig,Indexable),!,         
+       %  toNonIndexable(Indexable,NonIndexable),
+       %  prolog_must(NonIndexable=CateSig),
+         assert_cate_in_load(Ctx,CateSig,Indexable)
+         )),!.
+
+assert_cate_in_load(Ctx,CateSig,Indexable):-copy_term(CateSig,CateSigTest),CateSig=CateSigTest,isRetraction(Ctx,CateSigTest,Removeme),!,retractall(Removeme),
+       makeArgIndexes(CateSig,Indexable,dirtyArgIndex),debugFmt(isRetraction(Ctx,CateSigTest,Removeme)),!.
+
+assert_cate_in_load(_Ctx,CateSig,Indexable):-
+      makeArgIndexes(CateSig,Indexable,addArgIndex),asserta(Indexable),debugFmt(':-'(Indexable)),!.
+
+toNonIndexable(FAKE,FAKE):-!.
+toNonIndexable(OF,INDEXABLE):-OF=..[F|ARGS],toNonIndexable0(F,ARGS,NEWARGS),!,INDEXABLE=..[F|NEWARGS].
+toNonIndexable0(_F,[],[]):-!.
+toNonIndexable0(_F,List,List):-length(List,N),N=<3,!.
+toNonIndexable0(F,[A|ARGS],[N|NEWARGS]):-toNonIndexableArg(A,N),toNonIndexable0(F,ARGS,NEWARGS).
+
+toNonIndexableArg(A,A):-var(A),!.
+
+toNonIndexableArg(A,A):-member(A,['*','[]','_']),!.
+toNonIndexableArg([A|H],[A|H]):-!.
+toNonIndexableArg(A,A):-not(compound(A)),!.
+toNonIndexableArg(A,[A]):-not(compound(A)),!.
+toNonIndexableArg(A,[A0]):-A=..[A0,idx0].
+toNonIndexableArg(A,[A0|AN]):-A=..[A0,idx|AN].
+toNonIndexableArg(A,[AA|AL]):-A=..[A0,idxl,AN|AL],AA=..[A0|AN].
+toNonIndexableArg(A,[A]).
+
+toIndexable(FAKE,FAKE):-!.
+toIndexable(OF,INDEXABLE):-OF=..[F|ARGS],toIndexable0(F,ARGS,NEWARGS),INDEXABLE=..[F|NEWARGS]. %%prolog_must(toNonIndexable(INDEXABLE,NINDEXABLE)),!,prolog_must(OF=NINDEXABLE).
+toIndexable0(_F,[],[]):-!.
+toIndexable0(_F,List,List):-length(List,N),N=<3,!.
+toIndexable0(F,[A|ARGS],[N|NEWARGS]):-toIndexableArg(A,N),toIndexable0(F,ARGS,NEWARGS).
+
+toIndexableArg(A,A):-not(compound(A)),!.
+toIndexableArg(A,A):-member(A,['*','[]','_']),!.
+toIndexableArg([A],AH):- atom(A),!,AH=..[A,idx0],!.
+toIndexableArg([A],N):-toIndexableArg(A,N).
+toIndexableArg([A|H],AH):- atom(A),AH=..[A,idx|H],!.
+toIndexableArg([A|H],AH):- A=..[A0|AN],predify(A,AH,A0,AN,H),!.
+toIndexableArg(A,A).
+
+predify(_A,AH,A0,AN,H):-predify(AH,A0,AN,H).
+predify(A,[A|H],_A0,_AN,H).
+
+predify(AH,A0,[],H):-AH=..[A0,idx|H].
+predify(AH,A0,H,[]):-AH=..[A0,idx|H].
+predify(AH,A0,AN,H):-AH=..[A0,idxl,AN|H].
+
+%%%%%%%%%%%%%%%%%%%
+%%makeArgIndexes(_CateSig,_Indexable,_DoWhat):-!.
+%%%%%%%%%%%%%%%%%%5
+makeArgIndexes(CateSig,Indexable,DoWhat):-functor(CateSig,F,_),debugOnFailure(makeArgIndexes(CateSig,Indexable,F,DoWhat)),!.
+
+makeArgIndexes(CateSig,Indexable,F,DoWhat):- argNumsTracked(F,Atom,Number),
+  once((arg(Number,CateSig,Arg),nonvar(Arg),arg(Number,Indexable,IndexableArg),
          %%Number<10,nonvar(Arg),atom_number(Atom,Number),
-         assert_if_new(argNFound(F,Atom,Arg)),fail.
-makeArgIndexes(_NEW,_F).
+         once(call(DoWhat,F,Atom,Arg,IndexableArg)))),fail.
+makeArgIndexes(_NEW,_Indexable,_F,_DoWhat).
 
+addArgIndex(F,Atom,Arg,IndexableArg):-assert_if_new(argNFound(F,Atom,Arg,IndexableArg)).
+dirtyArgIndex(_F,_Atom,_,*):-!.
+dirtyArgIndex(F,Atom,Arg,IndexableArg):-debugFmt(dirtyArgIndex(F,Atom,Arg,IndexableArg)).
 
-assert_if_new(N):-N,!.
-assert_if_new(N):-assert(N),!.
+assert_if_new(N):-catch(N,E,debugFmt(error_in(E,N))),!.
+assert_if_new(N):-assert(N),debugFmt(assert(N)),!.
 
 % ===============================================================================================
 %  Save Categories
@@ -109,12 +170,12 @@ assertCate(Ctx,Cate,DoWhat):-
 
 %% todo maybe this.. once((retract(NEW),asserta(NEW)) ; (asserta(NEW),(debugFmt('~q.~n',[NEW])))),!.
 % assertCate3(Ctx,NEW,DoWhat):-NEW,!.
- assertCate3(Ctx,NEW,DoWhat):-
+assertCate3(Ctx,NEW,DoWhat):-
   flag(cateSigCount,X,X+1), forall(member(Pred,DoWhat),call(Pred,Ctx,NEW)).
 % ===============================================================================================
 %  Make AIML Categories
 % ===============================================================================================
-makeAimlCate(Ctx,Cate,Value):-makeAimlCate(Ctx,Cate,Value,'$first'(['$value'('*'),'$current_value'])),!.
+makeAimlCate(Ctx,Cate,Value):-makeAimlCate(Ctx,Cate,Value,'$first'(['$current_value','$error'])).%%'$first'(['$value'('*'),'$current_value'])),!.
 makeAimlCate(Ctx,Cate,Value,UnboundDefault):- debugOnFailureAiml((convert_template(Ctx,Cate,Assert),!,makeAimlCate1(Ctx,Assert,Value,UnboundDefault))).
 
 makeAimlCate1(Ctx,Assert,Value,UnboundDefault):-
@@ -129,15 +190,81 @@ arg2(_UnboundDefault,Value,Value):-!,trace.
 makeAimlCate2(_Ctx,LIST,UnboundDefault,Value):- arg2OfList(UnboundDefault,LIST,LISTO), Value =.. [aimlCate|LISTO],!.
 
 
-translate_cate(Ctx,CateSig):-replaceArgsVar(Ctx,[srcinfo],CateSig,_),immediateCall(Ctx,assert_cate_in_load(CateSig)).
-asserta_cate(Ctx,CateSig):-prolog_must(ground(CateSig)),assert_cate_in_load(CateSig),immediateCall(Ctx,assert_cate_in_load(CateSig)).
+translate_cate(Ctx,CateSig):-replaceArgsVar(Ctx,[srcinfo=_],CateSig),assert_cate_in_load(Ctx,CateSig).
 
-is_xml_missing(Var):-var(Var),!.
-is_xml_missing([]).
+is_xml_missing(Var):-prolog_must(nonvar(Var)),!,member(Var,['[]','*','_']),!.
 
-isRetraction(Ctx,CateSig,OF):-getCategoryArg(Ctx,'template',NULL,_Out_,CateSig),is_xml_missing(NULL),!,
-   replaceArgsVar(Ctx,['template',srcinfo,srcfile],CateSig,_),
-   OF=CateSig.
+isRetraction(Ctx,CateSig,OF):-getCategoryArg1(Ctx,'template',NULL,_StarNumber,CateSig),!,is_xml_missing(NULL),
+   copy_term(CateSig,OF),replaceArgsVar(Ctx,['template'=_,srcinfo=_,srcfile=_],OF),!.
+
+% ===============================================================================================
+%  Popping when Building categories
+% ===============================================================================================
+
+clearCateStack(_Ctx):- retractall(dict(category,_,_)).
+
+peekCateElements(Ctx,Cate):- cateMemberTags(CATETAGS), peekAttributes(Ctx,CATETAGS,category,Cate),!.
+
+popCateElements(Ctx,Cate):- cateMemberTags(CATETAGS), peekAttributes(Ctx,CATETAGS,category,Cate),!.
+popCateElements(Ctx,CateO):- popCateElements1(Ctx,Cate1),popCateElements2(Ctx,Cate2),append(Cate1,Cate2,Cate),!,CateO=Cate.
+popCateElements1(Ctx,CateO):- findall(Tag=DCG,cateNodes1(Ctx,category,Tag,DCG),Cate),!,CateO=Cate.
+popCateElements2(Ctx,CateO):- findall(Tag=DCG,cateNodes2(Ctx,category,Tag,DCG),Cate),!,CateO=Cate.
+
+
+cateNodes1(Ctx,Scope,Tag,DCGO):-member(Tag,[pattern,template]),once(cateNodes1a(Ctx,Scope,Tag,TEMPLATE)),once(convert_template(Ctx,TEMPLATE,DCG)),!,DCG=DCGO.
+
+cateNodes1a(Ctx,Scope,Tag,DCGO):-peekNameValue(Ctx,Scope,Tag,DCG,'$failure'),popNameValue(Ctx,Scope,Tag,DCG),!,DCG=DCGO.
+cateNodes1a(Ctx,Scope,Tag,DCGO):-listing(dict),aiml_error(peekNameValue(Ctx,Scope,Tag,DCG)),!,DCG=DCGO.
+cateNodes1a(Ctx,Scope,Tag,DCGO):-peekNameValue(Ctx,Other,Tag,DCG,'$error'),Other\==Scope,!,DCG=DCGO.
+
+
+cateNodes2(Scope,Tag,DCGO):-member(Tag,[that,guard,topic]),once(cateNodes2a(Scope,Tag,TEMPLATE)),once(convert_template(_Ctx,TEMPLATE,DCG)),!,DCG=DCGO.
+
+cateNodes2a(Scope,Tag,DCGO):-peekNameValue(_Ctx,Other,Tag,DCG,'$failure'),Other\==Scope,!,DCG=DCGO.
+cateNodes2a(Scope,Tag,DCGO):-aiml_error(peekNameValue(_Ctx,Scope,Tag,DCG)),!,DCG=DCGO.
+
+defaultPredicates(N,V):-member(N,[username,botname]),V='*'.
+
+%defaultPredicates(N,V):-member(N,[input,pattern]),V='*'.
+defaultPredicates(N,V):-defaultPredicatesS(S),member(N=V,S).
+defaultPredicatesS([
+             topic='*',
+             precall='true',
+             call='true',
+             flags='*',
+             that='*',
+             % hide for testing 
+             %dictionary='default',
+             userdict='user',
+             substitutions='input',
+             graph='default',
+             guard='*',
+             request='*',
+             template=['is ERROR IN CATE'],
+             lang='bot']).
+ 
+cateMember(Tag):-cateMemberTags(List),member(Tag,List).
+
+defaultCatePredicatesS(Defaults):-cateFallback(Defaults).
+
+/*
+And your chair is kept this time For some confidence you can ask them when the next trip to Value Villiage is.. 
+You should be permited to keep your chair since you are willing to not leave the grounds except on nursing facility sanctioned trips.
+I Think they have trips to the Dollar Tree and other places 
+They also can give us special permission on Mondays and Thursdays 
+
+The main thing is that you are willing to give them the peace of mind that they dont need to "watch you".
+
+*/
+cateFallback([
+       srcinfo=missinginfo,
+       srcfile=missingfile,
+       withCategory=[writeqnl,assert_cate_in_load],
+       pattern='ERROR PATTERN',
+       template=[]|MORE]):-findall(N=V,defaultPredicates(N,V),MORE).
+
+pathAttrib(S):-pathAttribS(SS),member(S,SS).
+pathAttribS([uri,loc,filename,url,path,dir,file,pathname,src,location]).
 
 
 
@@ -502,6 +629,11 @@ make_star_binders(Ctx,StarName,N,InputText,[WildCard,M0|More],ValueO,[Pred|StarS
 make_star_binders(Ctx,StarName,N,[Match|B],[WildCard|BB],ValueO,[Pred|StarSets]):- isStarOrWild(StarName,N,WildCard,WildValue,Match, Pred),!,
      N2 is N+1,
      make_star_binders(Ctx,StarName,N2,B,BB,Value,StarSets),!,ValueO is WildValue + Value.
+
+% tail is a compound (indexical unifier)
+make_star_binders(Ctx,StarName,N,InputText,Indexical,WildValue,Pred):-
+      compound(Indexical),Indexical=..[L|IST],not(member(L,['.'])),
+      make_star_binders(Ctx,StarName,N,InputText,[L|IST],WildValue,Pred).
 
 % skip over skippable words
 make_star_binders(Ctx,StarName,N,[Skipable|B],BB,CountO,StarSets):- isIgnoreableWord(Skipable),!,make_star_binders(Ctx,StarName,N,B,BB,Count,StarSets),CountO is Count + 1.

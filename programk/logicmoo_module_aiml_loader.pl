@@ -17,6 +17,10 @@
 
 :-discontiguous(convert_ele/3).
 
+:-ensure_loaded(library('programk/logicmoo_module_aiml_graphmaster.pl')).
+:-ensure_loaded(library('programk/logicmoo_module_aiml_convertor.pl')).
+:-ensure_loaded(library('programk/logicmoo_module_aiml_xpath.pl')).
+
 % =================================================================================
 % Entity Loading
 % =================================================================================
@@ -76,7 +80,7 @@ load_aiml_files.
 load_aiml_files(Files):-currentContext(load_aiml_files,Ctx),load_aiml_files(Ctx,Files),!,do_pending_loads(Ctx).
 
 load_aiml_files(Ctx,element(Tag,Attribs,ContentIn)):- !, debugOnFailureAiml((load_aiml_structure(Ctx,element(Tag,Attribs,ContentIn)),!,do_pending_loads(Ctx))).
-load_aiml_files(Ctx,File):- withAttributes(Ctx,[withCategory=[writeqnl,asserta_new]],with_files(load_single_aiml_file(Ctx),File)),!,do_pending_loads(Ctx).
+load_aiml_files(Ctx,File):- withAttributes(Ctx,[withCategory=[writeqnl,assert_cate_in_load]],with_files(load_single_aiml_file(Ctx),File)),!,do_pending_loads(Ctx).
 
 
 translate_aiml_files(Files):-currentContext(translate_aiml_files,Ctx),translate_aiml_files(Ctx,Files),!.

@@ -180,65 +180,6 @@ makeParamFallback(Ctx,NameS,ValueO,'$first'(List)):-!,member(E,List),makeParamFa
 makeParamFallback(_Ctx,_NameS,ValueO,Else):-ValueO=Else,!.
 makeParamFallback(_Ctx,_NameS,ValueO,Else):-trace,debugFmt(ignore(ValueO=Else)),!.
 
-% ===============================================================================================
-%  Popping when Building categories
-% ===============================================================================================
-
-clearCateStack(_Ctx):- retractall(dict(category,_,_)).
-
-peekCateElements(Ctx,Cate):- cateMemberTags(CATETAGS), peekAttributes(Ctx,CATETAGS,category,Cate),!.
-
-popCateElements(Ctx,Cate):- cateMemberTags(CATETAGS), peekAttributes(Ctx,CATETAGS,category,Cate),!.
-popCateElements(Ctx,CateO):- popCateElements1(Ctx,Cate1),popCateElements2(Ctx,Cate2),append(Cate1,Cate2,Cate),!,CateO=Cate.
-popCateElements1(Ctx,CateO):- findall(Tag=DCG,cateNodes1(Ctx,category,Tag,DCG),Cate),!,CateO=Cate.
-popCateElements2(Ctx,CateO):- findall(Tag=DCG,cateNodes2(Ctx,category,Tag,DCG),Cate),!,CateO=Cate.
-
-
-cateNodes1(Ctx,Scope,Tag,DCGO):-member(Tag,[pattern,template]),once(cateNodes1a(Ctx,Scope,Tag,TEMPLATE)),once(convert_template(Ctx,TEMPLATE,DCG)),!,DCG=DCGO.
-
-cateNodes1a(Ctx,Scope,Tag,DCGO):-peekNameValue(Ctx,Scope,Tag,DCG,'$failure'),popNameValue(Ctx,Scope,Tag,DCG),!,DCG=DCGO.
-cateNodes1a(Ctx,Scope,Tag,DCGO):-listing(dict),aiml_error(peekNameValue(Ctx,Scope,Tag,DCG)),!,DCG=DCGO.
-cateNodes1a(Ctx,Scope,Tag,DCGO):-peekNameValue(Ctx,Other,Tag,DCG,'$error'),Other\==Scope,!,DCG=DCGO.
-
-
-cateNodes2(Scope,Tag,DCGO):-member(Tag,[that,guard,topic]),once(cateNodes2a(Scope,Tag,TEMPLATE)),once(convert_template(_Ctx,TEMPLATE,DCG)),!,DCG=DCGO.
-
-cateNodes2a(Scope,Tag,DCGO):-peekNameValue(_Ctx,Other,Tag,DCG,'$failure'),Other\==Scope,!,DCG=DCGO.
-cateNodes2a(Scope,Tag,DCGO):-aiml_error(peekNameValue(_Ctx,Scope,Tag,DCG)),!,DCG=DCGO.
-
-defaultPredicates(N,V):-member(N,[username,botname]),V='*'.
-
-%defaultPredicates(N,V):-member(N,[input,pattern]),V='*'.
-defaultPredicates(N,V):-defaultPredicatesS(S),member(N=V,S).
-defaultPredicatesS([
-             %%topic='*',
-             precall='true',
-             call='true',
-             flags='*',
-             %that='*',
-             % hide for testing 
-             %dictionary='default',
-             userdict='user',
-             substitutions='input',
-             graph='default',
-             guard='*',
-             %request='*',
-             lang='bot']).
- 
-cateMember(Tag):-cateMemberTags(List),member(Tag,List).
-
-defaultCatePredicatesS(Defaults):-cateFallback(Defaults).
-
-cateFallback([
-       srcinfo=missinginfo,
-       srcfile=missingfile,
-       withCategory=[writeqnl,asserta_new],
-       pattern='ERROR PATTERN',
-       template=[]|MORE]):-findall(N=V,defaultPredicates(N,V),MORE).
-
-pathAttrib(S):-pathAttribS(SS),member(S,SS).
-pathAttribS([uri,loc,filename,url,path,dir,file,pathname,src,location]).
-
 
 % ===================================================================
 %  AimlContexts

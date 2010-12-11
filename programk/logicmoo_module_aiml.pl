@@ -821,27 +821,6 @@ rememberSaidIt_SH(Ctx,R1,Robot,User):-answerOutput(R1,SR1),!,
    setAliceMem(Ctx,Robot,'lastSaid',SR1),
    pushInto1DAnd2DArray(Ctx,'response','that',5,SR1,User).
 
-
-pushInto1DAnd2DArray(Ctx,Tall,Wide,Ten,MultiSent,ConvThread):-
-   %%trace,
-   splitSentences(MultiSent,Elements),
-   addCtxValue(quiteMemOps,Ctx,true),
-   previousVars(Tall,TallPrevVars,Ten),
-   maplist_safe(setEachSentenceThat(Ctx,ConvThread,TallPrevVars),Elements),!,
-   
-   previousVars(Wide,WidePrevVars,Ten),
-   setEachSentenceThat(Ctx,ConvThread,WidePrevVars,Elements),
-   setCtxValue(quiteMemOps,Ctx,false),
-   !.
-
-
-previousVars(That,[That],0):-!.
-previousVars(That,[That],1):-!.
-previousVars(That,[Item|Prevs],N):-indexOntoKey(That,N,Item), NN is N-1,previousVars(That,Prevs,NN).
-
-indexOntoKey(That,N,That):-subscriptZeroOrOne(N),!.
-indexOntoKey(That,N,Item):-atomic_list_concat([That,'(',N,')'],Item).
-
 getRobot(Robot):-trace,getAliceMem(_Ctx,'bot','me',Robot),!.
 
 getLastSaid(LastSaid):-getRobot(Robot),getAliceMem(_Ctx,Robot,'lastSaid',LastSaid).

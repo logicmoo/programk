@@ -8,17 +8,6 @@
 % Revised At:   $Date: 2002/07/11 21:57:28 $
 % ===================================================================
 
-
-setEachSentenceThat(_Ctx,_User,_Vars,[]):-!.
-setEachSentenceThat(Ctx,User,[Var],SR0):-
-   cleanSentence(SR0,SR3),
-   setAliceMem(Ctx,User,Var,SR3).
-
-setEachSentenceThat(Ctx,User,[PrevVar,Var|MORE],SR0):-
-   getAliceMem(Ctx,User,default(Var,'Nothing'),Prev),
-   setAliceMem(Ctx,User,PrevVar,Prev),
-   setEachSentenceThat(Ctx,User,[Var|MORE],SR0).
-
 splitSentences(In,Out):- notrace(splitSentences0(In,Out)),flatten(Out,OutL),traceIf(member(xml,OutL)),!.
 splitSentences0([],[]):-!.   
 splitSentences0(SR1,[SR0|SRMORE]):-grabFirstSetence(SR1,SR0,LeftOver),!,splitSentences0(LeftOver,SRMORE),!.

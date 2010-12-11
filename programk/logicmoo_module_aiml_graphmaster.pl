@@ -71,45 +71,71 @@ replaceArgsVar(Ctx,[E=Replacement|L],CateSig):-
     nb_setarg(StarNumber,CateSig,Replacement),
     replaceArgsVar(Ctx,L,CateSig),!.
 
+% ===============================================================================================
+%  Indexing of Categories
+% ===============================================================================================
+
 :-dynamic(argNumsTracked/3).
 :-dynamic(argNFound/4).
 :-index(argNFound(1,1,1,1)).
 
 
 %% aimlCateOrder([graph,precall,topic,that,request,pattern,flags,call,guard,userdict,template,srcinfo,srcfile]).
-argNumsTracked(aimlCate,topic,3).
-argNumsTracked(aimlCate,that,4).
-argNumsTracked(aimlCate,pattern,6).
 
-argNFound(F,A,P,P):-argNFound(F,A,P).
-argNFound(aimlCate,'13',_).
-argNFound(aimlCate,'12',_).
-argNFound(aimlCate,'11',_).
-argNFound(aimlCate,'10',_).
-argNFound(aimlCate,'9',_).
+argTypeIndexable(textInput).
+%%argTypeIndexable(name).
 
-assert_cate_in_load(NEW) :- assert_cate_in_load(_Ctx,NEW),!.
+argNumsIndexedRepr(aimlCate,topic,3,textInput).
+argNumsIndexedRepr(aimlCate,that,4,textInput).
+argNumsIndexedRepr(aimlCate,pattern,6,textInput).
+
+argNumsIndexedRepr(aimlCate,graph,1,name).
+argNumsIndexedRepr(aimlCate,precall,2,callable).
+argNumsIndexedRepr(aimlCate,request,5,flags).
+argNumsIndexedRepr(aimlCate,flags,7,flags).
+argNumsIndexedRepr(aimlCate,call,8,callable).
+argNumsIndexedRepr(aimlCate,guard,9,callable).
+argNumsIndexedRepr(aimlCate,userdict,9,name).
+argNumsIndexedRepr(aimlCate,template,10,textOutput).
+argNumsIndexedRepr(aimlCate,srcinfo,11,any).
+argNumsIndexedRepr(aimlCate,srcfile,12,any).
+
+
+%%graph,precall,topic,that,request,pattern,flags,call,guard,userdict,template,srcinfo,srcfile
+
+argNumsTracked(Pred,ArgName,Position):-argNumsIndexedRepr(Pred,ArgName,Position,ArgType),argTypeIndexable(ArgType).
+
+argNFound(F,A,*,[_|_]):-argNumsIndexedRepr(F,_,A,textInput).
+
+
+assert_cate_in_load(NEW) :- currentContext(assert_cate_in_load,Ctx),prolog_must(assert_cate_in_load(Ctx,NEW)),!.
+
+
+retractWithArgIndexes(Retract):-retract(Retract),
+   withArgIndexing(Retract,dirtyArgIndex,Removeme),
+   debugFmt(retractWithArgIndexes(Retract,Removeme)).
 
 assert_cate_in_load(Ctx,CateSig):-
-      debugOnFailureAimlEach((
-       %  prolog_must(ground(CateSig)),
-         toIndexable(CateSig,Indexable),!,         
-       %  toNonIndexable(Indexable,NonIndexable),
-       %  prolog_must(NonIndexable=CateSig),
-         assert_cate_in_load(Ctx,CateSig,Indexable)
-         )),!.
+   immediateCall(Ctx,assert_cate_in_load(Ctx,CateSig)),
+   copy_term(CateSig,CateSigTest),CateSig=CateSigTest,
+   isRetraction(Ctx,CateSigTest,Removeme),!,
+   findall(Removeme,retractWithArgIndexes(Removeme),_Retracted),!.
 
-assert_cate_in_load(Ctx,CateSig,Indexable):-copy_term(CateSig,CateSigTest),CateSig=CateSigTest,isRetraction(Ctx,CateSigTest,Removeme),!,retractall(Removeme),
-       makeArgIndexes(CateSig,Indexable,dirtyArgIndex),debugFmt(isRetraction(Ctx,CateSigTest,Removeme)),!.
+assert_cate_in_load(_Ctx,CateSig):-
+      withArgIndexing(CateSig,addArgIndex,Indexable),
+      asserta(Indexable),!,
+      debugFmt(':-'(CateSig,Indexable)).
 
-assert_cate_in_load(_Ctx,CateSig,Indexable):-
-      makeArgIndexes(CateSig,Indexable,addArgIndex),asserta(Indexable),debugFmt(':-'(Indexable)),!.
+
+
+%%%
+ffffffff.
 
 toNonIndexable(FAKE,FAKE):-!.
-toNonIndexable(OF,INDEXABLE):-OF=..[F|ARGS],toNonIndexable0(F,ARGS,NEWARGS),!,INDEXABLE=..[F|NEWARGS].
-toNonIndexable0(_F,[],[]):-!.
-toNonIndexable0(_F,List,List):-length(List,N),N=<3,!.
-toNonIndexable0(F,[A|ARGS],[N|NEWARGS]):-toNonIndexableArg(A,N),toNonIndexable0(F,ARGS,NEWARGS).
+toNonIndexable(OF,INDEXABLE):-OF=..[F|ARGS],functor(OF,F,A),toNonIndexable0(A,F,ARGS,NEWARGS),!,INDEXABLE=..[F|NEWARGS].
+toNonIndexable0(0,_F,_,[]):-!.
+toNonIndexable0(3,aimlCate,List,List):-!.
+toNonIndexable0(N,F,[A|ARGS],[NEW|NEWARGS]):-N2 is N-1, toNonIndexableArg(A,NEW),toNonIndexable0(N2,F,ARGS,NEWARGS).
 
 toNonIndexableArg(A,A):-var(A),!.
 
@@ -117,20 +143,27 @@ toNonIndexableArg(A,A):-member(A,['*','[]','_']),!.
 toNonIndexableArg([A|H],[A|H]):-!.
 toNonIndexableArg(A,A):-not(compound(A)),!.
 toNonIndexableArg(A,[A]):-not(compound(A)),!.
-toNonIndexableArg(A,[A0]):-A=..[A0,idx0].
+toNonIndexableArg(A,[A0]):-A=..[A0/*,idx0*/].
 toNonIndexableArg(A,[A0|AN]):-A=..[A0,idx|AN].
 toNonIndexableArg(A,[AA|AL]):-A=..[A0,idxl,AN|AL],AA=..[A0|AN].
 toNonIndexableArg(A,[A]).
 
-toIndexable(FAKE,FAKE):-!.
-toIndexable(OF,INDEXABLE):-OF=..[F|ARGS],toIndexable0(F,ARGS,NEWARGS),INDEXABLE=..[F|NEWARGS]. %%prolog_must(toNonIndexable(INDEXABLE,NINDEXABLE)),!,prolog_must(OF=NINDEXABLE).
-toIndexable0(_F,[],[]):-!.
-toIndexable0(_F,List,List):-length(List,N),N=<3,!.
-toIndexable0(F,[A|ARGS],[N|NEWARGS]):-toIndexableArg(A,N),toIndexable0(F,ARGS,NEWARGS).
+%%toIndexable(FAKE,FAKE):-!.
+toIndexable(OF,INDEXABLE):-OF=..[F|ARGS],functor(OF,F,A),toIndexable0(A,F,ARGS,NEWARGS),!,INDEXABLE=..[F|NEWARGS].
+toIndexable0(0,_F,_,[]):-!.
+toIndexable0(3,aimlCate,List,List):-!.
+toIndexable0(N,F,[A|ARGS],[NEW|NEWARGS]):-N2 is N-1, makeIndexableArg(F,N,A,NEW),toIndexable0(N2,F,ARGS,NEWARGS).
 
-toIndexableArg(A,A):-not(compound(A)),!.
+makeIndexableArg(_,_,A,A):-!.  %%TODO: REMOVE THIS DISABLER
+makeIndexableArg(F,ArgNumber,A,AH):-argNumsIndexedRepr(F,_Pattern,ArgNumber,ArgType),argTypeIndexable(ArgType),toIndexableArg(A,AH),!.
+makeIndexableArg(_,_,A,A).
+
+toIndexableArg(A,A):-!.  %%TODO: REMOVE THIS DISABLER
+toIndexableArg(A,A):-var(A),!.
 toIndexableArg(A,A):-member(A,['*','[]','_']),!.
-toIndexableArg([A],AH):- atom(A),!,AH=..[A,idx0],!.
+toIndexableArg([A],A):-not(compound(A)),!.
+toIndexableArg(A,A):-not(compound(A)),!.
+toIndexableArg([A],AH):- atom(A),!,AH=..[A/*,idx0*/],!.
 toIndexableArg([A],N):-toIndexableArg(A,N).
 toIndexableArg([A|H],AH):- atom(A),AH=..[A,idx|H],!.
 toIndexableArg([A|H],AH):- A=..[A0|AN],predify(A,AH,A0,AN,H),!.
@@ -144,19 +177,38 @@ predify(AH,A0,H,[]):-AH=..[A0,idx|H].
 predify(AH,A0,AN,H):-AH=..[A0,idxl,AN|H].
 
 %%%%%%%%%%%%%%%%%%%
-%%makeArgIndexes(_CateSig,_Indexable,_DoWhat):-!.
+%%withArgIndexing(+CateSig,+DoWhat,-Indexable):-!.
 %%%%%%%%%%%%%%%%%%5
-makeArgIndexes(CateSig,Indexable,DoWhat):-functor(CateSig,F,_),debugOnFailure(makeArgIndexes(CateSig,Indexable,F,DoWhat)),!.
+withArgIndexing(CateSig,DoWhat):-prolog_must(withArgIndexing(CateSig,DoWhat,_Indexable)).
+withArgIndexing(CateSig,DoWhat,Indexable):-
+  prolog_must(var(Indexable)),
+  copy_term(CateSig,Indexable),functor(CateSig,F,_),
+  debugOnFailure(withArgIndexing4(CateSig,F,DoWhat,Indexable)),!.
 
-makeArgIndexes(CateSig,Indexable,F,DoWhat):- argNumsTracked(F,Atom,Number),
-  once((arg(Number,CateSig,Arg),nonvar(Arg),arg(Number,Indexable,IndexableArg),
-         %%Number<10,nonvar(Arg),atom_number(Atom,Number),
-         once(call(DoWhat,F,Atom,Arg,IndexableArg)))),fail.
-makeArgIndexes(_NEW,_Indexable,_F,_DoWhat).
+withArgIndexing4(CateSig,Functor,DoWhat,Indexable):- argNumsTracked(Functor,ArgName,ArgNumber),
+  argNumsIndexedRepr(Functor,ArgName,ArgNumber,ArgType),
+  once((arg(ArgNumber,CateSig,Arg),
+         once((call(DoWhat,CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType),
+              nb_setarg(ArgNumber,Indexable,IndexableArg))))),fail.
 
-addArgIndex(F,Atom,Arg,IndexableArg):-assert_if_new(argNFound(F,Atom,Arg,IndexableArg)).
-dirtyArgIndex(_F,_Atom,_,*):-!.
-dirtyArgIndex(F,Atom,Arg,IndexableArg):-debugFmt(dirtyArgIndex(F,Atom,Arg,IndexableArg)).
+withArgIndexing4(_CateSig,_F,_DoWhat,_Indexable).
+
+staredArgIndex(_CateSig,_Indexable,_Functor,_ArgName,_ArgNumber,[IndexableArg],IndexableArg,ArgType):-argTypeIndexable(ArgType),isStar0(IndexableArg),!.
+staredArgIndex(_CateSig,_Indexable,_Functor,_ArgName,_ArgNumber,IndexableArg,IndexableArg,ArgType):-argTypeIndexable(ArgType),isStar0(IndexableArg),!.
+
+addArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType):-staredArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType),!.
+
+addArgIndex(_CateSig,_Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType):-argTypeIndexable(ArgType),
+  makeIndexableArg(Functor,ArgNumber,Arg,IndexableArg),  
+  assert_if_new(argNFound(Functor,ArgName,Arg,IndexableArg)),!.
+addArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType):- trace,
+  debugFmt(addArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType)),
+  prolog_must(Arg=IndexableArg),!.
+  
+
+dirtyArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType):-staredArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType),!.
+dirtyArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType):- 
+  debugFmt(dirtyArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType)),!.
 
 assert_if_new(N):-catch(N,E,debugFmt(error_in(E,N))),!.
 assert_if_new(N):-assert(N),debugFmt(assert(N)),!.
@@ -165,13 +217,15 @@ assert_if_new(N):-assert(N),debugFmt(assert(N)),!.
 %  Save Categories
 % ===============================================================================================
 assertCate(Ctx,Cate,DoWhat):-
-      makeAimlCate(Ctx,Cate,Value),!,
-      assertCate3(Ctx,Value,DoWhat),!.
+      prolog_must(makeAimlCate(Ctx,Cate,Value)),!,
+      prolog_must(ground(Value)),
+      prolog_must(assertCate3(Ctx,Value,DoWhat)),!.
 
 %% todo maybe this.. once((retract(NEW),asserta(NEW)) ; (asserta(NEW),(debugFmt('~q.~n',[NEW])))),!.
 % assertCate3(Ctx,NEW,DoWhat):-NEW,!.
 assertCate3(Ctx,NEW,DoWhat):-
-  flag(cateSigCount,X,X+1), forall(member(Pred,DoWhat),call(Pred,Ctx,NEW)).
+  flag(cateSigCount,X,X+1), 
+  forall(member(Pred,DoWhat),prolog_must(call(Pred,Ctx,NEW))).
 % ===============================================================================================
 %  Make AIML Categories
 % ===============================================================================================
@@ -287,10 +341,10 @@ computeSRAIElement1(Ctx,Votes,SraiDepth,ATTRIBS,Input,Output,VotesO):-SraiDepth>
 computeSRAIElement1(Ctx,Votes,SraiDepth,ATTRIBS,Input,Output,VotesO):-catch(evalSRAI(Ctx,Votes,SraiDepth,ATTRIBS,Input,Output,VotesO),aiml_goto(Output,VotesO),thread_local_flag(sraiDepth,_,0)),!.
 
 
-evalSRAI(Ctx,Votes,SraiDepth,ATTRIBS,_Input,_Unusued,_VotesO):- SraiDepth>200,
+evalSRAI(Ctx,Votes,SraiDepth,ATTRIBS,_Input,_Unusued,_VotesO):- SraiDepth>80,
   getAliceMem(Ctx,bot,'infinite-loop-input',Output),!,VotesO is Votes * 0.8,
   throw_aiml_goto(element(srai,ATTRIBS,Output),VotesO).
-  %%throw_aiml_goto(proof(element(template,ATTRIBS,[element(srai,ATTRIBS,Output)]),loop(sraiDepth,SraiDepth,200,ATTRIBS,Input)),VotesO).
+  %%throw_aiml_goto(proof(element(template,ATTRIBS,[element(srai,ATTRIBS,Output)]),loop(sraiDepth,SraiDepth,80,ATTRIBS,Input)),VotesO).
 
 /*
 evalSRAI(Ctx,Votes,_SraiDepth,ATTRIBS,Input,_Unusued,_VotesO):-
@@ -630,10 +684,17 @@ make_star_binders(Ctx,StarName,N,[Match|B],[WildCard|BB],ValueO,[Pred|StarSets])
      N2 is N+1,
      make_star_binders(Ctx,StarName,N2,B,BB,Value,StarSets),!,ValueO is WildValue + Value.
 
+% tail is an atom (indexical unifier)
+make_star_binders(Ctx,StarName,N,InputText,Indexical,WildValue,Pred):-
+      atom(Indexical),!,
+      make_star_binders(Ctx,StarName,N,InputText,[Indexical],WildValue,Pred).
+
 % tail is a compound (indexical unifier)
 make_star_binders(Ctx,StarName,N,InputText,Indexical,WildValue,Pred):-
-      compound(Indexical),Indexical=..[L|IST],not(member(L,['.'])),
+      not(is_list(Indexical)),/*compound(Indexical),*/toNonIndexable(Indexical,[L|IST]),
       make_star_binders(Ctx,StarName,N,InputText,[L|IST],WildValue,Pred).
+
+
 
 % skip over skippable words
 make_star_binders(Ctx,StarName,N,[Skipable|B],BB,CountO,StarSets):- isIgnoreableWord(Skipable),!,make_star_binders(Ctx,StarName,N,B,BB,Count,StarSets),CountO is Count + 1.

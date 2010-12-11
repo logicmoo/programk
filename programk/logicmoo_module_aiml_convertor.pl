@@ -152,8 +152,9 @@ convert_text_list(A,AA):-listify(A,AA).
 convert_atom(A,Z):-convert_atom0(A,Y),!,Y=Z.
 convert_atom(E,File):-aiml_error(convert_atom(E,File)),!,E=File.
 %convert_atom(A,C):-atom_to_number(A,C),!.
-convert_atom0(A,A):-concat_atom_safe([A],' ',A).
 convert_atom0(A,C):-atomSplit(A,M),!,convert_text(M,C),!.
+convert_atom0(A,D):-matchable_litteral_safe(A,D),!.
+convert_atom0(A,A):-concat_atom_safe([A],' ',A).
 convert_atom0(A,A). %%:-!listify(A,AA).
 
 flattem_append(A,B,BBB):-flatten([A],AA),!,flatten([B],BB),!,append(AA,BB,BBB),!.

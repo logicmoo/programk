@@ -8,6 +8,9 @@
 % Revised At:   $Date: 2002/07/11 21:57:28 $
 % ===================================================================
 
+:-dynamic(recordedTime/2).
+timeRecorded(Call):-timeRecorded(Call,Time),asserta(recordedTime(Time,Call)),listing(recordedTime/2).
+timeRecorded(Call,Time):- statistics(cputime,Start),time(Call),statistics(cputime,End),Time is End - Start.
 :-catch(guitracer,E,writeq(E)),nl.
 
 save:-tell(aimlCate),
@@ -51,9 +54,9 @@ addSupportHere:-
 
 % :- tell(listing1),listing,told.
 
-dtt:- time(dt),statistics,alicebot.
+dtt:- timeRecorded(dt),statistics,alicebot.
 
-dttt:-time(consult(aimlCate_checkpoint)),alicebot.
+dttt:-timeRecorded(consult(aimlCate_checkpoint)),alicebot.
 
 :-catch(guitracer,_,true).
 :-traceAll.
@@ -78,9 +81,9 @@ chomskyAIML:-once(load_aiml_files(library('programk/test_suite/chomskyAIML/*.aim
 test_suite_files:-once(load_aiml_files(library('programk/test_suite/*.aiml'))).
 
 run_chat_tests_here(Ctx):-     
-   test_suite_files,
-   test_call(alicebot(Ctx,'qt')),
-   test_call(alicebot(Ctx,'qt1')),!.
+   timeRecorded(test_suite_files),
+   timeRecorded(test_call(alicebot(Ctx,'qt'))),
+   timeRecorded(test_call(alicebot(Ctx,'qt1'))),!.
 
 run2(Ctx):-
    %%test_call(alicebot(Ctx,'Hi')),
@@ -90,14 +93,14 @@ run2(Ctx):-
    test_call(alicebot(Ctx,'what is my name?')).
 
 
-annie:-makeAimlContext(toplevel,Ctx),run_chat_tests_here(Ctx),alicebot(Ctx).
+annie:-makeAimlContext(toplevel,Ctx),timeRecorded(run_chat_tests_here(Ctx)),alicebot(Ctx).
 
 %:-test_suite_files.
 
-:-time(annie).
-%:-time(chomskyAIML).
+:-timeRecorded(annie).
+%:-timeRecorded(chomskyAIML).
 :-alicebot.
 
-%%:-time(load_aiml_files('programk/test_suite/special/*.aiml')).
+%%:-timeRecorded(load_aiml_files('programk/test_suite/special/*.aiml')).
 
 

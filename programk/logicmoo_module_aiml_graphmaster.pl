@@ -583,7 +583,7 @@ meansNothing0([Atom],Out):-!,meansNothing0(Atom,Out).
 meansNothing0('_',['Nothing']).
 meansNothing0('*',['Nothing']).
 
-savedSetPatterns(LSP,MatchLevel,StarSets,MatchPattern):- LSP = MatchLevel+StarSets+MatchPattern.
+savedSetPatterns(LSP,MatchLevel,StarSets,MatchPattern):- LSP = lsp(MatchLevel,StarSets,MatchPattern).
 
 make_preconds_for_match(Ctx,StarName,InputNothing,CateSig,PrecondsSearch,PostcondsSearch,PrecondsCommit,PostcondsCommit,Out,MinedCates,ProofOut,
  OutputLevel):-
@@ -599,6 +599,18 @@ make_prepost_conds(Ctx,StarName,TextPattern,CateSig,FindPattern,CommitPattern,Ou
   hotrace(meansNothing(TextPattern,InputPattern)), 
    TextPattern \= InputPattern,!,
   make_prepost_conds(Ctx,StarName,InputPattern,CateSig,FindPattern,CommitPattern,Out,MinedCates,ProofOut,MatchLevel).
+
+%%TODO: MAKE THIS ONE WORK !
+make_prepost_conds(Ctx,StarName,TextPattern,CateSig,FindPattern,CommitPattern,Out,MinedCates,StarSets,MatchLevel):-fail,
+  generateMatchPatterns(Ctx,StarName,Out,TextPattern,CateSig,MinedCates,EachMatchSig),!,
+  prolog_must(EachMatchSig=[_|_]),
+  savedSetPatterns(LSP,MatchLevel2,StarSets2,MatchPattern),
+  getCategoryArg(Ctx,StarName,MatchPattern,Out,CateSig),
+  (FindPattern = 
+      ((
+        member(LSP,EachMatchSig),           
+           prolog_must(make_star_binders(Ctx,StarName,1,TextPattern,MatchPattern,MatchLevel,StarSets)),
+           (CommitPattern = (prolog_must(MatchLevel=MatchLevel2),prolog_must(StarSets=StarSets2)))))).
 
 make_prepost_conds(Ctx,StarName,TextPattern,CateSig,FindPattern,CommitPattern,Out,MinedCates,ProofOut,MatchLevel):-
   generateMatchPatterns(Ctx,StarName,Out,TextPattern,CateSig,MinedCates,EachMatchSig),!,
@@ -625,6 +637,31 @@ generateMatchPatterns(Ctx,StarName,Out,InputNothing,CateSig,_NC_MinedCates,EachM
   getCategoryArg(Ctx,StarName,'*',Out,CateSig),
    prolog_must(EachMatchSig=[_|_]),
   must_be_openCate(CateSig),!.
+
+
+%% The NEWEST match patterns NOW using Indexing!
+generateMatchPatterns(Ctx,StarName,Out,InputPattern,CateSig,_MinedCates,EachMatchSig):-  useIndexPatternsForCateSearch,
+ %% convertToMatchable(TextPattern,InputPattern),
+ functor(CateSig,CateSigFunctor,_Args),
+  must_be_openCate(CateSig),
+  copy_term(CateSig,CateSigC),!,  
+ getCategoryArg(Ctx,StarName,MatchPattern,Out,CateSigC),
+  savedSetPatterns(LSP,MatchLevel,StarSets,MatchPattern),
+  findall(LSP,
+             (argNFound(CateSigFunctor,StarName,MatchPattern,_),
+              canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern,MatchLevel,StarSets)),
+      EachMatchSig),
+ %%traceIf((StarName==pattern,InputPattern=[_,_|_])),
+  prolog_must(EachMatchSig=[_|_]),
+  prolog_must(debugFmtList([
+        starName = StarName,
+        eachMatchSig(EachMatchSig),
+        setOfEachMatchSig=SetOfEachMatchSig,
+        eachMatchSig=EachMatchSig,
+        matchPattern=MatchPattern,
+        cateSig=CateSig
+        ])),!.
+
 
 %% The new match patterns using Indexing!
 generateMatchPatterns(Ctx,StarName,Out,InputPattern,CateSig,_MinedCates,EachMatchSig):- useIndexPatternsForCateSearch,

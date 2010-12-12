@@ -28,30 +28,21 @@ pushAttributes0(_Ctx,_Scope,[]).
 peekAttributes(Ctx,[Name|SList],Scope,[Name=Value|Results]):- peekNameValue(Ctx,Scope,Name,Value,'$error'),peekAttributes(Ctx,SList,Scope,Results),!.
 peekAttributes(_Ctx,[],_Scope,[]):-!.
 
-current_value(Ctx,arg(N),Value):-integer(N), N = -1,!,getItemValue(Ctx,lastArg,Value),!.
-current_value(Ctx,Name,Value):-Name==lastArg,compound(Ctx),functor(Ctx,_F,A),arg(A,Ctx,Value),!.
-current_value(Ctx,Name,Ctx):-Name==lastArg,!.
-current_value(Ctx,arg(N),Value):-integer(N),prolog_must(compound(Ctx)),arg(N,Ctx,Value),!.
 current_value(Ctx,Name,Value):-peekNameValue(Ctx,_,Name,Value,'$error').
-
-getItemValue(Ctx,Name,Value):-nonvar(Ctx),getCtxValue(Ctx,Name,Value),!.
-getItemValue(Ctx,Name,Value):-current_value(Ctx,Name,Value),!.
-getItemValue(Ctx,Name,Value):-getAliceMem(Ctx,_,Name,Value),!.
-getItemValue(Ctx,Name,Value):-findTagValue(Ctx,[],Name,Value,'$current_value').%%current_value(Ctx,Name,Value),!.
-
-
-%%peekNameValue(Ctx,Scope,Name,Value):-Failed='$error',peekNameValue(Ctx,Scope,Name,Value,Failed),ignore((Value==Failed,trace,Value = '*')),!.
 
 peekNameValue(Ctx,Scope,Name,Value,Else):-nonvar(Value),!,checkNameValue(Ctx,Scope,Name,Value,Else).
 peekNameValue(Ctx,_Scope,Name,Value,_ElseVar):-hotrace(getCtxValue(Ctx,Name,Value)),!.
 peekNameValue(Ctx,List,Name,Value,_ElseVar):- nonvar(List),not(atom(List)),attributeOrTagValue(Ctx,List,Name,Value,'$failure'),!.
-peekNameValue(Ctx,Scope,Name,Value,_ElseVar):-getStoredValue(Ctx,Scope,Name,Value),checkAttribute(Scope,Name,Value),!.
-%%%%%%peekNameValue(Ctx,Scope,Name,Value,_ElseVar):-nonvar(Scope),getStoredValue(Ctx,Scope2,Name,Value),Scope\=Scope2,checkAttribute(Scope2,Name,Value),!,checkValue(Value),!.
 peekNameValue(Ctx,Scope,Name,Value,_ElseVar):-getInheritedStoredValue(Ctx,Scope,Name,Value),checkAttribute(Scope,Name,Value),!.
 peekNameValue(Ctx,Scope,Name,Value,_ElseVar):-is_list(Name),member(N0,Name),peekNameValue(Ctx,Scope,N0,Value,'$failure'),!.
+peekNameValue(Ctx,_Scope,Name,Value,_ElseVar):-arg_value(Ctx,Name,Value).
 peekNameValue(Ctx,_Scope,Name,Value,ElseVar):-makeParamFallback(Ctx,Name,Value,ElseVar),!.
 
-%%peekNameValue(_Ctx,_Scope,_Name,Value,ElseVar):-ignore(Value=ElseVar),!.
+arg_value(Ctx,arg(N),Value):-integer(N), N = -1,!,current_value(Ctx,lastArg,Value),!.
+arg_value(Ctx,Name,Value):-Name==lastArg,compound(Ctx),functor(Ctx,_F,A),arg(A,Ctx,Value),!.
+arg_value(Ctx,Name,Ctx):-Name==lastArg,!.
+arg_value(Ctx,arg(N),Value):-integer(N),prolog_must(compound(Ctx)),arg(N,Ctx,Value),!.
+
 
 checkNameValue(Ctx,Scope,[Name],Value,Else):- nonvar(Name),!,checkNameValue(Ctx,Scope,Name,Value,Else).
 checkNameValue(Ctx,Scope,Name,Value,Else):-hotrace(( peekNameValue(Ctx,Scope,Name,ValueVar,Else),!,checkValue(ValueVar),valuesMatch(Ctx,ValueVar,Value))),!. %%,trace.
@@ -284,13 +275,13 @@ unwrapValue1(Compound,Compound).
 bestSetterFn(v(_,Setter,_),_OuterSetter,Setter):-!.
 bestSetterFn(_Value,OuterSetter,OuterSetter).
 
-getCtxValueElse(Ctx,Name,Value,_Else):-getCtxValue0(Ctx,Name,Value),!.
+getCtxValueElse(Ctx,Name,Value,_Else):-getCtxValueND(Ctx,Name,Value),!.
 getCtxValueElse(Ctx,Name,Value,Else):-makeParamFallback(Ctx,Name,Value,Else).
 
-getCtxValue(CtxI,Name,Value):-getCtxValue0(CtxI,Name,Value).
-getCtxValue(CtxI,Name,Value):-debugFmt(not(getCtxValue(CtxI,Name,Value))),!,fail.
-getCtxValue0(CtxIn,Name,Value):-checkCtx(CtxIn), hotrace(( get_ctx_holder(CtxIn,Ctx),get_o_value(Name,Ctx,HValue,_Setter),!, unwrapValue(HValue,Value))),!.
-getCtxValue0(CtxI,Name,Value):-checkCtx(CtxI),lastMember(Ctx,CtxI),hotrace(( get_ctx_holder(Ctx,CtxH),get_o_value(Name,CtxH,HValue,_Setter),!, unwrapValue(HValue,Value))),!.
+getCtxValue(CtxI,Name,Value):-getCtxValueND(CtxI,Name,Value),!.
+getCtxValue(CtxI,Name,Value):-nop(debugFmt(not(getCtxValue(CtxI,Name,Value)))),!,fail.
+getCtxValueND(CtxIn,Name,Value):-checkCtx(CtxIn), hotrace(( get_ctx_holder(CtxIn,Ctx),get_o_value(Name,Ctx,HValue,_Setter),unwrapValue(HValue,Value))).
+getCtxValueND(CtxI,Name,Value):-checkCtx(CtxI),lastMember(Ctx,CtxI),hotrace(( get_ctx_holder(Ctx,CtxH),get_o_value(Name,CtxH,HValue,_Setter), unwrapValue(HValue,Value))),trace.
 
 
 getCtxValue_nd(Ctx,Key,Value):- getNamedCtxValue(Ctx,Dict,Name,Value),dictNameKey(Dict,Name,Key).
@@ -306,7 +297,7 @@ ctxDict(Ctx,Dict,Ctx):-!,Dict=unnamedctx.
 get_c_value_wrapped(Ctx,Name,Value):-get_o_value(Name,Ctx,Value,_Setter).%%,unwrapValue(HValue,Value).
 get_c_value_wrapped(_Ctx,Name,'$deleted'(Name)):-ignore(Name=noname).
 
-setCtxValue(Ctx,Name,Value):-(getCtxValue0(Ctx,Name,PrevValue),!, Value==PrevValue) -> true; addCtxValue1(Ctx,Name,Value).
+setCtxValue(Ctx,Name,Value):-(getCtxValueND(Ctx,Name,PrevValue),!, Value==PrevValue) -> true; addCtxValue1(Ctx,Name,Value).
 
 addCtxValue(Ctx,Name,Value):-checkCtx(Ctx),addCtxValue1(Ctx,Name,Value),!.
 %%addCtxValue1(Ctx,Name,Value):-get_ctx_holderFreeSpot(Ctx,Name=v(Value,Setter,Destructor),Destructor),!,ignore(Setter=set_v3(Name)).

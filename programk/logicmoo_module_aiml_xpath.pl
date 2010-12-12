@@ -31,12 +31,16 @@ peekAttributes(_Ctx,[],_Scope,[]):-!.
 current_value(Ctx,Name,Value):-peekNameValue(Ctx,_,Name,Value,'$error').
 
 peekNameValue(Ctx,Scope,Name,Value,Else):-nonvar(Value),!,checkNameValue(Ctx,Scope,Name,Value,Else).
-peekNameValue(Ctx,_Scope,Name,Value,_ElseVar):-hotrace(getCtxValue(Ctx,Name,Value)),!.
-peekNameValue(Ctx,List,Name,Value,_ElseVar):- nonvar(List),not(atom(List)),attributeOrTagValue(Ctx,List,Name,Value,'$failure'),!.
-peekNameValue(Ctx,Scope,Name,Value,_ElseVar):-getInheritedStoredValue(Ctx,Scope,Name,Value),checkAttribute(Scope,Name,Value),!.
-peekNameValue(Ctx,Scope,Name,Value,_ElseVar):-is_list(Name),member(N0,Name),peekNameValue(Ctx,Scope,N0,Value,'$failure'),!.
-peekNameValue(Ctx,_Scope,Name,Value,_ElseVar):-arg_value(Ctx,Name,Value).
+peekNameValue(Ctx,Scope,Name,Value,ElseVar):-peekNameValue0(Ctx,Scope,Name,Value),!.
 peekNameValue(Ctx,_Scope,Name,Value,ElseVar):-makeParamFallback(Ctx,Name,Value,ElseVar),!.
+
+peekNameValue0(Ctx,List,Name,Value):- nonvar(List),not(atom(List)),attributeValue(Ctx,List,Name,Value,'$failure'),!.
+
+peekNameValue0(CtxI,_Scope,Name,Value):-getCtxValueND(CtxI,Name,Value).
+peekNameValue0(Ctx,Scope,Name,Value):-getInheritedStoredValue(Ctx,Scope,Name,Value),checkAttribute(Scope,Name,Value),!.
+peekNameValue0(Ctx,Scope,Name,Value):-is_list(Name),member(N0,Name),peekNameValue(Ctx,Scope,N0,Value,'$failure'),!.
+peekNameValue0(Ctx,_Scope,Name,Value):-arg_value(Ctx,Name,Value).
+peekNameValue0(CtxI,Scope,Name,Value):-nop(debugFmt(not(peekNameValue0(CtxI,Scope,Name,Value)))),!,fail.
 
 arg_value(Ctx,arg(N),Value):-integer(N), N = -1,!,current_value(Ctx,lastArg,Value),!.
 arg_value(Ctx,Name,Value):-Name==lastArg,compound(Ctx),functor(Ctx,_F,A),arg(A,Ctx,Value),!.
@@ -152,7 +156,7 @@ makeSingleTag(Ctx,NameS,ATTRIBS,Default,Tag,ValueO):-makeAimlSingleParam0(Ctx,Na
       transformTagData(Ctx,Tag,Default,ValueI,ValueO),!.
 
 makeAimlSingleParam0(_Ctx,[N|NameS],ATTRIBS,_D,N,Value):-member(O,[N|NameS]),lastMember(OI=Value,ATTRIBS),atomsSameCI(O,OI),!,prolog_must(N\==Value).
-makeAimlSingleParam0(Ctx,[N|NameS],_,ElseVar,N,Value):- makeParamFallback(Ctx,[N|NameS],Value,ElseVar),!,prolog_must(N\==Value).
+makeAimlSingleParam0(Ctx,[N|NameS],_,ElseVar,N,Value):- notrace((makeParamFallback(Ctx,[N|NameS],Value,ElseVar))),!,prolog_must(N\==Value).
 
 
 % ===============================================================================================
@@ -165,7 +169,7 @@ makeParamFallback(_Ctx,_NameS,Value,ElseVar):-'var'(ElseVar),!,Value=ElseVar,!.
 makeParamFallback(_Ctx,_NameS,_Value,'$failure'):-!,fail.
 makeParamFallback(_Ctx,_NameS,_Value,'$call'(Prolog)):-!,call(Prolog).
 makeParamFallback(Ctx,NameS,Value,'$error'):-aiml_error(makeParamFallback(Ctx,NameS,Value,'$error')),throw_safe(fallbackValue(Ctx,NameS,Value,'$error')),!.
-makeParamFallback(Ctx,NameS,ValueO, '$current_value'):- member(Name,NameS),current_value(Ctx,Name,ValueO),valuePresent(ValueO),!.
+makeParamFallback(Ctx,NameS,ValueO, '$current_value'):- member(Name,NameS),trace,current_value(Ctx,Name,ValueO),valuePresent(ValueO),!.
 makeParamFallback(_Ctx,_NameS,_Value,'$succeed'):-!.
 makeParamFallback(_Ctx,_NameS,ValueO,'$value'(Else)):-!,ValueO=Else,!.
 makeParamFallback(Ctx,NameS,ValueO,'$first'(List)):-!,member(E,List),makeParamFallback(Ctx,NameS,ValueO,E),!.
@@ -275,11 +279,6 @@ unwrapValue1(Compound,Compound).
 bestSetterFn(v(_,Setter,_),_OuterSetter,Setter):-!.
 bestSetterFn(_Value,OuterSetter,OuterSetter).
 
-getCtxValueElse(Ctx,Name,Value,_Else):-getCtxValueND(Ctx,Name,Value),!.
-getCtxValueElse(Ctx,Name,Value,Else):-makeParamFallback(Ctx,Name,Value,Else).
-
-getCtxValue(CtxI,Name,Value):-getCtxValueND(CtxI,Name,Value),!.
-getCtxValue(CtxI,Name,Value):-nop(debugFmt(not(getCtxValue(CtxI,Name,Value)))),!,fail.
 getCtxValueND(CtxIn,Name,Value):-checkCtx(CtxIn), hotrace(( get_ctx_holder(CtxIn,Ctx),get_o_value(Name,Ctx,HValue,_Setter),unwrapValue(HValue,Value))).
 getCtxValueND(CtxI,Name,Value):-checkCtx(CtxI),lastMember(Ctx,CtxI),hotrace(( get_ctx_holder(Ctx,CtxH),get_o_value(Name,CtxH,HValue,_Setter), unwrapValue(HValue,Value))),trace.
 
@@ -380,24 +379,17 @@ get_n_value(Name,Pred,Dash,2,Value,nb_setarg(2,Pred)):-arg(1,Pred,Name),member(D
 % attribute searching (Document contexts)
 % ===================================================================
 
-attributeOrTagValue(Ctx,ATTRIBS,NameS,ValueO,_Else):- hotrace((attributeValue(Ctx,ATTRIBS,NameS,ValueO,'$failure'))),!.
-attributeOrTagValue(Ctx,XML,NameS,ValueO,_Else):- hotrace((findTagValue(Ctx,XML,NameS,ValueO,'$failure'))),!.
-attributeOrTagValue(Ctx,ATTRIBS,NameS,ValueO,_Else):-compound(ATTRIBS),ATTRIBS=..[_|LIST],member(E,LIST),
-   attributeOrTagValue(Ctx,E,NameS,ValueO,'$failure'),!.
-attributeOrTagValue(Ctx,_,NameS,ValueO,ElseVar):-ElseVar\=='$failure',makeParamFallback(Ctx,NameS,ValueO,ElseVar),!.
+attributeValue(Ctx,ATTRIBS,NameS,ValueO,_Else):- hotrace((findAttributeValue(Ctx,ATTRIBS,NameS,ValueO,'$failure'))),!.
+attributeValue(Ctx,XML,NameS,ValueO,_Else):- hotrace((findTagValue(Ctx,XML,NameS,ValueO,'$failure'))),!.
+attributeValue(Ctx,ATTRIBS,NameS,ValueO,_Else):-compound(ATTRIBS),ATTRIBS=..[_|LIST],member(E,LIST),
+   attributeValue(Ctx,E,NameS,ValueO,'$failure'),!.
+attributeValue(Ctx,_,NameS,ValueO,ElseVar):-ElseVar\=='$failure',makeParamFallback(Ctx,NameS,ValueO,ElseVar),!.
 
-attributeValue(Ctx,ATTRIBS,NameS,ValueO,Else):- hotrace((attributeValue0(Ctx,ATTRIBS,NameS,ValueI,Else), aiml_eval_to_unit(Ctx,ValueI,ValueO))),!.
-attributeValue(Ctx,ATTRIBS,NameS,ValueO,Else):-   Else\=='$failure',debugOnFailure((attributeValue0(Ctx,ATTRIBS,NameS,ValueI,Else), aiml_eval_to_unit(Ctx,ValueI,ValueO))),!.
+findAttributeValue(Ctx,ATTRIBS,NameS,ValueO,Else):- hotrace((findAttributeValue0(Ctx,ATTRIBS,NameS,ValueI,Else), aiml_eval_to_unit(Ctx,ValueI,ValueO))),!.
+findAttributeValue(Ctx,ATTRIBS,NameS,ValueO,Else):-   Else\=='$failure',debugOnFailure((findAttributeValue0(Ctx,ATTRIBS,NameS,ValueI,Else), aiml_eval_to_unit(Ctx,ValueI,ValueO))),!.
 
-attributeValue0(_Ctx,ATTRIBS,NameS,ValueO,_Else):- member(Name,NameS), lastMember(NameE=ValueO,ATTRIBS), atomsSameCI(Name,NameE),!.
-attributeValue0(Ctx,_ATTRIBS,NameS,Value,ElseVar):- makeParamFallback(Ctx,NameS,Value,ElseVar),!.
-/*
-attributeValue0(Ctx,_ATTRIBS,NameS,ValueO,'$current_value'):-member(Name,NameS), current_value(Ctx,Name,ValueO),valuePresent(ValueO),!.
-attributeValue0(_Ctx,_ATTRIBS,_NameS,_Value,Failure):-'$failure'==Failure,!,fail.
-attributeValue0(Ctx,ATTRIBS,NameS,Value,Error):- '$error'==Error,  
-   aiml_error(attributeValue(Ctx,ATTRIBS,NameS,Value,'$error')).
-attributeValue0(_Ctx,_ATTRIBS,_Name,ValueO,Else):-ValueO=Else,!.
-*/
+findAttributeValue0(_Ctx,ATTRIBS,NameS,ValueO,_Else):- member(Name,NameS), lastMember(NameE=ValueO,ATTRIBS), atomsSameCI(Name,NameE),!.
+findAttributeValue0(Ctx,_ATTRIBS,NameS,Value,ElseVar):- makeParamFallback(Ctx,NameS,Value,ElseVar),!.
 
 findTagValue(_Ctx,XML,_NameS,_ValueO,_Else):-var(XML),!,fail.
 
@@ -429,33 +421,4 @@ findTagValue0_of_xml_element(Ctx,element(NameE,ATTRIBS,ValueI),Name,ValueO,_Else
 
 aiml_select_unit(Ctx,NameA,element(NameA,[],ValueI),ValueO):-aiml_eval_to_unit(Ctx,ValueI,ValueO),!.
 aiml_select_unit(Ctx,_NameA,ValueI,ValueO):-aiml_eval_to_unit(Ctx,ValueI,ValueO),!.
-
-%[''name'='SomeName','Description'='some descr','Input'='$error','ExpectedAnswer'='SomeAnswwer'']
-/*
-getAttributeOrTags(Ctx,[N=Default|More],ATTRIBS,INNERXML,Var):- var(Var),!,
-  hotrace((getAttributeOrTags1(Ctx,[N=Default|More],ATTRIBS,INNERXML,[_=Var|_NormalProps]))),!.
-
-getAttributeOrTags(Ctx,[N=Default|More],ATTRIBS,INNERXML,[N0=Var|NormalProps]):-
-  hotrace((getAttributeOrTags1(Ctx,[N=Default|More],ATTRIBS,INNERXML,[N0=Var|NormalProps]))),!.
-
-:-trace(getAttributeOrTags/5, -fail).
-
-getAttributeOrTags1(_Ctx,[],_ATTRIBS,_INNERXML,[]):-!.
-
-getAttributeOrTags1(Ctx,[N=_Default|More],ATTRIBS,INNERXML,[N0=ValueO|NormalProps]):- 
-      member(element(NE,_Atribs,           Value),INNERXML), atomsSameCI(N,NE), aiml_eval_to_unit(Ctx,Value,ValueO),ignore(N=N0),
-      getAttributeOrTags1(Ctx,More,ATTRIBS,INNERXML,NormalProps),!.
-
-getAttributeOrTags1(Ctx,[N=_Default|More],ATTRIBS,INNERXML,[N0=ValueO|NormalProps]):- 
-      member(element(_NE,[name=NE|_Atribs],Value),INNERXML), atomsSameCI(N,NE), aiml_eval_to_unit(Ctx,Value,ValueO),ignore(N=N0),
-      getAttributeOrTags1(Ctx,More,ATTRIBS,INNERXML,NormalProps),!.
-
-getAttributeOrTags1(Ctx,[N=Default|More],ATTRIBS,INNERXML,[N=Found|NormalProps]):- 
-      attributeOrTagValue(Ctx,ATTRIBS:INNERXML,[N],Found,Default),
-      getAttributeOrTags1(Ctx,More,ATTRIBS,INNERXML,NormalProps),!.
-
-getAttributeOrTags1(Ctx,[N=Default|More],ATTRIBS,INNERXML,[N=Default|NormalProps]):- 
-      getAttributeOrTags1(Ctx,More,ATTRIBS,INNERXML,NormalProps),!.
-*/
-
 

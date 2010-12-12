@@ -24,8 +24,7 @@ getAliceMemOrSetDefault(CtxIn,ConvThread,SYM,Name,ValueO,OrDefault):-
    getAliceMemOrSetDefault0(CtxIn,ConvThread,Name,Value,OrDefault),!,
    (Value=[]-> ValueO=OrDefault ; ValueO=Value).
 
-getAliceMemOrSetDefault0(CtxIn,ConvThread,Name,Value,_OrDefault):-
-   hotrace(getCtxValue(CtxIn,ConvThread:Name,Value)),!.
+%%getAliceMemOrSetDefault0(CtxIn,ConvThread,Name,Value,_OrDefault):- hotrace(current_value(CtxIn,ConvThread:Name,Value)),!.
 getAliceMemOrSetDefault0(CtxIn,ConvThread,Name,Value,_OrDefault):-
    notrace(getIndexedValue(CtxIn,ConvThread,Name,[],Value)),!.
 getAliceMemOrSetDefault0(CtxIn,ConvThread,Name,Value,OrDefault):-
@@ -318,7 +317,7 @@ resetAliceMem0(Ctx,IDict,NameI,Value):- dictNameDictName(Ctx,IDict,NameI,Dict,Na
    % for setting
    addNewContextValue(Ctx,Dict,Name,Value),!.
 
-%%getContextStoredValue(Ctx,Dict,Name,Value):-dictNameKey(Dict,Name,Key),debugOnError(getCtxValue(Ctx,Key,Value)),dictValue(Value).
+%%getContextStoredValue(Ctx,Dict,Name,Value):-dictNameKey(Dict,Name,Key),debugOnError(current_value(Ctx,Key,Value)),dictValue(Value).
 currentContextValue(Ctx,Dict,Name,Value):- getContextStoredValue(Ctx,Dict,Name,Value),!.
 currentContextValue(_Ctx,_Dict,_Name,'OM'):-!.
 

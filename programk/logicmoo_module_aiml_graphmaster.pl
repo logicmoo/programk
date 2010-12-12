@@ -457,7 +457,7 @@ convThreadDict(_Ctx,ConvThreadHint,ConvThread):-answerOutput(ConvThreadHint,Firs
 
 computeSRAI222(CtxIn,Votes,ConvThreadHint,SYM,Pattern,Compute,VotesO,ProofOut,OutputLevel):-    
    %%convertToMatchable(Pattern,InputPattern),
-   prolog_must(getCtxValue(CtxIn,'evalsrai',SYM2)),
+   prolog_must(current_value(CtxIn,'evalsrai',SYM2)),
    ifThen(var(SYM),SYM=SYM2),
    ifThen(SYM\==SYM2,debugFmt(syms(SYM\==SYM2))),
       convThreadDict(Ctx,ConvThreadHint,ConvThread),

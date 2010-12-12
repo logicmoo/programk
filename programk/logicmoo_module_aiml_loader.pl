@@ -409,8 +409,8 @@ load_substs(Ctx,element(Tag,ALIST,LIST)):- substitutionDictsName(Tag,Dict),
 load_substs(Ctx,element(Tag,ATTRIBS,LIST)):-member(Tag,[substitution,substitute]),!,
    debugOnFailureAiml((
       peekNameValue(Ctx,_,dictionary,substitutions(Catalog),'$error'),
-      attributeOrTagValue(Ctx,element(substitute,ATTRIBS,LIST),[old,find,name,before],Find,'$error'),
-      attributeOrTagValue(Ctx,element(substitute,ATTRIBS,LIST),[new,replace,value,after],Replace,'$error'),
+      attributeValue(Ctx,element(substitute,ATTRIBS,LIST),[old,find,name,before],Find,'$error'),
+      attributeValue(Ctx,element(substitute,ATTRIBS,LIST),[new,replace,value,after],Replace,'$error'),
       debugOnFailureAiml(load_dict_structure(Ctx,dict(substitutions(Catalog),Find,Replace))))),!.
 
 % substitutions

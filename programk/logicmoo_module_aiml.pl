@@ -580,7 +580,7 @@ computeStar2(Ctx,Votes,Dict,ATTRIBS,StarVar,ValueI,ValueO,VotesM):-
    computeTemplate(Ctx,Votes,element(template,ATTRIBS,ValueI),ValueO,VotesM),
    !.
 
-getStoredStarValue(Ctx,_Dict,StarVar,ValueI):-getCtxValue(Ctx,StarVar,ValueI),!.
+getStoredStarValue(Ctx,_Dict,StarVar,ValueI):-current_value(Ctx,StarVar,ValueI),!.
 getStoredStarValue(Ctx,Dict,StarVar,ValueI):-getStoredValue(Ctx,Dict,StarVar,ValueI),!.
 getStoredStarValue(_Ctx,Dict,StarVar,[starvar,StarVar,Dict]):-!,unify_listing(dict(Dict,_,_)),trace.
    
@@ -595,7 +595,7 @@ computeMetaStar0(Ctx,Votes,Star,MajorMinor,ATTRIBS,_InnerXml,proof(ValueO,Star=V
 computeMetaStar0(_Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Resp,VotesO):- trace,
       traceIf(Resp = result(InnerXml,Star,Index,ATTRIBS)),!,VotesO is Votes * 0.9. 
 
-getDictFromAttributes(Ctx,VarHolder,_ATTRIBS,SYM):-getCtxValue(Ctx,VarHolder,SYM).
+getDictFromAttributes(Ctx,VarHolder,_ATTRIBS,SYM):-current_value(Ctx,VarHolder,SYM).
 getDictFromAttributes(_Ctx,_VarHolder,_ATTRIBS,'user'):-trace.
 
 % ===============================================================================================
@@ -620,7 +620,7 @@ dictFromAttribs(Ctx,ATTRIBS,Dict,NEW):-dictVarName(N),lastMember(N=DictV,ATTRIBS
 dictFromAttribs(Ctx,ATTRIBS,Dict,NEW):-dictVarName(N),lastMember(N=DictV,ATTRIBS,NEW),convert_dictname(Ctx,DictV,Dict),!,trace.
 
 lastKVMember(_Ctx,Keys,Value,ATTRIBS,NEW):-member(N,Keys),lastMember(N=Value,ATTRIBS,NEW),prolog_must(isValid(Value)),!.
-lastKVMember(Ctx,Keys,Value,ATTRIBS,ATTRIBS):-member(N,Keys),getCtxValue(Ctx,N,Value),prolog_must(isValid(Value)),!.
+lastKVMember(Ctx,Keys,Value,ATTRIBS,ATTRIBS):-member(N,Keys),current_value(Ctx,N,Value),prolog_must(isValid(Value)),!.
 lastKVMember(Ctx,Keys,Value,ATTRIBS,ATTRIBS):-member(N,Keys),peekNameValue(Ctx,ATTRIBS,N,Value,'$failure'),prolog_must(isValid(Value)),!.
 
 %%computeGetSetVar(Ctx,Votes,_Dict,bot,VarName,ATTRIBS,InnerXml,Resp,VotesO):- !,computeGetSetVar(Ctx,Votes,user,get,VarName,ATTRIBS,InnerXml,Resp,VotesO).

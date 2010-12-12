@@ -42,11 +42,11 @@ aiml_call(Ctx,element('testsuite',ATTRIBS,LIST)):-
 
 aiml_call(Ctx,Current):- Current=element(TC,ATTRIBS,_LIST), member(TC,['testcase','TestCase']),!,
   debugOnFailureAiml((
-     attributeOrTagValue(Ctx,Current,['name'],Name,'SomeName'),
-     attributeOrTagValue(Ctx,Current,['Input','Pattern'],Input,'ERROR Input'),
-     attributeOrTagValue(Ctx,Current,['Description'],Description,'No Description'),
-     attributeOrTagValue(Ctx,Current,['ExpectedAnswer'],ExpectedAnswer,['noExpectedAnswer']),
-     findall(ExpectedKeywords0,(attributeOrTagValue(Ctx,Current,['ExpectedKeywords'],ExpectedKeywords,['noExpectedKeywords']),
+     attributeValue(Ctx,Current,['name'],Name,'SomeName'),
+     attributeValue(Ctx,Current,['Input','Pattern'],Input,'ERROR Input'),
+     attributeValue(Ctx,Current,['Description'],Description,'No Description'),
+     attributeValue(Ctx,Current,['ExpectedAnswer'],ExpectedAnswer,['noExpectedAnswer']),
+     findall(ExpectedKeywords0,(attributeValue(Ctx,Current,['ExpectedKeywords'],ExpectedKeywords,['noExpectedKeywords']),
                                 listify(ExpectedKeywords,ExpectedKeywords0)),ExpectedKeywordsList),
      testIt(ATTRIBS,Input,ExpectedAnswer,ExpectedKeywordsList,_Result,Name,Description,Ctx))),!.
 
@@ -234,7 +234,7 @@ systemCall_Bot(_Ctx,['substs'],['substsof','all']):- unify_listing(dictReplace(_
 
 
 systemCall_Bot(Ctx,['ctxlist'],template([ctxed])):-!,showCtx(Ctx),!.
-systemCall_Bot(Ctx,['ctxlist'],template([ctxed,getCtxValue(Ctx,Name,Value),Count])):-!,unify_listing(getCtxValue_nd(Ctx,Name,Value),Count),!.
+systemCall_Bot(Ctx,['ctxlist'],template([ctxed,current_value(Ctx,Name,Value),Count])):-!,unify_listing(getCtxValue_nd(Ctx,Name,Value),Count),!.
 
 
 

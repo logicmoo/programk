@@ -357,12 +357,17 @@ evalSRAI(Ctx,Votes,_SraiDepth,ATTRIBS,[I|Input0],Output,VotesO):-atom(I),atom_pr
   withAttributes(Ctx,ATTRIBS,prolog_must(computeAnswer(Ctx,Votes,element(system,ATTRIBS,[I|Input0]),Output,VotesO))),!.
 
 evalSRAI(Ctx,Votes,_SraiDepth,ATTRIBS,Input,Output,VotesO):-
+ prolog_must(var(SYM)),
+ prolog_must(peekNameValue(Ctx,ATTRIBS,['evalsrai','userdict','scope'],SYMPREV,'$value'(user))),
  ifThen(var(SYM),evalsrai(SYM)),
  var(Proof), 
    withAttributes(Ctx,['evalsrai'=SYM,proof=Proof],
   ((
-    debugOnError(computeSRAI(Ctx,Votes,SYM,Input,MidIn,VotesM,Proof)),      
-    computeSRAIStars(Ctx,ATTRIBS,Input,MidIn,VotesM,SYM,Proof,Output,VotesO),!, 
+    addInherit(SYM,SYMPREV),
+    debugOnError(computeSRAI(Ctx,Votes,SYM,Input,MidIn,VotesM,Proof)),
+
+    computeSRAIStars(Ctx,ATTRIBS,Input,MidIn,VotesM,SYM,Proof,Output,VotesO),
+    remInherit(SYM,SYMPREV),
     ifThen(nonvar(SYM),retractallSrais(SYM))))).
 
     
@@ -381,7 +386,7 @@ computeSRAIStars(Ctx,ATTRIBS,Input,MidIn,VotesM,SYM,Proof,Output,VotesO):-
     prolog_must((nonvar(MidIn),
                  nonvar(SYM),
                  nonvar(Proof))),
-      setCtxValue('evalsrai',Ctx,SYM),
+      setCtxValue(Ctx,'evalsrai',SYM),
       %%MidProof = Proof, 
       computeElementMust(Ctx,VotesM,template,ATTRIBS,MidIn,MidIn9,VotesI9),
       prolog_must(answerOutput(MidIn9,Mid9)),
@@ -406,7 +411,7 @@ computeSRAI(Ctx,Votes,SYM,Input,Result,VotesO,Proof):-
 
 getConversationThread(Ctx,User,Robot,ConvThread):-
    ConvThread = fromTo(User,Robot),
-   setCtxValue('convthread',Ctx,ConvThread),!.
+   setCtxValue(Ctx,'convthread',ConvThread),!.
 
 computeSRAI0(Ctx,Votes,ConvThread,SYM,Input,Result,VotesO,Proof):-   
    computeInnerTemplate(Ctx,Votes,Input,NewIn,VotesM),NewIn \== Input,!,
@@ -446,13 +451,13 @@ computeSRAI0(Ctx,Votes,ConvThread,SYM,[B|Flat],[B|Result],VotesO,Proof):- fail,
 
 checkSym(_SYM).
 
-subclassMakeUserDict(Ctx,UserDict,SYM):-debugFmt(subclassMakeUserDict(Ctx,UserDict,SYM)),!.
+subclassMakeUserDict(Ctx,UserDict,SYM):-debugFmt(subclassMakeUserDict(Ctx,UserDict,SYM)),addInherit(UserDict,SYM).
 
 convThreadDict(_Ctx,ConvThreadHint,ConvThread):-answerOutput(ConvThreadHint,First),unlistify(First,ConvThread),!.
 
 computeSRAI222(CtxIn,Votes,ConvThreadHint,SYM,Pattern,Compute,VotesO,ProofOut,OutputLevel):-    
    %%convertToMatchable(Pattern,InputPattern),
-   prolog_must(getCtxValue('evalsrai',CtxIn,SYM2)),
+   prolog_must(getCtxValue(CtxIn,'evalsrai',SYM2)),
    ifThen(var(SYM),SYM=SYM2),
    ifThen(SYM\==SYM2,debugFmt(syms(SYM\==SYM2))),
       convThreadDict(Ctx,ConvThreadHint,ConvThread),

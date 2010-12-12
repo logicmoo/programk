@@ -18,11 +18,17 @@
 % ===============================================================================================
 % get / set  Coversational Variables
 % ===============================================================================================
-getAliceMemOrSetDefault(CtxIn,ConvThread,SYM,Name,Value,_OrDefault):-checkSym(SYM),
-   hotrace(getCtxValue(ConvThread:Name,CtxIn,Value)),!.
-getAliceMemOrSetDefault(CtxIn,ConvThread,SYM,Name,Value,_OrDefault):-checkSym(SYM),
-   hotrace(getIndexedValue(CtxIn,ConvThread,Name,[],Value)),!.
-getAliceMemOrSetDefault(CtxIn,ConvThread,SYM,Name,Value,OrDefault):-checkSym(SYM),
+
+getAliceMemOrSetDefault(CtxIn,ConvThread,SYM,Name,ValueO,OrDefault):-
+   checkSym(SYM),
+   getAliceMemOrSetDefault0(CtxIn,ConvThread,Name,Value,OrDefault),!,
+   (Value=[]-> ValueO=OrDefault ; ValueO=Value).
+
+getAliceMemOrSetDefault0(CtxIn,ConvThread,Name,Value,_OrDefault):-
+   hotrace(getCtxValue(CtxIn,ConvThread:Name,Value)),!.
+getAliceMemOrSetDefault0(CtxIn,ConvThread,Name,Value,_OrDefault):-
+   notrace(getIndexedValue(CtxIn,ConvThread,Name,[],Value)),!.
+getAliceMemOrSetDefault0(CtxIn,ConvThread,Name,Value,OrDefault):-
    setAliceMem(CtxIn,ConvThread,Name,OrDefault),!,OrDefault=Value.
 
 % ===============================================================================================
@@ -52,32 +58,51 @@ dictNameKey(_Dict,DictName,Key):- nonvar(DictName),DictName=Dict:Name,!,dictName
 dictNameKey(Dict,Name,Dict:Name):-!.%%nonvar(Dict),!.
 dictNameKey(_Dict,NameKey,NameKey).
 
-getStoredValue(_Ctx,_Dict,_Name,Value):-prolog_must(var(Value)),fail.
-
-getStoredValue(Ctx,IDict,NameI,ValueO):-
-     dictNameDictNameC(Ctx,IDict,NameI,Dict,Name),!,
-     getStoredValue(Ctx,Dict,Name,ValueO).
-
-getStoredValue(Ctx,Dict,Name,Value):-getContextStoredValue(Ctx,Dict,Name,Value),!.
+getStoredValue(Ctx,Dict,Name,Value):-prolog_must(var(Value)),getContextStoredValue(Ctx,Dict,Name,Value).
 
 % ===============================================================================================
 % named context via inheritance
 % ===============================================================================================
+getInheritedStoredValueOrDefault(Ctx,Scope,Name,ValueOut,_Default):- getInheritedStoredValue(Ctx,Scope,Name,ValueO) , xformOutput(ValueO, ValueOut).
+getInheritedStoredValueOrDefault(_Ctx,_Scope,_Name,ValueOut,Default):- xformOutput(Default, ValueOut). 
 
+getInheritedStoredValue(Ctx,Scope,DEFAULT,ValueOut):- compound(DEFAULT),DEFAULT=default(Name,Default),!,getInheritedStoredValueOrDefault(Ctx,Scope,Name,ValueOut,Default).
 getInheritedStoredValue(Ctx,IScope,NameI,Value):-dictNameDictNameC(Ctx,IScope,NameI,Scope,Name),!,getInheritedStoredValue(Ctx,Scope,Name,Value).
-getInheritedStoredValue(Ctx,Scope,DEFAULT,ValueOut):- compound(DEFAULT),DEFAULT=default(Name,Default),!, 
-         (getInheritedStoredValue(Ctx,Scope,Name,ValueO) -> xformOutput(ValueO, ValueOut)  ; xformOutput(Default, ValueOut)). 
-
 getInheritedStoredValue(Ctx,Scope,Name,Value):- getStoredValue(Ctx,Scope,Name,Value).
-getInheritedStoredValue(Ctx,Scope,Name,Value):- atom(Scope),inheritedFrom(Scope,InHerit),getInheritedStoredValue(Ctx,InHerit,Name,Value).
- 
-inheritedFrom([Scope],To):-nonvar(Scope),!,inheritedFrom(Scope,To).
-inheritedFrom(default,_):-!,fail.
-inheritedFrom(defaultValue(_),_):-!,fail.
+getInheritedStoredValue(Ctx,Scope,Name,Value):- inheritedDictsOrdered(Scope,InHerit),getStoredValue(Ctx,InHerit,Name,Value).
+
+
+% ===============================================================================================
+% inheritance control
+% ===============================================================================================
+addInherit( SYM0,SYMPREV0):-ifChanged(convert_dictname(_Ctx),[SYM0,SYMPREV0],[SYM,SYMPREV]),!,addInherit( SYM,SYMPREV).
+
+addInherit(_SYM,SYMPREV):-autoInheritDict(SYMPREV),!.
+addInherit( SYM,SYMPREV):-dict(SYM,inheritdict,SYMPREV),!.
+addInherit( SYM,SYMPREV):-asserta(dict(SYM,inheritdict,SYMPREV)).
+
+ifChanged(Pred,List,ListO):-maplist_safe(Pred,List,ListMid),ListMid\=List,prolog_must(ListMid=ListO),!.
+
+remInherit(_SYM,SYMPREV):-autoInheritDict(SYMPREV),!.
+remInherit( SYM,SYMPREV):-retractall(dict(SYM,inheritdict,SYMPREV)),!.
+
+inheritedDictsOrdered(Scope,InHerit):-inheritedFrom2(Scope,InHerit),not(Scope=InHerit).
+
+inheritedFrom2(Scope,InHerit):-inheritedFrom(Scope,InHerit).
+inheritedFrom2(Scope,InHerit):-inheritedFrom(Scope,InHeritMid),inheritedFrom(InHeritMid,InHerit).
+
+inheritedFrom([],_):-!,fail.
+inheritedFrom([Scope],To):-!,inheritedFrom(Scope,To).
+inheritedFrom([D|LIST],To):-!,member(Scope,[D|LIST]),inheritedFrom(Scope,To).
+%inheritedFrom(Compound,_):-compound(Compound),!,fail.
+inheritedFrom(Scope,Dict):-dict(Scope,inheritdict,Dict),not(autoInheritDict(Dict)).
+inheritedFrom(Auto,_):-autoInheritDict(Auto),!,fail.
+inheritedFrom(Atom,_):-not(atom(Atom)),!,fail.
 inheritedFrom(Scope,defaultValue(Scope)).
-inheritedFrom(_Scope,default).
-inheritedFrom(user,_):-!,fail.
-inheritedFrom(Atom,user):-atom(Atom).
+inheritedFrom(_Scope,Dict):-autoInheritDict(Dict).
+
+autoInheritDict(user).
+autoInheritDict(default).
 
 % ===============================================================================================
 % getIndexedValue
@@ -105,7 +130,7 @@ getIndexedValue(Ctx,Dict,DEFAULT,MajorMinor,ValueOut):- compound(DEFAULT),DEFAUL
     (getIndexedValue(Ctx,Dict,Name,MajorMinor,ValueO)  -> xformOutput(ValueO, ValueOut)  ; xformOutput(Default, ValueOut)). 
 
 getIndexedValue(Ctx,Dict,Name,MajorMinor,ValueO):-
-    notrace(getIndexedValue0(Ctx,Dict,Name,MajorMinor,Value)),
+    hotrace(getIndexedValue0(Ctx,Dict,Name,MajorMinor,Value)),
     xformOutput(Value,ValueO).
    
 getIndexedValue(Ctx,Dict,Name,MajorMinor,ValueO):- fail,   
@@ -114,16 +139,58 @@ getIndexedValue(Ctx,Dict,Name,MajorMinor,ValueO):- fail,
     getIndexedValue0(Ctx,Dict,Name,MajorMinor,Value),
     xformOutput(Value,ValueO).
 
+
+% ===============================================================================================
+% getMajorIndexedValue
+% ===============================================================================================
+getMajorIndexedValue(Ctx,Dict,Name,Major,ValueS):- isLinearMemStore,!,
+   getMajorIndexedValueLinear(Ctx,Dict,Name,Major,ValueS),!.
+
+getMajorIndexedValue(Ctx,Dict,Name,Major,ValueS):-
+   indexOntoKey(Name,Major,Item),
+   getInheritedStoredValue(Ctx,Dict,Item,ValueS),!.
+
+
+
+% ===============================================================================================
+% getMajorIndexedValueLinear
+% ===============================================================================================
+getMajorIndexedValueLinear(Ctx,[D|List],Name,Major,ValueS):-
+   member(Dict,[D|List]),
+   notrace(getMajorIndexedValueLinear0(Ctx,Dict,Name,Major,ValueS)),!.
+
+getMajorIndexedValueLinear(Ctx,[D|List],Name,Major,ValueS):-!,
+   unify_listing(dict(_,Name,_)),
+   member(Dict,[D|List]),
+   trace,
+   getMajorIndexedValueLinear0(Ctx,Dict,Name,Major,ValueS),!.
+
+getMajorIndexedValueLinear(Ctx,Dict,Name,Major,ValueS):-
+   getMajorIndexedValueLinear(Ctx,[Dict],Name,Major,ValueS),!.
+
+
+getMajorIndexedValueLinear0(Ctx,Dict,Name,Major,ValueS):-
+   subscriptZeroOrOne(Major),!,
+   getInheritedStoredValue(Ctx,Dict,Name,ValueS),!.
+
+getMajorIndexedValueLinear0(Ctx,Dict,Name,Major,ValueS):-
+   nthResult(Major,getInheritedStoredValue(Ctx,Dict,Name,ValueS)),!.
+
+getMajorIndexedValueLinear0(_Ctx,Dict,Name,Major,ValueS):-
+   nthResult(Major,dict(Dict,Name,ValueS)),!,trace.
+
+nthResult(N,Call):-flag(nthResult,_,N),nthResult0(Call,Rs),!,Rs=1.
+nthResult0(Call,N):-Call,flag(nthResult,N,N-1),N=1.
+nthResult0(_,0):-flag(nthResult,_,0),!.
+
 % ===============================================================================================
 % getIndexedValue0
 % ===============================================================================================
-
 getIndexedValue0(Ctx,Dict,Name,[Major|Minor],Value):-
    getMajorMinorIndexedValue(Ctx,Dict,Name,Major,Minor,Value),!.
 
 getMajorMinorIndexedValue(Ctx,Dict,Name,Major,Minor,Value):-
-   indexOntoKey(Name,Major,Item),
-   getInheritedStoredValue(Ctx,Dict,Item,ValueS),!,
+   getMajorIndexedValue(Ctx,Dict,Name,Major,ValueS),!,
    getMajorMinorIndexedValue0(Ctx,Dict,Name,Major,Minor,ValueS,Value).
 
 getMajorMinorIndexedValue0(_Ctx,_Dict,_Name,_Major,Minor,ValueS,Value):-
@@ -134,7 +201,6 @@ getMajorMinorIndexedValue0(Ctx,Dict,Name,Major,[M|Minor],ValueS,Value):-
    length(ValueS,ValueSLen),
    MajorN is Major + 1,
    N is M - ValueSLen,
-   trace,
    getMajorMinorIndexedValue(Ctx,Dict,Name,MajorN,[N|Minor],Value),!.
 
 
@@ -164,9 +230,9 @@ getMinorSubscript(Items,ANum,Value):-not(number(ANum)),!,prolog_must(atom_to_num
 %%%
 getMinorSubscript(Items,Num,Value):- prolog_must(is_list(Items)),length(Items,Len),Index is Len-Num,nth0(Index,Items,Value),is_list(Value),!.
 getMinorSubscript([],1,[]):-!.
-getMinorSubscript(Items,1,Value):- trace,last(Items,Last), (is_list(Last)->Value=Last;Value=Items),!.
+getMinorSubscript(Items,1,Value):- last(Items,Last), (is_list(Last)->Value=Last;Value=Items),!.
 getMinorSubscript(Items,1,Value):- xformOutput(Items,Value),!,trace.
-getMinorSubscript(Items,Num,Value):-debugFmt(getMinorSubscriptFailed(Items,Num,Value)),trace,fail.
+getMinorSubscript(Items,Num,Value):-debugFmt(getMinorSubscriptFailed(Items,Num,Value)),fail.
 
 getUserDicts(User,Name,Value):-isPersonaUser(User),isPersonaPred(Name),once(getInheritedStoredValue(_Ctx,User,Name,Value)).
 
@@ -211,45 +277,58 @@ toLowerIfAtom(Dict,Down):-atom(Dict),downcase_atom(Dict,Down),!.
 toLowerIfAtom(Dict,Dict).
 
 
+
+ensureValue(ValueO,ValueO):-!. %%TODO: remove this line
+ensureValue(ValueO,['$value'(ValueO)]).
+
+
 % ===============================================================================================
 % Setting globals
 % ===============================================================================================
+setAliceMem(Dict,X,E):-currentContext(setAliceMem(Dict,X,E),Ctx), prolog_must(setAliceMem(Ctx,Dict,X,E)).
+
 setAliceMem(Ctx,IDict,NameI,Value):-dictNameDictNameC(Ctx,IDict,NameI,Dict,Name),!,setAliceMem(Ctx,Dict,Name,Value),!.
 setAliceMem(Ctx,Dict,Name,Var):-var(Var),!,setAliceMem(Ctx,Dict,Name,['$var'(Var)]).
 setAliceMem(Ctx,Dict,Name,Atomic):-atomic(Atomic),Atomic\==[],!,setAliceMem(Ctx,Dict,Name,[Atomic]).
 setAliceMem(Ctx,Dict,Name,NonList):-not(is_list(NonList)),trace,!,setAliceMem(Ctx,Dict,Name,[NonList]).
 setAliceMem(Ctx,IDict,Name,Value):-is_list(IDict),!,foreach(member(Dict,IDict),setAliceMem(Ctx,Dict,Name,Value)),!.
-setAliceMem(Ctx,Dict,Name,Value):-immediateCall(Ctx,setCurrentAliceMem(Dict,Name,Value)),fail.
+setAliceMem(Ctx,Dict,Name,Value):-immediateCall(Ctx,setAliceMem(Dict,Name,Value)),fail.
 setAliceMem(Ctx,Dict,Name,Value):-isStarValue(Value),debugFmt(setAliceMem(Ctx,Dict,Name,Value)),trace.
 setAliceMem(Ctx,Dict,default(Name),DefaultValue):-getAliceMem(Ctx,Dict,Name,'OM')->setAliceMem(Ctx,Dict,Name,DefaultValue);true.
-setAliceMem(Ctx,Dict,Name,Value):-resetAliceMem(Ctx,Dict,Name,Value),!.
+setAliceMem(Ctx,Dict,Name,Value):-resetAliceMem0(Ctx,Dict,Name,Value),!.
 
 % ===============================================================================================
 %    AIML Runtime Database
 % ===============================================================================================
+checkDictValue(_Value):-!.
+checkDictValue(Value):-prolog_must(nonvar(Value)),atomic(Value),Value==[].
+checkDictValue(Value):-prolog_must(dictValue(Value)).
 
-quitely(Ctx):-getCtxValueElse(quiteMemOps,Ctx,True,false),!,True=true.
+dictValue(Value):-valuePresent(Value).
 
-resetAliceMem(Ctx,IDict,NameI,Value):- dictNameDictName(Ctx,IDict,NameI,Dict,Name),
+
+resetAliceMem0(Ctx,IDict,NameI,Value):- dictNameDictName(Ctx,IDict,NameI,Dict,Name),
    % for printing
+   checkDictValue(Value),
    %%%traceIf(Dict==filelevel),
    currentContextValue(Ctx,Dict,Name,B),   
-   (atom_contains(Name,'(')->true;(not(quitely(Ctx))->true;debugFmt('/* ~q. */',[dict(Dict,Name,B->Value)]))),
+   debugFmt('/* ~q. */',[dict(Dict,Name,B->Value)]),
    % for cleaning
    clearContextValues(Ctx,Dict,Name),
    % for setting
    addNewContextValue(Ctx,Dict,Name,Value),!.
 
-setCurrentAliceMem(Dict,X,E):-currentContext(setCurrentAliceMem(Dict,X,E),Ctx), setAliceMem(Ctx,Dict,X,E).
-
-%%getContextStoredValue(Ctx,Dict,Name,Value):-dictNameKey(Dict,Name,Key),debugOnError(getCtxValue(Key,Ctx,Value)),valuePresent(Value).
+%%getContextStoredValue(Ctx,Dict,Name,Value):-dictNameKey(Dict,Name,Key),debugOnError(getCtxValue(Ctx,Key,Value)),dictValue(Value).
 currentContextValue(Ctx,Dict,Name,Value):- getContextStoredValue(Ctx,Dict,Name,Value),!.
 currentContextValue(_Ctx,_Dict,_Name,'OM'):-!.
 
 getContextStoredValue(Ctx,IDict,NameI,Value):-dictNameDictNameC(Ctx,IDict,NameI,Dict,Name),!,getContextStoredValue(Ctx,Dict,Name,Value).
-getContextStoredValue(_Ctx,Dict,Name,ValueO):- copy_term(ValueO,ValueI),dict(Dict,Name,ValueI),valuePresent(ValueI), ValueO=ValueI.
+getContextStoredValue(_Ctx,Dict,Name,ValueO):- copy_term(ValueO,ValueI),dict(Dict,Name,ValueI),
+   checkDictValue(ValueI),
+   ValueI=ValueO.
+   %%prolog_must(unwrapValue(ValueI,ValueO)).
 
-removeContextValue(Ctx,IDict,NameI,Value):-dictNameDictName(Ctx,IDict,NameI,Dict,Name),copy_term(Value,Kill),ignore(retract(dict(Dict,Name,Kill))).
+removeContextValue(Ctx,IDict,NameI,Value):-dictNameDictName(Ctx,IDict,NameI,Dict,Name),checkDictValue(Value),copy_term(Value,Kill),ignore(retract(dict(Dict,Name,Kill))).
 clearContextValues(Ctx,IDict,NameI):-dictNameDictName(Ctx,IDict,NameI,Dict,Name),retractall(dict(Dict,Name,_Value)).
 
 addNewContextValue(Ctx,IDict,NameI,Value):-dictNameDictNameC(Ctx,IDict,NameI,Dict,Name),!,addNewContextValue(Ctx,Dict,Name,Value).
@@ -258,36 +337,51 @@ addNewContextValue(Ctx,Dict,Name,Value):-
    debugOnFailure((dictNameKey(Dict,Name,Key), addNewContextValue(Ctx,Dict,Key,Name,Value))),!.
 
 addNewContextValue(Ctx,Dict,Key,Name,Value):- 
-   ifThen(nonvar(Key),addCtxValue(Key,Ctx,Value)),   
+   checkDictValue(Value),
+   ifThen(nonvar(Key),addCtxValue(Ctx,Key,Value)),   
    ifThen(nonvar(Dict),ifThen(nonvar(Value),asserta(dict(Dict,Name,Value)))),
-   ifThen(not(ground(Value)),debugFmt(addCtxValue(Key,Ctx,Value))).
+   ifThen(not(ground(Value)),debugFmt(addCtxValue(Ctx,Key,Value))).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%% pushInto1DAnd2DArray(Ctx,Tall,Wide,Ten,MultiSent,ConvThread)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+isLinearMemStore:-true.
+
+pushInto1DAnd2DArray(Ctx,Tall,Wide,_Ten,MultiSent,ConvThread):- isLinearMemStore,!,
+   %%trace,
+   splitSentences(MultiSent,Elements),
+   maplist_safe(insert1StValue(Ctx,ConvThread,Tall),Elements),!,
+   insert1StValue(Ctx,ConvThread,Wide,Elements),!.
 
 pushInto1DAnd2DArray(Ctx,Tall,Wide,Ten,MultiSent,ConvThread):-
    %%trace,
    splitSentences(MultiSent,Elements),
-   addCtxValue(quiteMemOps,Ctx,true),
    previousVars(Tall,TallPrevVars,Ten),
-   maplist_safe(setEachSentenceThat(Ctx,ConvThread,TallPrevVars),Elements),!,
+   maplist_safe(setEachSentenceThat(Ctx,ConvThread,Tall,TallPrevVars),Elements),!,
    
    previousVars(Wide,WidePrevVars,Ten),
-   setEachSentenceThat(Ctx,ConvThread,WidePrevVars,Elements),
-   setCtxValue(quiteMemOps,Ctx,false),
+   setEachSentenceThat(Ctx,ConvThread,Wide,WidePrevVars,Elements),
    !.
 
+insert1StValue(Ctx,IDict,Name,Value):-is_list(IDict),!,foreach(member(Dict,IDict),insert1StValue(Ctx,Dict,Name,Value)),!.
+insert1StValue(Ctx,IDict,NameI,Value):- dictNameDictNameC(Ctx,IDict,NameI,Dict,Name),!,insert1StValue(Ctx,Dict,Name,Value),!.
+insert1StValue(Ctx,Dict,Name,Var):-var(Var),!,insert1StValue(Ctx,Dict,Name,['$var'(Var)]).
+insert1StValue(Ctx,Dict,Name,Atomic):-atomic(Atomic),Atomic\==[],!,insert1StValue(Ctx,Dict,Name,[Atomic]).
+insert1StValue(Ctx,Dict,Name,NonList):-not(is_list(NonList)),trace,!,insert1StValue(Ctx,Dict,Name,[NonList]).
+insert1StValue(Ctx,Dict,Name,Value):-immediateCall(Ctx,insert1StValue(Ctx,Dict,Name,Value)),fail.
+insert1StValue(Ctx,Dict,Name,Value):-isStarValue(Value),debugFmt(insert1StValue(Ctx,Dict,Name,Value)),trace.
+%%insert1StValue(Ctx,Dict,default(Name),DefaultValue):-getAliceMem(Ctx,Dict,Name,'OM')->setAliceMem(Ctx,Dict,Name,DefaultValue);true.
+insert1StValue(_Ctx,Dict,Name,Value):-checkDictValue(Value),asserta(dict(Dict,Name,Value)),!.
 
-setEachSentenceThat(_Ctx,_User,_Vars,[]):-!.
-setEachSentenceThat(Ctx,User,[Var],SR0):-
-   cleanSentence(SR0,SR3),
-   setAliceMem(Ctx,User,Var,SR3).
+setEachSentenceThat(Ctx,User,VarName,Vars,SR0):- cleanSentence(SR0,SR3),setEachSentenceThat0(Ctx,User,VarName,Vars,SR3),!.
 
-setEachSentenceThat(Ctx,User,[PrevVar,Var|MORE],SR0):-
+setEachSentenceThat0(_Ctx,_User,_VarName,_Vars,[]):-!.
+setEachSentenceThat0(Ctx,User,_VarName,[Var],SR0):- 
+   setAliceMem(Ctx,User,Var,SR0),!.
+setEachSentenceThat0(Ctx,User,VarName,[PrevVar,Var|MORE],SR0):-
    getAliceMem(Ctx,User,default(Var,'Nothing'),Prev),
    setAliceMem(Ctx,User,PrevVar,Prev),
-   setEachSentenceThat(Ctx,User,[Var|MORE],SR0).
+   setEachSentenceThat0(Ctx,User,VarName,[Var|MORE],SR0).
 
 
 previousVars(That,[That],0):-!.

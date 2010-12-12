@@ -116,7 +116,6 @@ aiml_eval(Ctx,TAGATTRXML,RESULT):-
 aiml_eval_now(Ctx,TAGATTRXML):-aiml_eval(Ctx,TAGATTRXML,RESULT),!,debugFmt(aiml_eval_now(Ctx,TAGATTRXML,RESULT)).
 
 
-%%immediateCall(Ctx,_):- getCtxValueElse(quiteMemOps,Ctx,True,false),True=true,!.
 immediateCall(Ctx,:-(Call)):-!,immediateCall0(Ctx,:-(Call)),!.
 immediateCall(Ctx,Call):-immediateCall0(Ctx,:-(Call)),!.
 immediateCall0(Ctx,C):-toReadableObject(C,Call),immediateCall1(Ctx,Call),!.
@@ -235,7 +234,7 @@ systemCall_Bot(_Ctx,['substs'],['substsof','all']):- unify_listing(dictReplace(_
 
 
 systemCall_Bot(Ctx,['ctxlist'],template([ctxed])):-!,showCtx(Ctx),!.
-systemCall_Bot(Ctx,['ctxlist'],template([ctxed,getCtxValue(Name,Ctx,Value),Count])):-!,unify_listing(getCtxValue_nd(Name,Ctx,Value),Count),!.
+systemCall_Bot(Ctx,['ctxlist'],template([ctxed,getCtxValue(Ctx,Name,Value),Count])):-!,unify_listing(getCtxValue_nd(Ctx,Name,Value),Count),!.
 
 
 

@@ -52,9 +52,9 @@ graph_or_file_or_dir(Ctx,ATTRIBS, F, [element(aiml,DIRTRIBS,OUT)]):- DIRTRIBS = 
                    graph_or_file_or_dir(Ctx,[srcfile=FF|DIRTRIBS],FF,X))), OUT),!.
 
 
-getCurrentFile(Ctx,_ATTRIBS,CurrentFile):-getItemValue(proof,Ctx,Proof),nonvar(Proof),            
-            getItemValue(lastArg,Proof,CurrentFile1),getItemValue(lastArg,CurrentFile1,CurrentFile2),
-            getItemValue(arg(1),CurrentFile2,CurrentFile3),!,
+getCurrentFile(Ctx,_ATTRIBS,CurrentFile):-getItemValue(Ctx,proof,Proof),nonvar(Proof),            
+            getItemValue(Proof,lastArg,CurrentFile1),getItemValue(CurrentFile1,lastArg,CurrentFile2),
+            getItemValue(CurrentFile2,arg(1),CurrentFile3),!,
             absolute_file_name(CurrentFile3,CurrentFile),!.
 
 getCurrentFileDir(Ctx,ATTRIBS,Dir):- prolog_must((getCurrentFile(Ctx, ATTRIBS, CurrentFile),atom(CurrentFile),
@@ -435,6 +435,10 @@ load_dict_structure(Ctx,dict(IDict,Name,Value)):-
       convert_dictname(Ctx,IDict,Dict),
       setAliceMem(Ctx,Dict,Name,Value),!.
 
+
+convert_dictname(_Ctx,A,A):-var(A),!.
+convert_dictname(_Ctx,A,D):-atom(A),!,downcase_atom(A,D),!.
+convert_dictname(Ctx,[A],D):-convert_dictname(Ctx,A,D),!.
 convert_dictname(Ctx,A,D):-!,unresultifyL(Ctx,A,D),!.
 convert_dictname(Ctx,A,D):-convert_dictname0(Ctx,A,D),nop(traceIf((A\==D,A\==[D]))).
 

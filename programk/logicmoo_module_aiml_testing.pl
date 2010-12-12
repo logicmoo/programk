@@ -8,6 +8,8 @@
 % Revised At:   $Date: 2002/07/11 21:57:28 $
 % ===================================================================
 
+:-catch(guitracer,E,writeq(E)),nl.
+
 save:-tell(aimlCate),
    aimlCateSig(CateSig),
    listing(CateSig),

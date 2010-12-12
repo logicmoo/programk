@@ -580,7 +580,7 @@ computeStar2(Ctx,Votes,Dict,ATTRIBS,StarVar,ValueI,ValueO,VotesM):-
    computeTemplate(Ctx,Votes,element(template,ATTRIBS,ValueI),ValueO,VotesM),
    !.
 
-getStoredStarValue(Ctx,_Dict,StarVar,ValueI):-getCtxValue(StarVar,Ctx,ValueI),!.
+getStoredStarValue(Ctx,_Dict,StarVar,ValueI):-getCtxValue(Ctx,StarVar,ValueI),!.
 getStoredStarValue(Ctx,Dict,StarVar,ValueI):-getStoredValue(Ctx,Dict,StarVar,ValueI),!.
 getStoredStarValue(_Ctx,Dict,StarVar,[starvar,StarVar,Dict]):-!,unify_listing(dict(Dict,_,_)),trace.
    
@@ -595,7 +595,7 @@ computeMetaStar0(Ctx,Votes,Star,MajorMinor,ATTRIBS,_InnerXml,proof(ValueO,Star=V
 computeMetaStar0(_Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Resp,VotesO):- trace,
       traceIf(Resp = result(InnerXml,Star,Index,ATTRIBS)),!,VotesO is Votes * 0.9. 
 
-getDictFromAttributes(Ctx,VarHolder,_ATTRIBS,SYM):-getCtxValue(VarHolder,Ctx,SYM).
+getDictFromAttributes(Ctx,VarHolder,_ATTRIBS,SYM):-getCtxValue(Ctx,VarHolder,SYM).
 getDictFromAttributes(_Ctx,_VarHolder,_ATTRIBS,'user'):-trace.
 
 % ===============================================================================================
@@ -616,10 +616,11 @@ computeGetSet(Ctx,Votes,bot,ATTRIBS,InnerXml,Resp,VotesO):- !, computeGetSetVar(
 computeGetSet(Ctx,Votes,GetSet,ATTRIBS,InnerXml,Resp,VotesO):- computeGetSetVar(Ctx,Votes,user,GetSet,_VarName,ATTRIBS,InnerXml,Resp,VotesO),!.
 
 dictVarName(N):-member(N,[dictionary,dict,userdict,type,user,botname,username,you,me]).
-dictFromAttribs(Ctx,ATTRIBS,Dict,NEW):-dictVarName(N),lastMember(N=Dict,ATTRIBS,NEW),getContextStoredValue(Ctx,Dict,_Name,Value),valuePresent(Value),!.
+dictFromAttribs(Ctx,ATTRIBS,Dict,NEW):-dictVarName(N),lastMember(N=DictV,ATTRIBS,NEW),convert_dictname(Ctx,DictV,Dict),getContextStoredValue(Ctx,Dict,_Name,Value),valuePresent(Value),!.
+dictFromAttribs(Ctx,ATTRIBS,Dict,NEW):-dictVarName(N),lastMember(N=DictV,ATTRIBS,NEW),convert_dictname(Ctx,DictV,Dict),!,trace.
 
 lastKVMember(_Ctx,Keys,Value,ATTRIBS,NEW):-member(N,Keys),lastMember(N=Value,ATTRIBS,NEW),prolog_must(isValid(Value)),!.
-lastKVMember(Ctx,Keys,Value,ATTRIBS,ATTRIBS):-member(N,Keys),getCtxValue(N,Ctx,Value),prolog_must(isValid(Value)),!.
+lastKVMember(Ctx,Keys,Value,ATTRIBS,ATTRIBS):-member(N,Keys),getCtxValue(Ctx,N,Value),prolog_must(isValid(Value)),!.
 lastKVMember(Ctx,Keys,Value,ATTRIBS,ATTRIBS):-member(N,Keys),peekNameValue(Ctx,ATTRIBS,N,Value,'$failure'),prolog_must(isValid(Value)),!.
 
 %%computeGetSetVar(Ctx,Votes,_Dict,bot,VarName,ATTRIBS,InnerXml,Resp,VotesO):- !,computeGetSetVar(Ctx,Votes,user,get,VarName,ATTRIBS,InnerXml,Resp,VotesO).
@@ -652,7 +653,8 @@ computeGetSetVar(Ctx,Votes,Dict,get,VarName,ATTRIBS,_InnerXml,proof(ReturnValueO
 computeGetSetVar(Ctx,Votes,Dict,set,VarName,ATTRIBS,InnerXml,proof(ReturnValue,VarName=InnerXml),VotesO):-!,
       computeAnswer(Ctx,Votes,element(template,ATTRIBS,InnerXml),ValueM,VotesM),
       computeInnerTemplate(Ctx,VotesM,ValueM,ValueO,VotesMO),
-      setAliceMem(Ctx,Dict,VarName,ValueO),!,
+      ensureValue(ValueO,ValueOO),
+      setAliceMem(Ctx,Dict,VarName,ValueOO),!,
       returnNameOrValue(Ctx,Dict,VarName,ValueO,ReturnValue),
       VotesO is VotesMO * 1.1.
 
@@ -828,17 +830,17 @@ getLastSaid(LastSaid):-getRobot(Robot),getAliceMem(_Ctx,Robot,'lastSaid',LastSai
 getLastSaidAsInput(LastSaidMatchable):-getLastSaid(That),convertToMatchable(That,LastSaidMatchable),!.
 
 % set some sane defaults to be overiden in config.xmls
-:-setCurrentAliceMem('bot','me','bot').
-:-setCurrentAliceMem('bot','you','user').
-:-setCurrentAliceMem('bot','name',['The','Robot']).
-:-setCurrentAliceMem('bot',version,'1.0.1').
-:-setCurrentAliceMem('user','name',['Unknown','Partner']).
-:-setCurrentAliceMem('user','me','user').
-:-setCurrentAliceMem('user','is_type','agent').
-:-setCurrentAliceMem('bot','is_type','agent').
-:-setCurrentAliceMem('default','is_type','role').
-:-setCurrentAliceMem('bot','infinite-loop-input',['INFINITE','LOOP']).
-%%:-setCurrentAliceMem(substitutions(_DictName),'is_type','substitutions').
+:-prolog_must(setAliceMem('bot','me','bot')).
+:-setAliceMem('bot','you','user').
+:-setAliceMem('bot','name',['The','Robot']).
+:-setAliceMem('bot',version,'1.0.1').
+:-setAliceMem('user','name',['Unknown','Partner']).
+:-setAliceMem('user','me','user').
+:-setAliceMem('user','is_type','agent').
+:-setAliceMem('bot','is_type','agent').
+:-setAliceMem('default','is_type','role').
+:-setAliceMem('bot','infinite-loop-input',['INFINITE','LOOP']).
+%%:-setAliceMem(substitutions(_DictName),'is_type','substitutions').
 
 
 % ===============================================================================================

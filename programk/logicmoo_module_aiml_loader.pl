@@ -356,9 +356,9 @@ dictionaryTypeTags(Tag,[bot]):-member(Tag,[bots,bot,entry]).
 dictionaryTypeTags(Tag,default):-member(Tag,[predicate,predicates]).
 dictionaryTypeTags(Tag,user):-member(Tag,[var,vars,set]).
 
-obtainDictionaryName(Ctx,_Tag,ALIST,Dict):- dictVarName(N), peekNameValue(Ctx,ALIST,N,Dict,'$failure'),!.
+obtainDictionaryName(Ctx,_Tag,ALIST,Dict):- dictVarName(N), attributeValue(Ctx,ALIST,N,Dict,'$failure'),!.
 obtainDictionaryName(_Ctx,Tag,_ALIST,Dict):- dictionaryTypeTags(Tag,Dict),!.
-obtainDictionaryName(Ctx,_Tag,ALIST,Dict):- peekNameValue(Ctx,ALIST,[dictionary,name],Dict,'$error'),!.
+obtainDictionaryName(Ctx,_Tag,ALIST,Dict):- attributeValue(Ctx,ALIST,[dictionary,name],Dict,'$error'),!.
 
 % user/bot dictionaries (outers-only)
 load_dict_structure(Ctx,element(Tag,ALIST,LIST)):-
@@ -376,7 +376,7 @@ load_dict_structure(Ctx,element(Tag,ALIST,LIST)):-member(Tag,[predicate]),
      attributeValue(Ctx,ALIST,[name,var],Name,'$error'),
      attributeValue(Ctx,ALIST,[default],Default,''),
      attributeValue(Ctx,ALIST,[value,default],Value,LIST),
-     attributeValue(Ctx,ALIST,['set-return'],SetReturn,value),
+     attributeValue(Ctx,ALIST,['set-return'],SetReturn,'$value'(value)),
   debugOnFailureAiml((
      load_dict_structure(Ctx,dict(Dict,Name,Value)),
      load_dict_structure(Ctx,dict(defaultValue(Dict),Name,Default)),
@@ -408,7 +408,7 @@ load_substs(Ctx,element(Tag,ALIST,LIST)):- substitutionDictsName(Tag,Dict),
 
 load_substs(Ctx,element(Tag,ATTRIBS,LIST)):-member(Tag,[substitution,substitute]),!,
    debugOnFailureAiml((
-      peekNameValue(Ctx,_,dictionary,substitutions(Catalog),'$error'),
+      attributeValue(Ctx,_,dictionary,substitutions(Catalog),'$error'),
       attributeValue(Ctx,element(substitute,ATTRIBS,LIST),[old,find,name,before],Find,'$error'),
       attributeValue(Ctx,element(substitute,ATTRIBS,LIST),[new,replace,value,after],Replace,'$error'),
       debugOnFailureAiml(load_dict_structure(Ctx,dict(substitutions(Catalog),Find,Replace))))),!.

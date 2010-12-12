@@ -158,7 +158,7 @@ getMajorIndexedValueLinear(Ctx,[D|List],Name,Major,ValueS):-
    member(Dict,[D|List]),
    notrace(getMajorIndexedValueLinear0(Ctx,Dict,Name,Major,ValueS)),!.
 
-getMajorIndexedValueLinear(Ctx,[D|List],Name,Major,ValueS):-!,
+getMajorIndexedValueLinear(Ctx,[D|List],Name,Major,ValueS):-!,fail,
    unify_listing(dict(_,Name,_)),
    member(Dict,[D|List]),
    trace,
@@ -294,7 +294,7 @@ setAliceMem(Ctx,IDict,Name,Value):-is_list(IDict),!,foreach(member(Dict,IDict),s
 setAliceMem(Ctx,Dict,Name,Value):-immediateCall(Ctx,setAliceMem(Dict,Name,Value)),fail.
 setAliceMem(Ctx,Dict,Name,Value):-isStarValue(Value),debugFmt(setAliceMem(Ctx,Dict,Name,Value)),trace.
 setAliceMem(Ctx,Dict,default(Name),DefaultValue):-getAliceMem(Ctx,Dict,Name,'OM')->setAliceMem(Ctx,Dict,Name,DefaultValue);true.
-setAliceMem(Ctx,Dict,Name,Value):-resetAliceMem0(Ctx,Dict,Name,Value),!.
+setAliceMem(Ctx,Dict,Name,Value):-notrace((resetAliceMem0(Ctx,Dict,Name,Value))),!.
 
 % ===============================================================================================
 %    AIML Runtime Database
@@ -318,8 +318,9 @@ resetAliceMem0(Ctx,IDict,NameI,Value):- dictNameDictName(Ctx,IDict,NameI,Dict,Na
    addNewContextValue(Ctx,Dict,Name,Value),!.
 
 %%getContextStoredValue(Ctx,Dict,Name,Value):-dictNameKey(Dict,Name,Key),debugOnError(current_value(Ctx,Key,Value)),dictValue(Value).
-currentContextValue(Ctx,Dict,Name,Value):- getContextStoredValue(Ctx,Dict,Name,Value),!.
-currentContextValue(_Ctx,_Dict,_Name,'OM'):-!.
+currentContextValue(Ctx,_Dict,Name,Value):- debugOnError((getCtxValueND(Ctx,Name,Value))),!.
+currentContextValue(Ctx,Dict,Name,Value):- debugOnError((getContextStoredValue(Ctx,Dict,Name,Value))),!.
+currentContextValue(_Ctx,_Dict,_Name,'OM'):-trace.
 
 getContextStoredValue(Ctx,IDict,NameI,Value):-dictNameDictNameC(Ctx,IDict,NameI,Dict,Name),!,getContextStoredValue(Ctx,Dict,Name,Value).
 getContextStoredValue(_Ctx,Dict,Name,ValueO):- copy_term(ValueO,ValueI),dict(Dict,Name,ValueI),

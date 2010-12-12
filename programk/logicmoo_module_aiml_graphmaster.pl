@@ -48,6 +48,10 @@ innerTagPriority(template,[template,postpattern]).
 :-pp_listing(dict(_,_,_)).
 
 
+useNewCateSigSearch:-false.
+
+useIndexPatternsForCateSearch:-true.
+
 % ===================================================================
 %  aimlCate database decl
 % ===================================================================
@@ -105,7 +109,7 @@ argNumsIndexedRepr(aimlCate,srcfile,12,any).
 
 argNumsTracked(Pred,ArgName,Position):-argNumsIndexedRepr(Pred,ArgName,Position,ArgType),argTypeIndexable(ArgType).
 
-argNFound(F,A,*,[_|_]):-argNumsIndexedRepr(F,_,A,textInput).
+argNFound(F,A,*,[_|_]):-argNumsIndexedRepr(F,A,_,textInput).
 
 
 assert_cate_in_load(NEW) :- currentContext(assert_cate_in_load,Ctx),prolog_must(assert_cate_in_load(Ctx,NEW)),!.
@@ -180,6 +184,7 @@ predify(AH,A0,AN,H):-AH=..[A0,idxl,AN|H].
 %%withArgIndexing(+CateSig,+DoWhat,-Indexable):-!.
 %%%%%%%%%%%%%%%%%%5
 withArgIndexing(CateSig,DoWhat):-prolog_must(withArgIndexing(CateSig,DoWhat,_Indexable)).
+withArgIndexing(CateSig,DoWhat,CateSig):-not(useIndexPatternsForCateSearch),!.
 withArgIndexing(CateSig,DoWhat,Indexable):-
   prolog_must(var(Indexable)),
   copy_term(CateSig,Indexable),functor(CateSig,F,_),
@@ -267,15 +272,15 @@ popCateElements2(Ctx,CateO):- findall(Tag=DCG,cateNodes2(Ctx,category,Tag,DCG),C
 
 cateNodes1(Ctx,Scope,Tag,DCGO):-member(Tag,[pattern,template]),once(cateNodes1a(Ctx,Scope,Tag,TEMPLATE)),once(convert_template(Ctx,TEMPLATE,DCG)),!,DCG=DCGO.
 
-cateNodes1a(Ctx,Scope,Tag,DCGO):-peekNameValue(Ctx,Scope,Tag,DCG,'$failure'),popNameValue(Ctx,Scope,Tag,DCG),!,DCG=DCGO.
-cateNodes1a(Ctx,Scope,Tag,DCGO):-listing(dict),aiml_error(peekNameValue(Ctx,Scope,Tag,DCG)),!,DCG=DCGO.
-cateNodes1a(Ctx,Scope,Tag,DCGO):-peekNameValue(Ctx,Other,Tag,DCG,'$error'),Other\==Scope,!,DCG=DCGO.
+cateNodes1a(Ctx,Scope,Tag,DCGO):-attributeValue(Ctx,Scope,Tag,DCG,'$failure'),popNameValue(Ctx,Scope,Tag,DCG),!,DCG=DCGO.
+cateNodes1a(Ctx,Scope,Tag,DCGO):-listing(dict),aiml_error(attributeValue(Ctx,Scope,Tag,DCG)),!,DCG=DCGO.
+cateNodes1a(Ctx,Scope,Tag,DCGO):-attributeValue(Ctx,Other,Tag,DCG,'$error'),Other\==Scope,!,DCG=DCGO.
 
 
 cateNodes2(Scope,Tag,DCGO):-member(Tag,[that,guard,topic]),once(cateNodes2a(Scope,Tag,TEMPLATE)),once(convert_template(_Ctx,TEMPLATE,DCG)),!,DCG=DCGO.
 
-cateNodes2a(Scope,Tag,DCGO):-peekNameValue(_Ctx,Other,Tag,DCG,'$failure'),Other\==Scope,!,DCG=DCGO.
-cateNodes2a(Scope,Tag,DCGO):-aiml_error(peekNameValue(_Ctx,Scope,Tag,DCG)),!,DCG=DCGO.
+cateNodes2a(Scope,Tag,DCGO):-attributeValue(_Ctx,Other,Tag,DCG,'$failure'),Other\==Scope,!,DCG=DCGO.
+cateNodes2a(Scope,Tag,DCGO):-aiml_error(attributeValue(_Ctx,Scope,Tag,DCG)),!,DCG=DCGO.
 
 defaultPredicates(N,V):-member(N,[username,botname]),V='*'.
 
@@ -358,7 +363,7 @@ evalSRAI(Ctx,Votes,_SraiDepth,ATTRIBS,[I|Input0],Output,VotesO):-atom(I),atom_pr
 
 evalSRAI(Ctx,Votes,_SraiDepth,ATTRIBS,Input,Output,VotesO):-
  prolog_must(var(SYM)),
- prolog_must(peekNameValue(Ctx,ATTRIBS,['evalsrai','userdict','scope'],SYMPREV,'$value'(user))),
+ prolog_must(attributeValue(Ctx,ATTRIBS,['evalsrai','userdict','scope'],SYMPREV,'$value'(user))),
  ifThen(var(SYM),evalsrai(SYM)),
  var(Proof), 
    withAttributes(Ctx,['evalsrai'=SYM,proof=Proof],
@@ -470,9 +475,10 @@ computeSRAI222(CtxIn,Votes,ConvThreadHint,SYM,Pattern,Compute,VotesO,ProofOut,Ou
   
    PreTopic = (CtxIn=Ctx),
    debugFmt(topicThatPattern(Topic,That,Pattern)),!,
-   must_be_openCate(CateSig),
+   must_be_openCate(CateSig),!,
+   %%%%% iterate from here %%%%%
    prolog_must(topicThatPattern(Ctx,Topic,That,Pattern,PreTopic,Out,CateSig,OutputLevel,StarSets_All,ClauseNumber,CAfterPattern)),
-         once((
+         once(debugOnFailureAimlEach((
             retractallSrais(SYM),
             prolog_must(CAfterPattern),
             prolog_must(nonvar(Out)),
@@ -481,7 +487,7 @@ computeSRAI222(CtxIn,Votes,ConvThreadHint,SYM,Pattern,Compute,VotesO,ProofOut,Ou
             VotesO is Votes * Mult,
 
             makeWithAttributes(StarSets_All,Out,Compute),       
-            ProofOut=..[proof,Compute,cn(ClauseNumber),CateSig])).
+            ProofOut=..[proof,Compute,cn(ClauseNumber),CateSig]))).
 
 
 
@@ -499,7 +505,6 @@ starSetsAll(Ctx,Topic,That,Pattern,Save,PreTopic):-
    cate_match(Ctx,'that',That,CateSig,StarSets_That,OutputLevel2),
    cate_match(Ctx,'pattern',Pattern,CateSig,StarSets_Pattern,OutputLevel3),
    combineStarSets(StarSets_Topic,StarSets_That,StarSets_Pattern,StarSets_All) )).
-   
 
 combineStarSets(StarSets_Topic,StarSets_That,StarSets_Pattern,StarSets_All):-
    append(StarSets_Topic,StarSets_That,StarSets_TopicThat),
@@ -510,18 +515,20 @@ cate_match(Ctx,StarName,TextPattern,CateSig,StarSets,MatchLevel):-
     make_star_binders(Ctx,StarName,1,TextPattern,MatchPattern,MatchLevelInv,StarSets),MatchLevel is 1/MatchLevelInv,!.
 
 %% simpler but slower.. maybe comment (fail) this one out for the faster next one
-topicThatPattern(Ctx,Topic,That,Pattern,PreTopic,Out,CateSig,OutputLevel,StarSets_All,ClauseNumber,CAfterPattern):-
+%% DOES NOT USE INDEXES 
+topicThatPattern(Ctx,Topic,That,Pattern,PreTopic,Out,CateSig,OutputLevel,StarSets_All,ClauseNumber,CAfterPattern):- useNewCateSigSearch,!,
   %% not(member('STDCATCHALL',Pattern)),
-   CAfterPattern = (CateSig,prolog_must(PreTopic)),
+   CAfterPattern = (nop(CateSig),prolog_must(PreTopic)),
    savedParts(Save,PreTopic,CAfterPattern,OutputLevel,StarSets_All,Out,ClauseNumber,CateSig),
    findall(Save,starSetsAll(Ctx,Topic,That,Pattern,Save,PreTopic),AllCateSig),AllCateSig=[_|_],
    sort(AllCateSig,SetOfAllCateSig),!,
    %%%%% Iterate here %%%%
    member(Save,SetOfAllCateSig).
-   
+
 %% WILL GET HERE ONLY I NEW ROUTINES ARE BROKEN
-topicThatPattern(Ctx,Topic,That,Pattern,PreTopic,Out,CateSig,OutputLevel,StarSets_All,ClauseNumber,CAfterPattern):- fail,
-   debugFmt(debugWarnFallback(topicThatPattern2)), %% trace, 
+topicThatPattern(Ctx,Topic,That,Pattern,PreTopic,Out,CateSig,OutputLevel,StarSets_All,ClauseNumber,CAfterPattern):-
+   debugFmt(debugWarnFallback(topicThatPattern2)), 
+   traceIf(useNewCateSigSearch),
    CPreTopic = true,
    make_preconds_for_match(Ctx,'topic',Topic,CateSig,PreTopic,AfterTopic, CPreTopic,CAfterTopic, Out,MinedCates,StarSets_Topic,OutputLevel1),
    make_preconds_for_match(Ctx,'that',That,CateSig,AfterTopic,AfterThat,CAfterTopic,CAfterThat,Out,MinedCates,StarSets_That,OutputLevel2),
@@ -619,7 +626,34 @@ generateMatchPatterns(Ctx,StarName,Out,InputNothing,CateSig,_NC_MinedCates,EachM
    prolog_must(EachMatchSig=[_|_]),
   must_be_openCate(CateSig),!.
 
-generateMatchPatterns(Ctx,StarName,Out,InputPattern,CateSig,_MinedCates,EachMatchSig):-
+%% The new match patterns using Indexing!
+generateMatchPatterns(Ctx,StarName,Out,InputPattern,CateSig,_MinedCates,EachMatchSig):- useIndexPatternsForCateSearch,
+ %% convertToMatchable(TextPattern,InputPattern),
+ functor(CateSig,CateSigFunctor,_Args),
+  must_be_openCate(CateSig),
+  copy_term(CateSig,CateSigC),!,  
+  getCategoryArg(Ctx,StarName,MatchPattern,Out,CateSigC),
+  findall(MatchPattern,argNFound(CateSigFunctor,StarName,MatchPattern,_),AllMatchSig),
+  sort(AllMatchSig,SetOfEachMatchSig),
+  savedSetPatterns(LSP,MatchLevel,StarSets,MatchPattern),
+  findall(LSP,
+             (member(MatchPattern,SetOfEachMatchSig), 
+              canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern,MatchLevel,StarSets)),
+      EachMatchSig),
+ %%traceIf((StarName==pattern,InputPattern=[_,_|_])),
+   prolog_must(EachMatchSig=[_|_]),
+  prolog_must(debugFmtList([
+        starName = StarName,
+        eachMatchSig(EachMatchSig),
+        setOfEachMatchSig=SetOfEachMatchSig,
+        eachMatchSig=EachMatchSig,
+        matchPattern=MatchPattern,
+        cateSig=CateSig
+        ])),!.
+
+
+%% The OLD match patterns NOT using Indexing
+generateMatchPatterns(Ctx,StarName,Out,InputPattern,CateSig,_MinedCates,EachMatchSig):- ifThen(useIndexPatternsForCateSearch,trace),
  %% convertToMatchable(TextPattern,InputPattern),
   must_be_openCate(CateSig),
   copy_term(CateSig,CateSigC),!,

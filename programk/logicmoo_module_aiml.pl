@@ -357,7 +357,7 @@ computeElement_li(Ctx,Votes,Preconds,_InnerXml,OutProof,VotesO):-makeBlank(Ctx,V
 
   precondsTrue0(_Ctx,PC):-PC==[];var(PC),!.
   precondsTrue0(Ctx,[NV|MORE]):-!,precondsTrue0(Ctx,MORE),!,precondsTrue0(Ctx,NV).
-  precondsTrue0(Ctx,N=V):- peekNameValue(Ctx,user,N,Value,'$value'([])),!,(valuesMatch(Ctx,Value,V)->debugFmt(valuesMatch(Value,V));debugFmt(valuesMatch(not,Value,V))),valuesMatch(Ctx,Value,V).
+  precondsTrue0(Ctx,N=V):- attributeValue(Ctx,user,N,Value,'$value'([])),!,(valuesMatch(Ctx,Value,V)->debugFmt(valuesMatch(Value,V));debugFmt(valuesMatch(not,Value,V))),valuesMatch(Ctx,Value,V).
   precondsTrue0(_Ctx,_NV):-trace.
 
 % <random...>
@@ -621,7 +621,7 @@ dictFromAttribs(Ctx,ATTRIBS,Dict,NEW):-dictVarName(N),lastMember(N=DictV,ATTRIBS
 
 lastKVMember(_Ctx,Keys,Value,ATTRIBS,NEW):-member(N,Keys),lastMember(N=Value,ATTRIBS,NEW),prolog_must(isValid(Value)),!.
 lastKVMember(Ctx,Keys,Value,ATTRIBS,ATTRIBS):-member(N,Keys),current_value(Ctx,N,Value),prolog_must(isValid(Value)),!.
-lastKVMember(Ctx,Keys,Value,ATTRIBS,ATTRIBS):-member(N,Keys),peekNameValue(Ctx,ATTRIBS,N,Value,'$failure'),prolog_must(isValid(Value)),!.
+lastKVMember(Ctx,Keys,Value,ATTRIBS,ATTRIBS):-member(N,Keys),attributeValue(Ctx,ATTRIBS,N,Value,'$failure'),prolog_must(isValid(Value)),!.
 
 %%computeGetSetVar(Ctx,Votes,_Dict,bot,VarName,ATTRIBS,InnerXml,Resp,VotesO):- !,computeGetSetVar(Ctx,Votes,user,get,VarName,ATTRIBS,InnerXml,Resp,VotesO).
 %% computeGetSetVar(Ctx,Votes,Dict,GetSetBot,VarName,ATTRIBS,InnerXml,Resp,VotesO).

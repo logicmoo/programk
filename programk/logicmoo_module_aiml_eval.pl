@@ -241,9 +241,6 @@ systemCall_Bot(Ctx,['ctxlist'],template([ctxed,current_value(Ctx,Name,Value),Cou
 
 systemCall_Bot(Ctx,[FIRST|REST],DONE):-atom(FIRST),downcase_atom(FIRST,CMD),FIRST\==CMD,!,systemCall_Bot(Ctx,[CMD|REST],DONE).
 
-
-
-
 systemCall_Bot(_Ctx,DONE,template([delayed,DONE])):-!.
 
 showCtx(Ctx):-forall(
@@ -257,8 +254,8 @@ systemCall_Load(Ctx,[Filename],template([loaded,Filename])):-
     (GraphI=='*'->Graph=default; Graph=GraphI),
     ATTRIBS=[srcfile=Filename,graph=Graph],
     gather_aiml_graph(Ctx,ATTRIBS,Graph,Filename,AIML),
-    prolog_must(atomic(Graph)),
-    prolog_must(atomic(Filename)),
+    warnIf(not(atomic(Graph))),
+    warnIf(not(atomic(Filename))),
     withAttributes(Ctx,ATTRIBS,load_aiml_structure(Ctx,AIML)),!.
 
 systemCall_Find(_Ctx,REST,proof(CateSig,REST)):-

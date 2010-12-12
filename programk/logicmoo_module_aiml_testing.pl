@@ -95,9 +95,9 @@ run2(Ctx):-
 
 annie:-makeAimlContext(toplevel,Ctx),timeRecorded(run_chat_tests_here(Ctx)),alicebot(Ctx).
 
-%:-test_suite_files.
+%%:-timeRecorded(test_suite_files).
 
-:-timeRecorded(annie).
+%%:-timeRecorded(annie).
 %:-timeRecorded(chomskyAIML).
 :-alicebot.
 

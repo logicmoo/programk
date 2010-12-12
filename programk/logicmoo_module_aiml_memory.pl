@@ -368,7 +368,7 @@ insert1StValue(Ctx,IDict,NameI,Value):- dictNameDictNameC(Ctx,IDict,NameI,Dict,N
 insert1StValue(Ctx,Dict,Name,Var):-var(Var),!,insert1StValue(Ctx,Dict,Name,['$var'(Var)]).
 insert1StValue(Ctx,Dict,Name,Atomic):-atomic(Atomic),Atomic\==[],!,insert1StValue(Ctx,Dict,Name,[Atomic]).
 insert1StValue(Ctx,Dict,Name,NonList):-not(is_list(NonList)),trace,!,insert1StValue(Ctx,Dict,Name,[NonList]).
-insert1StValue(Ctx,Dict,Name,Value):-immediateCall(Ctx,insert1StValue(Ctx,Dict,Name,Value)),fail.
+insert1StValue(Ctx,Dict,Name,Value):-nop(immediateCall(Ctx,insert1StValue(Ctx,Dict,Name,Value))),fail.
 insert1StValue(Ctx,Dict,Name,Value):-isStarValue(Value),debugFmt(insert1StValue(Ctx,Dict,Name,Value)),trace.
 %%insert1StValue(Ctx,Dict,default(Name),DefaultValue):-getAliceMem(Ctx,Dict,Name,'OM')->setAliceMem(Ctx,Dict,Name,DefaultValue);true.
 insert1StValue(_Ctx,Dict,Name,Value):-checkDictValue(Value),asserta(dict(Dict,Name,Value)),!.

@@ -137,7 +137,8 @@ alicebotCTX(_Ctx,In,Res):- !,ignore(Res='-no response-'(In)).
 
 alicebot2(_Ctx,[],[]):-!.
 alicebot2(Ctx,[''|X],Resp):-!,alicebot2(Ctx,X,Resp).
-alicebot2(Ctx,Atoms,Resp):-	
+alicebot2(Ctx,Atoms,Resp):- time(debugOnError(prolog_must(alicebot3(Ctx,Atoms,Resp)))).
+alicebot3(Ctx,Atoms,Resp):-	
    retractall(posibleResponse(_,_)),
    flag(a_answers,_,0),!,
    prolog_must((
@@ -627,17 +628,17 @@ lastKVMember(Ctx,Keys,Value,ATTRIBS,ATTRIBS):-member(N,Keys),attributeValue(Ctx,
 %% computeGetSetVar(Ctx,Votes,Dict,GetSetBot,VarName,ATTRIBS,InnerXml,Resp,VotesO).
 
 computeGetSetVar(Ctx,Votes,Dict,GetSet,OVarName,ATTRIBS,InnerXml,Resp,VotesO):- atom(ATTRIBS),ATTRIBS \= [],!, VarName = ATTRIBS,
-   debugFmt(computeGetSetVar(GetSet,Dict:OVarName->VarName)),
+   nop(debugFmt(computeGetSetVarName(GetSet,Dict:OVarName->VarName))),
      computeGetSetVar(Ctx,Votes,Dict,GetSet,VarName,[],InnerXml,Resp,VotesO),!.
 
 computeGetSetVar(Ctx,Votes,Dict,GetSet,OVarName,ATTRIBS,InnerXml,Resp,VotesO):-  
       member(N,[var,name]),lastMember(N=VarName,ATTRIBS,NEW),!,
-   debugFmt(computeGetSetVar(GetSet,Dict:OVarName->VarName)),
+   nop(debugFmt(computeGetSetVarDict(GetSet,Dict:OVarName->VarName))),
       computeGetSetVar(Ctx,Votes,Dict,GetSet,VarName,NEW,InnerXml,Resp,VotesO).
 
 computeGetSetVar(Ctx,Votes,OldDict,GetSet,VarName,ATTRIBS,InnerXml,Resp,VotesO):-
      dictFromAttribs(Ctx,ATTRIBS,Dict,NEW),
-   debugFmt(computeDict(GetSet,OldDict->Dict,VarName)),
+   nop(debugFmt(computeGetSetVarDict2(GetSet,OldDict->Dict,VarName))),
      %% MAYBE NEED THIS LATER ((member(EVarName,VarName),delete(ATTRIBS,EVarName,ATTRIBSOUT));ATTRIBSOUT=ATTRIBS),
       computeGetSetVar(Ctx,Votes,Dict,GetSet,VarName,NEW,InnerXml,Resp,VotesO).
 
@@ -677,7 +678,7 @@ returnNameOrValue0(_Value,_VarName,ValueO,ValueO).
 computeAnswer(Ctx,Votes,IN,Result,VotesOut):- not(tracing),computeAnswer0(Ctx,Votes,IN,Result,VotesOut),fail.
 
 computeAnswer0(Ctx,Votes,IN,Result,VotesOut):- prolog_must((number(Votes),nonvar(IN),var(Result),var(VotesOut))),
-      debugFmt(computeAnswer(Ctx,Votes,IN,Result,VotesOut)),fail.
+      nop(debugFmt(computeAnswer(Ctx,Votes,IN,Result,VotesOut))),fail.
 
 computeAnswer0(Ctx,Votes,MidVote - In,Out,VotesO):- prolog_must(nonvar(MidVote)),
                            trace, !, computeAnswer(Ctx,Votes,In,Out,VotesA), VotesO is VotesA * MidVote.

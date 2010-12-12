@@ -601,7 +601,7 @@ alldiscontiguous:-!.
 % UTILS
 % ===============================================================================================
 
-callInteractive(Term,Var):-error_catch(callInteractive0(Term,Var),E,aiml_error(E)),!.
+callInteractive(Term,Var):-time(error_catch(callInteractive0(Term,Var),E,aiml_error(E))),!.
 
 %callInteractive0(Term,_):-atom(Term),!,Term,!,writeln(called(Term)),!.
 callInteractive0(Term,Var):- fresh_line,call(Term),writeq(Term:Var),fresh_line,fail.
@@ -794,6 +794,8 @@ interactStep(_String):-!.  %%%debugFmt(interactStep(String)),!,get_char(_).
 %%traceIf(_Call):-!.
 % ===================================================================
 traceIf(Call):-ignore((Call,trace)).
+
+warnIf(Call):-ignore((Call,!,debugFmt(warning(Call)))).
 
 % ===================================================================
 % Usage: pred_subst(+Pred, +Fml,+X,+Sk,?FmlSk)

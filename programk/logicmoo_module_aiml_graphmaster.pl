@@ -271,15 +271,15 @@ popCateElements2(Ctx,CateO):- findall(Tag=DCG,cateNodes2(Ctx,category,Tag,DCG),C
 
 cateNodes1(Ctx,Scope,Tag,DCGO):-member(Tag,[pattern,template]),once(cateNodes1a(Ctx,Scope,Tag,TEMPLATE)),once(convert_template(Ctx,TEMPLATE,DCG)),!,DCG=DCGO.
 
-cateNodes1a(Ctx,Scope,Tag,DCGO):-attributeValue(Ctx,Scope,Tag,DCG,'$failure'),popNameValue(Ctx,Scope,Tag,DCG),!,DCG=DCGO.
-cateNodes1a(Ctx,Scope,Tag,DCGO):-listing(dict),aiml_error(attributeValue(Ctx,Scope,Tag,DCG)),!,DCG=DCGO.
-cateNodes1a(Ctx,Scope,Tag,DCGO):-attributeValue(Ctx,Other,Tag,DCG,'$error'),Other\==Scope,!,DCG=DCGO.
+cateNodes1a(Ctx,Scope,Tag,DCGO):-peekNameValue(Ctx,Scope,Tag,DCG,'$failure'),popNameValue(Ctx,Scope,Tag,DCG),!,DCG=DCGO.
+cateNodes1a(Ctx,Scope,Tag,DCGO):-listing(dict),aiml_error(peekNameValue(Ctx,Scope,Tag,DCG)),!,DCG=DCGO.
+cateNodes1a(Ctx,Scope,Tag,DCGO):-peekNameValue(Ctx,Other,Tag,DCG,'$error'),Other\==Scope,!,DCG=DCGO.
 
 
 cateNodes2(Scope,Tag,DCGO):-member(Tag,[that,guard,topic]),once(cateNodes2a(Scope,Tag,TEMPLATE)),once(convert_template(_Ctx,TEMPLATE,DCG)),!,DCG=DCGO.
 
-cateNodes2a(Scope,Tag,DCGO):-attributeValue(_Ctx,Other,Tag,DCG,'$failure'),Other\==Scope,!,DCG=DCGO.
-cateNodes2a(Scope,Tag,DCGO):-aiml_error(attributeValue(_Ctx,Scope,Tag,DCG)),!,DCG=DCGO.
+cateNodes2a(Scope,Tag,DCGO):-peekNameValue(_Ctx,Other,Tag,DCG,'$failure'),Other\==Scope,!,DCG=DCGO.
+cateNodes2a(Scope,Tag,DCGO):-aiml_error(peekNameValue(_Ctx,Scope,Tag,DCG)),!,DCG=DCGO.
 
 defaultPredicates(N,V):-member(N,[username,botname]),V='*'.
 
@@ -362,7 +362,7 @@ evalSRAI(Ctx,Votes,_SraiDepth,ATTRIBS,[I|Input0],Output,VotesO):-atom(I),atom_pr
 
 evalSRAI(Ctx,Votes,_SraiDepth,ATTRIBS,Input,Output,VotesO):-
  prolog_must(var(SYM)),
- prolog_must(attributeValue(Ctx,ATTRIBS,['evalsrai','userdict','scope'],SYMPREV,'$value'(user))),
+ prolog_must(peekNameValue(Ctx,ATTRIBS,['evalsrai','userdict','scope'],SYMPREV,'$value'(user))),
  ifThen(var(SYM),evalsrai(SYM)),
  var(Proof), 
    withAttributes(Ctx,['evalsrai'=SYM,proof=Proof],
@@ -599,6 +599,11 @@ combineConjCall(A,B,C):-A==true,!,C=B.
 combineConjCall(A,B,C):-B==true,!,C=A.
 combineConjCall(A,B,C):- C = (A,B).
 
+%%addToMinedCates(_MinedCates,_CateSig):-!.
+addToMinedCates(MinedCates,CateSig):-prolog_must(ground(CateSig)),append(_,[CateSig|_],MinedCates),!.
+addToMinedCates(MinedCates,CateSig):-trace,var(MinedCates),!,MinedCates=[CateSig|_].
+
+
 make_prepost_conds(Ctx,StarName,TextPattern,CateSig,FindPattern,CommitTemplate,Out,MinedCates,ProofOut,MatchLevel):- 
   hotrace(meansNothing(TextPattern,InputPattern)), 
    TextPattern \= InputPattern,!,
@@ -663,12 +668,11 @@ generateMatchPatterns(Ctx,StarName,Out,InputNothing,CateSig,_NC_MinedCates,EachM
 
 
 %% The NEWEST match patterns NOW using Indexing!
-generateMatchPatterns(Ctx,StarName,Out,InputPattern,CateSig,_MinedCates,SetOfEachMatchSig):-  useIndexPatternsForCateSearch,
- %% convertToMatchable(TextPattern,InputPattern),
+generateMatchPatterns(Ctx,StarName,Out,InputPattern,CateSigIn,MinedCates,SetOfEachMatchSig):-  useIndexPatternsForCateSearch,
+  copy_term(CateSigIn,CateSig),CateSigIn=CateSig,
  functor(CateSig,CateSigFunctor,_Args),
   must_be_openCate(CateSig),
-  copy_term(CateSig,CateSigC),!,  
- getCategoryArg(Ctx,StarName,MatchPattern,Out,CateSigC),
+  getCategoryArg(Ctx,StarName,MatchPattern,Out,CateSig),
   savedSetPatterns(LSP,MatchLevel,StarSets,MatchPattern),
   findall(LSP,
              (argNFound(CateSigFunctor,StarName,MatchPattern,_),
@@ -679,17 +683,17 @@ generateMatchPatterns(Ctx,StarName,Out,InputPattern,CateSig,_MinedCates,SetOfEac
   prolog_must(EachMatchSig=[_|_]),
   prolog_must(debugFmtList([
         starName = StarName,
-        eachMatchSig(EachMatchSig),
+        %%eachMatchSig(EachMatchSig),
         setOfEachMatchSig=SetOfEachMatchSig,
         eachMatchSig=EachMatchSig,
         matchPattern=MatchPattern,
+        minedCates=(MinedCates),
         cateSig=CateSig
         ])),!.
 
 
 %% The NEW match patterns NOW using Indexing!
 generateMatchPatterns(Ctx,StarName,Out,InputPattern,CateSig,_MinedCates,EachMatchSig):- useIndexPatternsForCateSearch,
- trace,
  %% convertToMatchable(TextPattern,InputPattern),
  functor(CateSig,CateSigFunctor,_Args),
   must_be_openCate(CateSig),

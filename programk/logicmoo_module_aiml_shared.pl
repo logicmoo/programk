@@ -10,7 +10,10 @@
 
 :-'trace'(findall/3,[-all]).
 
-aiml_error(E):-trace,randomVars(E),debugFmt('~q~n',[error(E)]),trace,randomVars(E),!,throw_safe(error(aiml_error,E)).
+promptUser(E):-debugFmt(promptUser(E)),tracing,!.
+promptUser(_):-read(_).
+
+aiml_error(E):- promptUser(E),randomVars(E),debugFmt('~q~n',[error(E)]),trace,randomVars(E),!,throw_safe(error(aiml_error,E)).
 
 
 error_catch(C,E,F):-nonvar(E),!,catch(C,E,F).
@@ -21,7 +24,7 @@ needs_rethrown(_).
 
 frame_depth(Depth):-prolog_current_frame(Frame),prolog_frame_attribute(Frame,level,Depth).
 
-throw_aiml_goto(Output,VotesO):- notrace,throw(aiml_goto(Output,VotesO)).
+throw_aiml_goto(Output,VotesO):- throw(aiml_goto(Output,VotesO)).
 
 
 thread_local_flag(F,B,A):-flag(F,B,A).
@@ -317,9 +320,9 @@ os_to_prolog_filename(OS,PL):-absolute_file_name(OS,OSP),OS \= OSP,!,os_to_prolo
 call_with_depth_limit_traceable(G,Depth,Used):-tracing,!,G,ignore(Depth=1),ignore(Used=1).
 call_with_depth_limit_traceable(G,_Depth,_Used):-G. %%call_with_depth_limit(G,Depth,Used).
 
-throw_safe(aiml_goto(A,B)):-notrace,!,throw(aiml_goto(A,B)).
-throw_safe(error(A,B)):-notrace,!,throw(error(A,B)).
-throw_safe(Exc):-notrace,throw(error(Exc,Exc)).
+throw_safe(aiml_goto(A,B)):- throw(aiml_goto(A,B)).
+throw_safe(error(A,B)):- trace, throw(error(A,B)).
+throw_safe(Exc):-throw(error(Exc,Exc)).
 
 :-op(1150,fx,meta_predicate_transparent).
 
@@ -341,7 +344,7 @@ prolog_may(Call):-prolog_ecall(debugOnError,Call).
 :-'$hide'(debugOnError/1).
 :-'$hide'(debugOnError0/1).
 debugOnError(Call):-prolog_ecall(debugOnError0,Call).
-debugOnError0(Call):- E = error(_,_),catch(Call,E,(trace,notrace(debugFmt(caugth(Call,E))),Call)).
+debugOnError0(Call):- E = error(_,_),catch(Call,E,(trace,hotrace(debugFmt(caugth(Call,E))),Call)).
 
 :-'$hide'(prolog_must_call/1).
 :-'$hide'(prolog_must_call0/1).
@@ -785,10 +788,12 @@ traceAll:-!.
 hotrace(X):-tracing,!, notrace(X).
 hotrace(X):- call(X).
 
+lotrace(X):-X.
+
 % ===================================================================
 % tracing durring notrace
 % ===================================================================
-interactStep(_String):-!.  %%%debugFmt(interactStep(String)),!,get_char(_).
+interactStep(String):-debugFmt(interactStep(String)),!,get_char(_).
 
 % ===================================================================
 %%traceIf(_Call):-!.

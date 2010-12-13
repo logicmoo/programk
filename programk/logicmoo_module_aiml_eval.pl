@@ -250,7 +250,7 @@ showCtx(Ctx):-forall(
 systemCall_Load(Ctx,[],template([loaded,Ctx])):-!.
 systemCall_Load(Ctx,[File,Name|S],Output):-concat_atom_safe([File,Name|S],'',Filename),!,systemCall(Ctx,'bot',['load',Filename],Output).
 systemCall_Load(Ctx,[Filename],template([loaded,Filename])):-
-    attributeValue(Ctx,_,graph,GraphI,'*'), 
+    peekNameValue(Ctx,_,graph,GraphI,'*'), 
     (GraphI=='*'->Graph=default; Graph=GraphI),
     ATTRIBS=[srcfile=Filename,graph=Graph],
     gather_aiml_graph(Ctx,ATTRIBS,Graph,Filename,AIML),
@@ -285,8 +285,6 @@ tag_eval(Ctx,element(Learn, ATTRIBS, EXTRA),[loaded,Filename,via,Learn,into,Grap
 
 gather_aiml_graph(Ctx,XML,Graph,Filename,AIML):-
  ATTRIBS=[srcfile=Filename,graph=Graph|XML],
- prolog_must(valuePresent(Filename)),
- prolog_must(valuePresent(Graph)),
  withAttributes(Ctx,ATTRIBS,graph_or_file(Ctx,ATTRIBS, Filename, AIML)),!.
 
 % ============================================

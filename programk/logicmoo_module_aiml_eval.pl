@@ -23,11 +23,11 @@
 
 aiml_call(Ctx,_ - Calls):- !,aiml_call(Ctx,Calls),!.
 
-aiml_call(Ctx,[Atomic|Rest]):- atom(Atomic),!, %%trace, 
+aiml_call(Ctx,[Atomic|Rest]):- atom(Atomic),!, %%ctrace, 
             aiml_eval(Ctx,[Atomic|Rest],Output),!,
             debugFmt(resultOf(aiml_call(Ctx,[Atomic|Rest]),Output)),!.
 
-aiml_call(Ctx,[Atomic|Rest]):- !, %%trace, 
+aiml_call(Ctx,[Atomic|Rest]):- !, %%ctrace, 
             aiml_eval(Ctx,[Atomic|Rest],Output),!,
             debugFmt(resultOf(aiml_call(Ctx,[Atomic|Rest]),Output)),!.
 
@@ -41,7 +41,7 @@ aiml_call(Ctx,element('testsuite',ATTRIBS,LIST)):-
      debugFmt(testsuite_passed_failed(Passed,Failed)),!.
 
 aiml_call(Ctx,Current):- Current=element(TC,ATTRIBS,_LIST), member(TC,['testcase','TestCase']),!,
-  debugOnFailureAiml((
+  prolog_must((
      attributeValue(Ctx,Current,['name'],Name,'SomeName'),
      attributeValue(Ctx,Current,['Input','Pattern'],Input,'ERROR Input'),
      attributeValue(Ctx,Current,['Description'],Description,'No Description'),
@@ -62,11 +62,11 @@ aiml_call(Ctx,element(A, B, C)):- prolog_must(nonvar(C)),
       convert_name(A,AA),
       convert_attributes(Ctx,B,BB),
       convert_template(Ctx,C,CC),
-      (element(A, B, C) \== element(AA, BB, CC)),!,trace,
+      (element(A, B, C) \== element(AA, BB, CC)),!,ctrace,
       aiml_call(Ctx,element(AA, BB, C)),!.
 
 aiml_call(Ctx,element(Learn, ATTRIBS, Value)):-  member(Learn,[load,learn]),!,
- debugOnFailureAiml((
+ prolog_must((
      attributeValue(Ctx,ATTRIBS,[graph],Graph,'$current_value'),
      pathAttrib(PathAttrib),
      attributeValue(Ctx,ATTRIBS,PathAttrib,Filename,Value),
@@ -78,7 +78,7 @@ aiml_call(Ctx,Call):- Call \= element(_,_,_), callEachElement(Ctx,Call),!.
 aiml_call(Ctx,INNER_XML):-aiml_eval(Ctx,INNER_XML,Rendered),!, debugFmt(Rendered),!.
 
 aiml_call(Ctx,element(genlmt,TOFROM,_)):-
- debugOnFailureAiml((
+ prolog_must((
       attributeValue(Ctx,TOFROM,[to,name],TO,'$error'),
       attributeValue(Ctx,TOFROM,[graph,from],FROM,'$current_value'),
       immediateCall(Ctx,assertz(genlMtGraph(TO,FROM))))),!.
@@ -208,9 +208,9 @@ systemCall(Ctx,[Lang],Eval,Out):- nonvar(Lang),!, systemCall(Ctx,Lang,Eval,Out).
 systemCall(_Ctx,_Lang,[],[]):-!.
 systemCall(Ctx,Lang,[''|REST],DONE):-!,systemCall(Ctx,Lang,REST,DONE).
 systemCall(Ctx,Bot,[FIRST|REST],DONE):-atom_concat_safe('@',CMD,FIRST),!,systemCall(Ctx,Bot,[CMD|REST],DONE).
-systemCall(Ctx,'bot',REST,OUT):-!,debugOnFailure(systemCall_Bot(Ctx,REST,OUT)),!.
+systemCall(Ctx,'bot',REST,OUT):-!,prolog_must(systemCall_Bot(Ctx,REST,OUT)),!.
 systemCall(Ctx,Lang,[Eval],Out):-systemCall(Ctx,Lang,Eval,Out).
-systemCall(Ctx,Lang,Eval,Out):-once((atom(Eval),atomSplit(Eval,Atoms))),Atoms=[_,_|_],!,trace,systemCall(Ctx,Lang,Atoms,Out).
+systemCall(Ctx,Lang,Eval,Out):-once((atom(Eval),atomSplit(Eval,Atoms))),Atoms=[_,_|_],!,ctrace,systemCall(Ctx,Lang,Atoms,Out).
 systemCall(_Ctx,Lang,Eval,writeq(evaled(Lang,Eval))):- aiml_error(evaled(Lang,Eval)).
 
 systemCall_Bot(Ctx,['@'|REST],DONE):-!,systemCall_Bot(Ctx,REST,DONE).
@@ -226,8 +226,8 @@ systemCall_Bot(Ctx,['get',Name|MajorMinor],template([getted,Dict,Value,Found1]))
 systemCall_Bot(Ctx,['get'],template([getted,Passed])):- unify_listing(getContextStoredValue(Ctx,_,_,_),Passed).
 systemCall_Bot(Ctx,['ctx'],template([ctxed,Atom])):-!,term_to_atom(Ctx,Atom),!.
 systemCall_Bot(Ctx,['ctx'],template([ctxed,prologCall(Atom,term_to_atom(Ctx,Atom))])):-!,showCtx(Ctx).
-systemCall_Bot(Ctx,['load'|REST],OUT):- !, debugOnFailure(systemCall_Load(Ctx,REST,OUT)),!.
-systemCall_Bot(Ctx,['find'|REST],OUT):- !, debugOnFailure(systemCall_Find(Ctx,REST,OUT)),!.
+systemCall_Bot(Ctx,['load'|REST],OUT):- !, prolog_must(systemCall_Load(Ctx,REST,OUT)),!.
+systemCall_Bot(Ctx,['find'|REST],OUT):- !, prolog_must(systemCall_Find(Ctx,REST,OUT)),!.
 systemCall_Bot(Ctx,['chgraph',Graph],['successfully','set','to','graph',Graph]):- setAliceMem(Ctx,user,graph,Graph),!.
 systemCall_Bot(_Ctx,['substs',DictName],['substsof',DictName]):- unify_listing(dictReplace(DictName,_,_)),!.
 systemCall_Bot(_Ctx,['substs'],['substsof','all']):- unify_listing(dictReplace(_DictName,_,_)),!.
@@ -271,7 +271,7 @@ systemCall_Find(_Ctx,REST,proof(CateSig,REST)):-
 
 % 0.9 version
 tag_eval(Ctx,element(Learn, ATTRIBS, EXTRA),[loaded,Filename,via,Learn,into,Graph]/*NEW*/):- member(Learn,[load,learn]),
- debugOnFailureAiml((
+ prolog_must((
      attributeValue(Ctx,ATTRIBS,[graph],Graph,'$current_value'),
      pathAttribS(PathAttribS),
      attributeValue(Ctx,ATTRIBS,PathAttribS,Filename,EXTRA),

@@ -37,7 +37,7 @@ getAliceMemOrSetDefault0(CtxIn,ConvThread,Name,Value,OrDefault):-
 :-multifile(dict/3).
 
 getAliceMemElse(Ctx,Dict,Name,ValueO):-getAliceMemComplete(Ctx,Dict,Name,ValueO),!.
-getAliceMemElse(_Ctx,Dict,Name,[Dict,(s),unknown,Name]):-trace.
+getAliceMemElse(_Ctx,Dict,Name,[Dict,(s),unknown,Name]):-ctrace.
 
 getAliceMem(Ctx,Dict,DEFAULT,ValueOut):- compound(DEFAULT),DEFAULT=default(Name,Default),!, 
      (getAliceMemComplete(Ctx,Dict,Name,ValueO) -> xformOutput(ValueO, ValueOut)  ; xformOutput(Default, ValueOut)). 
@@ -161,7 +161,7 @@ getMajorIndexedValueLinear(Ctx,[D|List],Name,Major,ValueS):-
 getMajorIndexedValueLinear(Ctx,[D|List],Name,Major,ValueS):-!,fail,
    unify_listing(dict(_,Name,_)),
    member(Dict,[D|List]),
-   trace,
+   ctrace,
    getMajorIndexedValueLinear0(Ctx,Dict,Name,Major,ValueS),!.
 
 getMajorIndexedValueLinear(Ctx,Dict,Name,Major,ValueS):-
@@ -176,7 +176,7 @@ getMajorIndexedValueLinear0(Ctx,Dict,Name,Major,ValueS):-
    nthResult(Major,getInheritedStoredValue(Ctx,Dict,Name,ValueS)),!.
 
 getMajorIndexedValueLinear0(_Ctx,Dict,Name,Major,ValueS):-
-   nthResult(Major,dict(Dict,Name,ValueS)),!,trace.
+   nthResult(Major,dict(Dict,Name,ValueS)),!,ctrace.
 
 nthResult(N,Call):-flag(nthResult,_,N),nthResult0(Call,Rs),!,Rs=1.
 nthResult0(Call,N):-Call,flag(nthResult,N,N-1),N=1.
@@ -211,7 +211,7 @@ numberFyList([A|MajorMinor],[A|MajorMinorM]):-numberFyList(MajorMinor,MajorMinor
 
 isStarValue(Value):-ground(Value),not([_,_|_]=Value),member(Value,[[ValueM],ValueM]),!,member(ValueM,['*','_']),!.
 
-xformOutput(Value,ValueO):-isStarValue(Value),!,trace,Value=ValueO.
+xformOutput(Value,ValueO):-isStarValue(Value),!,ctrace,Value=ValueO.
 xformOutput(Value,ValueO):-listify(Value,ValueL),Value\==ValueL,!,xformOutput(ValueL,ValueO).
 xformOutput(Value,Value).
 
@@ -230,7 +230,7 @@ getMinorSubscript(Items,ANum,Value):-not(number(ANum)),!,prolog_must(atom_to_num
 getMinorSubscript(Items,Num,Value):- prolog_must(is_list(Items)),length(Items,Len),Index is Len-Num,nth0(Index,Items,Value),is_list(Value),!.
 getMinorSubscript([],1,[]):-!.
 getMinorSubscript(Items,1,Value):- last(Items,Last), (is_list(Last)->Value=Last;Value=Items),!.
-getMinorSubscript(Items,1,Value):- xformOutput(Items,Value),!,trace.
+getMinorSubscript(Items,1,Value):- xformOutput(Items,Value),!,ctrace.
 getMinorSubscript(Items,Num,Value):-debugFmt(getMinorSubscriptFailed(Items,Num,Value)),fail.
 
 getUserDicts(User,Name,Value):-isPersonaUser(User),isPersonaPred(Name),once(getInheritedStoredValue(_Ctx,User,Name,Value)).
@@ -289,10 +289,10 @@ setAliceMem(Dict,X,E):-currentContext(setAliceMem(Dict,X,E),Ctx), prolog_must(se
 setAliceMem(Ctx,IDict,NameI,Value):-dictNameDictNameC(Ctx,IDict,NameI,Dict,Name),!,setAliceMem(Ctx,Dict,Name,Value),!.
 setAliceMem(Ctx,Dict,Name,Var):-var(Var),!,setAliceMem(Ctx,Dict,Name,['$var'(Var)]).
 setAliceMem(Ctx,Dict,Name,Atomic):-atomic(Atomic),Atomic\==[],!,setAliceMem(Ctx,Dict,Name,[Atomic]).
-setAliceMem(Ctx,Dict,Name,NonList):-not(is_list(NonList)),trace,!,setAliceMem(Ctx,Dict,Name,[NonList]).
+setAliceMem(Ctx,Dict,Name,NonList):-not(is_list(NonList)),ctrace,!,setAliceMem(Ctx,Dict,Name,[NonList]).
 setAliceMem(Ctx,IDict,Name,Value):-is_list(IDict),!,foreach(member(Dict,IDict),setAliceMem(Ctx,Dict,Name,Value)),!.
 setAliceMem(Ctx,Dict,Name,Value):-immediateCall(Ctx,setAliceMem(Dict,Name,Value)),fail.
-setAliceMem(Ctx,Dict,Name,Value):-isStarValue(Value),debugFmt(setAliceMem(Ctx,Dict,Name,Value)),trace.
+setAliceMem(Ctx,Dict,Name,Value):-isStarValue(Value),debugFmt(setAliceMem(Ctx,Dict,Name,Value)),ctrace.
 setAliceMem(Ctx,Dict,default(Name),DefaultValue):-getAliceMem(Ctx,Dict,Name,'OM')->setAliceMem(Ctx,Dict,Name,DefaultValue);true.
 setAliceMem(Ctx,Dict,Name,Value):-notrace((resetAliceMem0(Ctx,Dict,Name,Value))),!.
 
@@ -320,7 +320,7 @@ resetAliceMem0(Ctx,IDict,NameI,Value):- dictNameDictName(Ctx,IDict,NameI,Dict,Na
 %%getContextStoredValue(Ctx,Dict,Name,Value):-dictNameKey(Dict,Name,Key),debugOnError(current_value(Ctx,Key,Value)),dictValue(Value).
 currentContextValue(Ctx,_Dict,Name,Value):- debugOnError((getCtxValueND(Ctx,Name,Value))),!.
 currentContextValue(Ctx,Dict,Name,Value):- debugOnError((getContextStoredValue(Ctx,Dict,Name,Value))),!.
-currentContextValue(_Ctx,_Dict,_Name,'OM'):-trace.
+currentContextValue(_Ctx,_Dict,_Name,'OM'):-ctrace.
 
 getContextStoredValue(Ctx,IDict,NameI,Value):-dictNameDictNameC(Ctx,IDict,NameI,Dict,Name),!,getContextStoredValue(Ctx,Dict,Name,Value).
 getContextStoredValue(_Ctx,Dict,Name,ValueO):- copy_term(ValueO,ValueI),dict(Dict,Name,ValueI),
@@ -334,7 +334,7 @@ clearContextValues(Ctx,IDict,NameI):-dictNameDictName(Ctx,IDict,NameI,Dict,Name)
 addNewContextValue(Ctx,IDict,NameI,Value):-dictNameDictNameC(Ctx,IDict,NameI,Dict,Name),!,addNewContextValue(Ctx,Dict,Name,Value).
 addNewContextValue(Ctx,Dict,Name,OM):- OM=='OM',!,clearContextValues(Ctx,Dict,Name),!.
 addNewContextValue(Ctx,Dict,Name,Value):- 
-   debugOnFailure((dictNameKey(Dict,Name,Key), addNewContextValue(Ctx,Dict,Key,Name,Value))),!.
+   prolog_must((dictNameKey(Dict,Name,Key), addNewContextValue(Ctx,Dict,Key,Name,Value))),!.
 
 addNewContextValue(Ctx,Dict,Key,Name,Value):- 
    checkDictValue(Value),
@@ -348,13 +348,13 @@ addNewContextValue(Ctx,Dict,Key,Name,Value):-
 isLinearMemStore:-true.
 
 pushInto1DAnd2DArray(Ctx,Tall,Wide,_Ten,MultiSent,ConvThread):- isLinearMemStore,!,
-   %%trace,
+   %%ctrace,
    splitSentences(MultiSent,Elements),
    maplist_safe(insert1StValue(Ctx,ConvThread,Tall),Elements),!,
    insert1StValue(Ctx,ConvThread,Wide,Elements),!.
 
 pushInto1DAnd2DArray(Ctx,Tall,Wide,Ten,MultiSent,ConvThread):-
-   %%trace,
+   %%ctrace,
    splitSentences(MultiSent,Elements),
    previousVars(Tall,TallPrevVars,Ten),
    maplist_safe(setEachSentenceThat(Ctx,ConvThread,Tall,TallPrevVars),Elements),!,
@@ -367,9 +367,9 @@ insert1StValue(Ctx,IDict,Name,Value):-is_list(IDict),!,foreach(member(Dict,IDict
 insert1StValue(Ctx,IDict,NameI,Value):- dictNameDictNameC(Ctx,IDict,NameI,Dict,Name),!,insert1StValue(Ctx,Dict,Name,Value),!.
 insert1StValue(Ctx,Dict,Name,Var):-var(Var),!,insert1StValue(Ctx,Dict,Name,['$var'(Var)]).
 insert1StValue(Ctx,Dict,Name,Atomic):-atomic(Atomic),Atomic\==[],!,insert1StValue(Ctx,Dict,Name,[Atomic]).
-insert1StValue(Ctx,Dict,Name,NonList):-not(is_list(NonList)),trace,!,insert1StValue(Ctx,Dict,Name,[NonList]).
+insert1StValue(Ctx,Dict,Name,NonList):-not(is_list(NonList)),ctrace,!,insert1StValue(Ctx,Dict,Name,[NonList]).
 insert1StValue(Ctx,Dict,Name,Value):-nop(immediateCall(Ctx,insert1StValue(Ctx,Dict,Name,Value))),fail.
-insert1StValue(Ctx,Dict,Name,Value):-isStarValue(Value),debugFmt(insert1StValue(Ctx,Dict,Name,Value)),trace.
+insert1StValue(Ctx,Dict,Name,Value):-isStarValue(Value),debugFmt(insert1StValue(Ctx,Dict,Name,Value)),ctrace.
 %%insert1StValue(Ctx,Dict,default(Name),DefaultValue):-getAliceMem(Ctx,Dict,Name,'OM')->setAliceMem(Ctx,Dict,Name,DefaultValue);true.
 insert1StValue(_Ctx,Dict,Name,Value):-checkDictValue(Value),asserta(dict(Dict,Name,Value)),!.
 

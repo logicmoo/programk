@@ -19,7 +19,7 @@
 
 translate_single_aiml_file(Ctx,F0):-global_pathname(F0,File),F0\==File,!,translate_single_aiml_file(Ctx,File).
 translate_single_aiml_file(Ctx,F0):-
-  debugOnFailureAimlEach((
+  prolog_mustEach((
    global_pathname(F0,File),!,
    cateForFile(Ctx,File,FileMatch),!,
    atom_concat_safe(File,'.pl',PLNAME),
@@ -28,7 +28,7 @@ translate_single_aiml_file(Ctx,F0):-
 translate_aiml_structure(X,X).
 
 cateForFile(_Ctx,SRCFILE,aimlCate(_GRAPH,_PRECALL,_TOPIC,_THAT,_INPUT,_PATTERN,_FLAGS,_CALL,_GUARD,_USERDICT,_TEMPLATE,_LINENO,SRCFILE:_-_)):-!.
-cateForFile(Ctx,File,FileMatch):- trace,withNamedValue(Ctx,[anonvarsFroCate=true], makeAimlCate(Ctx,[srcfile=File:_-_],FileMatch)),!.
+cateForFile(Ctx,File,FileMatch):- ctrace,withNamedValue(Ctx,[anonvarsFroCate=true], makeAimlCate(Ctx,[srcfile=File:_-_],FileMatch)),!.
 
 withNamedValue(Ctx,[N=V],Call):-withAttributes(Ctx,[N=V],Call),!.
 
@@ -44,7 +44,7 @@ do_pending_loads:-withCurrentContext(do_pending_loads).
 do_pending_loads(Ctx):-forall(retract(pending_aiml_file(File,PLNAME)),load_pending_aiml_file(Ctx,File,PLNAME)).
 
 load_pending_aiml_file(Ctx,File,PLNAME):- debugFmt(load_pending_aiml_file(Ctx,File,PLNAME)),
-  error_catch(debugOnFailureAiml(dynamic_load(File,PLNAME)),E,(debugFmt(E),assert(pending_aiml_file(File,PLNAME)))),!.
+  error_catch(prolog_must(dynamic_load(File,PLNAME)),E,(debugFmt(E),assert(pending_aiml_file(File,PLNAME)))),!.
 
 translate_single_aiml_file(_Ctx,File,PLNAME,FileMatch):- creating_aiml_file(File,PLNAME),!,
   throw_safe(already(creating_aiml_file(File,PLNAME),FileMatch)),!.
@@ -72,7 +72,7 @@ translate_single_aiml_file(Ctx,File,PLNAME,FileMatch):-
      translate_single_aiml_file1(File,PLNAME,FileMatch)).
 
 translate_single_aiml_file0(Ctx,File,PLNAME,FileMatch):-
- debugOnFailureAimlEach((
+ prolog_mustEach((
         asserta(creating_aiml_file(File,PLNAME)),
         debugFmt(doing(create_aiml_file(File,PLNAME))),
         aimlCateSig(CateSig),!,
@@ -117,7 +117,7 @@ translate_single_aiml_file1(File,PLNAME,FileMatch):-
 
 /*
 translate_single_aiml_filexxx(Ctx,File,PLNAME):-
-  debugOnFailureAiml((
+  prolog_must((
      Dofile = true,
      aimlCateSig(CateSig),
    ifThen(Dofile,tell(PLNAME)),
@@ -280,12 +280,12 @@ convert_ele(Ctx,element(A, B, C),INNER_XML):-
 
 convert_ele(Ctx,element(Tag, A, B),element(Tag, A, BB)):- member(Tag,[category]), convert_template(Ctx,B,BB).
 
-convert_ele(Ctx,element(Tag, A, B),element(Tag, A, BB)):- member(Tag,[srai]),trace,convert_template(Ctx,B,BB).
+convert_ele(Ctx,element(Tag, A, B),element(Tag, A, BB)):- member(Tag,[srai]),ctrace,convert_template(Ctx,B,BB).
 
 convert_ele(_Ctx,O,O).
 
 
-convert_attributes(Ctx,A,AAA):- hotrace(debugOnFailure((convert_attributes0(Ctx,A,AA),list_to_set_safe(AA,AAA)))).
+convert_attributes(Ctx,A,AAA):- hotrace(prolog_must((convert_attributes0(Ctx,A,AA),list_to_set_safe(AA,AAA)))).
 convert_attributes0(Ctx,[B|A],[BB|AA]):-convert_attribute(B,BB),convert_attributes0(Ctx,A,AA).
 convert_attributes0(_Ctx,[],[]).
 
@@ -351,7 +351,7 @@ matchable_litteral_safe_non_special(Atom,Atom):-atom_prefix(Atom,'#$'),!.
 matchable_litteral_safe_non_special(A,U):-matchable_litteral_safe(A,U).
 
 convert_template_pred(Ctx,Pred,PATTERN_IN,PATTERN_OUT):- convert_template(Ctx,PATTERN_IN,PATTERN_MID),!,
-     debugOnFailureAiml(map_tree_to_list(Pred,PATTERN_MID,PATTERN_OUT)),!.
+     prolog_must(map_tree_to_list(Pred,PATTERN_MID,PATTERN_OUT)),!.
 
 transform_aiml_structure(catagory,category,OldProps,OldProps,NEWPATTERN,NEWPATTERN).
 transform_aiml_structure(alice,aiml,OldProps,OldProps,NEWPATTERN,NEWPATTERN).

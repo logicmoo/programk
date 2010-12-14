@@ -7,6 +7,8 @@
 % Revision:  $Revision: 1.7 $
 % Revised At:   $Date: 2002/07/11 21:57:28 $
 % ===================================================================
+prolog_safe:-true.
+prolog_extra_checks:-true.
 
 :-'trace'(findall/3,[-all]).
 
@@ -224,7 +226,7 @@ doHideTrace(M,F,A,ATTRIB):- tryHide(M:F/A),!,
    tryCatchIgnore(trace(M:F/A,ATTRIB)),!.
 
 
-unused:ctrace:-willTrace->ctrace;notrace.
+unused:ctrace:-prolog_safe->notrace;(willTrace->trace;notrace).
 
 bugger:-hideTrace,traceAll,error_catch(guitracer,_,true),debug,list_undefined.
 
@@ -341,6 +343,7 @@ prolog_mustEach((A,B)):- !,prolog_mustEach(A),prolog_mustEach(B).
 prolog_mustEach(Call):- prolog_must(Call).
 
 :-'$hide'(prolog_must/1).
+prolog_must(Call):-prolog_safe,!,Call.
 prolog_must(Call):-tracing,!,debugOnError(Call). %%prolog_must_tracing(Call).
 prolog_must(Call):-prolog_must_call(Call).
 
@@ -808,6 +811,7 @@ lotrace(X):-catch((X),E,debugFmt(X->E)).
 % ===================================================================
 %% "trace,tracing" .. detects if we are in a notrace/1
 %% prolog_exception_hook
+interactStep(String):-interactStep(String,true,true).
 interactStep(String,CallYes,_CallNo):-debugFmt(promptUser(String)),trace,tracing,ignore(prolog_must(CallYes)).
 interactStep(_String,CallYes,CallNo):-writeq([calling,CallYes,or,CallNo]),prompt1('>>>>>>>>>>>>>>'),read(YN),debugFmt(red(YN)),YN=yes->CallYes;CallNo.
 

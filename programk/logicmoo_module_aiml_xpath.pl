@@ -46,13 +46,14 @@ peekNameValue0(Ctx,Scope,Name,Value):-getInheritedStoredValue(Ctx,Scope,Name,Val
 peekNameValue0(Ctx,Scope,Name,Value):-is_list(Name),member(N0,Name),peekNameValue(Ctx,Scope,N0,Value,'$failure'),!.
 peekNameValue0(Ctx,_Scope,Name,Value):-arg_value(Ctx,Name,Value).
 peekNameValue0(CtxI,Scope,Name,Value):-nop(debugFmt(not(peekNameValue0(CtxI,Scope,Name,Value)))),!,fail.
+peekNameValue0(CtxI,Scope,Name,Value):-var(Scope),!,peekAnyNameValue(CtxI,Scope,Name,Value).
 /*
 peekNameValue0(CtxI,Scope,Name,Value):-var(Scope),!,peekAnyNameValue(CtxI,Scope,Name,Value).
 peekNameValue0(CtxI,Scope,Name,Value):-getCtxValueND(CtxI,Scope:Name,Value).
 peekNameValue0(Ctx,ATTRIBS,NameS,ValueO):- hotrace((findAttributeValue(Ctx,ATTRIBS,NameS,ValueO,'$failure'))).
 peekNameValue0(Ctx,XML,NameS,ValueO):- hotrace((findTagValue(Ctx,XML,NameS,ValueO,'$failure'))).
 peekNameValue0(_Ctx,CtxI,Name,Value):- getCtxValueND(CtxI,Name,Value).
-peekNameValue0(Ctx,Scope,Name,Value):-notrace((getIndexedValue(Ctx,Scope,Name,[],Value),checkAttribute(Scope,Name,Value))).
+peekNameValue0(Ctx,Scope,Name,Value):-lotrace((getIndexedValue(Ctx,Scope,Name,[],Value),checkAttribute(Scope,Name,Value))).
 peekNameValue0(Ctx,Scope,Name,Value):-getInheritedStoredValue(Ctx,Scope,Name,Value),checkAttribute(Scope,Name,Value),ctrace.
 peekNameValue0(Ctx,ATTRIBS,NameS,ValueO):- compound(ATTRIBS),compound_or_list(ATTRIBS,LIST),member(E,LIST),prolog_must(nonvar(E)),attributeValue(Ctx,E,NameS,ValueO,'$failure').
 peekNameValue0(CtxI,Scope,Name,Value):-nop(debugFmt(not(peekNameValue0(CtxI,Scope,Name,Value)))),!,fail.
@@ -60,6 +61,9 @@ peekNameValue0(CtxI,Scope,Name,Value):-nop(debugFmt(not(peekNameValue0(CtxI,Scop
 peekAnyNameValue(CtxI,Scope,Name,Value):- fail, member(Name,[withCategory]),!,dictNameKey(Scope,Name,Key),ctrace,prolog_must(getCtxValueND(CtxI,Key,Value)),dictNameKey(Scope,Name,Key).
 peekAnyNameValue(CtxI,Scope,Name,Value):-dictNameKey(Scope,Name,Key),getCtxValueND(CtxI,Key,Value).
 peekAnyNameValue(Ctx,_Scope,Name,Value):-arg_value(Ctx,Name,Value),!.
+peekAnyNameValue(Ctx,Scope,Name,Value):-contextScopeTerm(Ctx,Scope,Term) ,arg_value(Term,Name,Value),!.
+peekAnyNameValue(CtxI,Scope,Name,Value):-prolog_extra_checks, member(Name,[withCategory]),!,dictNameKey(Scope,Name,Key),trace,prolog_must(getCtxValueND(CtxI,Key,Value)),dictNameKey(Scope,Name,Key).
+peekAnyNameValue(Ctx,Scope,Name,Value):-atom(Name),getCtxValueND(Ctx,Scope,Name,Value).
 
 arg_value(Ctx,arg(N),Value):-integer(N), N = -1,!,current_value(Ctx,lastArg,Value),!.
 arg_value(Ctx,Name,Value):-Name==lastArg,compound(Ctx),functor(Ctx,_F,A),arg(A,Ctx,Value),!.
@@ -220,26 +224,32 @@ makeSingleTag(Ctx,NameS,ATTRIBS,Default,Tag,ValueO):-makeAimlSingleParam0(Ctx,Na
       transformTagData(Ctx,Tag,Default,ValueI,ValueO),!.
 
 makeAimlSingleParam0(_Ctx,[N|NameS],ATTRIBS,_D,N,Value):-member(O,[N|NameS]),lastMember(OI=Value,ATTRIBS),atomsSameCI(O,OI),!,prolog_must(N\==Value).
-makeAimlSingleParam0(Ctx,[N|NameS],_,ElseVar,N,Value):- notrace((makeParamFallback(Ctx,[N|NameS],Value,ElseVar))),!,prolog_must(N\==Value).
+makeAimlSingleParam0(Ctx,[N|NameS],ATTRIBS,ElseVar,N,Value):- notrace((makeParamFallback(Ctx,ATTRIBS,[N|NameS],Value,ElseVar))),!,prolog_must(N\==Value).
 
 
 % ===============================================================================================
 %  Fallback
 % ===============================================================================================
-makeParamFallback(Ctx,_Scope,Name,Value,ElseVar):-makeParamFallback(Ctx,Name,Value,ElseVar).
+%%% arity 5 version
+makeParamFallback(Ctx,Scope,Name,Value,ElseVar):-var(ElseVar),!,throw_safe(makeParamFallback(Ctx,Scope,Name,Value,ElseVar)).
+makeParamFallback(_Ctx,_Scope,_NameS,Value,ElseVar):-'var'(ElseVar),!,Value=ElseVar,!.
+makeParamFallback(Ctx,Scope,NameS,ValueO,  '$global_value'):-!, peekGlobalMem(Ctx,Scope,NameS,ValueO),valuePresent(ValueO),!.
+makeParamFallback(Ctx,Scope,Name,Value,ElseVar):-atom(Name),!,makeParamFallback(Ctx,Scope,[Name],Value,ElseVar).
+makeParamFallback(_Ctx,_Scope,_NameS,_Value,'$aiml_error'(E)):-!,aiml_error(E),throw_safe(E),!.
+makeParamFallback(Ctx,Scope,NameS,Value,    '$error'):-E = fallbackValue(Ctx,Scope,NameS,Value,'$error'),aiml_error(E),throw_safe(E),!.
+makeParamFallback(_Ctx,_Scope,_NameS,_Value,'$failure'):-!,fail.
+makeParamFallback(_Ctx,_Scope,_NameS,_Value,'$succeed'):-!.
+makeParamFallback(Ctx,Scope,NameS,ValueO,   '$first'(List)):-!,member(E,List),makeParamFallback(Ctx,Scope,NameS,ValueO,E),!.
+makeParamFallback(_Ctx,_Scope,_NameS,_Value,'$call'(Prolog)):-!,call(Prolog).
+makeParamFallback(Ctx,Scope,NameS,ValueO,   '$call_value'(Pred)):-!, call(Pred,Ctx,Scope,NameS,ValueO,'$failure').
+makeParamFallback(Ctx,_Scope,NameS,ValueO,  '$current_value'):- member(Name,NameS),ctrace,current_value(Ctx,Name,ValueO),valuePresent(ValueO),!.
+%%makeParamFallback(Ctx,_Scope,NameI,ValueO,'$current_value'):-!,listify(NameI,NameS),member(Name,NameS),debugOnError((current_value(Ctx,Name,ValueO),valuePresent(ValueO))),!.
+%%makeParamFallback(Ctx,Scope,NameS,ValueO, '$current_value'):-!, current_value(Ctx,Scope,NameS,ValueO,'$failure'),valuePresent(ValueO),!.
+%%makeParamFallback(Ctx,Scope,NameS,ValueO, '$attributeValue'):-!, attributeValue(Ctx,Scope,NameS,ValueO,'$failure'),valuePresent(ValueO),!.
+makeParamFallback(_Ctx,_Scope,_NameS,ValueO,'$value'(Else)):-!,ValueO=Else,!.
+makeParamFallback(_Ctx,_Scope,_NameS,ValueO,Else):-ValueO=Else,!.
+makeParamFallback(_Ctx,_Scope,_NameS,ValueO,Else):-ctrace,debugFmt(ignore(ValueO=Else)),!.
 
-makeParamFallback(Ctx,Name,Value,ElseVar):-var(ElseVar),!,throw_safe(makeParamFallback(Ctx,Name,Value,ElseVar)).
-makeParamFallback(Ctx,Name,Value,ElseVar):-atom(Name),!,makeParamFallback(Ctx,[Name],Value,ElseVar).
-makeParamFallback(_Ctx,_NameS,Value,ElseVar):-'var'(ElseVar),!,Value=ElseVar,!.
-makeParamFallback(_Ctx,_NameS,_Value,'$failure'):-!,fail.
-makeParamFallback(_Ctx,_NameS,_Value,'$call'(Prolog)):-!,call(Prolog).
-makeParamFallback(Ctx,NameS,Value,'$error'):-aiml_error(makeParamFallback(Ctx,NameS,Value,'$error')),throw_safe(fallbackValue(Ctx,NameS,Value,'$error')),!.
-makeParamFallback(Ctx,NameS,ValueO, '$current_value'):- member(Name,NameS),ctrace,current_value(Ctx,Name,ValueO),valuePresent(ValueO),!.
-makeParamFallback(_Ctx,_NameS,_Value,'$succeed'):-!.
-makeParamFallback(_Ctx,_NameS,ValueO,'$value'(Else)):-!,ValueO=Else,!.
-makeParamFallback(Ctx,NameS,ValueO,'$first'(List)):-!,member(E,List),makeParamFallback(Ctx,NameS,ValueO,E),!.
-makeParamFallback(_Ctx,_NameS,ValueO,Else):-ValueO=Else,!.
-makeParamFallback(_Ctx,_NameS,ValueO,Else):-ctrace,debugFmt(ignore(ValueO=Else)),!.
 
 
 % ===================================================================
@@ -402,6 +412,7 @@ get_ctx_holder(Ctx,R):-compound(Ctx),get_ctx_holder1(Ctx,R).
 get_ctx_holder1([H|T],R):- nonvar(H), !, ( get_ctx_holder(T,R);get_ctx_holder1(H,R)) .
 get_ctx_holder1(v(_,_,_),_R):-!,fail.%% get_ctx_holder(Ctx,R).
 get_ctx_holder1(frame(_N,_Dest,Ctx),R):-!,get_ctx_holder(Ctx,R).
+get_ctx_holder1(l2r(H,T),R):- !, ( get_ctx_holder1(H,R);get_ctx_holder(T,R)) .
 get_ctx_holder1(assoc(Ctx),assoc(Ctx)):-!.
 %get_ctx_holder1(Ctx,R):- functor(Ctx,F,A),A<3,!,fail.
 get_ctx_holder1(Ctx,Ctx).
@@ -442,6 +453,7 @@ get_o_value0(Name,Ctx,Value,Setter):-compound(Ctx),get_o_value1(Name,Ctx,Value,S
 get_o_value1(Name,[H|T],Value,Setter):- !,(get_o_value0(Name,T,Value,Setter);get_o_value1(Name,H,Value,Setter)).
 get_o_value1(Name,ASSOC,Value,set_assoc(ASSOC)):- ASSOC = assoc(Ctx),!, get_assoc(Name,Ctx,Value).
 get_o_value1(Name,frame(Key,_Inner_Dest,Ctx),Value,Setter):- nonvar(Key),!, get_o_value0(Name,Ctx,Value,Setter).
+get_o_value1(Name,l2r(H,T),Value,Setter):- !,(get_o_value1(Name,H,Value,Setter);get_o_value0(Name,T,Value,Setter)).
 get_o_value1(Name,Pred,Value,Setter):-functor(Pred,F,A),!,get_n_value(Name,Pred,F,A,Value,Setter),!.
 
 get_n_value(Name,Name,_F,_A,_Value,_):-!,fail.

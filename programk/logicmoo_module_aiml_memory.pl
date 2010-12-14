@@ -53,9 +53,13 @@ getAliceMem(Ctx,Dict,Name,ValueI):- getAliceMemComplete(Ctx,Dict,Name,ValueO),!,
 
 getAliceMemComplete(Ctx,Dict,Name,ValueO):-getInheritedStoredValue(Ctx,Dict,Name,ValueO),!.
 
+dictNameKey([Dict],Name,Key):-nonvar(Dict),!,dictNameKey(Dict,Name,Key).
+dictNameKey(Dict,[Name],Key):-nonvar(Name),!,dictNameKey(Dict,Name,Key).
+dictNameKey(Dict,Name,Dict:Name):-nonvar(Dict),!.
 dictNameKey(_Dict,DictName,Key):- nonvar(DictName),DictName=Dict:Name,!,dictNameKey(Dict,Name,Key).
-dictNameKey(Dict,Name,Dict:Name):-!.%%nonvar(Dict),!.
 dictNameKey(_Dict,NameKey,NameKey).
+dictNameKey(Dict,NameKey,Name):-var(Dict),nonvar(Name),!,Key=Name.
+
 
 getStoredValue(Ctx,Dict,Name,Value):-prolog_must(var(Value)),getContextStoredValue(Ctx,Dict,Name,Value).
 
@@ -318,7 +322,7 @@ resetAliceMem0(Ctx,IDict,NameI,Value):- dictNameDictName(Ctx,IDict,NameI,Dict,Na
    addNewContextValue(Ctx,Dict,Name,Value),!.
 
 %%getContextStoredValue(Ctx,Dict,Name,Value):-dictNameKey(Dict,Name,Key),debugOnError(current_value(Ctx,Key,Value)),dictValue(Value).
-currentContextValue(Ctx,_Dict,Name,Value):- debugOnError((getCtxValueND(Ctx,Name,Value))),!.
+currentContextValue(Ctx,Scope,Name,Value):- dictNameKey(Scope,Name,Key),getCtxValueND(Ctx,Key,Value).
 currentContextValue(Ctx,Dict,Name,Value):- debugOnError((getContextStoredValue(Ctx,Dict,Name,Value))),!.
 currentContextValue(_Ctx,_Dict,_Name,'OM'):-ctrace.
 

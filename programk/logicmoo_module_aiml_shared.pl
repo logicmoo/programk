@@ -397,10 +397,18 @@ atLeastOne(OneA):- atLeastOne(OneA,(ctrace,OneA)).
 atLeastOne(OneA,Else):- gensym(atLeastOne,AtLeastOne),flag(AtLeastOne,_,0),atLeastOne0(AtLeastOne,OneA,Else).
 
 atLeastOne0(AtLeastOne,OneA,_Else):- OneA, flag(AtLeastOne,X,X+1).
-atLeastOne0(AtLeastOne,OneA,Else):- flag(AtLeastOne,X,X),X=0,debugFmt(notAtLeastOnce(OneA)),tryCatchIgnore(atLeastOne0(Else)).
+atLeastOne0(AtLeastOne,OneA,Else):- flag(AtLeastOne,X,X),X=0,debugFmt(notAtLeastOnce(OneA)),tryCatchIgnore(Else).
 
 %%atLeastOne0(OneA,_Else):-copy_term(OneA,One),findall(One,call(One),OneL),[_|_]=OneL,!,member(OneA,OneL).
 %%atLeastOne0(OneA,Else):-debugFmt(failed(OneA)),!,Else,!,fail.
+
+
+atLeastN(OneA,N):- atLeastN(OneA,N,(ctrace,OneA)).
+atLeastN(OneA,N,Else):- gensym(atLeastN,AtLeast),flag(AtLeast,_,0),atLeastN0(AtLeast,N,OneA,Else).
+
+atLeastN0(AtLeast,_N,OneA,_Else):- OneA, flag(AtLeast,X,X+1).
+atLeastN0(AtLeast,N,OneA,Else):- flag(AtLeast,X,X),!,X<N,debugFmt(atLeastN(OneA,X>=N)),tryCatchIgnore(Else).
+
 
 
 randomVars(Term):- random(R), Start is round('*'(R,1000000)), !,

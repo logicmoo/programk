@@ -204,7 +204,7 @@ addArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType
 
 addArgIndex(_CateSig,_Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType):-argTypeIndexable(ArgType),
   makeIndexableArg(Functor,ArgNumber,Arg,IndexableArg),  
-  assert_if_new(argNFound(Functor,ArgName,Arg,IndexableArg)),!.
+  asserta_if_new(argNFound(Functor,ArgName,Arg,IndexableArg)),!.
 addArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType):- ctrace,
   debugFmt(addArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType)),
   prolog_must(Arg=IndexableArg),!.
@@ -214,8 +214,8 @@ dirtyArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgTy
 dirtyArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType):- 
   debugFmt(dirtyArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType)),!.
 
-assert_if_new(N):-catch(N,E,debugFmt(error_in(E,N))),!.
-assert_if_new(N):-assert(N),debugFmt(assert(N)),!.
+asserta_if_new(N):-catch(N,E,debugFmt(error_in(E,N))),!.
+asserta_if_new(N):-asserta(N),debugFmt(asserta(N)),!.
 
 % ===============================================================================================
 %  Save Categories
@@ -475,8 +475,18 @@ computeSRAI222(CtxIn,Votes,ConvThreadHint,SYM,Pattern,Compute,VotesO,ProofOut,Ou
    PreTopic = (CtxIn=Ctx),
    debugFmt(topicThatPattern(Topic,That,Pattern)),!,
    must_be_openCate(CateSig),!,
-   %%%%% iterate from here %%%%%
+   /*
    prolog_must(topicThatPattern(Ctx,Topic,That,Pattern,PreTopic,Out,CateSig,OutputLevel,StarSets_All,ClauseNumber,CommitTemplate)),
+   */
+   
+   UNIF= topicThatPattern(Ctx,Topic,That,Pattern,PreTopic,Out,CateSig,OutputLevel,StarSets_All,ClauseNumber,CommitTemplate),
+   findall(UNIF,UNIF,UNIFS),!,
+   traceIf(Pattern=['3']),
+   traceIf(UNIFS=[_]),
+   %%%%% iterate from here %%%%%
+   member(UNIF,UNIFS), 
+   
+
          once(prolog_mustEach((
             retractallSrais(SYM),
             prolog_must(CommitTemplate),
@@ -489,7 +499,7 @@ computeSRAI222(CtxIn,Votes,ConvThreadHint,SYM,Pattern,Compute,VotesO,ProofOut,Ou
             ProofOut=..[proof,Compute,cn(ClauseNumber),CateSig]))).
 
 %%clauseRef(_CateSig,0):-!.
-clauseRef(CateSig,Pattern:Template):-arg(6,CateSig,Pattern),arg(10,CateSig,Template),!.
+clauseRef(CateSig,Pattern:Template):-arg(7,CateSig,Pattern),arg(11,CateSig,Template),!.
 clauseRef(CateSig,ClauseNumber):-clause(CateSig,true,ClauseNumber).
 
 savedParts(Save,PreTopic,CommitTemplate,OutputLevel,StarSets_All,Out,ClauseNumber,CateSig):-
@@ -525,18 +535,18 @@ topicThatPattern(Ctx,Topic,That,Pattern,PreTopic,Out,CateSig,OutputLevel,StarSet
    CommitTemplate = (nop(CateSig),prolog_must(PreTopic)),
    savedParts(Save,PreTopic,CommitTemplate,OutputLevel,StarSets_All,Out,ClauseNumber,CateSig),
    findall(Save,starSetsAll(Ctx,Topic,That,Pattern,Save,PreTopic),AllCateSig),
-   AllCateSig=[_|_],
+   prolog_must(AllCateSig=[_|_]),
    sort(AllCateSig,SetOfAllCateSig),!,
    %%%%% Iterate here %%%%
    member(Save,SetOfAllCateSig).
 
-%% WILL GET HERE ONLY IF NEW ROUTINES ARE NBOT AS FAST (WHICH IS THE CASE)
+%% WILL GET HERE ONLY IF NEW ROUTINES ARE NOT AS FAST (WHICH IS THE CASE)
 topicThatPattern(Ctx,Topic,That,Pattern,PreTopic,Out,CateSig,OutputLevel,StarSets_All,ClauseNumber,CommitTemplate):-
    traceIf(useNewCateSigSearch),
    CPreTopic = true,
-   make_preconds_for_match(Ctx,'pattern',Pattern,CateSig,AfterThat,FindPattern,CAfterThat,CommitTemplate,Out,MinedCates,StarSets_Pattern,OutputLevel3),
    make_preconds_for_match(Ctx,'topic',Topic,CateSig,PreTopic,AfterTopic, CPreTopic,CAfterTopic, Out,MinedCates,StarSets_Topic,OutputLevel1),
    make_preconds_for_match(Ctx,'that',That,CateSig,AfterTopic,AfterThat,CAfterTopic,CAfterThat,Out,MinedCates,StarSets_That,OutputLevel2),
+   make_preconds_for_match(Ctx,'pattern',Pattern,CateSig,AfterThat,FindPattern,CAfterThat,CommitTemplate,Out,MinedCates,StarSets_Pattern,OutputLevel3),
    prolog_must(var(Out)),
    must_be_openCate(CateSig),
    OutputLevel = OutputLevel1 - OutputLevel2 - OutputLevel3,!,   
@@ -609,7 +619,7 @@ make_prepost_conds(Ctx,StarName,TextPattern,CateSig,FindPattern,CommitTemplate,O
    TextPattern \= InputPattern,!,
   make_prepost_conds(Ctx,StarName,InputPattern,CateSig,FindPattern,CommitTemplate,Out,MinedCates,ProofOut,MatchLevel).
 
-%%TODO: MAKE THIS ONE WORK BEST !
+%%TODO: MAKE THIS ONE WORK BEST ! (CURRENTLY DISABLED)
 make_prepost_conds(Ctx,StarName,TextPattern,CateSig,FindPattern,CommitTemplate,Out,MinedCates,StarSets,MatchLevel):- fail,
   prolog_must(generateMatchPatterns(Ctx,StarName,Out,TextPattern,CateSig,MinedCates,EachMatchSig)),
   prolog_must(EachMatchSig=[_|_]),
@@ -618,14 +628,14 @@ make_prepost_conds(Ctx,StarName,TextPattern,CateSig,FindPattern,CommitTemplate,O
   getCategoryArg(Ctx,StarName,MatchPattern,Out,CateSig),
   (FindPattern = 
       ((
-        member(LSP,EachMatchSig),           
+        member(LSP,EachMatchSig),
         savedSetPatterns(LSP,MatchLevel2,StarSets,MatchPattern),
-        
+
            (CommitTemplate = ignore(MatchLevel2 = MatchLevel))))),!.
 
 
-%%TODO: MAKE THIS ONE WORK !
-make_prepost_conds(Ctx,StarName,TextPattern,CateSig,FindPattern,CommitTemplate,Out,MinedCates,StarSets,MatchLevel):-
+%%TODO: MAKE THIS ONE WORK ! (CURRENTLY WORKS)
+make_prepost_conds(Ctx,StarName,TextPattern,CateSig,FindPattern,CommitTemplate,Out,MinedCates,StarSets,MatchLevel):- 
   prolog_must(generateMatchPatterns(Ctx,StarName,Out,TextPattern,CateSig,MinedCates,EachMatchSig)),
   prolog_must(EachMatchSig=[_|_]),
   getCategoryArg(Ctx,StarName,MatchPattern,Out,CateSig),
@@ -635,7 +645,7 @@ make_prepost_conds(Ctx,StarName,TextPattern,CateSig,FindPattern,CommitTemplate,O
       ((
         member(LSP,EachMatchSig),           
         savedSetPatterns(LSP,MatchLevel2,StarSets,MatchPattern),
-        
+
            (CommitTemplate = ignore(MatchLevel2 = MatchLevel))))),!.
 
 
@@ -647,7 +657,7 @@ make_prepost_conds(Ctx,StarName,TextPattern,CateSig,FindPattern,CommitTemplate,O
   getCategoryArg(Ctx,StarName,MatchPattern,Out,CateSig),
   FindPattern = 
       ((
-        member(LSP,EachMatchSig),           
+        member(LSP,EachMatchSig),   
            prolog_must(make_star_binders(Ctx,StarName,1,TextPattern,MatchPattern,MatchLevel2,ProofOut)),
            (CommitTemplate = ignore(MatchLevel2 = MatchLevel)))).         
 
@@ -673,13 +683,13 @@ generateMatchPatterns(Ctx,StarName,Out,InputPattern,CateSigIn,MinedCates,SetOfEa
  functor(CateSig,CateSigFunctor,_Args),
   must_be_openCate(CateSig),
   getCategoryArg(Ctx,StarName,MatchPattern,Out,CateSig),
-  savedSetPatterns(LSP,MatchLevel,StarSets,MatchPattern),
+  savedSetPatterns(LSP,MatchLevel,StarSets,MatchPattern),   
+   traceIf((StarName==that,InputPattern=['How',_|_])),
   findall(LSP,
              (argNFound(CateSigFunctor,StarName,MatchPattern,_),
               canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern,MatchLevel,StarSets)),
       EachMatchSig),
   sort(EachMatchSig,SetOfEachMatchSig),
- %%traceIf((StarName==pattern,InputPattern=[_,_|_])),
   prolog_must(EachMatchSig=[_|_]),
   prolog_must(debugFmtList([
         starName = StarName,
@@ -746,7 +756,7 @@ generateMatchPatterns(Ctx,StarName,Out,InputPattern,CateSig,_MinedCates,EachMatc
 %%make_star_binders(Ctx,StarName,A,B):-make_star_binders(Ctx,StarName,A,B,_MatchLevel,_StarSets),!.    
 % ========================================================================================
 
-canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern,MatchLevel,StarSets):- 
+canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern,MatchLevel,StarSets):-     
     make_star_binders(Ctx,StarName,1,InputPattern,MatchPattern,MatchLevelInv,StarSets),!,MatchLevel is 1/MatchLevelInv ,
     nop(debugFmt(pass_canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern,MatchLevel,StarSets))),!.
 

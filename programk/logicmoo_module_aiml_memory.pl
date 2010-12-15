@@ -53,12 +53,14 @@ getAliceMem(Ctx,Dict,Name,ValueI):- getAliceMemComplete(Ctx,Dict,Name,ValueO),!,
 
 getAliceMemComplete(Ctx,Dict,Name,ValueO):-getInheritedStoredValue(Ctx,Dict,Name,ValueO),!.
 
-dictNameKey([Dict],Name,Key):-nonvar(Dict),!,dictNameKey(Dict,Name,Key).
-dictNameKey(Dict,[Name],Key):-nonvar(Name),!,dictNameKey(Dict,Name,Key).
-dictNameKey(Dict,Name,Dict:Name):-nonvar(Dict),!.
-dictNameKey(_Dict,DictName,Key):- nonvar(DictName),DictName=Dict:Name,!,dictNameKey(Dict,Name,Key).
-dictNameKey(_Dict,NameKey,NameKey).
-dictNameKey(Dict,NameKey,Name):-var(Dict),nonvar(Name),!,Key=Name.
+dictNameKey(Dict,Name,Key):-dictNameKey0(Dict,Name,Key).
+
+dictNameKey0([Dict],Name,Key):-nonvar(Dict),!,dictNameKey0(Dict,Name,Key).
+dictNameKey0(Dict,[Name],Key):-nonvar(Name),!,dictNameKey0(Dict,Name,Key).
+dictNameKey0(Dict,Name,Dict:Name):-nonvar(Dict),!.
+dictNameKey0(_Dict,DictName,Key):- nonvar(DictName),DictName=Dict:Name,!,dictNameKey0(Dict,Name,Key).
+dictNameKey0(_Dict,NameKey,NameKey).
+dictNameKey0(Dict,Name,Key):-var(Dict),nonvar(Name),!,Key=Name.
 
 
 getStoredValue(Ctx,Dict,Name,Value):-prolog_must(var(Value)),getContextStoredValue(Ctx,Dict,Name,Value).
@@ -265,7 +267,7 @@ addReplacement(Dict,Find,Replace):-currentContext(addReplacement(Dict,Find,Repla
 % ===============================================================================================
 % context/name cleanups
 % ===============================================================================================
-dictNameDictNameC(Ctx,IDict,NameI,Dict,Name):-dictNameDictName(Ctx,IDict,NameI,Dict,Name),!, IDict+NameI \==Dict+Name.
+dictNameDictNameC(Ctx,IDict,NameI,Dict,Name):-nop(traceIf(IDict=[])),dictNameDictName(Ctx,IDict,NameI,Dict,Name),!, IDict+NameI \==Dict+Name, debugFmt(IDict+NameI is Dict+Name).
 
 dictNameDictName(Ctx,IDict,NameI,Dict,Name):- hotrace(dictNameDictName0(Ctx,IDict,NameI,Dict,Name)).
 dictNameDictName0(Ctx,_Dict,D:NameI,Dict,Name):- nonvar(D),!,dictNameDictName(Ctx,D,NameI,Dict,Name).
@@ -299,6 +301,20 @@ setAliceMem(Ctx,Dict,Name,Value):-immediateCall(Ctx,setAliceMem(Dict,Name,Value)
 setAliceMem(Ctx,Dict,Name,Value):-isStarValue(Value),debugFmt(setAliceMem(Ctx,Dict,Name,Value)),ctrace.
 setAliceMem(Ctx,Dict,default(Name),DefaultValue):-getAliceMem(Ctx,Dict,Name,'OM')->setAliceMem(Ctx,Dict,Name,DefaultValue);true.
 setAliceMem(Ctx,Dict,Name,Value):-notrace((resetAliceMem0(Ctx,Dict,Name,Value))),!.
+
+% ===============================================================================================
+% Inserting globals
+% ===============================================================================================
+insert1StValue(Ctx,IDict,Name,Value):-is_list(IDict),!,foreach(member(Dict,IDict),insert1StValue(Ctx,Dict,Name,Value)),!.
+insert1StValue(Ctx,IDict,NameI,Value):- dictNameDictNameC(Ctx,IDict,NameI,Dict,Name),!,insert1StValue(Ctx,Dict,Name,Value),!.
+insert1StValue(Ctx,Dict,Name,Var):-var(Var),!,insert1StValue(Ctx,Dict,Name,['$var'(Var)]).
+insert1StValue(Ctx,Dict,Name,Atomic):-atomic(Atomic),Atomic\==[],!,insert1StValue(Ctx,Dict,Name,[Atomic]).
+insert1StValue(Ctx,Dict,Name,NonList):-not(is_list(NonList)),ctrace,!,insert1StValue(Ctx,Dict,Name,[NonList]).
+insert1StValue(Ctx,Dict,Name,Value):-nop(immediateCall(Ctx,insert1StValue(Ctx,Dict,Name,Value))),fail.
+insert1StValue(Ctx,Dict,Name,Value):-isStarValue(Value),debugFmt(insert1StValue(Ctx,Dict,Name,Value)),ctrace.
+%%insert1StValue(Ctx,Dict,default(Name),DefaultValue):-getAliceMem(Ctx,Dict,Name,'OM')->setAliceMem(Ctx,Dict,Name,DefaultValue);true.
+insert1StValue(_Ctx,Dict,Name,Value):-checkDictValue(Value),asserta(dict(Dict,Name,Value)),!.
+
 
 % ===============================================================================================
 %    AIML Runtime Database
@@ -366,16 +382,6 @@ pushInto1DAnd2DArray(Ctx,Tall,Wide,Ten,MultiSent,ConvThread):-
    previousVars(Wide,WidePrevVars,Ten),
    setEachSentenceThat(Ctx,ConvThread,Wide,WidePrevVars,Elements),
    !.
-
-insert1StValue(Ctx,IDict,Name,Value):-is_list(IDict),!,foreach(member(Dict,IDict),insert1StValue(Ctx,Dict,Name,Value)),!.
-insert1StValue(Ctx,IDict,NameI,Value):- dictNameDictNameC(Ctx,IDict,NameI,Dict,Name),!,insert1StValue(Ctx,Dict,Name,Value),!.
-insert1StValue(Ctx,Dict,Name,Var):-var(Var),!,insert1StValue(Ctx,Dict,Name,['$var'(Var)]).
-insert1StValue(Ctx,Dict,Name,Atomic):-atomic(Atomic),Atomic\==[],!,insert1StValue(Ctx,Dict,Name,[Atomic]).
-insert1StValue(Ctx,Dict,Name,NonList):-not(is_list(NonList)),ctrace,!,insert1StValue(Ctx,Dict,Name,[NonList]).
-insert1StValue(Ctx,Dict,Name,Value):-nop(immediateCall(Ctx,insert1StValue(Ctx,Dict,Name,Value))),fail.
-insert1StValue(Ctx,Dict,Name,Value):-isStarValue(Value),debugFmt(insert1StValue(Ctx,Dict,Name,Value)),ctrace.
-%%insert1StValue(Ctx,Dict,default(Name),DefaultValue):-getAliceMem(Ctx,Dict,Name,'OM')->setAliceMem(Ctx,Dict,Name,DefaultValue);true.
-insert1StValue(_Ctx,Dict,Name,Value):-checkDictValue(Value),asserta(dict(Dict,Name,Value)),!.
 
 setEachSentenceThat(Ctx,User,VarName,Vars,SR0):- cleanSentence(SR0,SR3),setEachSentenceThat0(Ctx,User,VarName,Vars,SR3),!.
 

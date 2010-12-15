@@ -92,13 +92,20 @@ run2(Ctx):-
    test_call(alicebot(Ctx,'My name is Fred.')),
    test_call(alicebot(Ctx,'what is my name?')).
 
+blackjack_test:-
+   test_call(alicebot(Ctx,'@load blackjack.aiml')),
+   test_call(alicebot(Ctx,'blackjack')),
+   test_call(alicebot(Ctx,'d')),
+   debugFmt('Enter 3').
 
-annie:-makeAimlContext(toplevel,Ctx),timeRecorded(run_chat_tests_here(Ctx)),alicebot(Ctx).
+annie:-makeAimlContext(toplevel,Ctx),timeRecorded(run_chat_tests_here(Ctx)).
 
 %%:-timeRecorded(test_suite_files).
 
 :-timeRecorded(annie).
 %:-timeRecorded(chomskyAIML).
+
+%%:-timeRecorded(blackjack_test).
 :-alicebot.
 
 %%:-timeRecorded(load_aiml_files('programk/test_suite/special/*.aiml')).

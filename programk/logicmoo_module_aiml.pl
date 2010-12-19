@@ -894,7 +894,7 @@ convert_substs(A,D):-A=D.
 
 simplify_atom0(A,A):-A==[],!.
 simplify_atom0(A0,D):- is_list(A0),atomic_list_concat(A0,' ',A),!,simplify_atom0(A,D).
-simplify_atom0(A,D):- atom(A),!,downcase_atom(A,B),atomic_list_concat(L0,'\\b',B),delete(L0,'',L),atomic_list_concat(L,' ',C),!,atomWSplit(C,D),!.
+simplify_atom0(A,D):- atom(A),!,literal_atom(A,B),atomic_list_concat(L0,'\\b',B),delete(L0,'',L),atomic_list_concat(L,' ',C),!,atomWSplit(C,D),!.
 
 
 sameWordsDict([String|A],[Pattern|B]):-!,sameWordsDict0(String,Pattern),!,sameWordsDict_l(A,B),!.

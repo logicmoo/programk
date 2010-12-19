@@ -669,7 +669,7 @@ randomPick(List,Ele):-length(List,Len),Pick is random(Len),nth0(Pick,List,Ele),!
 % Atom / String functions
 %================================================================
 atomsSameCI(Name1,Name1):-!.
-atomsSameCI(Name1,Name2):-atom(Name1),atom(Name2),downcase_atom(Name1,D1),downcase_atom(Name2,D2),!,D1=D2.
+atomsSameCI(Name1,Name2):-atom(Name1),atom(Name2),literal_atom(Name1,D1),literal_atom(Name2,D2),!,D1=D2.
 
 clean_codes(X,Y):-trim(X,Y),!.  % actually cyc:trim/2
 clean_codes(X,X).

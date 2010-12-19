@@ -104,11 +104,11 @@ annie:-makeAimlContext(toplevel,Ctx),timeRecorded(run_chat_tests_here(Ctx)).
 
 /*
 :-timeRecorded(blackjack_test_load).
-:-timeRecorded(annie).
 :-timeRecorded(blackjack_test).
 %:-timeRecorded(chomskyAIML).
-:-alicebot.
 */
+:-timeRecorded(annie).
+:-alicebot.
 
 
 %%:-timeRecorded(load_aiml_files('programk/test_suite/special/*.aiml')).

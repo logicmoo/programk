@@ -206,15 +206,15 @@ tag_eval(Ctx,element(system,ATTRIBS,INNER_XML),Output):-
 systemCall(Ctx,[Lang],Eval,Out):- nonvar(Lang),!, systemCall(Ctx,Lang,Eval,Out).
 
 systemCall(_Ctx,_Lang,[],[]):-!.
-systemCall(Ctx,Lang,[''|REST],DONE):-!,systemCall(Ctx,Lang,REST,DONE).
+systemCall(Ctx,Lang,[Skipable|REST],DONE):-isWhiteWord(Skipable),!,systemCall(Ctx,Lang,REST,DONE).
 systemCall(Ctx,Bot,[FIRST|REST],DONE):-atom_concat_safe('@',CMD,FIRST),!,systemCall(Ctx,Bot,[CMD|REST],DONE).
 systemCall(Ctx,'bot',REST,OUT):-!,prolog_must(systemCall_Bot(Ctx,REST,OUT)),!.
 systemCall(Ctx,Lang,[Eval],Out):-systemCall(Ctx,Lang,Eval,Out).
-systemCall(Ctx,Lang,Eval,Out):-once((atom(Eval),atomSplit(Eval,Atoms))),Atoms=[_,_|_],!,ctrace,systemCall(Ctx,Lang,Atoms,Out).
+systemCall(Ctx,Lang,Eval,Out):-once((atom(Eval),atomWSplit(Eval,Atoms))),Atoms=[_,_|_],!,ctrace,systemCall(Ctx,Lang,Atoms,Out).
 systemCall(_Ctx,Lang,Eval,writeq(evaled(Lang,Eval))):- aiml_error(evaled(Lang,Eval)).
 
 systemCall_Bot(Ctx,['@'|REST],DONE):-!,systemCall_Bot(Ctx,REST,DONE).
-systemCall_Bot(Ctx,[''|REST],DONE):-!,systemCall_Bot(Ctx,REST,DONE).
+systemCall_Bot(Ctx,[Skipable|REST],DONE):-isWhiteWord(Skipable),!,systemCall_Bot(Ctx,REST,DONE).
 systemCall_Bot(Ctx,[FIRST|REST],DONE):-atom_concat_safe('@',CMD,FIRST),CMD\=='',!,systemCall_Bot(Ctx,['@',CMD|REST],DONE).
 systemCall_Bot(_Ctx,['eval'|DONE],template([evaled,DONE])):-!.
 systemCall_Bot(_Ctx,['echo'|DONE],DONE):-!.
@@ -248,7 +248,7 @@ showCtx(Ctx):-forall(
   writeq(get_ctx_frame_holder(Ctx,Dict,Frame,Held))).
 
 systemCall_Load(Ctx,[],template([loaded,Ctx])):-!.
-systemCall_Load(Ctx,[File,Name|S],Output):-concat_atom_safe([File,Name|S],'',Filename),!,systemCall(Ctx,'bot',['load',Filename],Output).
+systemCall_Load(Ctx,[File,Name|S],Output):-joinAtoms([File,Name|S],'',Filename),!,systemCall(Ctx,'bot',['load',Filename],Output).
 systemCall_Load(Ctx,[Filename],template([loaded,Filename])):-
     peekNameValue(Ctx,_,graph,GraphI,'*'), 
     (GraphI=='*'->Graph=default; Graph=GraphI),

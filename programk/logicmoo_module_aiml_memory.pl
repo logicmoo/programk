@@ -125,6 +125,9 @@ getIndexedValue(Ctx,Dict,Name,Major,Value):-atomic(Major),!,
 getIndexedValue(Ctx,Dict,Name,[Minor],Value):-atomic(Minor),!,
     getIndexedValue(Ctx,Dict,Name,[1,Minor],Value).
 
+getIndexedValue(Ctx,Dict,Name,[Major,'\b',SEP,'\b'|Minor],Value):-!,
+    getIndexedValue(Ctx,Dict,Name,[Major,SEP|Minor],Value).
+
 getIndexedValue(Ctx,Dict,Name,[Major,SEP|Minor],Value):- member(SEP,[',',':']),!,
     getIndexedValue(Ctx,Dict,Name,[Major|Minor],Value).
 
@@ -399,5 +402,5 @@ previousVars(That,[That],1):-!.
 previousVars(That,[Item|Prevs],N):-indexOntoKey(That,N,Item), NN is N-1,previousVars(That,Prevs,NN).
 
 indexOntoKey(That,N,That):-subscriptZeroOrOne(N),!.
-indexOntoKey(That,N,Item):-atomic_list_concat([That,'(',N,')'],Item).
+indexOntoKey(That,N,Item):-prolog_must(atomic(That)),atomic_list_concat([That,'(',N,')'],Item).
 

@@ -774,12 +774,12 @@ make_star_binders(Ctx,StarName,N,Skipable,BB,CountO,StarSets):-
 
 
 skipablePhrase([Skipable|B],B):-isIgnoreableWord(Skipable),!.
-skipablePhrase([Skip,'\b',Ble|B],[Skipable|B]):-concat_atom(Skip,Ble,Skipable),!.
+skipablePhrase([Skip,'\b',Ble|B],[Skipable|B]):-joinAtoms([Skip,'\b',Ble],' ',Skipable),!.
 
 isIgnoreableWord(Skipable):-member(Skipable,['-','(',')',',','?','.','','\'']).
 isIgnoreableWord(Skipable):-isWhiteWord(Skipable).
 
-isWhiteWord(Skipable):-member(Skipable,[' ','\b','\n']).
+isWhiteWord(Skipable):-member(Skipable,[' ','\b','\n','']).
 
 %
 % re-write section

@@ -37,7 +37,7 @@ graph_or_file(_Ctx,ATTRIBS, Filename, [nosuchfile(Filename,ATTRIBS)]):-ctrace.
 
 
 graph_or_file_or_dir(Ctx,ATTRIBS, Filename, XML):- Filename=[A,B|_C],atom(A),atom(B),
-                    concat_atom_safe(Filename,'',FileAtom),!,
+                    joinAtoms(Filename,'',FileAtom),!,
                     prolog_must(graph_or_file_or_dir(Ctx,ATTRIBS, FileAtom, XML)),!.
 
 graph_or_file_or_dir(_Ctx,_ATTRIBS, Filename,[element(aiml, [srcfile=AbsoluteFilename], XML)]):- os_to_prolog_filename(Filename,AFName),
@@ -143,13 +143,14 @@ load_structure_from_string(String,XMLSTRUCTURES):- sformat(Strin0,'<pre>~s</pre>
 load_structure_from_string(String,XMLSTRUCTURES):- load_structure_from_string0(String,XMLSTRUCTURES),!.
 load_structure_from_string0(String,XMLSTRUCTURES):- 
      %%sgml_parser_defs(PARSER_DEFAULTS,_PARSER_CALLBACKS),
-     PARSER_DEFAULTS = [defaults(false), space(remove),number(integer), qualify_attributes(false),dialect(xml)],
-     load_structure_from_string(String,PARSER_DEFAULTS,XMLSTRUCTURES),!.
- 
-load_structure_from_string(String,PARSER_DEFAULTS0,XMLSTRUCTURES):-
-        setup_call_cleanup(string_to_stream(String,In),
-          prolog_must((
-           new_sgml_parser(Parser, []),          
+     PARSER_DEFAULTS = [defaults(false), space(remove),number(integer), qualify_attributes(false),dialect(sgml)],
+     load_structure_from_string0(String,PARSER_DEFAULTS,XMLSTRUCTURES),!.
+
+load_structure_from_string(String,PARSER_DEFAULTS0,XMLSTRUCTURES):-load_structure_from_string0(String,PARSER_DEFAULTS0,XMLSTRUCTURES).
+
+load_structure_from_string0(String,PARSER_DEFAULTS0,XMLSTRUCTURES):-
+        setup_call_cleanup(((string_to_stream(String,In),new_sgml_parser(Parser, []))),
+          prolog_must((                     
            atom_length(String,Len),
            append(PARSER_DEFAULTS0,[],PARSER_DEFAULTS),
            maplist_safe(set_sgml_parser(Parser),PARSER_DEFAULTS),
@@ -173,9 +174,8 @@ string_parse_structure(Len,Parser, M:Options, Document, In) :-
 fileToLineInfoElements(Ctx,F0,XMLSTRUCTURES):-
    global_pathname(F0,File),
        retractall(lineInfoElement(File,_,_,_)),
-        setup_call_cleanup(open(File, read, In, [type(binary)]),
-          prolog_must((
-           new_sgml_parser(Parser, []),
+        setup_call_cleanup((open(File, read, In, [type(binary)]),new_sgml_parser(Parser, [])),
+          prolog_must((           
            sgml_parser_defs(PARSER_DEFAULTS,PARSER_CALLBACKS),
            maplist_safe(set_sgml_parser(Parser),[file(File)|PARSER_DEFAULTS]),
            %% todo offset(Offset)

@@ -160,13 +160,13 @@ convert_text_list([],[]):-!.
 convert_text_list([A],B):-!,convert_text_list(A,B).
 convert_text_list(M,C):-delete(M,'',B), (M == B -> C=B ; convert_text_list(B,C)).
 convert_text_list([A|AA],BBB):-convert_text(A,B),convert_text_list(AA,BB),!,flattem_append(B,BB,BBB0),!,BBB=BBB0.
-convert_text_list(A,C):-atom(A),atomSplit(A,M),([A]==M->C=M;convert_text(M,C)),!.
+convert_text_list(A,C):-atom(A),atomWSplit(A,M),([A]==M->C=M;convert_text(M,C)),!.
 convert_text_list(A,AA):-listify(A,AA).
 
 convert_atom(A,Z):-convert_atom0(A,Y),!,Y=Z.
 convert_atom(E,File):-aiml_error(convert_atom(E,File)),!,E=File.
 %convert_atom(A,C):-atom_to_number(A,C),!.
-convert_atom0(A,C):-atomSplit(A,M),!,convert_text(M,C),!.
+convert_atom0(A,C):-atomWSplit(A,M),!,convert_text(M,C),!.
 convert_atom0(A,D):-literal_atom_safe(A,D),!.
 convert_atom0(A,A):-concat_atom_safe([A],' ',A).
 convert_atom0(A,A). %%:-!listify(A,AA).
@@ -184,8 +184,8 @@ convert_template(_Ctx,[],[]):-!.
 %%HIDE convert_template(Ctx,[I|P],L):-!,convert_template(I,IO),!,convert_template(Ctx,P,PO),append(IO,PO,L),!.
 convert_template(_Ctx,I,[]):-ignore_aiml(I),!.
 
-%%%HIDE            %%convert_template(_Ctx,[ATOM],O):-atom(ATOM),!,atomSplit(ATOM,LIST),!,toAtomList(LIST,O),!.
-convert_template(Ctx,I,GOOD):- atom(I),atomSplit(I,LIST),toAtomList(LIST,O),[I] \== O,!, convert_template(Ctx,O,GOOD),!.
+%%%HIDE            %%convert_template(_Ctx,[ATOM],O):-atom(ATOM),!,atomWSplit(ATOM,LIST),!,toAtomList(LIST,O),!.
+convert_template(Ctx,I,GOOD):- atom(I),atomWSplit(I,LIST),toAtomList(LIST,O),[I] \== O,!, convert_template(Ctx,O,GOOD),!.
 %%%HIDE            %%convert_template(Ctx,[I|P],GOOD):- is_list(I),!,append(I,P,IP),!,convert_template(Ctx,IP,GOOD),!.
 %%%HIDE            %%convert_template(Ctx,[I|P],GOOD):- convert_template(Ctx,I,O), I \== O,!, convert_template(Ctx,[O|P],GOOD),!.
 convert_template(Ctx,[I|P],GOOD):- convert_template(Ctx,I,O),!,convert_template(Ctx,P,L),!,append(O,L,GOOD),!.
@@ -278,7 +278,7 @@ convert_ele(Ctx,L,LO):-is_list(L),flatten(L,M),!,
 
 %convert_ele(Ctx,A,B):-atom(A),atom_to_number(A,B).
 
-convert_ele(_Ctx,A,W):-atom(A),atomSplit(A,B),!,convert_text(B,W),!.
+convert_ele(_Ctx,A,W):-atom(A),atomWSplit(A,B),!,convert_text(B,W),!.
 
 convert_ele(Ctx,element(A, B, C),INNER_XML):-tagType(A, immediate),!,
       convert_name(A,AA),

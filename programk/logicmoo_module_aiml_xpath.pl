@@ -87,7 +87,7 @@ valuesMatch(_Ctx,V,V):-!.
 valuesMatch(Ctx,V,A):-convertToMatchableCS(A,AA),convertToMatchableCS(V,VV),valuesMatch10(Ctx,VV,AA).
 
 
-valuesMatch10(Ctx,V,A):-notrace(valuesMatch11(Ctx,V,A)),!.
+valuesMatch10(Ctx,V,A):-hotrace(valuesMatch11(Ctx,V,A)),!.
 valuesMatch10(Ctx,V,A):-ignorecase_literal(A,AA),ignorecase_literal(V,VV),!,valuesMatch11(Ctx,VV,AA),!.
 
 valuesMatch1(_Ctx,V,V).
@@ -225,7 +225,7 @@ makeSingleTag(Ctx,NameS,ATTRIBS,Default,Tag,ValueO):-makeAimlSingleParam0(Ctx,Na
       transformTagData(Ctx,Tag,Default,ValueI,ValueO),!.
 
 makeAimlSingleParam0(_Ctx,[N|NameS],ATTRIBS,_D,N,Value):-member(O,[N|NameS]),lastMember(OI=Value,ATTRIBS),atomsSameCI(O,OI),!,prolog_must(N\==Value).
-makeAimlSingleParam0(Ctx,[N|NameS],ATTRIBS,ElseVar,N,Value):- notrace((makeParamFallback(Ctx,ATTRIBS,[N|NameS],Value,ElseVar))),!,prolog_must(N\==Value).
+makeAimlSingleParam0(Ctx,[N|NameS],ATTRIBS,ElseVar,N,Value):- hotrace((makeParamFallback(Ctx,ATTRIBS,[N|NameS],Value,ElseVar))),!,prolog_must(N\==Value).
 
 
 % ===============================================================================================
@@ -243,7 +243,7 @@ makeParamFallback(_Ctx,_Scope,_NameS,_Value,'$succeed'):-!.
 makeParamFallback(Ctx,Scope,NameS,ValueO,   '$first'(List)):-!,member(E,List),makeParamFallback(Ctx,Scope,NameS,ValueO,E),!.
 makeParamFallback(_Ctx,_Scope,_NameS,_Value,'$call'(Prolog)):-!,call(Prolog).
 makeParamFallback(Ctx,Scope,NameS,ValueO,   '$call_value'(Pred)):-!, call(Pred,Ctx,Scope,NameS,ValueO,'$failure').
-makeParamFallback(Ctx,_Scope,NameS,ValueO,  '$current_value'):- member(Name,NameS),ctrace,current_value(Ctx,Name,ValueO),valuePresent(ValueO),!.
+makeParamFallback(Ctx,_Scope,NameS,ValueO,  '$current_value'):- member(Name,NameS),current_value(Ctx,Name,ValueO),valuePresent(ValueO),!.
 %%makeParamFallback(Ctx,_Scope,NameI,ValueO,'$current_value'):-!,listify(NameI,NameS),member(Name,NameS),debugOnError((current_value(Ctx,Name,ValueO),valuePresent(ValueO))),!.
 %%makeParamFallback(Ctx,Scope,NameS,ValueO, '$current_value'):-!, current_value(Ctx,Scope,NameS,ValueO,'$failure'),valuePresent(ValueO),!.
 %%makeParamFallback(Ctx,Scope,NameS,ValueO, '$attributeValue'):-!, attributeValue(Ctx,Scope,NameS,ValueO,'$failure'),valuePresent(ValueO),!.

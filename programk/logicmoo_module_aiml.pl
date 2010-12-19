@@ -118,8 +118,8 @@ alicebotCTX(Ctx,Input):- alicebotCTX(Ctx,Input,Resp),!,say(Ctx,Resp),!.
 
 
 alicebotCTX(_Ctx,[],_):-debugFmt('no input'),!,fail.
-alicebotCTX(Ctx,Input,Resp):- atom(Input),!,
-      atomSplit(Input,TokensO),!,Tokens=TokensO,
+alicebotCTX(Ctx,Input,Resp):- 
+      tokenizeInput(Input,Tokens),Input\==Tokens,!,
       alicebotCTX(Ctx,Tokens,Resp),!.
 alicebotCTX(Ctx,[TOK|Tokens],Output):- atom(TOK),atom_concat_safe('@',_,TOK),!,systemCall(Ctx,'bot',[TOK|Tokens],Output),debugFmt(Output).
 alicebotCTX(Ctx,Tokens,Resp):-
@@ -137,6 +137,9 @@ alicebotCTX(_Ctx,In,Res):- !,ignore(Res='-no response-'(In)).
 
 alicebot2(_Ctx,[],[]):-!.
 alicebot2(Ctx,[''|X],Resp):-!,alicebot2(Ctx,X,Resp).
+alicebot2(Ctx,Input,Resp):- 
+      tokenizeInput(Input,Tokens),Input\==Tokens,!,
+      alicebot2(Ctx,Tokens,Resp),!.
 alicebot2(Ctx,Atoms,Resp):- time(debugOnError(alicebot3(Ctx,Atoms,Resp))).
 alicebot3(Ctx,Atoms,Resp):-	
   prolog_mustEach((
@@ -860,8 +863,8 @@ computeInnerTemplate(Ctx,Votes,Input,Output,VotesO):-
 answerOutput(Output,NonVar):-nonvar(NonVar),answerOutput(Output,Var),!,valuesMatch(_Ctx,Var,NonVar).
 answerOutput(Output,[Output]):-var(Output),!.
 answerOutput([],Output):- !, Output=[].
-%answerOutput(Output,Split):-atom(Output),atomSplit(Output,Split),Split==[Output],!.
-%answerOutput(Output,Split):-atom(Output),ctrace,atomSplit(Output,Split),!.
+%answerOutput(Output,Split):-atom(Output),atomWSplit(Output,Split),Split==[Output],!.
+%answerOutput(Output,Split):-atom(Output),ctrace,atomWSplit(Output,Split),!.
 answerOutput('<br/>',['\n']):-!.
 answerOutput('<p/>',['\r\n']):-!.
 answerOutput(element('br',[],[]),['\n']):-!.
@@ -891,7 +894,7 @@ convert_substs(A,D):-A=D.
 
 simplify_atom0(A,A):-A==[],!.
 simplify_atom0(A0,D):- is_list(A0),atomic_list_concat(A0,' ',A),!,simplify_atom0(A,D).
-simplify_atom0(A,D):- atom(A),!,downcase_atom(A,B),atomic_list_concat(L0,'\\b',B),delete(L0,'',L),atomic_list_concat(L,' ',C),!,atomSplit(C,D),!.
+simplify_atom0(A,D):- atom(A),!,downcase_atom(A,B),atomic_list_concat(L0,'\\b',B),delete(L0,'',L),atomic_list_concat(L,' ',C),!,atomWSplit(C,D),!.
 
 
 sameWordsDict([String|A],[Pattern|B]):-!,sameWordsDict0(String,Pattern),!,sameWordsDict_l(A,B),!.

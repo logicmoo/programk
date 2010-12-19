@@ -25,8 +25,8 @@ user:prolog_exception_hook(A, B, C, D) :-A=error(evaluation_error(ErrorType), _)
 aiml_error(EE):-copy_term(EE,E),randomVars(E),debugFmt('~q~n',[error(E)]),!,interactStep(E,throw_safe(error(evaluation_error(E),E)),debugFmt(aiml_error(E))).
 
 :-'$hide'(error_catch/3).
+error_catch(C,E,F):-E=error(E1,E2),!,catch(C,error(E1,E2),F).
 error_catch(C,E,F):-nonvar(E),!,catch(C,E,F).
-error_catch(C,E,F):-var(E),E=error(E1,E2),!,catch(C,error(E1,E2),F).
 error_catch(C,E,F):-catch(C,E,(needs_rethrown(E),F)).
 needs_rethrown(E):- functor(aiml_goto,E,_),!,throw(E).
 needs_rethrown(E):- functor(aiml_novalue,E,_),!,throw(E).
@@ -321,9 +321,10 @@ os_to_prolog_filename(OS,PL):-exists_directory_safe(OS),!,PL=OS.
 os_to_prolog_filename(OS,PL):-local_directory_search_combined(CurrentDir),join_path(CurrentDir,OS,PL),exists_file_safe(PL),!.
 os_to_prolog_filename(OS,PL):-local_directory_search_combined(CurrentDir),join_path(CurrentDir,OS,PL),exists_directory_safe(PL),!.
 
-os_to_prolog_filename(OS,PL):-atom(OS),atomic_list_concat([X,Y|Z],'\\',OS),atomic_list_concat([X,Y|Z],'/',OPS),!,os_to_prolog_filename(OPS,PL).
-os_to_prolog_filename(OS,PL):-atom_concat_safe(BeforeSlash,'/',OS),os_to_prolog_filename(BeforeSlash,PL).
-os_to_prolog_filename(OS,PL):-absolute_file_name(OS,OSP),OS \= OSP,!,os_to_prolog_filename(OSP,PL).
+os_to_prolog_filename(OS,PL):- debugOnError(os_to_prolog_filename0(OS,PL)).
+os_to_prolog_filename0(OS,PL):-atom(OS),atomic_list_concat([X,Y|Z],'\\',OS),atomic_list_concat([X,Y|Z],'/',OPS),!,os_to_prolog_filename(OPS,PL).
+os_to_prolog_filename0(OS,PL):-atom_concat_safe(BeforeSlash,'/',OS),os_to_prolog_filename(BeforeSlash,PL).
+os_to_prolog_filename0(OS,PL):-absolute_file_name(OS,OSP),OS \= OSP,!,os_to_prolog_filename(OSP,PL).
 
 
 % ===============================================================================================
@@ -349,7 +350,7 @@ prolog_mustEach((A,B)):- !,prolog_mustEach(A),prolog_mustEach(B).
 prolog_mustEach(Call):- prolog_must(Call).
 
 :-'$hide'(prolog_must/1).
-prolog_must(Call):-notrace((prolog_safe)),!,Call.
+%%prolog_must(Call):-notrace((prolog_safe)),!,Call.
 prolog_must(Call):-tracing,!,debugOnError(Call). %%prolog_must_tracing(Call).
 prolog_must(Call):-prolog_must_call(Call).
 
@@ -359,7 +360,7 @@ prolog_must(Call):-prolog_must_call(Call).
 :-'$hide'(cyc:ctrace/0).
 
 :-'$hide'(prolog_may/1).
-prolog_may(Call):-prolog_safe,!,Call.
+%%prolog_may(Call):-prolog_safe,!,Call.
 prolog_may(Call):-prolog_ecall(debugOnError,Call).
 
 :-'$hide'(debugOnError/1).
@@ -655,9 +656,12 @@ removePMark(UCase,Atoms):-append(AtomsPre,[Last],UCase),sentenceEnderOrPunct(Las
 removePMark(Atoms,Atoms).
 
 leftTrim([B|Before],ToRemove,After):-call(ToRemove,B),!,leftTrim(Before,ToRemove,After).
+leftTrim(After,_ToRemove,After):-!.
 leftTrim([B|Before],ToRemove,[B|After]):-leftTrim(Before,ToRemove,After).
 leftTrim([],_ToRemove,[]):-!.
 
+rightTrim(Before,ToRemove,After):-append(LeftOf,[B],Before),call(ToRemove,B),!,rightTrim(LeftOf,ToRemove,After).
+rightTrim(After,_ToRemove,After):-!.
 
 randomPick(List,Ele):-length(List,Len),Pick is random(Len),nth0(Pick,List,Ele),!.
 
@@ -670,12 +674,13 @@ atomsSameCI(Name1,Name2):-atom(Name1),atom(Name2),downcase_atom(Name1,D1),downca
 clean_codes(X,Y):-trim(X,Y),!.  % actually cyc:trim/2
 clean_codes(X,X).
 
-%clean_out_atom(X,Y):-atomSplit(X,C),delete(C,'',O),concat_atom_safe(C,' ',Y).
+%clean_out_atom(X,Y):-atomWSplit(X,C),delete(C,'',O),concat_atom_safe(C,' ',Y).
 clean_out_atom(X,Y):-atom_codes(X,C),clean_codes(C,D),!,atom_codes(X,D),!,Y=X.
 
-atomSplit(A,B):- notrace((cyc:atomSplit(A,BB),!,BB=B)).
+atomWSplit(A,B):- hotrace((cyc:atomSplit(A,BB),!,BB=B)).
+%%atomWSplit(A,B):- hotrace((cyc:atomWSplit(A,BB),!,BB=B)).
 
-%%atomSplit(A,B):-token_stream_of(A,AA),findall(B0,arg(1,AA,B),B).
+%%atomWSplit(A,B):-token_stream_of(A,AA),findall(B0,arg(1,AA,B),B).
 
 atom_concat_safe(L,R,A):- ((atom(A),(atom(L);atom(R))) ; ((atom(L),atom(R)))), !, atom_concat(L,R,A),!.
 
@@ -733,7 +738,7 @@ map_tree_to_list(_,PATTERN,Output):- (var(PATTERN);number(PATTERN)),!,must_assig
 map_tree_to_list(_,[],OUT):-!,must_assign([],OUT).
 map_tree_to_list(Pred,IN,Output):- once(call(Pred,IN,MID)),prolog_must((MID=IN -> flatten([MID],OUT) ; map_tree_to_list(Pred,MID,OUT))),!,must_assign(OUT,Output).
 map_tree_to_list(Pred,[I|IN],Output):-!,prolog_must((map_tree_to_list(Pred,I,O1),map_tree_to_list(Pred,IN,O2),!,append(O1,O2,OUT))),!,must_assign(OUT,Output).
-map_tree_to_list(Pred,IN,Output):-atom(IN),prolog_must((atomSplit(IN,MID),!,map_tree_to_list(Pred,MID,OUT))),!,must_assign(OUT,Output).
+map_tree_to_list(Pred,IN,Output):-atom(IN),prolog_must((atomWSplit(IN,MID),!,map_tree_to_list(Pred,MID,OUT))),!,must_assign(OUT,Output).
 map_tree_to_list(Pred,IN,Output):-
   prolog_must((compound(IN), IN=..INP, append(Left,[Last],INP), map_tree_to_list(Pred,Last,UT),!, 
    append(Left,[UT],OUTP),!, OUT =.. OUTP)),must_assign([OUT],Output).
@@ -839,10 +844,10 @@ interactStep(_String,CallYes,CallNo):-prompt1('>>>>>>>>>>>>>>'),read(YN),debugFm
 % traceIf/warnIf(_Call):-!.
 % ===================================================================
 :-'$hide'(traceIf/1).
-traceIf(Call):-ignore((notrace(Call),debugFmt(traceIf(Call)),ctrace)).
+traceIf(Call):-ignore((hotrace(Call),debugFmt(traceIf(Call)),ctrace)).
 
 :-'$hide'(warnIf/1).
-warnIf(Call):-notrace(ignore((Call,debugFmt(warnIf(Call))))).
+warnIf(Call):-hotrace(ignore((Call,debugFmt(warnIf(Call))))).
 
 % ===================================================================
 % Usage: pred_subst(+Pred, +Fml,+X,+Sk,?FmlSk)

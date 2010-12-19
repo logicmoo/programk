@@ -32,6 +32,14 @@ translate_aiml_structure(Ctx,Structure):-not(atom(Structure)),!,
 translate_aiml_structure(Ctx,Structure):- 
    trace,debugFmt(translate_aiml_structure_atom(Ctx,Structure)),!.
 
+translate_aiml_structure(Ctx,Structure):-not(atom(Structure)),!,
+   trace,debugFmt(translate_aiml_structure_no_atom(Ctx,Structure)),!.
+
+translate_aiml_structure(Ctx,Structure):- 
+   debugFmt(translate_aiml_structure_atom(Ctx,Structure)),
+   load_structure_from_string(Ctx,Structure,XMLStructures),
+   load_aiml_structure(Ctx,XMLStructures),!.
+
 
 cateForFile(_Ctx,SRCFILE,aimlCate(_GRAPH,_PRECALL,_TOPIC,_THAT,_INPUT,_PATTERN,_FLAGS,_CALL,_GUARD,_USERDICT,_TEMPLATE,_LINENO,SRCFILE:_-_)):-!.
 cateForFile(Ctx,File,FileMatch):- ctrace,withNamedValue(Ctx,[anonvarsFroCate=true], makeAimlCate(Ctx,[srcfile=File:_-_],FileMatch)),!.

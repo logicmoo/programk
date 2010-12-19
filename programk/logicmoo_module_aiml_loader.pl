@@ -127,26 +127,61 @@ load_single_aiml_file(Ctx,File,PLNAME,FileMatch):-
 sgml_parser_defs(
   [defaults(false), space(remove),number(integer), qualify_attributes(false),
          %call(decl, on_decl),
-         %call(pi, on_pi),call(xmlns, on_xmlns),call(urlns, xmlns),call(error,xml_error),
+         %call(pi, on_pi),call(xmlns, on_xmlns),call(urlns, xmlns),
+         %%call(error,xml_error),
          dialect(xml)
          ],
          [max_errors(0),call(begin, on_begin),call(end, on_end)]).
 
 
+%% ?- load_structure_from_string('<?xml version="1.0" encoding="ISO-8859-1"?>\n<aiml><p>hi</p></aiml>',X).
+
+tls :- load_structure_from_string('<aiml><p>hi</p></aiml>',X),debugFmt(X).
+tls2 :- load_structure_from_string('<?xml version="1.0" encoding="ISO-8859-1"?>\n<aiml><p>hi</p></aiml>\n\n',X),debugFmt(X).
+
+load_structure_from_string(String,XMLSTRUCTURES):- sformat(Strin0,'<pre>~s</pre>',[String]),load_structure_from_string0(Strin0,[element(pre,[],XMLSTRUCTURES)]),!.
+load_structure_from_string(String,XMLSTRUCTURES):- load_structure_from_string0(String,XMLSTRUCTURES),!.
+load_structure_from_string0(String,XMLSTRUCTURES):- 
+     %%sgml_parser_defs(PARSER_DEFAULTS,_PARSER_CALLBACKS),
+     PARSER_DEFAULTS = [defaults(false), space(remove),number(integer), qualify_attributes(false),dialect(xml)],
+     load_structure_from_string(String,PARSER_DEFAULTS,XMLSTRUCTURES),!.
+ 
+load_structure_from_string(String,PARSER_DEFAULTS0,XMLSTRUCTURES):-
+        setup_call_cleanup(string_to_stream(String,In),
+          prolog_must((
+           new_sgml_parser(Parser, []),          
+           atom_length(String,Len),
+           append(PARSER_DEFAULTS0,[],PARSER_DEFAULTS),
+           maplist_safe(set_sgml_parser(Parser),PARSER_DEFAULTS),
+           string_parse_structure(Len, Parser, user:PARSER_DEFAULTS, XMLSTRUCTURES, In)
+           )),
+       (free_sgml_parser(Parser),close(In))),!.
+
+string_parse_structure(Len,Parser, M:Options, Document, In) :-
+	notrace((sgml:set_parser_options(Parser, Options, Options1),
+	sgml:parser_meta_options(Options1, M, Options2))),
+	sgml:sgml_parse(Parser,
+		   [ document(Document),
+		     source(In),
+                     parse(input),
+                     content_length(Len)
+		   | Options2
+		   ]).
+
 
 % gather line numbers
 fileToLineInfoElements(Ctx,F0,XMLSTRUCTURES):-
    global_pathname(F0,File),
- prolog_must((
        retractall(lineInfoElement(File,_,_,_)),
-        open(File, read, In, [type(binary)]),
-        new_sgml_parser(Parser, []),
-        sgml_parser_defs(PARSER_DEFAULTS,PARSER_CALLBACKS),
-        maplist_safe(set_sgml_parser(Parser),[file(File)|PARSER_DEFAULTS]),
-        %% todo offset(Offset)
-        sgml_parse(Parser,[source(In)|PARSER_CALLBACKS]),
-        close(In),!,
-        fileToLineInfoElements2(Ctx,File,XMLSTRUCTURES))).
+        setup_call_cleanup(open(File, read, In, [type(binary)]),
+          prolog_must((
+           new_sgml_parser(Parser, []),
+           sgml_parser_defs(PARSER_DEFAULTS,PARSER_CALLBACKS),
+           maplist_safe(set_sgml_parser(Parser),[file(File)|PARSER_DEFAULTS]),
+           %% todo offset(Offset)
+           sgml_parse(Parser,[source(In)|PARSER_CALLBACKS]))),
+        (free_sgml_parser(Parser),close(In))),!,
+        fileToLineInfoElements2(Ctx,File,XMLSTRUCTURES).
 
 
 % gather line contents

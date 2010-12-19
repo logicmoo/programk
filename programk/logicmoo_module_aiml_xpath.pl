@@ -68,6 +68,8 @@ arg_value(Ctx,arg(N),Value):-integer(N),prolog_must(compound(Ctx)),arg(N,Ctx,Val
 
 contextScopeTerm(Ctx,Scope,Term):- (Scope=Term;Ctx=Term),nonvar(Term).
 
+peekGlobalMem(Ctx,[],Name,Value):- !,peekGlobalMem(Ctx,user,Name,Value).
+peekGlobalMem(_Ctx,[_=_|_],_Name,_Value):-!,fail.
 peekGlobalMem(Ctx,Scope,Name,Value):- getInheritedStoredValue(Ctx,Scope,Name,Value),checkAttribute(Scope,Name,Value).
 peekGlobalMem(Ctx,Scope,Name,Value):-ignore(Scope=user),getIndexedValue(Ctx,Scope,Name,[],Value),checkAttribute(Scope,Name,Value),!.%%trace.
 
@@ -81,19 +83,21 @@ compound_or_list(ATTRIBS,LIST):-ATTRIBS=..[_|LIST].
 
 illegalValue(ValueVar):- ValueVar=['YourBot'],!.
 
+valuesMatch(_Ctx,V,V):-!.
+valuesMatch(Ctx,V,A):-convertToMatchableCS(A,AA),convertToMatchableCS(V,VV),valuesMatch10(Ctx,VV,AA).
 
-valuesMatch(_Ctx,V,A):-V=A,!.
-valuesMatch(_Ctx,_V,A):-A=='*',!.
-valuesMatch(_Ctx,V,_A):-V=='*',!.
-valuesMatch(Ctx,V,A):-compound(V),convertToMatchable(V,VV),!,valuesMatch0(Ctx,VV,A).
-valuesMatch(Ctx,V,A):-compound(A),convertToMatchable(A,AA),!,valuesMatch0(Ctx,V,AA).
-valuesMatch(Ctx,V,A):-valuesMatch0(Ctx,V,A),!.
 
-valuesMatch0(_Ctx,V,A):-V=A,!.
-valuesMatch0(Ctx,[V|VV],[A|AA]):-valuesMatch(Ctx,V,A),!,valuesMatch(Ctx,VV,AA).
-valuesMatch0(_Ctx,V,A):-sameBinding(V,A),!.
-valuesMatch0(Ctx,[V],A):-!,valuesMatch(Ctx,V,A).
-valuesMatch0(Ctx,V,[A]):-!,valuesMatch(Ctx,V,A).
+valuesMatch10(Ctx,V,A):-notrace(valuesMatch11(Ctx,V,A)),!.
+valuesMatch10(Ctx,V,A):-ignorecase_literal(A,AA),ignorecase_literal(V,VV),!,valuesMatch11(Ctx,VV,AA),!.
+
+valuesMatch1(_Ctx,V,V).
+valuesMatch1(_Ctx,V,A):- isStar0(V);isStar0(A).
+valuesMatch1(Ctx,[V],A):-!,valuesMatch1(Ctx,V,A).
+valuesMatch1(Ctx,V,[A]):-!,valuesMatch1(Ctx,V,A).
+valuesMatch1(_Ctx,V,A):-sameBinding(V,A).
+
+valuesMatch11(_Ctx,A,A).
+valuesMatch11(Ctx,[V|VV],[A|AA]):-valuesMatch1(Ctx,V,A),!,valuesMatch11(Ctx,VV,AA).
 
 
 valueMP(Var,M):- member(M, [var(Var), Var=missing, Var=[], Var=(*) ,  Var=('_') , Var=('OM') , (Var=(-(_))) ]),M,!.
@@ -148,7 +152,7 @@ withAttributes(CtxIn,ATTRIBS,Call):- fail,
     once((hotrace(popAttributes(NewCtx,Scope,ATTRIBS))))).
 
 withAttributes(CtxIn,ATTRIBS,Call):-
- copy_term(CtxIn,Ctx),
+ copy_term(CtxIn,Ctx),!,
   hotrace((
    ensureScope(Ctx,ATTRIBS,Scope),
    checkAttributes(Scope,ATTRIBS),

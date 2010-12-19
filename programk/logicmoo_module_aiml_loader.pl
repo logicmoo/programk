@@ -148,6 +148,7 @@ fileToLineInfoElements(Ctx,F0,XMLSTRUCTURES):-
         close(In),!,
         fileToLineInfoElements2(Ctx,File,XMLSTRUCTURES))).
 
+
 % gather line contents
 fileToLineInfoElements2(Ctx,File,XMLSTRUCTURES):-!,
   sgml_parser_defs(PARSER_DEFAULTS,_PARSER_CALLBACKS),
@@ -482,7 +483,7 @@ classify2(Out,Out).
 
 classifySingle('_',var('_')).
 classifySingle(*,var('*')).
-classifySingle(Atom,in):-is_litteral(Atom).
+classifySingle(Atom,in):-is_literal(Atom).
 classifySingle(Atom,out):-atom(Atom).
 classifySingle(Atom,spec(File)):-compound(Atom),functor(Atom,File,_).
 classifySingle(_Atom,unknown).

@@ -8,6 +8,7 @@
 % Revised At:   $Date: 2002/07/11 21:57:28 $
 % ===================================================================
 
+
 %:-module()
 %:-include('logicmoo_utils_header.pl'). %<?
 %:- style_check(-singleton).
@@ -25,7 +26,12 @@ translate_single_aiml_file(Ctx,F0):-
    atom_concat_safe(File,'.pl',PLNAME),
    translate_single_aiml_file(Ctx,File,PLNAME,FileMatch))),!.
 
-translate_aiml_structure(X,X).
+translate_aiml_structure(Ctx,Structure):-not(atom(Structure)),!,
+   trace,debugFmt(translate_aiml_structure_no_atom(Ctx,Structure)),!.
+
+translate_aiml_structure(Ctx,Structure):- 
+   trace,debugFmt(translate_aiml_structure_atom(Ctx,Structure)),!.
+
 
 cateForFile(_Ctx,SRCFILE,aimlCate(_GRAPH,_PRECALL,_TOPIC,_THAT,_INPUT,_PATTERN,_FLAGS,_CALL,_GUARD,_USERDICT,_TEMPLATE,_LINENO,SRCFILE:_-_)):-!.
 cateForFile(Ctx,File,FileMatch):- ctrace,withNamedValue(Ctx,[anonvarsFroCate=true], makeAimlCate(Ctx,[srcfile=File:_-_],FileMatch)),!.
@@ -153,7 +159,7 @@ convert_atom(A,Z):-convert_atom0(A,Y),!,Y=Z.
 convert_atom(E,File):-aiml_error(convert_atom(E,File)),!,E=File.
 %convert_atom(A,C):-atom_to_number(A,C),!.
 convert_atom0(A,C):-atomSplit(A,M),!,convert_text(M,C),!.
-convert_atom0(A,D):-matchable_litteral_safe(A,D),!.
+convert_atom0(A,D):-literal_atom_safe(A,D),!.
 convert_atom0(A,A):-concat_atom_safe([A],' ',A).
 convert_atom0(A,A). %%:-!listify(A,AA).
 
@@ -293,7 +299,7 @@ convert_attribute(A=B,AA=BB):-convert_name(A,AA),convert_template(_Ctx,B,BB).
 
 convert_name(A,AAA):-convert_name0(A,AA), (A==AA -> AAA=AA ; convert_name(AA,AAA)),!.
 
-convert_name0(A,AA):-toLowercase(A,AA).
+convert_name0(A,AA):-literal_atom_safe(A,AA).
 convert_name0(var,name).
 convert_name0(Attrib,uri):-pathAttrib(Attrib),!.
 
@@ -333,22 +339,22 @@ transformTagData0(Ctx,TAG,_Default,PATTERN_IN,PATTERN_OUT):-
     )))),
   convert_template_pred(Ctx,=,PATTERN_IN,_PATTERN_OUT_UNUSED).
 
-transformTagData1(_Ctx,TAG,_Default,PATTERN_IN,PATTERN_OUT):- member(TAG,[userdict,graph]),matchable_litteral_safe(PATTERN_IN,PATTERN_OUT),!.
+transformTagData1(_Ctx,TAG,_Default,PATTERN_IN,PATTERN_OUT):- member(TAG,[userdict,graph]),literal_atom_safe(PATTERN_IN,PATTERN_OUT),!.
 transformTagData1(_Ctx,TAG,_Default,PATTERN_IN,PATTERN_OUT):-infoTagLikeLineNumber(TAG),!,PATTERN_IN=PATTERN_OUT.
 
 transformTagData1(Ctx,_TAG,_Default,PATTERN_IN,PATTERN_OUT):- %%% debugFmt(transformTagData(TAG,Default,PATTERN_IN)), 
-                 convert_template_pred(Ctx,matchable_litteral_safe,PATTERN_IN,PATTERN_OUT),!.
+                 convert_template_pred(Ctx,literal_atom_safe,PATTERN_IN,PATTERN_OUT),!.
 transformTagData1(Ctx,_N,_Default,R,RR):-convert_template(Ctx,R,RR),!. 
 transformTagData1(_Ctx,_TAG,_Default,PATTERN,PATTERN):-!.
 
 % ===============================================================================================
 % ===============================================================================================
 
-convert_pattern(Ctx,PATTERN_IN,PATTERN_OUT):- convert_template_pred(Ctx,matchable_litteral_safe_non_special,PATTERN_IN,PATTERN_OUT),!.
+convert_pattern(Ctx,PATTERN_IN,PATTERN_OUT):- convert_template_pred(Ctx,matchable_literal_safe_non_special,PATTERN_IN,PATTERN_OUT),!.
 
-matchable_litteral_safe_non_special(A,A):-not(atom(A)),!.
-matchable_litteral_safe_non_special(Atom,Atom):-atom_prefix(Atom,'#$'),!.
-matchable_litteral_safe_non_special(A,U):-matchable_litteral_safe(A,U).
+matchable_literal_safe_non_special(A,A):-not(atom(A)),!.
+matchable_literal_safe_non_special(Atom,Atom):-atom_prefix(Atom,'#$'),!.
+matchable_literal_safe_non_special(A,U):-literal_atom_safe(A,U).
 
 convert_template_pred(Ctx,Pred,PATTERN_IN,PATTERN_OUT):- convert_template(Ctx,PATTERN_IN,PATTERN_MID),!,
      prolog_must(map_tree_to_list(Pred,PATTERN_MID,PATTERN_OUT)),!.

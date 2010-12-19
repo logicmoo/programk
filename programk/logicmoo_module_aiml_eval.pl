@@ -259,10 +259,10 @@ systemCall_Load(Ctx,[Filename],template([loaded,Filename])):-
     withAttributes(Ctx,ATTRIBS,load_aiml_structure(Ctx,AIML)),!.
 
 systemCall_Find(_Ctx,REST,proof(CateSig,REST)):-
-         findall(U,(member(L,REST),litteral_atom(L,U)),UUs),
+         findall(U,(member(L,REST),literal_atom(L,U)),UUs),
          functor(CateSig,aimlCate,13),
          findall(CateSig,
-             (CateSig,once((term_to_atom(CateSig,Atom),litteral_atom(Atom,U1),member(U2,UUs),sub_atom(U1,_,_,_,U2),
+             (CateSig,once((term_to_atom(CateSig,Atom),literal_atom(Atom,U1),member(U2,UUs),sub_atom(U1,_,_,_,U2),
               debugFmt(CateSig)))),_List),!.
 
 % ===================================================================
@@ -338,8 +338,8 @@ sameBinding(X,Y):-hotrace((sameBinding1(X,X1),sameBinding1(Y,Y1),!,X1=Y1)),!.
 
 sameBinding1(X,X):-var(X),!.
 sameBinding1(_-X,Y):-nonvar(X),!,sameBinding1(X,Y).
-sameBinding1(X,Z):-convertToMatchable(X,Y),!,(X\==Y->sameBinding1(Y,Z);Y=Z),!.
-%sameBinding1([A|B],AB):-convertToMatchable([A|B],AB),!.
+sameBinding1(X,Z):- convertToMatchableCS(X,Y),X\==Y,!,sameBinding1(Y,Z).
+%sameBinding1([A|B],AB):-convertToMatchableCS([A|B],AB),!.
 sameBinding1(X,X):-!.
 sameBinding1(X,Y):- balanceBinding(X,Y),!.
 

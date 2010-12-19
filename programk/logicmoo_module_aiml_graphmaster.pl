@@ -110,7 +110,6 @@ argNumsTracked(Pred,ArgName,Position):-argNumsIndexedRepr(Pred,ArgName,Position,
 
 argNFound(F,A,*,[_|_]):-argNumsIndexedRepr(F,A,_,textInput).
 
-
 assert_cate_in_load(NEW) :- currentContext(assert_cate_in_load,Ctx),prolog_must(assert_cate_in_load(Ctx,NEW)),!.
 
 
@@ -214,6 +213,13 @@ dirtyArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgTy
 dirtyArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType):- 
   debugFmt(dirtyArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType)),!.
 
+%%%% todo maybe this.. once((retract(NEW),asserta(NEW)) ; (asserta(NEW),(debugFmt('~q.~n',[asserta(N)])))),!.
+/*
+asserta_if_new(NEW):-!,
+  once(
+   (retract(NEW),asserta(NEW)) ; 
+   (asserta(NEW),debugFmt('~q.~n',[asserta(NEW)])) ),!.
+*/
 asserta_if_new(N):-catch(N,E,debugFmt(error_in(E,N))),!.
 asserta_if_new(N):-asserta(N),debugFmt(asserta(N)),!.
 
@@ -460,6 +466,7 @@ subclassMakeUserDict(Ctx,UserDict,SYM):-debugFmt(subclassMakeUserDict(Ctx,UserDi
 convThreadDict(_Ctx,ConvThreadHint,ConvThread):-answerOutput(ConvThreadHint,First),unlistify(First,ConvThread),!.
 
 computeSRAI222(CtxIn,Votes,ConvThreadHint,SYM,Pattern,Compute,VotesO,ProofOut,OutputLevel):-    
+ prolog_mustEach((
    %%convertToMatchable(Pattern,InputPattern),
    prolog_must(current_value(CtxIn,'evalsrai',SYM2)),
    ifThen(var(SYM),SYM=SYM2),
@@ -481,12 +488,9 @@ computeSRAI222(CtxIn,Votes,ConvThreadHint,SYM,Pattern,Compute,VotesO,ProofOut,Ou
    
    UNIF= topicThatPattern(Ctx,Topic,That,Pattern,PreTopic,Out,CateSig,OutputLevel,StarSets_All,ClauseNumber,CommitTemplate),
    findall(UNIF,UNIF,UNIFS),!,
-   traceIf(Pattern=['3']),
    traceIf(UNIFS=[_]),
    %%%%% iterate from here %%%%%
    member(UNIF,UNIFS), 
-   
-
          once(prolog_mustEach((
             retractallSrais(SYM),
             prolog_must(CommitTemplate),
@@ -496,10 +500,10 @@ computeSRAI222(CtxIn,Votes,ConvThreadHint,SYM,Pattern,Compute,VotesO,ProofOut,Ou
             VotesO is Votes * Mult,
 
             makeWithAttributes(StarSets_All,Out,Compute),       
-            ProofOut=..[proof,Compute,cn(ClauseNumber),CateSig]))).
+            ProofOut=..[proof,Compute,cn(ClauseNumber),CateSig]))))).
 
 %%clauseRef(_CateSig,0):-!.
-clauseRef(CateSig,Pattern:Template):-arg(7,CateSig,Pattern),arg(11,CateSig,Template),!.
+clauseRef(CateSig,Pattern:Template):-arg(6,CateSig,Pattern),arg(11,CateSig,Template),!.
 clauseRef(CateSig,ClauseNumber):-clause(CateSig,true,ClauseNumber).
 
 savedParts(Save,PreTopic,CommitTemplate,OutputLevel,StarSets_All,Out,ClauseNumber,CateSig):-
@@ -531,6 +535,7 @@ cate_match(Ctx,CateSigFunctor,StarName,TextPattern,CateSig,MatchPattern,StarSets
 %% simpler but slower.. maybe comment (fail) this one out for the faster next one
 %% DOES NOT USE INDEXES 
 topicThatPattern(Ctx,Topic,That,Pattern,PreTopic,Out,CateSig,OutputLevel,StarSets_All,ClauseNumber,CommitTemplate):- useNewCateSigSearch,
+  prolog_mustEach((
    debugFmt(debugWarn(useNewCateSigSearch)), 
    CommitTemplate = (nop(CateSig),prolog_must(PreTopic)),
    savedParts(Save,PreTopic,CommitTemplate,OutputLevel,StarSets_All,Out,ClauseNumber,CateSig),
@@ -538,23 +543,48 @@ topicThatPattern(Ctx,Topic,That,Pattern,PreTopic,Out,CateSig,OutputLevel,StarSet
    prolog_must(AllCateSig=[_|_]),
    sort(AllCateSig,SetOfAllCateSig),!,
    %%%%% Iterate here %%%%
-   member(Save,SetOfAllCateSig).
+   member(Save,SetOfAllCateSig))).
 
 %% WILL GET HERE ONLY IF NEW ROUTINES ARE NOT AS FAST (WHICH IS THE CASE)
 topicThatPattern(Ctx,Topic,That,Pattern,PreTopic,Out,CateSig,OutputLevel,StarSets_All,ClauseNumber,CommitTemplate):-
+ prolog_mustEach((
    traceIf(useNewCateSigSearch),
+   OutputLevel = OutputLevel1 - OutputLevel2 - OutputLevel3,!,
    CPreTopic = true,
-   make_preconds_for_match(Ctx,'topic',Topic,CateSig,PreTopic,AfterTopic, CPreTopic,CAfterTopic, Out,MinedCates,StarSets_Topic,OutputLevel1),
-   make_preconds_for_match(Ctx,'that',That,CateSig,AfterTopic,AfterThat,CAfterTopic,CAfterThat,Out,MinedCates,StarSets_That,OutputLevel2),
-   make_preconds_for_match(Ctx,'pattern',Pattern,CateSig,AfterThat,FindPattern,CAfterThat,CommitTemplate,Out,MinedCates,StarSets_Pattern,OutputLevel3),
-   prolog_must(var(Out)),
-   must_be_openCate(CateSig),
-   OutputLevel = OutputLevel1 - OutputLevel2 - OutputLevel3,!,   
-   %%%%% Iterate here %%%%
-   prolog_must(atLeastOne((FindPattern,CateSig))),   
+   make_preconds_for_match(Ctx,'topic',Topic,CateSig,PreTopic,AfterTopic,CPreTopic,CAfterTopic,Out,MinedCates,EachMatchSig_Topic,StarSets_Topic,OutputLevel1),
+   make_preconds_for_match(Ctx,'that',That,CateSig,AfterTopic,AfterThat,CAfterTopic,CAfterThat,Out,MinedCates,EachMatchSig_That,StarSets_That,OutputLevel2),
+   make_preconds_for_match(Ctx,'pattern',Pattern,CateSig,AfterThat,FindPatternGoal,CAfterThat,CommitTemplate,Out,MinedCates,EachMatchSig_Pattern,StarSets_Pattern,OutputLevel3),
+   prolog_must((var(Out),var(OutputLevel1),var(OutputLevel2),var(OutputLevel3))),
+   must_be_openCate(CateSig))),
+  prolog_mustEach((
+   %%%%% Iterate here %%%%   
+   atLeastOne(call((FindPatternGoal,
+       /*
+       combineStarSets(StarSets_Topic,StarSets_That,StarSets_Pattern,StarSets_All),
+       copy_term(CateSig,CateSig2),ignore(CateSig2),
+       traceIf((That=['How',_|_],nop(CateSig=CateSig2))),
+       */
+       CateSig))),   
    clauseRef(CateSig,ClauseNumber),
-   combineStarSets(StarSets_Topic,StarSets_That,StarSets_Pattern,StarSets_All).
+   singletons([EachMatchSig_Topic,EachMatchSig_That,EachMatchSig_Pattern]),
+   combineStarSets(StarSets_Topic,StarSets_That,StarSets_Pattern,StarSets_All))).
 
+savedSetPatterns(LSP,MatchLevel,StarSets,MatchPattern):- LSP = lsp(MatchLevel,StarSets,MatchPattern).
+
+make_preconds_for_match(Ctx,StarName,TextPattern,CateSig,PrecondsSearch,PostcondsSearch,PrecondsCommit,PostcondsCommit,Out,MinedCates,EachMatchSig,StarSets,
+ OutputLevel):-   
+   make_prepost_conds(Ctx,StarName,TextPattern,CateSig,FindPatternGoal,CommitResult,Out,MinedCates,EachMatchSig,StarSets,OutputLevel),
+   combineConjCall(PrecondsSearch,FindPatternGoal,PostcondsSearch),
+   combineConjCall(PrecondsCommit,CommitResult,PostcondsCommit).
+
+%%TODO: MAKE THIS ONE WORK ! (CURRENTLY WORKS)
+make_prepost_conds(Ctx,StarName,TextPattern,CateSig,FindPatternGoal,CommitTemplate,Out,MinedCates,EachMatchSig,StarSets,MatchLevel):-  
+ prolog_mustEach((
+  CommitTemplate = true,
+  generateMatchPatterns(Ctx,StarName,Out,TextPattern,CateSig,MinedCates,EachMatchSig),
+  savedSetPatterns(LSP,MatchLevel,StarSets,MatchPattern),
+  getCategoryArg(Ctx,StarName,MatchPattern,Out,CateSig),
+  FindPatternGoal = ( member(LSP,EachMatchSig),CateSig ) )),!.
 
 contextUsedClaused(Ctx,CateSig,ClauseNumber):- fail, contains_term(Ctx,CateSig)->not(contains_term(Ctx,ClauseNumber));not(contains_term(Ctx,ClauseNumber)).
 
@@ -597,73 +627,22 @@ meansNothing0([Atom],Out):-!,meansNothing0(Atom,Out).
 meansNothing0('_',['Nothing']).
 meansNothing0('*',['Nothing']).
 
-savedSetPatterns(LSP,MatchLevel,StarSets,MatchPattern):- LSP = lsp(MatchLevel,StarSets,MatchPattern).
-
-make_preconds_for_match(Ctx,StarName,InputNothing,CateSig,PrecondsSearch,PostcondsSearch,PrecondsCommit,PostcondsCommit,Out,MinedCates,ProofOut,
- OutputLevel):-
-   make_prepost_conds(Ctx,StarName,InputNothing,CateSig,FindPattern,CommitResult,Out,MinedCates,ProofOut,OutputLevel),
-   combineConjCall(PrecondsSearch,FindPattern,PostcondsSearch),
-   combineConjCall(PrecondsCommit,CommitResult,PostcondsCommit).
-
 combineConjCall(A,B,C):-A==true,!,C=B.
 combineConjCall(A,B,C):-B==true,!,C=A.
 combineConjCall(A,B,C):- C = (A,B).
 
-%%addToMinedCates(_MinedCates,_CateSig):-!.
+addToMinedCates(_MinedCates,_CateSig):-!.
 addToMinedCates(MinedCates,CateSig):-prolog_must(ground(CateSig)),append(_,[CateSig|_],MinedCates),!.
 addToMinedCates(MinedCates,CateSig):-ctrace,var(MinedCates),!,MinedCates=[CateSig|_].
 
-
-make_prepost_conds(Ctx,StarName,TextPattern,CateSig,FindPattern,CommitTemplate,Out,MinedCates,ProofOut,MatchLevel):- 
-  hotrace(meansNothing(TextPattern,InputPattern)), 
-   TextPattern \= InputPattern,!,
-  make_prepost_conds(Ctx,StarName,InputPattern,CateSig,FindPattern,CommitTemplate,Out,MinedCates,ProofOut,MatchLevel).
-
-%%TODO: MAKE THIS ONE WORK BEST ! (CURRENTLY DISABLED)
-make_prepost_conds(Ctx,StarName,TextPattern,CateSig,FindPattern,CommitTemplate,Out,MinedCates,StarSets,MatchLevel):- fail,
-  prolog_must(generateMatchPatterns(Ctx,StarName,Out,TextPattern,CateSig,MinedCates,EachMatchSig)),
-  prolog_must(EachMatchSig=[_|_]),
-  getCategoryArg(Ctx,StarName,MatchPattern,Out,CateSig),
-  savedSetPatterns(LSP,_MatchLevel,StarSets,_MatchPattern),
-  getCategoryArg(Ctx,StarName,MatchPattern,Out,CateSig),
-  (FindPattern = 
-      ((
-        member(LSP,EachMatchSig),
-        savedSetPatterns(LSP,MatchLevel2,StarSets,MatchPattern),
-
-           (CommitTemplate = ignore(MatchLevel2 = MatchLevel))))),!.
-
-
-%%TODO: MAKE THIS ONE WORK ! (CURRENTLY WORKS)
-make_prepost_conds(Ctx,StarName,TextPattern,CateSig,FindPattern,CommitTemplate,Out,MinedCates,StarSets,MatchLevel):- 
-  prolog_must(generateMatchPatterns(Ctx,StarName,Out,TextPattern,CateSig,MinedCates,EachMatchSig)),
-  prolog_must(EachMatchSig=[_|_]),
-  getCategoryArg(Ctx,StarName,MatchPattern,Out,CateSig),
-  savedSetPatterns(LSP,_MatchLevel,StarSets,_MatchPattern),
-  getCategoryArg(Ctx,StarName,MatchPattern,Out,CateSig),
-  (FindPattern = 
-      ((
-        member(LSP,EachMatchSig),           
-        savedSetPatterns(LSP,MatchLevel2,StarSets,MatchPattern),
-
-           (CommitTemplate = ignore(MatchLevel2 = MatchLevel))))),!.
-
-
-%%TODO: AFTER THE ABOVE WORKS.. REMOVE THIS ONE !
-make_prepost_conds(Ctx,StarName,TextPattern,CateSig,FindPattern,CommitTemplate,Out,MinedCates,ProofOut,MatchLevel):- ctrace,
-  prolog_must(generateMatchPatterns(Ctx,StarName,Out,TextPattern,CateSig,MinedCates,EachMatchSig)),
-  prolog_must(EachMatchSig=[_|_]),
-  savedSetPatterns(LSP,MatchLevel,_StarSets,MatchPattern),
-  getCategoryArg(Ctx,StarName,MatchPattern,Out,CateSig),
-  FindPattern = 
-      ((
-        member(LSP,EachMatchSig),   
-           prolog_must(make_star_binders(Ctx,StarName,1,TextPattern,MatchPattern,MatchLevel2,ProofOut)),
-           (CommitTemplate = ignore(MatchLevel2 = MatchLevel)))).         
-
 notSingletons(_Singleton_List):-!.
 
-generateMatchPatterns(Ctx,StarName,Out,InputNothing,CateSig,NC_MinedCates,EachMatchSig):-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% generateMatchPatterns -  finds the candidate indexers for some textInput
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+generateMatchPatterns(_Ctx,_StarName,_Out,_InputNothing,_CateSig,_NC_MinedCates,EachMatchSig):-nonvar(EachMatchSig),trace,!. % already done
+
+generateMatchPatterns(Ctx,StarName,Out,InputNothing,CateSig,NC_MinedCates,EachMatchSig):- fail,
   hotrace(meansNothing(InputNothing,InputPattern)),
   InputNothing\==InputPattern,!,
   generateMatchPatterns(Ctx,StarName,Out,InputPattern,CateSig,NC_MinedCates,EachMatchSig).
@@ -676,21 +655,21 @@ generateMatchPatterns(Ctx,StarName,Out,InputNothing,CateSig,_NC_MinedCates,EachM
    prolog_must(EachMatchSig=[_|_]),
   must_be_openCate(CateSig),!.
 
-
 %% The NEWEST match patterns NOW using Indexing!
 generateMatchPatterns(Ctx,StarName,Out,InputPattern,CateSigIn,MinedCates,SetOfEachMatchSig):-  useIndexPatternsForCateSearch,
-  copy_term(CateSigIn,CateSig),CateSigIn=CateSig,
+ prolog_mustEach((
+  copy_term(CateSigIn,CateSig),
+  CateSigIn=CateSig,
  functor(CateSig,CateSigFunctor,_Args),
   must_be_openCate(CateSig),
   getCategoryArg(Ctx,StarName,MatchPattern,Out,CateSig),
   savedSetPatterns(LSP,MatchLevel,StarSets,MatchPattern),   
-   traceIf((StarName==that,InputPattern=['How',_|_])),
   findall(LSP,
              (argNFound(CateSigFunctor,StarName,MatchPattern,_),
               canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern,MatchLevel,StarSets)),
       EachMatchSig),
-  sort(EachMatchSig,SetOfEachMatchSig),
   prolog_must(EachMatchSig=[_|_]),
+  sort(EachMatchSig,SetOfEachMatchSig),  
   prolog_must(debugFmtList([
         starName = StarName,
         %%eachMatchSig(EachMatchSig),
@@ -699,33 +678,7 @@ generateMatchPatterns(Ctx,StarName,Out,InputPattern,CateSigIn,MinedCates,SetOfEa
         matchPattern=MatchPattern,
         minedCates=(MinedCates),
         cateSig=CateSig
-        ])),!.
-
-
-%% The NEW match patterns NOW using Indexing!
-generateMatchPatterns(Ctx,StarName,Out,InputPattern,CateSig,_MinedCates,EachMatchSig):- useIndexPatternsForCateSearch,
- %% convertToMatchable(TextPattern,InputPattern),
- functor(CateSig,CateSigFunctor,_Args),
-  must_be_openCate(CateSig),
-  copy_term(CateSig,CateSigC),!,  
-  getCategoryArg(Ctx,StarName,MatchPattern,Out,CateSigC),
-  findall(MatchPattern,argNFound(CateSigFunctor,StarName,MatchPattern,_),AllMatchSig),
-  sort(AllMatchSig,SetOfEachMatchSig),
-  savedSetPatterns(LSP,MatchLevel,StarSets,MatchPattern),
-  findall(LSP,
-             (member(MatchPattern,SetOfEachMatchSig), 
-              canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern,MatchLevel,StarSets)),
-      EachMatchSig),
- %%traceIf((StarName==pattern,InputPattern=[_,_|_])),
-   prolog_must(EachMatchSig=[_|_]),
-  prolog_must(debugFmtList([
-        starName = StarName,
-        eachMatchSig(EachMatchSig),
-        setOfEachMatchSig=SetOfEachMatchSig,
-        eachMatchSig=EachMatchSig,
-        matchPattern=MatchPattern,
-        cateSig=CateSig
-        ])),!.
+        ])))),!.
 
 
 %% The OLD match patterns NOT using Indexing
@@ -752,11 +705,10 @@ generateMatchPatterns(Ctx,StarName,Out,InputPattern,CateSig,_MinedCates,EachMatc
         ])).
 
 % ========================================================================================
-%%make_star_binders(Ctx,_StarName,[_],[_,_|_]):-!,fail.
-%%make_star_binders(Ctx,StarName,A,B):-make_star_binders(Ctx,StarName,A,B,_MatchLevel,_StarSets),!.    
+%  canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern,MatchLevel,StarSets)
 % ========================================================================================
 
-canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern,MatchLevel,StarSets):-     
+canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern,MatchLevel,StarSets):-
     make_star_binders(Ctx,StarName,1,InputPattern,MatchPattern,MatchLevelInv,StarSets),!,MatchLevel is 1/MatchLevelInv ,
     nop(debugFmt(pass_canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern,MatchLevel,StarSets))),!.
 
@@ -768,7 +720,11 @@ consumeSkippables([],[]).
 consumeSkippables([Skipable|B],BB):- isIgnoreableWord(Skipable),!,consumeSkippables(B,BB).
 consumeSkippables(A,A).
 
-
+% ======================================================================================== 
+% make_star_binders(Ctx, StarName, Text , Pattern, 1/MatchLevel, StarSetsNameValues).
+%
+% pattern_match(Text , Pattern)..  would be simply   make_star_binders(_Ctx, starName, Text , Pattern, _MatchLevel, _StarSetsNameValues).
+% ========================================================================================
 make_star_binders(_Ctx,StarName,_N,InputPattern,MatchPattern,MatchLevel,StarSets):- 
    prolog_must(var(StarSets)),prolog_must(var(MatchLevel)),prolog_must(ground(StarName:InputPattern:MatchPattern)),fail.  
 
@@ -812,9 +768,19 @@ make_star_binders(Ctx,StarName,N,InputText,Indexical,WildValue,Pred):-
 
 
 % skip over skippable words
-make_star_binders(Ctx,StarName,N,[Skipable|B],BB,CountO,StarSets):- isIgnoreableWord(Skipable),!,make_star_binders(Ctx,StarName,N,B,BB,Count,StarSets),CountO is Count + 1.
+make_star_binders(Ctx,StarName,N,Skipable,BB,CountO,StarSets):- 
+  skipablePhrase(Skipable,B),!,make_star_binders(Ctx,StarName,N,B,BB,Count,StarSets),CountO is Count + 1.
+  %%warnIf((isIgnoreableWord(Skipable),!,make_star_binders(Ctx,StarName,N,B,BB,Count,StarSets),CountO is Count + 1)),number(CountO).
 
-isIgnoreableWord(Skipable):-member(Skipable,['-','\n','(',')',',','?','.']).
+
+skipablePhrase([Skipable|B],B):-isIgnoreableWord(Skipable),!.
+skipablePhrase([Skip,'\b',Ble|B],[Skipable|B]):-concat_atom(Skip,Ble,Skipable),!.
+
+isIgnoreableWord(Skipable):-member(Skipable,['-','(',')',',','?','.','','\'']).
+isIgnoreableWord(Skipable):-isWhiteWord(Skipable).
+
+isWhiteWord(Skipable):-member(Skipable,[' ','\b','\n']).
+
 %
 % re-write section
 %
@@ -897,7 +863,7 @@ starMust2(_Skip).
 starSet(Ctx,StarNameI,Pattern):- 
    starName(StarNameI,StarName),
    ignore((var(N),star_flag(StarName,N,N))),
-   (traceIf(isStarValue(Pattern))),
+   traceIf(isStarValue(Pattern)),
    getDictFromAttributes(Ctx,'evalsrai',[],Dict),
    prolog_must(Dict\==user),
    atom_concat(StarName,N,StarNameN),
@@ -907,9 +873,12 @@ starSet(Ctx,StarNameI,Pattern):-
 %%REAL-UNUSED  set_matchit1(StarName,Pattern,Matcher,OnBind):- length(Pattern,MaxLen0), MaxLen is MaxLen0 + 2,
 %%REAL-UNUSED    set_matchit2(StarName,Pattern,Matcher,MaxLen,OnBind).
 
-isStar0(Word1):- member(Word1,[*,'_']).
+%%isStar0(Word1):- member(Word1,[*,'_']).
+isStar0('*').
+isStar0('_').
+
 sameWords(Word1,Word2):-atom(Word1),atom(Word2),atoms_match0(Word1,Word2).
  atoms_match0(Word1,Word2):- (isStar0(Word1);isStar0(Word2)),!,fail.
  atoms_match0(Word1,Word1):-!.
- atoms_match0(Word1,Word2):-litteral_atom(Word1,WordO),litteral_atom(Word2,WordO),!.
+ atoms_match0(Word1,Word2):-literal_atom(Word1,WordO),literal_atom(Word2,WordO),!.
 

@@ -137,29 +137,30 @@ alicebotCTX(_Ctx,In,Res):- !,ignore(Res='-no response-'(In)).
 
 alicebot2(_Ctx,[],[]):-!.
 alicebot2(Ctx,[''|X],Resp):-!,alicebot2(Ctx,X,Resp).
-alicebot2(Ctx,Atoms,Resp):- time(debugOnError(prolog_must(alicebot3(Ctx,Atoms,Resp)))).
+alicebot2(Ctx,Atoms,Resp):- time(debugOnError(alicebot3(Ctx,Atoms,Resp))).
 alicebot3(Ctx,Atoms,Resp):-	
+  prolog_mustEach((
    retractall(posibleResponse(_,_)),
    flag(a_answers,_,0),!,
-   prolog_must((
+   prolog_mustEach((
    getAliceMem(Ctx,'bot','you',User),
    getAliceMem(Ctx,'bot','me',_Robot),
-   getAliceMem(Ctx,'bot',default('minanswers',1),MinAns),
+   getAliceMem(Ctx,'bot',default('minanswers',1),MinAns0),unlistify(MinAns0,MinAns1),MinAnsMinusOne is MinAns1 -1,
    getAliceMem(Ctx,'bot',default('maxanswers',1),_MaxAns),   
    %%setAliceMem(Ctx,User,'input',Atoms),
    pushInto1DAnd2DArray(Ctx,'request','input',5,Atoms,User),
    setAliceMem(Ctx,User,'rawinput',Atoms))),
    thread_local_flag(sraiDepth,_,0),
-   ((call_with_depth_limit_traceable(computeInputOutput(Ctx,1,Atoms,Output,N),8000,_DL),
+   prolog_must((call_with_depth_limit_traceable(computeInputOutput(Ctx,1,Atoms,Output,N),8000,_DL),
 	 ignore((nonvar(N),nonvar(Output),savePosibleResponse(N,Output))),flag(a_answers,X,X+1),
-                X<MinAns)),!,
+                X>=MinAnsMinusOne)),!,
    findall(NR-OR,posibleResponse(NR,OR),L),!,
    (format('~n-> ~w~n',[L])),
    sort(L,S),
    dumpList(S),
    reverse(S,[Resp|_RR]),
    degrade(Resp),
-   rememberSaidIt(Ctx,Resp),!.
+   rememberSaidIt(Ctx,Resp))),!.
 
 
 % ===============================================================================================

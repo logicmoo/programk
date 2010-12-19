@@ -888,4 +888,69 @@ neverUse:- meta_predicate_transparent
 */
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
+:- use_module(library(streampool)).
+
+:-dynamic(echo_server_port/1).
+
+start_echo_server:-echo_server_port(Port),!,debugFmt(echo_server_port(Port)),!.
+start_echo_server:-thread_create(echo_server,_,[]).
+
+echo_server:-
+        Port = 55566,
+        tcp_socket(Socket),
+        tcp_bind(Socket, Port),
+        asserta(echo_server_port(Port)),
+        debugFmt(echo_server_port(Port)),
+        tcp_listen(Socket, 5),
+        tcp_open_socket(Socket, In, _Out),
+        add_stream_to_pool(In, echo_accept(Socket)),
+        stream_pool_main_loop,
+        retract(echo_server_port(Port)).
+
+echo_accept(Socket) :-
+        tcp_accept(Socket, Slave, Peer),
+        tcp_open_socket(Slave, In, Out),
+        add_stream_to_pool(In, echo_client(In, Out, Peer)).
+
+echo_client(In, Out, Peer):- repeat,
+        catch(once(echo_client0(In, Out, Peer)),E,debugFmt(echo_client0(In, Out, Peer)-E)),
+        is_disconnected_not_open(In, Out, Peer).
+
+echo_client(In, Out, Peer):-close_client(In, Out, Peer).
+
+close_client(In, Out, Peer) :-
+        debugFmt(close_client(In, Out, Peer)),
+        close(In, [force(true)]),
+        close(Out, [force(true)]),
+        delete_stream_from_pool(In),!.
+
+is_disconnected_not_open(In, Out, Peer):- at_end_of_stream(In),close_client(In, Out, Peer).
+
+echo_client0(In, Out, Peer) :-  is_disconnected_not_open(In, Out, Peer),!.
+echo_client0(In, Out, _Peer) :- 
+        read_line_to_codes(In, Command),
+        (format(Out, '~s~N', [Command])),
+        flush_output(Out).
+
+:-start_echo_server.
+
+atom_to_stream(Atom,InStream):-      
+      echo_server_port(Port),
+      tcp_socket(ClientSocket),
+      tcp_connect(ClientSocket,localhost:Port),
+      tcp_open_socket(ClientSocket,InStream, OutStream),
+      (format(OutStream,Atom,[])),(format(OutStream,'~N',[])),flush_output(OutStream),
+      %%% After closing both InStream and OutSream, the socket itself is discarded.
+      close(OutStream).
+            
+
+ %% tezt with ?-   atom_to_stream('hi.\nthere.\n',X),read(X,Y),read(X,Z),close(X).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
+
 

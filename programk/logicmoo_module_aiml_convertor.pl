@@ -195,8 +195,8 @@ convert_template(Ctx,P,POL):-convert_element(Ctx,P,PO),!,listify(PO,POL).
 toAtomList(A,O):-delete(A,'',O),!.
 
 convert_element(Ctx,element(Tag, A, B),Out):-!,convert_ele(Ctx,element(Tag, A, B),M),!,M=Out,!.
-convert_element(_Ctx,Input,Out):-atomic(Input),!,convert_text_list(Input,Out).
-convert_element(Ctx,Input,Out):-convert_ele(Ctx,Input,M),!,M=Out,!.
+convert_element(_Ctx,Input,Out):-atomic(Input),convert_text_list(Input,Out),!.
+convert_element(Ctx,Input,Out):-convert_ele(Ctx,Input,M),!,prolog_must(M=Out).
 
       
 nameOrValue(ALIST, _VALUE, NORV, 0):-lastMember(name=NORV,ALIST),!.

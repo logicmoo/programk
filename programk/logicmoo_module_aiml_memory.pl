@@ -289,49 +289,54 @@ toLowerIfAtom(Dict,Dict).
 ensureValue(ValueO,ValueO):-!. %%TODO: remove this line
 ensureValue(ValueO,['$value'(ValueO)]).
 
+% ===============================================================================================
+% Add/Setting globals
+% ===============================================================================================
+withValueAdd(Ctx,Pred,IDict,NameI,Value):- dictNameDictNameC(Ctx,IDict,NameI,Dict,Name),!,withValueAdd(Ctx,Pred,Dict,Name,Value),!.
+withValueAdd(Ctx,Pred,IDict,Name,Value):-is_list(IDict),!,trace,foreach(member(Dict,IDict),withValueAdd(Ctx,Pred,Dict,Name,Value)),!.
+withValueAdd(Ctx,Pred,Dict,Name,Var):-var(Var),!,withValueAdd(Ctx,Pred,Dict,Name,['$var'(Var)]).
+withValueAdd(Ctx,Pred,Dict,Name,Atomic):-atomic(Atomic),Atomic\==[],!,withValueAdd(Ctx,Pred,Dict,Name,[Atomic]).
+withValueAdd(Ctx,Pred,Dict,Name,NonList):-not(is_list(NonList)),ctrace,!,withValueAdd(Ctx,Pred,Dict,Name,[NonList]).
+withValueAdd(Ctx,Pred,Dict,Name,Value):-immediateCall(Ctx,call(Pred,Ctx,Dict,Name,Value)),fail.
+withValueAdd(Ctx,Pred,Dict,Name,Value):-isStarValue(Value),debugFmt(withValueAdd(Ctx,Pred,Dict,Name,Value)),ctrace.
+%%withValueAdd(Ctx,Pred,Dict,default(Name),DefaultValue):-getAliceMem(Ctx,Pred,Dict,Name,'OM')->setAliceMem(Ctx,Dict,Name,DefaultValue);true.
+withValueAdd(Ctx,Pred,Dict,Name,Value):-checkDictIn(Value,ValueO),call(Pred,exec,Ctx,Dict,Name,ValueO).
+
 
 % ===============================================================================================
 % Setting globals
 % ===============================================================================================
 setAliceMem(Dict,X,E):-currentContext(setAliceMem(Dict,X,E),Ctx), prolog_must(setAliceMem(Ctx,Dict,X,E)).
 
-setAliceMem(Ctx,IDict,NameI,Value):-dictNameDictNameC(Ctx,IDict,NameI,Dict,Name),!,setAliceMem(Ctx,Dict,Name,Value),!.
-setAliceMem(Ctx,Dict,Name,Var):-var(Var),!,setAliceMem(Ctx,Dict,Name,['$var'(Var)]).
-setAliceMem(Ctx,Dict,Name,Atomic):-atomic(Atomic),Atomic\==[],!,setAliceMem(Ctx,Dict,Name,[Atomic]).
-setAliceMem(Ctx,Dict,Name,NonList):-not(is_list(NonList)),ctrace,!,setAliceMem(Ctx,Dict,Name,[NonList]).
-setAliceMem(Ctx,IDict,Name,Value):-is_list(IDict),!,foreach(member(Dict,IDict),setAliceMem(Ctx,Dict,Name,Value)),!.
-setAliceMem(Ctx,Dict,Name,Value):-immediateCall(Ctx,setAliceMem(Dict,Name,Value)),fail.
-setAliceMem(Ctx,Dict,Name,Value):-isStarValue(Value),debugFmt(setAliceMem(Ctx,Dict,Name,Value)),ctrace.
+setAliceMem(Ctx,IDict,Name,Value):-withValueAdd(Ctx,setAliceMem,IDict,Name,Value).
 setAliceMem(Ctx,Dict,default(Name),DefaultValue):-getAliceMem(Ctx,Dict,Name,'OM')->setAliceMem(Ctx,Dict,Name,DefaultValue);true.
-setAliceMem(Ctx,Dict,Name,Value):-notrace((resetAliceMem0(Ctx,Dict,Name,Value))),!.
+setAliceMem(exec,Ctx,Dict,Name,Value):-notrace((resetAliceMem0(Ctx,Dict,Name,Value))),!.
 
 % ===============================================================================================
 % Inserting globals
 % ===============================================================================================
-insert1StValue(Ctx,IDict,Name,Value):-is_list(IDict),!,foreach(member(Dict,IDict),insert1StValue(Ctx,Dict,Name,Value)),!.
-insert1StValue(Ctx,IDict,NameI,Value):- dictNameDictNameC(Ctx,IDict,NameI,Dict,Name),!,insert1StValue(Ctx,Dict,Name,Value),!.
-insert1StValue(Ctx,Dict,Name,Var):-var(Var),!,insert1StValue(Ctx,Dict,Name,['$var'(Var)]).
-insert1StValue(Ctx,Dict,Name,Atomic):-atomic(Atomic),Atomic\==[],!,insert1StValue(Ctx,Dict,Name,[Atomic]).
-insert1StValue(Ctx,Dict,Name,NonList):-not(is_list(NonList)),ctrace,!,insert1StValue(Ctx,Dict,Name,[NonList]).
-insert1StValue(Ctx,Dict,Name,Value):-nop(immediateCall(Ctx,insert1StValue(Ctx,Dict,Name,Value))),fail.
-insert1StValue(Ctx,Dict,Name,Value):-isStarValue(Value),debugFmt(insert1StValue(Ctx,Dict,Name,Value)),ctrace.
-%%insert1StValue(Ctx,Dict,default(Name),DefaultValue):-getAliceMem(Ctx,Dict,Name,'OM')->setAliceMem(Ctx,Dict,Name,DefaultValue);true.
-insert1StValue(_Ctx,Dict,Name,Value):-checkDictValue(Value),asserta(dict(Dict,Name,Value)),!.
-
+insert1StValue(Ctx,IDict,Name,Value):-withValueAdd(Ctx,insert1StValue,IDict,Name,Value).
+insert1StValue(exec,_Ctx,Dict,Name,Value):-asserta(dict(Dict,Name,Value)),!.
 
 % ===============================================================================================
 %    AIML Runtime Database
 % ===============================================================================================
-checkDictValue(_Value):-!.
-checkDictValue(Value):-prolog_must(nonvar(Value)),atomic(Value),Value==[].
-checkDictValue(Value):-prolog_must(dictValue(Value)).
+%%checkDictValue(_Value):-!.
+checkDictValue(Value):-prolog_must(nonvar(Value)),atomic(Value),Value==[],!.
+checkDictValue(Value):-prolog_must(dictValue(Value)),!.
+
+checkDictIn(Value,Value):-var(Value),!.
+checkDictIn(Value,Value):-prolog_must(ground(Value)),(Value=['ERROR'|_];Value=[['ERROR'|_]|_]),!.
+
+checkDictIn(Value,Value):-warnIf(not(checkDictValue(Value))).
+
 
 dictValue(Value):-valuePresent(Value).
 
 
-resetAliceMem0(Ctx,IDict,NameI,Value):- dictNameDictName(Ctx,IDict,NameI,Dict,Name),
+resetAliceMem0(Ctx,IDict,NameI,ValueIn):- dictNameDictName(Ctx,IDict,NameI,Dict,Name),
    % for printing
-   checkDictValue(Value),
+   checkDictIn(ValueIn,Value),
    %%%traceIf(Dict==filelevel),
    currentContextValue(Ctx,Dict,Name,B),   
    debugFmt('/* ~q. */',[dict(Dict,Name,B->Value)]),
@@ -359,8 +364,8 @@ addNewContextValue(Ctx,Dict,Name,OM):- OM=='OM',!,clearContextValues(Ctx,Dict,Na
 addNewContextValue(Ctx,Dict,Name,Value):- 
    prolog_must((dictNameKey(Dict,Name,Key), addNewContextValue(Ctx,Dict,Key,Name,Value))),!.
 
-addNewContextValue(Ctx,Dict,Key,Name,Value):- 
-   checkDictValue(Value),
+addNewContextValue(Ctx,Dict,Key,Name,ValueIn):- 
+   checkDictIn(ValueIn,Value),
    ifThen(nonvar(Key),addCtxValue(Ctx,Key,Value)),   
    ifThen(nonvar(Dict),ifThen(nonvar(Value),asserta(dict(Dict,Name,Value)))),
    ifThen(not(ground(Value)),debugFmt(addCtxValue(Ctx,Key,Value))).

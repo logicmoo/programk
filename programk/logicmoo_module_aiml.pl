@@ -130,10 +130,11 @@ alicebotCTX(Ctx,Input,Resp):-
       debugOnError(tokenizeInput(Input,Tokens)),
       time(debugOnError(alicebotCTX4(Ctx,Input,Tokens,Resp))),!.
 
+
 % ===============================================================================================
 % Main Alice Source-Input-Output
 % ===============================================================================================
-alicebotCTX4(_Ctx,String,_Input,result(Term,Vars)):- atom(String),catch(atom_to_term(String,Term,Vars),_,fail),callable(Term),catch(callInteractive0(Term,Vars),_,fail).
+alicebotCTX4(Ctx,String,Input,Res):- callableInput(Ctx,String,Input,Res),!.
 alicebotCTX4(Ctx,String,Input,Resp):-
   prolog_mustEach((
    ground(String),ground(Input),

@@ -294,6 +294,7 @@ defaultPredicates(N,V):-defaultPredicatesS(S),member(N=V,S).
 defaultPredicatesS([
              topic='*',
              precall='true',
+             pattern='*',
              call='true',
              flags='*',
              that='*',
@@ -304,7 +305,7 @@ defaultPredicatesS([
              graph='default',
              guard='*',
              request='*',
-             template=['is ERROR IN CATE'],
+             %%%template=[/*'is ERROR IN CATE'*/],
              lang='bot']).
  
 cateMember(Tag):-cateMemberTags(List),member(Tag,List).
@@ -324,13 +325,25 @@ cateFallback([
        srcinfo=missinginfo,
        srcfile=missingfile,
        withCategory=[writeqnl,assert_cate_in_load],
-       pattern='ERROR PATTERN',
+       pattern='*',%%%'ERROR PATTERN',
        template=[]|MORE]):-findall(N=V,defaultPredicates(N,V),MORE).
 
 pathAttrib(S):-pathAttribS(SS),member(S,SS).
 pathAttribS([uri,loc,filename,url,path,dir,file,pathname,src,location]).
 
 
+
+% ===============================================================================================
+% Callable input
+% ===============================================================================================
+callableInput(Ctx,String,Input,Output):-traceIf(var(String)),fail.
+callableInput(Ctx,[String],Input,Output):-!,callableInput(Ctx,String,Input,Output).
+callableInput(Ctx,String,Input,Output):-string(String),string_to_atom(String,Atom),!,callableInput(Ctx,Atom,Input,Output).
+callableInput(Ctx,Atom,Input,Output):- not(atom(Atom)),!,fail.
+callableInput(Ctx,String,Input,VotesO-Output):-atom_prefix(String,'@'),
+  % re-direct to input
+  withAttributes(Ctx,ATTRIBS,prolog_must(computeAnswer(Ctx,1,element(system,ATTRIBS,Atom),Output,VotesO))),!.
+callableInput(_Ctx,String,_Input,result(Results,Term,Vars)):-catch(atom_to_term(Atom,Term,Vars),_,fail),callable(Term),catch(callInteractive0(Term,Vars,Results),_,fail).
 
 % ===============================================================================================
 % Eval a SRAI
@@ -361,6 +374,7 @@ evalSRAI(Ctx,Votes,_SraiDepth,ATTRIBS,Input,_Unusued,_VotesO):-
  frame_depth(Depth),Depth>3000,getAliceMem(Ctx,bot,'infinite-loop-input',Output),!,VotesO is Votes * 0.8,
  throw_aiml_goto(proof(element(template,ATTRIBS,[element(srai,ATTRIBS,Output)]),loop(frameDepth,Depth,3000,ATTRIBS,Input)),VotesO).
 */
+
 
 evalSRAI(Ctx,Votes,_SraiDepth,ATTRIBS,[I|Input0],Output,VotesO):-atom(I),atom_prefix(I,'@'),!,
   % re-direct to input
@@ -479,7 +493,7 @@ computeSRAI222(CtxIn,Votes,ConvThreadHint,SYM,Pattern,Compute,VotesO,ProofOut,Ou
          subclassMakeUserDict(CtxIn,UserDict,SYM),
          getAliceMemOrSetDefault(CtxIn,ConvThread,SYM,'that',That,['Nothing']),
   
-   PreTopic = (CtxIn=Ctx),
+   PreTopic = true,%%(CtxIn=Ctx),
    debugFmt(topicThatPattern(Topic,That,Pattern)),!,
    must_be_openCate(CateSig),!,
    /*
@@ -498,13 +512,16 @@ computeSRAI222(CtxIn,Votes,ConvThreadHint,SYM,Pattern,Compute,VotesO,ProofOut,Ou
             cateStrength(CateSig,Mult),
            %% not(contextUsedClaused(Ctx,CateSig,ClauseNumber)),
             VotesO is Votes * Mult,
-
             makeWithAttributes(StarSets_All,Out,Compute),       
-            ProofOut=..[proof,Compute,cn(ClauseNumber),CateSig]))))).
+            %%MoreProof = [cn(ClauseNumber),CateSig],
+            MoreProof = [],
+            ProofOut=..[proof,Compute|MoreProof]))))).
 
-%%clauseRef(_CateSig,0):-!.
+
+clauseRef(_CateSig,0):-!.
 clauseRef(CateSig,Pattern:Template):-arg(6,CateSig,Pattern),arg(11,CateSig,Template),!.
 clauseRef(CateSig,ClauseNumber):-clause(CateSig,true,ClauseNumber).
+clauseRef(_CateSig,-1):-!.
 
 savedParts(Save,PreTopic,CommitTemplate,OutputLevel,StarSets_All,Out,ClauseNumber,CateSig):-
       Save = OutputLevel - StarSets_All - Out - ClauseNumber - CateSig - CommitTemplate - PreTopic.

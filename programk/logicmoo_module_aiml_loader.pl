@@ -127,7 +127,7 @@ load_single_aiml_file(Ctx,File,PLNAME,FileMatch):-
 
 %% sgml_parser_defs(PARSER_DEFAULTS,PARSER_CALLBACKS) /*shorttag(false),*/
 sgml_parser_defs(
-  [defaults(false), space(remove),number(integer), qualify_attributes(false),
+  [defaults(false), space(remove),/*number(integer),*/ qualify_attributes(false),
          %call(decl, on_decl),
          %call(pi, on_pi),call(xmlns, on_xmlns),call(urlns, xmlns),
          %%call(error,xml_error),
@@ -150,7 +150,7 @@ string_to_structure(String,XMLSTRUCTURESIN):- fail, sformat(Strin0,'<pre>~s</pre
 string_to_structure(String,XMLSTRUCTURES):- string_to_structure0(String,XMLSTRUCTURES),!.
 string_to_structure0(String,XMLSTRUCTURES):- 
      %%sgml_parser_defs(PARSER_DEFAULTS,_PARSER_CALLBACKS),
-     PARSER_DEFAULTS = [defaults(false), space(remove),number(integer), qualify_attributes(false),dialect(xml)],
+     PARSER_DEFAULTS = [defaults(false), space(remove),/*number(integer),*/ qualify_attributes(false),dialect(xml)],
      string_to_structure0(String,PARSER_DEFAULTS,XMLSTRUCTURES),!.
 
 string_to_structure(String,PARSER_DEFAULTS0,XMLSTRUCTURES):-string_to_structure0(String,PARSER_DEFAULTS0,XMLSTRUCTURES).

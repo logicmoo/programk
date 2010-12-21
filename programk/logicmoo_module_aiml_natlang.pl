@@ -25,6 +25,7 @@ tokenizeInput0([],[]):-!.
 tokenizeInput0(Input,Tokens):- string(Input),string_to_atom(Input,Atom),!,tokenizeInput1(Atom,Tokens).
 tokenizeInput0([A|B],Out):- tokenizeInput0(A,AA),tokenizeInput_l(B,BB),!,flatten([AA,BB],Out).
 tokenizeInput0(Input,Tokens):- atom(Input),tokenizeInput1(Input,Tokens),!.
+tokenizeInput0(Input,Tokens):- number(Input),atom_to_number(Tokens,Input),!.
 tokenizeInput0(Input,Tokens):- notrace(is_string(Input)),toString_atom(Input,Atom),!,tokenizeInput0(Atom,Tokens).
 tokenizeInput0(Compound,Out):-Compound=..[A|B],tokenizeInput_l(B,BB),!,Out=..[A|BB].
 tokenizeInput0(A,A).
@@ -43,9 +44,12 @@ tokenizeInput1(Input,Input).
 % ===============================================================================================
 % Join input into many words
 % ===============================================================================================
-
+atomify(A,A):-var(A),!.
 atomify(A,A):-atomic(A),!.
 atomify([A],A):-atom(A),!.
+atomify(A,A):-atomic(A),!.
+atomify(A,AA):-number(A),atom_to_number(AA,A),!.
+atomify([A],AA):-atomify(A,AA),!.
 atomify([A|List],Result):-joinAtoms([A|List],' ',Result).
 
 joinAtoms([],_,'').

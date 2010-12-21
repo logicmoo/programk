@@ -102,7 +102,7 @@ valuesMatch11(Ctx,[V|VV],[A|AA]):-valuesMatch1(Ctx,V,A),!,valuesMatch11(Ctx,VV,A
 
 valueMP(Var,M):- member(M, [var(Var), Var=missing, Var=[], Var=(*) ,  Var=('_') , Var=('OM') , (Var=(-(_))) ]),M,!.
 %valueMP(Var,'$deleted'):-functor(Var,·'$deleted',_),!.
-valueMP(V,(V='ERROR')):-prolog_must(ground(V)),term_to_atom(V,A), concat_atom([_,_|_],'ERROR',A),!.
+valueMP(V,(V='ERROR')):-prolog_must(ground(V)),term_to_atom(V,A), concat_atom([_,_|_],'ERROR',A),trace,!.
 
 
 checkValue(Value):- valueMP(Value,M),throw_safe(M),!.

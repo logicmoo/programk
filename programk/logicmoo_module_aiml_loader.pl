@@ -29,6 +29,8 @@ graph_or_file(_Ctx,_ATTRIBS, [], []):-!.
 graph_or_file(Ctx,ATTRIBS, [Filename], XML):-atomic(Filename),!,graph_or_file(Ctx,ATTRIBS, Filename, XML),!.
 
 graph_or_file(Ctx,ATTRIBS,Filename,XML):-graph_or_file_or_dir(Ctx,ATTRIBS,Filename,XML),!.
+graph_or_file(Ctx,ATTRIBS, Filename, XML):- atom(Filename),member(Quote-Pair,['\''-'\'','"'-'"','<'-'>','('-')']),
+     concat_atom([Quote,Mid,Pair],'',Filename),!,ctrace,graph_or_file(Ctx,ATTRIBS, Mid, XML).
 graph_or_file(Ctx,ATTRIBS, Filename, XML):- 
      prolog_must((getCurrentFileDir(Ctx, ATTRIBS, CurrentDir),join_path(CurrentDir,Filename,Name))),
      prolog_must(graph_or_file_or_dir(Ctx,[currentDir=CurrentDir|ATTRIBS],Name,XML)),!.
@@ -134,21 +136,26 @@ sgml_parser_defs(
          [max_errors(0),call(begin, on_begin),call(end, on_end)]).
 
 
-%% ?- load_structure_from_string('<?xml version="1.0" encoding="ISO-8859-1"?>\n<aiml><p>hi</p></aiml>',X).
+%% ?- string_to_structure('<?xml version="1.0" encoding="ISO-8859-1"?>\n<aiml><p>hi</p></aiml>',X).
 
-tls :- load_structure_from_string('<aiml><p>hi</p></aiml>',X),debugFmt(X).
-tls2 :- load_structure_from_string('<?xml version="1.0" encoding="ISO-8859-1"?>\n<aiml><p>hi</p></aiml>\n\n',X),debugFmt(X).
+%% ?- string_to_structure('<category><pattern>_ PLANETS</pattern></category>',X).
 
-load_structure_from_string(String,XMLSTRUCTURES):- sformat(Strin0,'<pre>~s</pre>',[String]),load_structure_from_string0(Strin0,[element(pre,[],XMLSTRUCTURES)]),!.
-load_structure_from_string(String,XMLSTRUCTURES):- load_structure_from_string0(String,XMLSTRUCTURES),!.
-load_structure_from_string0(String,XMLSTRUCTURES):- 
+
+tls :- string_to_structure('<aiml><p>hi</p></aiml>',X),debugFmt(X).
+tls2 :- string_to_structure('<?xml version="1.0" encoding="ISO-8859-1"?>\n<aiml><p>hi</p></aiml>\n\n',X),debugFmt(X).
+
+string_to_structure(String,XMLSTRUCTURESIN):- fail, sformat(Strin0,'<pre>~s</pre>',[String]),string_to_structure0(Strin0,XMLSTRUCTURES),!,trace,
+   prolog_must([element(pre,[],XMLSTRUCTURESIN)]=XMLSTRUCTURES).
+   
+string_to_structure(String,XMLSTRUCTURES):- string_to_structure0(String,XMLSTRUCTURES),!.
+string_to_structure0(String,XMLSTRUCTURES):- 
      %%sgml_parser_defs(PARSER_DEFAULTS,_PARSER_CALLBACKS),
-     PARSER_DEFAULTS = [defaults(false), space(remove),number(integer), qualify_attributes(false),dialect(sgml)],
-     load_structure_from_string0(String,PARSER_DEFAULTS,XMLSTRUCTURES),!.
+     PARSER_DEFAULTS = [defaults(false), space(remove),number(integer), qualify_attributes(false),dialect(xml)],
+     string_to_structure0(String,PARSER_DEFAULTS,XMLSTRUCTURES),!.
 
-load_structure_from_string(String,PARSER_DEFAULTS0,XMLSTRUCTURES):-load_structure_from_string0(String,PARSER_DEFAULTS0,XMLSTRUCTURES).
+string_to_structure(String,PARSER_DEFAULTS0,XMLSTRUCTURES):-string_to_structure0(String,PARSER_DEFAULTS0,XMLSTRUCTURES).
 
-load_structure_from_string0(String,PARSER_DEFAULTS0,XMLSTRUCTURES):-
+string_to_structure0(String,PARSER_DEFAULTS0,XMLSTRUCTURESIN):-
         setup_call_cleanup(((string_to_stream(String,In),new_sgml_parser(Parser, []))),
           prolog_must((                     
            atom_length(String,Len),
@@ -156,7 +163,7 @@ load_structure_from_string0(String,PARSER_DEFAULTS0,XMLSTRUCTURES):-
            maplist_safe(set_sgml_parser(Parser),PARSER_DEFAULTS),
            string_parse_structure(Len, Parser, user:PARSER_DEFAULTS, XMLSTRUCTURES, In)
            )),
-       (free_sgml_parser(Parser),close(In))),!.
+       (free_sgml_parser(Parser),close(In))),!,prolog_must(XMLSTRUCTURESIN=XMLSTRUCTURES).
 
 string_parse_structure(Len,Parser, M:Options, Document, In) :-
 	notrace((sgml:set_parser_options(Parser, Options, Options1),
@@ -643,3 +650,5 @@ gatherEach0(Ctx,NEWATTRIBS,[element(TAG,ALIST,PATTERN_IN)|NOPATTERNS],[TAG=PATTE
 
 each_template(Ctx,M):-debugFmt('FAILURE'(each_template(Ctx,M))),ctrace.
 each_that(Ctx,M):-debugFmt('FAILURE'(each_that(Ctx,M))),ctrace.
+
+

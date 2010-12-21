@@ -26,18 +26,17 @@ translate_single_aiml_file(Ctx,F0):-
    atom_concat_safe(File,'.pl',PLNAME),
    translate_single_aiml_file(Ctx,File,PLNAME,FileMatch))),!.
 
-translate_aiml_structure(Ctx,Structure):-not(atom(Structure)),!,
-   trace,debugFmt(translate_aiml_structure_no_atom(Ctx,Structure)),!.
+translate_aiml_structure(Ctx,Structure):- string(Structure),!,
+   debugFmt(translate_aiml_structure_string(Ctx,Structure)),
+   string_to_structure(Ctx,Structure,XMLStructures),
+   load_aiml_structure(Ctx,XMLStructures),!.
 
-translate_aiml_structure(Ctx,Structure):- 
-   trace,debugFmt(translate_aiml_structure_atom(Ctx,Structure)),!.
+translate_aiml_structure(Ctx,Structure):-not(atom(Structure)),!, trace,
+   debugFmt(translate_aiml_structure_no_atom(Ctx,Structure)),!.
 
-translate_aiml_structure(Ctx,Structure):-not(atom(Structure)),!,
-   trace,debugFmt(translate_aiml_structure_no_atom(Ctx,Structure)),!.
-
-translate_aiml_structure(Ctx,Structure):- 
-   debugFmt(translate_aiml_structure_atom(Ctx,Structure)),
-   load_structure_from_string(Ctx,Structure,XMLStructures),
+translate_aiml_structure(Ctx,Structure):- trace,
+   debugFmt(translate_aiml_structure_atom(Ctx,Structure)),!,
+   string_to_structure(Ctx,Structure,XMLStructures),
    load_aiml_structure(Ctx,XMLStructures),!.
 
 

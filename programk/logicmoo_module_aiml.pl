@@ -97,52 +97,47 @@ showTransition(O,Y,O=Y).
 
 alicebot:-
         currentContext(alicebot,Ctx),
-        alicebot(Ctx).
+        alicebotCTX(Ctx).
 
-alicebot(Ctx):-        
+alicebotCTX(Ctx):-        
         repeat,
-        currentContext(alicebot,Ctx),
-	read_line_with_nl(user,CodesIn,[]),        
-        once((trim(CodesIn,Codes),atom_codes(Atom,Codes),alicebotCTX(Ctx,Atom))),fail.
-
-alicebot(__Ctx__,Input):- 
-  currentContext(alicebot(Input),Ctx),!,
-  alicebotCTX(Ctx,Input).
+        current_input(In),
+	read_line_to_codes(In,Codes),
+        string_to_list(Atom,Codes),
+        %%atom_codes(Atom,Codes),
+        once(alicebotCTX(Ctx,Atom)),fail.
 
 % ===============================================================================================
-% Main Alice 
+% Main Alice Input
 % ===============================================================================================
-alicebotCTX(_Ctx,Input):- atom(Input),error_catch(((atom_to_term(Input,Term,Vars),callInteractive0(Term,Vars))),_,fail),!.
-alicebotCTX(Ctx,Input):- alicebotCTX(Ctx,Input,Resp),!,say(Ctx,Resp),!.
-%%alicebotCTX(Ctx,_):- ctrace, say(Ctx,'-no response-').
 
+alicebot(Input):- 
+  currentContext(alicebot(Input),Ctx),
+  alicebotCTX(Ctx,Input),!.
 
-alicebotCTX(_Ctx,[],_):-debugFmt('no input'),!,fail.
+alicebotCTX(Ctx,Input):- prolog_must(nonvar(Input)), alicebotCTX(Ctx,Input,Resp),!,say(Ctx,Resp),!.
+%%alicebotCTX(Ctx,_):- ctrace, say(Ctx,'-no response-'),!.
+
+% ===============================================================================================
+% Main Alice Input-Output
+% ===============================================================================================
+alicebot([],_):-debugFmt('no input'),!,fail.
+alicebot(Input,Resp):- currentContext(alicebot(Input),Ctx),alicebotCTX(Ctx,Input,Resp),!.
+alicebot(In,Res):- !,ignore(Res='-no response-'(In)).
+
+alicebotCTX(_Ctx,[],[]):-!.
 alicebotCTX(Ctx,Input,Resp):- 
-      tokenizeInput(Input,Tokens),Input\==Tokens,!,
-      alicebotCTX(Ctx,Tokens,Resp),!.
-alicebotCTX(Ctx,[TOK|Tokens],Output):- atom(TOK),atom_concat_safe('@',_,TOK),!,systemCall(Ctx,'bot',[TOK|Tokens],Output),debugFmt(Output).
-alicebotCTX(Ctx,Tokens,Resp):-
-   %%convertToMatchable(Tokens,UCase),!,
-   =(Tokens,UCase),!,
-   removePMark(UCase,Atoms),!,
-   alicebot2(Ctx,Atoms,Resp),!.
-alicebotCTX(_Ctx,In,Res):- !,ignore(Res='-no response-'(In)).
-
+      debugOnError(tokenizeInput(Input,Tokens)),
+      time(debugOnError(alicebotCTX4(Ctx,Input,Tokens,Resp))),!.
 
 % ===============================================================================================
-% Main Alice 
+% Main Alice Source-Input-Output
 % ===============================================================================================
-%%alicebot2(Atoms,Resp):- currentContext(alicebot2(Atoms),Ctx),!,alicebot2(Ctx,Atoms,Resp).
-
-alicebot2(_Ctx,[],[]):-!.
-alicebot2(Ctx,[''|X],Resp):-!,alicebot2(Ctx,X,Resp).
-alicebot2(Ctx,Input,Resp):- 
-      tokenizeInput(Input,Tokens),Input\==Tokens,!,
-      alicebot2(Ctx,Tokens,Resp),!.
-alicebot2(Ctx,Atoms,Resp):- time(debugOnError(alicebot3(Ctx,Atoms,Resp))).
-alicebot3(Ctx,Atoms,Resp):-	
+alicebotCTX4(_Ctx,String,_Input,result(Term,Vars)):- atom(String),catch(atom_to_term(String,Term,Vars),_,fail),callable(Term),catch(callInteractive0(Term,Vars),_,fail).
+alicebotCTX4(Ctx,String,Input,Resp):-
   prolog_mustEach((
+   ground(String),ground(Input),
+   Atoms = Input,
    retractall(posibleResponse(_,_)),
    flag(a_answers,_,0),!,
    prolog_mustEach((
@@ -152,7 +147,7 @@ alicebot3(Ctx,Atoms,Resp):-
    getAliceMem(Ctx,'bot',default('maxanswers',1),_MaxAns),   
    %%setAliceMem(Ctx,User,'input',Atoms),
    pushInto1DAnd2DArray(Ctx,'request','input',5,Atoms,User),
-   setAliceMem(Ctx,User,'rawinput',Atoms))),
+   setAliceMem(Ctx,User,'rawinput',String))),
    thread_local_flag(sraiDepth,_,0),
    prolog_must((call_with_depth_limit_traceable(computeInputOutput(Ctx,1,Atoms,Output,N),8000,_DL),
 	 ignore((nonvar(N),nonvar(Output),savePosibleResponse(N,Output))),flag(a_answers,X,X+1),
@@ -893,8 +888,8 @@ convert_substs(A,D):-simplify_atom0(A,M),A\==M,!,convert_substs(M,D).
 convert_substs(A,D):-A=D.
 
 simplify_atom0(A,A):-A==[],!.
-simplify_atom0(A0,D):- is_list(A0),atomic_list_concat(A0,' ',A),!,simplify_atom0(A,D).
-simplify_atom0(A,D):- atom(A),!,literal_atom(A,B),atomic_list_concat(L0,'\\b',B),delete(L0,'',L),atomic_list_concat(L,' ',C),!,atomWSplit(C,D),!.
+simplify_atom0(A0,DD):- is_list(A0),joinAtoms(A0,' ',A),!,simplify_atom0(A,D),!,atomWSplit(D,DD),!.
+simplify_atom0(A,D):- atom(A),!,literal_atom(A,B),atomic_list_concat(L0,'\\b',B),delete(L0,'',L),joinAtoms(L,' ',C),!,atomWSplit(C,D),!.
 
 
 sameWordsDict([String|A],[Pattern|B]):-!,sameWordsDict0(String,Pattern),!,sameWordsDict_l(A,B),!.

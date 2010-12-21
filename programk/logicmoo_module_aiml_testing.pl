@@ -82,21 +82,21 @@ test_suite_files:-once(load_aiml_files(library('programk/test_suite/*.aiml'))).
 
 run_chat_tests_here(Ctx):-     
    timeRecorded(test_suite_files),
-   timeRecorded(test_call(alicebot(Ctx,'qt'))),
-   timeRecorded(test_call(alicebot(Ctx,'qt1'))),!.
+   timeRecorded(test_call(alicebotCTX(Ctx,'qt'))),
+   timeRecorded(test_call(alicebotCTX(Ctx,'qt1'))),!.
 
 run2(Ctx):-
-   %%test_call(alicebot(Ctx,'Hi')),
-   test_call(alicebot(Ctx,'What is your name')),
-   test_call(alicebot(Ctx,'What is your thing')),
-   test_call(alicebot(Ctx,'My name is Fred.')),
-   test_call(alicebot(Ctx,'what is my name?')).
+   %%test_call(alicebotCTX(Ctx,'Hi')),
+   test_call(alicebotCTX(Ctx,'What is your name')),
+   test_call(alicebotCTX(Ctx,'What is your thing')),
+   test_call(alicebotCTX(Ctx,'My name is Fred.')),
+   test_call(alicebotCTX(Ctx,'what is my name?')).
 
-blackjack_test_load:-  test_call(alicebot(_Ctx,'@load blackjack.aiml')).
+blackjack_test_load:-  test_call(alicebot(_Ctx,'@load bulackjack.aiml')).
 blackjack_test:-
-   test_call(alicebot(Ctx,'blackjack')),
-   test_call(alicebot(Ctx,'d')),
-   test_call(alicebot(Ctx,'3')),!.
+   test_call(alicebotCTX(Ctx,'blackjack')),
+   test_call(alicebotCTX(Ctx,'d')),
+   test_call(alicebotCTX(Ctx,'3')),!.
 
 annie:-makeAimlContext(toplevel,Ctx),timeRecorded(run_chat_tests_here(Ctx)).
 

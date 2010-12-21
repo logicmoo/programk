@@ -200,7 +200,7 @@ hideRest:- fail, logicmoo_util_library:buggerDir(BuggerDir),
       functor_source_file(M,_P,F,A,File),atom_concat(BuggerDir,_,File),hideTraceMFA(M,F,A,-all),
       fail.
 hideRest:- functor_source_file(system,_P,F,A,_File),hideTraceMFA(system,F,A,-all), fail.
-hideRest.
+hideRest:-doTryHides.
 
 :- meta_predicate(hideTrace(:,+)).
 
@@ -826,7 +826,7 @@ traceAll:- current_predicate(user:F/N),
 traceAll:- not((predicate_property(clearCateStack/1,_))),!.
 traceAll:-findall(_,(member(F,[member/2,debugFmt/1,takeout/3,findall/3,clearCateStack/1]),trace(F, -all)),_).
 */
-traceAll:-!.
+traceAll:-doTryHides.
 
 
 
@@ -926,5 +926,4 @@ tryHideProc(MFA):-tryCatchIgnore('$hide'(MFA)),tryCatchIgnore('trace'(MFA,[-all]
 doTryHides:-retract(remember_tryHide(MFA)),once(tryHideProc(MFA)),fail.
 doTryHides.
 
-:-doTryHides.
 

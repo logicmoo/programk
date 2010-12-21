@@ -108,7 +108,9 @@ argNumsIndexedRepr(aimlCate,srcfile,12,any).
 
 argNumsTracked(Pred,ArgName,Position):-argNumsIndexedRepr(Pred,ArgName,Position,ArgType),argTypeIndexable(ArgType).
 
+argNFound(F,A,'_','_'):-argNumsIndexedRepr(F,A,_,textInput).
 argNFound(F,A,*,*):-argNumsIndexedRepr(F,A,_,textInput).
+
 
 assert_cate_in_load(NEW) :- currentContext(assert_cate_in_load,Ctx),prolog_must(assert_cate_in_load(Ctx,NEW)),!.
 
@@ -136,9 +138,9 @@ assert_cate_in_load(_Ctx,CateSig):-
 
 %%%
 ffffffff.
-noTrickyIndexing:-true.
+noTrickyIndexing:-false.
 
-toNonIndexable(FAKE,FAKE):-!.
+toNonIndexable(FAKE,FAKE):-noTrickyIndexing,!.
 toNonIndexable(OF,INDEXABLE):-OF=..[F|ARGS],functor(OF,F,A),toNonIndexable0(A,F,ARGS,NEWARGS),!,INDEXABLE=..[F|NEWARGS].
 toNonIndexable0(0,_F,_,[]):-!.
 toNonIndexable0(3,aimlCate,List,List):-!.
@@ -342,13 +344,18 @@ pathAttribS([uri,loc,filename,url,path,dir,file,pathname,src,location]).
 % Callable input
 % ===============================================================================================
 callableInput(_Ctx,String,_Input,_Output):-traceIf(var(String)),fail.
-callableInput(Ctx,[String],Input,Output):-!,callableInput(Ctx,String,Input,Output).
-callableInput(Ctx,String,Input,Output):-string(String),string_to_atom(String,Atom),!,callableInput(Ctx,Atom,Input,Output).
-callableInput(_Ctx,NonAtom,_Input,_Output):- not(atom(NonAtom)),!,fail.
-callableInput(Ctx,Atom,_Input,VotesO-Output):-atom_prefix(Atom,'@'),
+callableInput(Ctx,[S|Tring],Input,Output):-joinAtoms([S|Tring],String),!,callableInput0(Ctx,String,Input,Output).
+callableInput(Ctx,String,Input,Output):-string(String),string_to_atom(String,Atom),!,callableInput0(Ctx,Atom,Input,Output).
+callableInput(Ctx,String,Input,Output):-callableInput0(Ctx,Atom,Input,Output).
+
+callableInput0(Ctx,[String],Input,Output):-!,callableInput(Ctx,String,Input,Output).
+callableInput0(_Ctx,NonAtom,_Input,_Output):- not(atom(NonAtom)),!,fail.
+callableInput0(_Ctx,Atom,_Input,result(Results,Term,Vars)):-catch(atom_to_term(Atom,Term,Vars),_,fail),
+  callable(Term),catch(callInteractive0(Term,Vars /*,Results */),_,fail).
+callableInput0(Ctx,Atom,_Input,VotesO-Output):-atom_prefix(Atom,'@'),
   % re-direct to input
-  withAttributes(Ctx,ATTRIBS,prolog_must(computeAnswer(Ctx,1,element(system,ATTRIBS,Atom),Output,VotesO))),!.
-callableInput(_Ctx,Atom,_Input,result(Results,Term,Vars)):-catch(atom_to_term(Atom,Term,Vars),_,fail),callable(Term),catch(callInteractive0(Term,Vars,Results),_,fail).
+  withAttributes(Ctx,[],prolog_must(computeAnswer(Ctx,1,element(system,[],Atom),Output,VotesO))),!.
+
 
 % ===============================================================================================
 % Eval a SRAI
@@ -519,7 +526,7 @@ computeSRAI222(CtxIn,Votes,ConvThreadHint,SYM,Pattern,Compute,VotesO,ProofOut,Ou
             VotesO is Votes * Mult,
             makeWithAttributes(StarSets_All,Out,Compute),       
             %%MoreProof = [cn(ClauseNumber),CateSig],
-            MoreProof = [],
+            MoreProof = [topicThatPatternOutput(Topic,That,Pattern,Out)],
             ProofOut=..[proof,Compute|MoreProof]))))).
 
 

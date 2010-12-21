@@ -94,6 +94,7 @@ valuesMatch1(_Ctx,V,V).
 valuesMatch1(_Ctx,V,A):- isStar0(V);isStar0(A).
 valuesMatch1(Ctx,[V],A):-!,valuesMatch1(Ctx,V,A).
 valuesMatch1(Ctx,V,[A]):-!,valuesMatch1(Ctx,V,A).
+valuesMatch1(Ctx,V,A):-number(V),atom_number(VA,V),!,valuesMatch1(Ctx,A,VA).
 valuesMatch1(_Ctx,V,A):-sameBinding(V,A).
 
 valuesMatch11(_Ctx,A,A).

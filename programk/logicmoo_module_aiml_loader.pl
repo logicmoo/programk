@@ -481,6 +481,7 @@ load_dict_structure(Ctx,dict(IDict,Name,Value)):-
 
 
 convert_dictname(_Ctx,A,A):-var(A),!.
+convert_dictname(_Ctx,you,D):-!,literal_atom(bot,D),!
 convert_dictname(_Ctx,A,D):-atom(A),!,literal_atom(A,D),!.
 convert_dictname(Ctx,[A],D):-convert_dictname(Ctx,A,D),!.
 convert_dictname(Ctx,A,D):-unresultifyL(Ctx,A,D),!.

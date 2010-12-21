@@ -18,7 +18,7 @@ needs_rethrown(E):- functor(aiml_novalue,E,_),!,throw(E).
 needs_rethrown(_).
 
 tryCatchIgnore(MFA):- error_catch(MFA,_E,true). %%debugFmt(tryCatchIgnoreError(MFA:E))),!.
-tryCatchIgnore(_MFA):- !,debugFmt(tryCatchIgnoreFailed(MFA)).
+tryCatchIgnore(MFA):- !,debugFmt(tryCatchIgnoreFailed(MFA)).
 
 :-dynamic(remember_tryHide/1).
 

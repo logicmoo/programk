@@ -116,5 +116,6 @@ literal_atom(A,B):-downcase_atom(A,B),!.
 is_literal(X):-atom(X),literal_atom(X,N),!,N=X.
 
 ignorecase_literal(A,B):-literal_atom_safe(A,B),!.
+ignorecase_literal(A,B):-number(A),atom_number(N,A),literal_atom_safe(N,B),!.
 ignorecase_literal(A,B):-toLowercase(A,B),!.
 

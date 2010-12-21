@@ -45,7 +45,7 @@ tokenizeInput1(Input,Input).
 % Join input into many words
 % ===============================================================================================
 atomify(A,A):-var(A),!.
-atomify(A,A):-atomic(A),!.
+%%%atomify(A,A):-atomic(A),!.
 atomify([A],A):-atom(A),!.
 atomify(A,A):-atomic(A),!.
 atomify(A,AA):-number(A),atom_to_number(AA,A),!.

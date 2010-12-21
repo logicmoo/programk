@@ -344,9 +344,9 @@ pathAttribS([uri,loc,filename,url,path,dir,file,pathname,src,location]).
 % Callable input
 % ===============================================================================================
 callableInput(_Ctx,String,_Input,_Output):-traceIf(var(String)),fail.
-callableInput(Ctx,[S|Tring],Input,Output):-joinAtoms([S|Tring],String),!,callableInput0(Ctx,String,Input,Output).
+callableInput(Ctx,[S|Tring],Input,Output):-joinAtoms([S|Tring],' ',String),!,callableInput0(Ctx,String,Input,Output).
 callableInput(Ctx,String,Input,Output):-string(String),string_to_atom(String,Atom),!,callableInput0(Ctx,Atom,Input,Output).
-callableInput(Ctx,String,Input,Output):-callableInput0(Ctx,Atom,Input,Output).
+callableInput(Ctx,Atom,Input,Output):-callableInput0(Ctx,Atom,Input,Output).
 
 callableInput0(Ctx,[String],Input,Output):-!,callableInput(Ctx,String,Input,Output).
 callableInput0(_Ctx,NonAtom,_Input,_Output):- not(atom(NonAtom)),!,fail.

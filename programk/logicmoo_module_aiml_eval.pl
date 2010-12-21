@@ -207,7 +207,8 @@ systemCall(Ctx,[Lang],Eval,Out):- nonvar(Lang),!, systemCall(Ctx,Lang,Eval,Out).
 
 systemCall(_Ctx,_Lang,[],[]):-!.
 systemCall(Ctx,Lang,[Skipable|REST],DONE):-isWhiteWord(Skipable),!,systemCall(Ctx,Lang,REST,DONE).
-systemCall(Ctx,Bot,[FIRST|REST],DONE):-atom_concat_safe('@',CMD,FIRST),!,systemCall(Ctx,Bot,[CMD|REST],DONE).
+systemCall(Ctx,Lang,[FIRST|REST],DONE):-atom_concat_safe('@',CMD,FIRST),!,systemCall(Ctx,Lang,[CMD|REST],DONE).
+systemCall(Ctx,Lang,[FIRST|REST],DONE):-atom_contains(FIRST,' '),atomWSplit(FIRST,CMD),append(CMD,REST,CMDREST),!,systemCall(Ctx,Lang,CMDREST,DONE).
 systemCall(Ctx,'bot',REST,OUT):-!,prolog_must(systemCall_Bot(Ctx,REST,OUT)),!.
 systemCall(Ctx,Lang,[Eval],Out):-systemCall(Ctx,Lang,Eval,Out).
 systemCall(Ctx,Lang,Eval,Out):-once((atom(Eval),atomWSplit(Eval,Atoms))),Atoms=[_,_|_],!,ctrace,systemCall(Ctx,Lang,Atoms,Out).
@@ -239,7 +240,7 @@ systemCall_Bot(Ctx,['ctxlist'],template([ctxed,current_value(Ctx,Name,Value),Cou
 
 
 
-systemCall_Bot(Ctx,[FIRST|REST],DONE):-atom(FIRST),literal_atom(FIRST,CMD),FIRST\==CMD,!,systemCall_Bot(Ctx,[CMD|REST],DONE).
+systemCall_Bot(Ctx,[FIRST|REST],DONE):-toLowerIfAtom(FIRST,CMD),FIRST\==CMD,!,systemCall_Bot(Ctx,[CMD|REST],DONE).
 
 systemCall_Bot(_Ctx,DONE,template([delayed,DONE])):-!.
 
@@ -302,7 +303,7 @@ prologCall(Call):-catch(prolog_must(Call),E,debugFmt(failed_prologCall(Call,E)))
 testIt(ATTRIBS,Input,ExpectedAnswer,ExpectedKeywords,Result,Name,Description,Ctx):- 
    notrace(ExpectedKeywords==[[noExpectedKeywords]] -> PASSGOAL = sameBinding(Resp,ExpectedAnswer);  PASSGOAL = containsEachBinding(Resp,ExpectedKeywords)),    
   %% traceIf(ExpectedKeywords \== [[noExpectedKeywords]]),
-    withAttributes(Ctx,ATTRIBS,(( runUnitTest(alicebot2(Ctx,Input,Resp),PASSGOAL,Result),
+    withAttributes(Ctx,ATTRIBS,(( runUnitTest(alicebotCTX(Ctx,Input,Resp),PASSGOAL,Result),
      prolog_must(ground(Resp)),
     toReadableObject(testIt(Input,Name,Description,PASSGOAL),PRINTRESULT),
     toReadableObject([Result,Name,Description,Input], STORERESULT),

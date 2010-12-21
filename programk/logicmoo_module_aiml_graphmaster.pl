@@ -108,7 +108,7 @@ argNumsIndexedRepr(aimlCate,srcfile,12,any).
 
 argNumsTracked(Pred,ArgName,Position):-argNumsIndexedRepr(Pred,ArgName,Position,ArgType),argTypeIndexable(ArgType).
 
-argNFound(F,A,*,[_|_]):-argNumsIndexedRepr(F,A,_,textInput).
+argNFound(F,A,*,*):-argNumsIndexedRepr(F,A,_,textInput).
 
 assert_cate_in_load(NEW) :- currentContext(assert_cate_in_load,Ctx),prolog_must(assert_cate_in_load(Ctx,NEW)),!.
 
@@ -119,12 +119,16 @@ retractWithArgIndexes(Retract):-retract(Retract),
 
 assert_cate_in_load(Ctx,CateSig):-
    immediateCall(Ctx,assert_cate_in_load(Ctx,CateSig)),
-   copy_term(CateSig,CateSigTest),CateSig=CateSigTest,
+   copy_term(CateSig,CateSigTest),
+   CateSig=CateSigTest,
    isRetraction(Ctx,CateSigTest,Removeme),!,
+   %%ctrace,
    findall(Removeme,retractWithArgIndexes(Removeme),_Retracted),!.
 
 assert_cate_in_load(_Ctx,CateSig):-
+  %%copy_term(CateSig,Original),
       withArgIndexing(CateSig,addArgIndex,Indexable),
+  %% traceIf(Indexable\=Original),
       asserta(Indexable),!,
       debugFmt(':-'(CateSig,Indexable)).
 
@@ -132,6 +136,7 @@ assert_cate_in_load(_Ctx,CateSig):-
 
 %%%
 ffffffff.
+noTrickyIndexing:-true.
 
 toNonIndexable(FAKE,FAKE):-!.
 toNonIndexable(OF,INDEXABLE):-OF=..[F|ARGS],functor(OF,F,A),toNonIndexable0(A,F,ARGS,NEWARGS),!,INDEXABLE=..[F|NEWARGS].
@@ -156,11 +161,11 @@ toIndexable0(0,_F,_,[]):-!.
 toIndexable0(3,aimlCate,List,List):-!.
 toIndexable0(N,F,[A|ARGS],[NEW|NEWARGS]):-N2 is N-1, makeIndexableArg(F,N,A,NEW),toIndexable0(N2,F,ARGS,NEWARGS).
 
-makeIndexableArg(_,_,A,A):-!.  %%TODO: REMOVE THIS DISABLER
+makeIndexableArg(_,_,A,A):-noTrickyIndexing,!.  %%TODO: REMOVE THIS DISABLER
 makeIndexableArg(F,ArgNumber,A,AH):-argNumsIndexedRepr(F,_Pattern,ArgNumber,ArgType),argTypeIndexable(ArgType),toIndexableArg(A,AH),!.
 makeIndexableArg(_,_,A,A).
 
-toIndexableArg(A,A):-!.  %%TODO: REMOVE THIS DISABLER
+toIndexableArg(A,A):- noTrickyIndexing,!.  %%TODO: REMOVE THIS DISABLER
 toIndexableArg(A,A):-var(A),!.
 toIndexableArg(A,A):-member(A,['*','[]','_']),!.
 toIndexableArg([A],A):-not(compound(A)),!.
@@ -336,14 +341,14 @@ pathAttribS([uri,loc,filename,url,path,dir,file,pathname,src,location]).
 % ===============================================================================================
 % Callable input
 % ===============================================================================================
-callableInput(Ctx,String,Input,Output):-traceIf(var(String)),fail.
+callableInput(_Ctx,String,_Input,_Output):-traceIf(var(String)),fail.
 callableInput(Ctx,[String],Input,Output):-!,callableInput(Ctx,String,Input,Output).
 callableInput(Ctx,String,Input,Output):-string(String),string_to_atom(String,Atom),!,callableInput(Ctx,Atom,Input,Output).
-callableInput(Ctx,Atom,Input,Output):- not(atom(Atom)),!,fail.
-callableInput(Ctx,String,Input,VotesO-Output):-atom_prefix(String,'@'),
+callableInput(_Ctx,NonAtom,_Input,_Output):- not(atom(NonAtom)),!,fail.
+callableInput(Ctx,Atom,_Input,VotesO-Output):-atom_prefix(Atom,'@'),
   % re-direct to input
   withAttributes(Ctx,ATTRIBS,prolog_must(computeAnswer(Ctx,1,element(system,ATTRIBS,Atom),Output,VotesO))),!.
-callableInput(_Ctx,String,_Input,result(Results,Term,Vars)):-catch(atom_to_term(Atom,Term,Vars),_,fail),callable(Term),catch(callInteractive0(Term,Vars,Results),_,fail).
+callableInput(_Ctx,Atom,_Input,result(Results,Term,Vars)):-catch(atom_to_term(Atom,Term,Vars),_,fail),callable(Term),catch(callInteractive0(Term,Vars,Results),_,fail).
 
 % ===============================================================================================
 % Eval a SRAI
@@ -679,10 +684,10 @@ generateMatchPatterns(Ctx,StarName,Out,InputPattern,CateSigIn,MinedCates,SetOfEa
   CateSigIn=CateSig,
  functor(CateSig,CateSigFunctor,_Args),
   must_be_openCate(CateSig),
-  getCategoryArg(Ctx,StarName,MatchPattern,Out,CateSig),
-  savedSetPatterns(LSP,OutputLevel,StarSets,MatchPattern),   
+  getCategoryArg(Ctx,StarName,IndexPattern,Out,CateSig),
+  savedSetPatterns(LSP,OutputLevel,StarSets,IndexPattern),   
   findall(LSP,
-             (argNFound(CateSigFunctor,StarName,MatchPattern,_),
+             (argNFound(CateSigFunctor,StarName,MatchPattern,IndexPattern),
               canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern,OutputLevel,StarSets)),
       EachMatchSig),
   prolog_must(EachMatchSig=[_|_]),

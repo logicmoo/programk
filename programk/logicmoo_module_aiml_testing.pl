@@ -73,7 +73,7 @@ dttt:-timeRecorded(consult(aimlCate_checkpoint)),alicebot.
 
 :-assert_cate_in_load(aimlCate(*,*,*,*,*,*,*,*,*,*,[element(srai,[],['STDCATCHALL',star(pattern,[],[])])],element(category,[],[element(pattern,[],[*]),element(template,[],[element(srai,[],['STDCATCHALL',element(star,[],[])])])]),'c:/development/opensim4opencog/bin/cynd/programk/test_suite/customtagtest.aiml':737-20056)),
   assert_cate_in_load(aimlCate(*,*,*,*,*,['STDCATCHALL',*],*,*,*,*,['ERROR',understanding,:,star(pattern,[],[])],element(category,[],[element(pattern,[],['STDCATCHALL *']),element(template,[],['ERROR understanding:',element(star,[],[])])]),'c:/development/opensim4opencog/bin/cynd/programk/test_suite/customtagtest.aiml':44-3205)).
-:-assert_cate_in_load(aimlCate(*,*,*,*,*,[34],*,*,*,*,element(template,[],[element(srai,[],[1])]),foo3,'c:/development/opensim4opencog/bin/cynd/programk/test_suite/customtagtest.aiml':44-3205)),
+unusedCates:-assert_cate_in_load(aimlCate(*,*,*,*,*,[34],*,*,*,*,element(template,[],[element(srai,[],[1])]),foo3,'c:/development/opensim4opencog/bin/cynd/programk/test_suite/customtagtest.aiml':44-3205)),
  assert_cate_in_load(aimlCate(*,*,*,*,*,['34'],*,*,*,*,element(template,[],[element(srai,[],[2])]),foo3,'c:/development/opensim4opencog/bin/cynd/programk/test_suite/customtagtest.aiml':44-3205)),
  assert_cate_in_load(aimlCate(*,*,*,*,*,[35],*,*,*,*,element(template,[],[element(srai,[],[3])]),foo3,'c:/development/opensim4opencog/bin/cynd/programk/test_suite/customtagtest.aiml':44-3205)),
  assert_cate_in_load(aimlCate(*,*,*,*,*,['35'],*,*,*,*,element(template,[],[element(srai,[],[4])]),foo3,'c:/development/opensim4opencog/bin/cynd/programk/test_suite/customtagtest.aiml':44-3205)),

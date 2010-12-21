@@ -366,7 +366,8 @@ prolog_may(Call):-prolog_ecall(debugOnError,Call).
 :-'$hide'(debugOnError/1).
 :-'$hide'(debugOnError0/1).
 debugOnError(Call):-prolog_ecall(debugOnError0,Call).
-debugOnError0(Call):- E = error(_,_),error_catch(Call,E,(notrace(debugFmt(caugth(Call,E))),debugOnError0((ctrace,Call)))).
+debugOnError0(Call):- E = error(_,_),error_catch(Call,E,(notrace(debugFmt(caugth1st(Call,E))),debugOnError1((ctrace,Call)))).
+debugOnError1(Call):- E = error(_,_),error_catch(Call,E,(notrace(debugFmt(caugth2nd(Call,E))),throw(E))).
 
 :-'$hide'(prolog_must_call/1).
 :-'$hide'(prolog_must_call0/1).
@@ -896,71 +897,15 @@ neverUse:- meta_predicate_transparent
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
-:- use_module(library(streampool)).
-
-:-dynamic(echo_server_port/1).
-
-echo_server:-
-        Port = 55566,
-        tcp_socket(Socket),
-        tcp_bind(Socket, Port),
-        asserta(echo_server_port(Port)),
-        debugFmt(echo_server_port(Port)),
-        tcp_listen(Socket, 5),
-        tcp_open_socket(Socket, In, _Out),
-        add_stream_to_pool(In, echo_accept(Socket)),
-        stream_pool_main_loop,
-        retract(echo_server_port(Port)).
-
-echo_accept(Socket) :-
-        tcp_accept(Socket, Slave, Peer),
-        tcp_open_socket(Slave, In, Out),
-        add_stream_to_pool(In, echo_client(In, Out, Peer)).
-
-useAtomLen:-false.
-echo_client(In, Out, Peer) :- useAtomLen,!, read(In,Len), echo_client(In, Len, Out, Peer).
-echo_client(In, Out, Peer) :- echo_client(In, _Len, Out, Peer).
-echo_client(In, _Len, Out, Peer) :-
-        repeat,
-            (   is_disconnected_not_open(In, Out, Peer)
-            ->  !
-            ;   read_pending_input(In, Chars, []),
-                (format(Out, '~s', [Chars])),
-                flush_output(Out),
-                fail
-            ),
-            close_client(In, Out, Peer).
-
-close_client(In, Out, Peer) :-
-        debugFmt(close_client(In, Out, Peer)),
-        close(In, [force(true)]),
-        close(Out, [force(true)]),
-        delete_stream_from_pool(In),!.
-
-is_disconnected_not_open(In, _Out, _Peer):- at_end_of_stream(In),debugFmt(at_end_of_stream(In)).
 
 
-start_echo_server:-echo_server_port(Port),!,debugFmt(echo_server_port(Port)),!.
-start_echo_server:-thread_create(echo_server,_,[]).
+:- use_module(library(memfile)).
 
-:-start_echo_server.
-
-string_to_stream(Atom,InStream):-      
-      echo_server_port(Port),
-      tcp_socket(ClientSocket),
-      tcp_connect(ClientSocket,localhost:Port),
-      tcp_open_socket(ClientSocket,InStream, OutStream),
-      ifThen(useAtomLen,((atom_length(Atom,Len),(format(OutStream,'~w.',[Len]))))),
-      (format(OutStream,Atom,[])),put_code(OutStream,0),flush_output(OutStream), 
-      %%% After closing both InStream and OutStream, the socket itself is discarded.
-      close(OutStream),!.
-      %%prolog_must(not(is_disconnected_not_open(InStream, OutStream, ClientSocket))).
+%% Use a memory-file. The resulting handling is closed using close/1. 
+string_to_stream(String,InStream):- string(String),string_to_atom(String,Atom),!,string_to_stream(Atom,InStream).
+string_to_stream(Atom,InStream):- atom_to_memory_file(Atom, Handle),open_memory_file(Handle,read,InStream).
 
             
-stt:- warnIf((string_to_stream('hi.\nthere.\n',X),read(X,Y),read(X,Z),close(X))).
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
+stt:- string_to_stream('hi.\nthere.\n',X),read(X,Y),read(X,Z),close(X),writeln([hi=Y,there=Z]).
 
 

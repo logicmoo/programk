@@ -153,7 +153,7 @@ withAttributes(CtxIn,ATTRIBS,Call):- fail,
     once((hotrace(popAttributes(NewCtx,Scope,ATTRIBS))))).
 
 withAttributes(CtxIn,ATTRIBS,Call):-
- copy_term(CtxIn,Ctx),!,
+ duplicate_term(CtxIn,Ctx),!,
   hotrace((
    ensureScope(Ctx,ATTRIBS,Scope),
    checkAttributes(Scope,ATTRIBS),

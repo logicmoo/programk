@@ -15,9 +15,9 @@
 % ===============================================================================================
 toString_atom(Input,Atom):-toCycApiExpression(Input,Out,[]),ctrace,string_to_atom(Atom,Out).
 
-tokenizeInput(Input,Tokens):- notrace(is_string(Input)),toString_atom(Input,Atom),!,tokenizeInput(Atom,Tokens).
+tokenizeInput(Input,Tokens):- notrace(is_string(Input)),toString_atom(Input,Atom),!,tokenizeInput(Atom,Tokens),!.
 %%tokenizeInput(String,Tokens):-hotrace(tokenizeInput0(String,Tokens)),!.
-tokenizeInput(String,Tokens):-hotrace(tokenizeInput0(String,Tokens)),Tokens\==[],ground(Tokens).
+tokenizeInput(String,Tokens):-hotrace(tokenizeInput0(String,Tokens)),Tokens\==[],ground(Tokens),!.
 tokenizeInput(String,Tokens):-trace,tokenizeInput0(String,Tokens),!.
 
 tokenizeInput0(Input,Tokens):-var(Input),!,Input=Tokens.

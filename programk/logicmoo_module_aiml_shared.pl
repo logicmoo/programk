@@ -34,7 +34,7 @@ prolog_extra_checks:-true.
 :-tryHide(catch/3).
 :-tryHide(not/1).
 :-tryHide(call/1).
-:-'trace'('$bags':findall/3,[-all]).
+:-'tryHide'('$bags':findall/3).
 
 
 :-set_prolog_flag(debug,true).
@@ -357,12 +357,12 @@ prolog_mustEach((A,B)):- !,prolog_mustEach(A),prolog_mustEach(B).
 prolog_mustEach(Call):- prolog_must(Call).
 
 :-tryHide(prolog_must/1).
-%%prolog_must(Call):-notrace((prolog_safe)),!,Call.
-prolog_must(Call):-tracing,!,debugOnError(Call). %%prolog_must_tracing(Call).
+prolog_must(Call):-notrace((prolog_safe)),!,Call.
+prolog_must(Call):-traceIf(var(Call)),tracing,!,debugOnError(Call). %%prolog_must_tracing(Call).
 prolog_must(Call):-prolog_must_call(Call).
 
-:-'trace'(system:catch/3,-all).
-:-'trace'(system:not/1,-all).
+:-tryHide(system:catch/3).
+:-tryHide(system:not/1).
 
 :-tryHide(cyc:ctrace/0).
 
@@ -463,8 +463,9 @@ meta_predicate_transparent(_M,X):-
    %%tryHide(FA),
    !)).
 
-   asserta_new(_Ctx,NEW):-ignore(retract(NEW)),asserta(NEW).
-writeqnl(_Ctx,NEW):- format('~q.~n',[NEW]),!.
+
+asserta_new(_Ctx,NEW):-ignore(retract(NEW)),asserta(NEW).
+writeqnl(_Ctx,NEW):- format('~N%%LOADING ~q.~N',[NEW]),!.
 
 
 revappend([], Ys, Ys).
@@ -690,8 +691,12 @@ clean_codes(X,X).
 %clean_out_atom(X,Y):-atomWSplit(X,C),delete(C,'',O),concat_atom_safe(C,' ',Y).
 clean_out_atom(X,Y):-atom_codes(X,C),clean_codes(C,D),!,atom_codes(X,D),!,Y=X.
 
-atomWSplit(A,B):- hotrace((cyc:atomSplit(A,BB),!,BB=B)).
+%%%%%% everything tries to lowercase (fails case-sensitive tests)
+%%atomWSplit(A,B):-atom(A),literal_atom(A,L),hotrace((cyc:atomSplit(L,BB),!,BB=B)).
+%%%%%% puts backspaces in places of no spaces
 %%atomWSplit(A,B):- hotrace((cyc:atomWSplit(A,BB),!,BB=B)).
+atomWSplit(A,B):- hotrace((cyc:atomSplit(A,BB),!,BB=B)).
+
 
 %%atomWSplit(A,B):-token_stream_of(A,AA),findall(B0,arg(1,AA,B),B).
 
@@ -769,6 +774,7 @@ dumpList(_,[]):-!.
 
 ifThen(When,Do):-When->Do;true.
 
+traceCall(A):-!,A.
 traceCall(A):-trace(A,[-all,+fail]),A,!.
 
 /*
@@ -921,6 +927,7 @@ string_to_stream(Atom,InStream):- atom_to_memory_file(Atom, Handle),open_memory_
             
 stt:- string_to_stream('hi.\nthere.\n',X),read(X,Y),read(X,Z),close(X),writeln([hi=Y,there=Z]).
 
+tryHideProc(_MFA):-!.
 tryHideProc(MFA):-tryCatchIgnore('$hide'(MFA)),tryCatchIgnore('trace'(MFA,[-all])),tryCatchIgnore(noprofile(MFA)).
 
 doTryHides:-retract(remember_tryHide(MFA)),once(tryHideProc(MFA)),fail.

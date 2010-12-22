@@ -114,27 +114,50 @@ argNFound(F,A,*,*):-argNumsIndexedRepr(F,A,_,textInput).
 
 assert_cate_in_load(NEW) :- currentContext(assert_cate_in_load,Ctx),prolog_must(assert_cate_in_load(Ctx,NEW)),!.
 
-
-retractWithArgIndexes(Retract):-retract(Retract),
-   withArgIndexing(Retract,dirtyArgIndex,Removeme),
-   debugFmt(retractWithArgIndexes(Retract,Removeme)).
-
 assert_cate_in_load(Ctx,CateSig):-
-   immediateCall(Ctx,assert_cate_in_load(Ctx,CateSig)),
-   copy_term(CateSig,CateSigTest),
-   CateSig=CateSigTest,
-   isRetraction(Ctx,CateSigTest,Removeme),!,
-   %%ctrace,
-   findall(Removeme,retractWithArgIndexes(Removeme),_Retracted),!.
+    duplicate_term(CateSig,CateSigTest),
+    load_category(Ctx,CateSigTest),!.
 
-assert_cate_in_load(_Ctx,CateSig):-
-  %%copy_term(CateSig,Original),
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% load_category(Ctx,CateSig) 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+load_category(Ctx,CateSig):-
+      isRetraction(Ctx,CateSig,RemovemeMask),!,
+      withArgIndexing(RemovemeMask,dirtyArgIndex,Removeme),
+      findall(Removeme,retract_cate_post_index(Removeme),_Retracted),!.
+
+load_category(Ctx,CateSig):-
       withArgIndexing(CateSig,addArgIndex,Indexable),
-  %% traceIf(Indexable\=Original),
       asserta(Indexable),!,
-      debugFmt(':-'(CateSig,Indexable)).
+      traceIf(((not(not(Indexable==CateSig))),not(arg(6,CateSig,*)))),!,
+      immediateCall(Ctx,assert_cate_post_index(Indexable)),!,
+      confirm_args_indexed(Indexable).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% assert_cate_post_index(Indexable)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+assert_cate_post_index(Indexable):- asserta(Indexable),debugFmt(asserta(Indexable)),confirm_args_indexed(Indexable).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% retract_cate_post_index(Indexable)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+retract_cate_post_index(Removeme):-
+   immediateCall(_Ctx,retract_cate_post_index(Removeme)),!,
+   %%withArgIndexing(Retract,dirtyArgIndex,Removeme),
+   %%debugFmt(retract_cate_post_index(Removeme)),!,
+   prolog_must(retract(Removeme)),!.
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% confirm_args_indexed(Indexable)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+confirm_args_indexed(Indexable):-functor(Indexable,F,_),
+      argNumsIndexedRepr(F,ArgName,N,ArgType),argTypeIndexable(ArgType),
+      arg(N,Indexable,Value),
+      not(argNFound(F,ArgName,_,Value)),
+      debugFmt(not(argNFound(F,ArgName,_,Value))),fail.
+confirm_args_indexed(_Indexable). %%confirmed
 
 %%%
 ffffffff.
@@ -161,16 +184,22 @@ toNonIndexableArg(A,[A]).
 toIndexable(OF,INDEXABLE):-OF=..[F|ARGS],functor(OF,F,A),toIndexable0(A,F,ARGS,NEWARGS),!,INDEXABLE=..[F|NEWARGS].
 toIndexable0(0,_F,_,[]):-!.
 toIndexable0(3,aimlCate,List,List):-!.
-toIndexable0(N,F,[A|ARGS],[NEW|NEWARGS]):-N2 is N-1, makeIndexableArg(F,N,A,NEW),toIndexable0(N2,F,ARGS,NEWARGS).
+toIndexable0(N,F,[A|ARGS],[NEW|NEWARGS]):-N2 is N-1, makeIndexableArg(F,N,A,NEW),!,toIndexable0(N2,F,ARGS,NEWARGS).
+
 
 makeIndexableArg(_,_,A,A):-noTrickyIndexing,!.  %%TODO: REMOVE THIS DISABLER
-makeIndexableArg(F,ArgNumber,A,AH):-argNumsIndexedRepr(F,_Pattern,ArgNumber,ArgType),argTypeIndexable(ArgType),toIndexableArg(A,AH),!.
+makeIndexableArg(F,ArgNumber,A,AHL):-argNumsIndexedRepr(F,_Pattern,ArgNumber,ArgType),makeIndexableArg(F,ArgType,A,AHL).
+makeIndexableArg(F,ArgType,A,AHL):-argNumsIndexedRepr(F,Pattern,_,ArgType),makeIndexableArg(Pattern,ArgType,A,AHL).
+makeIndexableArg(Pattern,ArgType,A,AH):-argNumsIndexedRepr(_F,Pattern,_ArgNumber,ArgType),argTypeIndexable(ArgType),toIndexableArg(Pattern,ArgType,A,AH).
 makeIndexableArg(_,_,A,A).
+
+toIndexableArg(_,_,B,AHL):-toIndexableArg(B,A),!,!,prolog_must(toLowercase(A,AHL)).
 
 toIndexableArg(A,A):- noTrickyIndexing,!.  %%TODO: REMOVE THIS DISABLER
 toIndexableArg(A,A):-var(A),!.
+toIndexableArg(A,AH):-is_list(A),removeSkippables(A,AL),A\==AL,!,toIndexableArg(AL,AH).
 toIndexableArg(A,A):-member(A,['*','[]','_']),!.
-toIndexableArg([A],A):-not(compound(A)),!.
+toIndexableArg([A],AA):-not(compound(A)),!,toIndexableArg(A,AA).
 toIndexableArg(A,A):-not(compound(A)),!.
 toIndexableArg([A],AH):- atom(A),!,AH=..[A/*,idx0*/],!.
 toIndexableArg([A],N):-toIndexableArg(A,N).
@@ -188,14 +217,17 @@ predify(AH,A0,AN,H):-AH=..[A0,idxl,AN|H].
 %%%%%%%%%%%%%%%%%%%
 %%withArgIndexing(+CateSig,+DoWhat,-Indexable):-!.
 %%%%%%%%%%%%%%%%%%5
-withArgIndexing(CateSig,DoWhat):-prolog_must(withArgIndexing(CateSig,DoWhat,_Indexable)).
-withArgIndexing(CateSig,_DoWhat,CateSig):-not(useIndexPatternsForCateSearch),!.
+%%withArgIndexing(CateSig,DoWhat):-prolog_must(withArgIndexing(CateSig,DoWhat,_Indexable)).
+
+withArgIndexing(CateSig,_DoWhat,Indexable):-not(useIndexPatternsForCateSearch),!,duplicate_term(CateSig,Indexable).
 withArgIndexing(CateSig,DoWhat,Indexable):-
+  functor(CateSig,F,A),  
   prolog_must(var(Indexable)),
-  copy_term(CateSig,Indexable),functor(CateSig,F,_),
+  functor(Indexable,F,A),
+  duplicate_term(CateSig,Indexable),
   prolog_must(withArgIndexing4(CateSig,F,DoWhat,Indexable)),!.
 
-withArgIndexing4(CateSig,Functor,DoWhat,Indexable):- argNumsTracked(Functor,ArgName,ArgNumber),
+withArgIndexing4(CateSig,Functor,DoWhat,Indexable):- argNumsTracked(Functor,ArgName,ArgNumber), 
   argNumsIndexedRepr(Functor,ArgName,ArgNumber,ArgType),
   once((arg(ArgNumber,CateSig,Arg),
          once((call(DoWhat,CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType),
@@ -266,7 +298,7 @@ translate_cate(Ctx,CateSig):-replaceArgsVar(Ctx,[srcinfo=_],CateSig),assert_cate
 is_xml_missing(Var):-prolog_must(nonvar(Var)),!,member(Var,['[]','*','_']),!.
 
 isRetraction(Ctx,CateSig,OF):-getCategoryArg1(Ctx,'template',NULL,_StarNumber,CateSig),!,is_xml_missing(NULL),
-   copy_term(CateSig,OF),replaceArgsVar(Ctx,['template'=_,srcinfo=_,srcfile=_],OF),!.
+   duplicate_term(CateSig,OF),replaceArgsVar(Ctx,['template'=_,srcinfo=_,srcfile=_],OF),!.
 
 % ===============================================================================================
 %  Popping when Building categories
@@ -350,7 +382,7 @@ callableInput(Ctx,Atom,Input,Output):-callableInput0(Ctx,Atom,Input,Output).
 
 callableInput0(Ctx,[String],Input,Output):-!,callableInput(Ctx,String,Input,Output).
 callableInput0(_Ctx,NonAtom,_Input,_Output):- not(atom(NonAtom)),!,fail.
-callableInput0(_Ctx,Atom,_Input,result(Results,Term,Vars)):-catch(atom_to_term(Atom,Term,Vars),_,fail),
+callableInput0(_Ctx,Atom,_Input,result(Term,Vars)):-catch(atom_to_term(Atom,Term,Vars),_,fail),
   callable(Term),catch(callInteractive0(Term,Vars /*,Results */),_,fail).
 callableInput0(Ctx,Atom,_Input,VotesO-Output):-atom_prefix(Atom,'@'),
   % re-direct to input
@@ -748,6 +780,11 @@ canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern,_OutputLevel,_StarSet
 consumeSkippables([],[]).
 consumeSkippables([Skipable|B],BB):- isIgnoreableWord(Skipable),!,consumeSkippables(B,BB).
 consumeSkippables(A,A).
+
+removeSkippables(A,A):-atomic(A),!.
+removeSkippables([Skipable|B],BB):- isIgnoreableWord(Skipable),!,removeSkippables(B,BB).
+removeSkippables([Skipable|B],[Skipable|BB]):- removeSkippables(B,BB).
+removeSkippables(A,A).
 
 % ======================================================================================== 
 % make_star_binders(Ctx, StarName, Text , Pattern, 1/OutputLevel, StarSetsNameValues).

@@ -119,7 +119,7 @@ aiml_eval_now(Ctx,TAGATTRXML):-aiml_eval(Ctx,TAGATTRXML,RESULT),!,debugFmt(aiml_
 immediateCall(Ctx,:-(Call)):-!,immediateCall0(Ctx,:-(Call)),!.
 immediateCall(Ctx,Call):-immediateCall0(Ctx,:-(Call)),!.
 
-immediateCall0(Ctx,C):-functor(C,call,_),Call=..[call,A|Args],A=..L,append(L,Args,Out),Call=..Out,!,immediateCall0(Ctx,Call).
+immediateCall0(Ctx,C):-functor(C,call,_),C=..[call,A|Args],A=..L,append(L,Args,Out),Call=..Out,!,immediateCall0(Ctx,Call).
 immediateCall0(Ctx,C):-toReadableObject(C,Call),immediateCall1(Ctx,Call),!.
 %%immediateCall1(_Ctx,C):- prolog_mostly_ground((C)),fail.
 immediateCall1(_Ctx,Call):- fresh_line,(format('~q.',[Call])),fresh_line. %%,debugFmt(Call),!.

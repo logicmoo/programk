@@ -7,15 +7,9 @@
 % Revision:  $Revision: 1.7 $
 % Revised At:   $Date: 2002/07/11 21:57:28 $
 % ===================================================================
-prolog_safe:-true.
+:-dynamic(prolog_is_vetted_safe).
+prolog_is_vetted_safe:-fail.
 :-'$hide'(tryCatchIgnore/1).
-
-error_catch(C,E,F):-E=error(E1,E2),!,catch(C,error(E1,E2),F).
-error_catch(C,E,F):-nonvar(E),!,catch(C,E,F).
-error_catch(C,E,F):-catch(C,E,(needs_rethrown(E),F)).
-needs_rethrown(E):- functor(aiml_goto,E,_),!,throw(E).
-needs_rethrown(E):- functor(aiml_novalue,E,_),!,throw(E).
-needs_rethrown(_).
 
 tryCatchIgnore(MFA):- error_catch(MFA,_E,true). %%debugFmt(tryCatchIgnoreError(MFA:E))),!.
 tryCatchIgnore(MFA):- !,debugFmt(tryCatchIgnoreFailed(MFA)).
@@ -24,9 +18,60 @@ tryCatchIgnore(MFA):- !,debugFmt(tryCatchIgnoreFailed(MFA)).
 
 tryHide(MFA):- asserta(remember_tryHide(MFA)).
 
+:-tryHide(prolog_may/1).
+%%prolog_may(Call):-prolog_is_vetted_safe,!,Call.
+prolog_may(Call):-prolog_ecall(debugOnError,Call).
+
+:-tryHide(prolog_mustEach/1).
+prolog_mustEach(Call):-prolog_Each(prolog_must,Call).
+
+prolog_Each(Pred,(A,B)):- !,prolog_Each(Pred,A),prolog_Each(Pred,B).
+prolog_Each(Pred,notrace(A)):-!, hotrace(prolog_Each(Pred,A)).
+prolog_Each(Pred,hotrace(A)):-!, hotrace(prolog_Each(Pred,A)).
+prolog_Each(Pred,Call):- prolog_call(Pred,Call).
+
+:-tryHide(prolog_must/1).
+prolog_must(Call):-notrace((prolog_is_vetted_safe)),!,Call.
+prolog_must(Call):-not(tracing),traceIf(var(Call)),tracing,!,debugOnError(Call). %%prolog_must_tracing(Call).
+prolog_must(Call):-prolog_must_call(Call).
+
+
+%%%term_expansion_call(Call, Call0):- term_expansion_safe(Call, Call0),!.
+%%term_expansion_call(Call, Call0):- term_expansion(Call, Call0),!.
+term_expansion_call(Call, Call):- (var(Call);atomic(Call)),!.
+term_expansion_call([A|B],[AA|BB]):-!,term_expansion_call(A,AA),term_expansion_call(B,BB).
+term_expansion_call(Call0, Call):-compound(Call0),Call0=..[A|RGS],term_expansion_call(RGS,RGS1),RGS\==RGS1,Call=..[A|RGS1].
+term_expansion_call(Call, Call).
+
+%%term_expansion_call(Call, Call0):-atomic(Call),!,Call=Call0.
+
+term_expansion_safe(Call, _):-atomic(Call),!,fail.
+term_expansion_safe(prolog_must(Call), Call0):-!,term_expansion_call(Call, Call0).
+term_expansion_safe(once(Call), (Call0,!)):-!,term_expansion_call(Call, Call0).
+term_expansion_safe(prolog_may(Call), Call0):-!,term_expansion_call(Call, Call0).
+term_expansion_safe(prolog_mustEach(Call), Call0):-!,term_expansion_call(Call, Call0).
+term_expansion_safe((A,B),(AA,BB)):-!,term_expansion_call(A,AA),term_expansion_call(B,BB).
+term_expansion_safe((:- G),:- G0):- !,term_expansion_call(G,G0).
+term_expansion_safe((?- G),:- G0):- !,term_expansion_call(G,G0).
+term_expansion_safe((_:-true),_):- !,fail.
+term_expansion_safe((A:-B),(A:-BB)):- term_expansion_call(B,BB),!,B\=BB.
+
+term_expansion_safe(Call, Call0):-term_expansion_call(Call, Call0).
+
+%%user:term_expansion(Call, Call0):-prolog_is_vetted_safe,!,term_expansion_safe(Call, Call0),!.
+%%user:expand_goal(Call, Call0):-prolog_is_vetted_safe,!,term_expansion_safe(Call, Call0),!.
+
+
+error_catch(C,E,F):-E=error(E1,E2),!,catch(C,error(E1,E2),F).
+error_catch(C,E,F):-nonvar(E),!,catch(C,E,F).
+error_catch(C,E,F):-catch(C,E,(needs_rethrown(E),F)).
+needs_rethrown(E):- functor(aiml_goto,E,_),!,throw(E).
+needs_rethrown(E):- functor(aiml_novalue,E,_),!,throw(E).
+needs_rethrown(_).
+
 :-tryHide(tryCatchIgnore/1).
 :-tryHide(error_catch/3).
-:-tryHide(prolog_safe/0).
+:-tryHide(prolog_is_vetted_safe/0).
 
 prolog_extra_checks:-true.
 
@@ -239,7 +284,7 @@ doHideTrace(M,F,A,ATTRIB):- tryHide(M:F/A),!,
    tryCatchIgnore(trace(M:F/A,ATTRIB)),!.
 
 
-unused:ctrace:-prolog_safe->notrace;(willTrace->trace;notrace).
+unused:ctrace:-prolog_is_vetted_safe->notrace;(willTrace->trace;notrace).
 
 bugger:-hideTrace,traceAll,error_catch(guitracer,_,true),debug,list_undefined.
 
@@ -352,23 +397,10 @@ throw_safe(Exc):-throw(error(Exc,Exc)).
 must_assign(From,To):-To=From,!.
 must_assign(From,To):-ctrace,To=From.
 
-:-tryHide(prolog_mustEach/1).
-prolog_mustEach((A,B)):- !,prolog_mustEach(A),prolog_mustEach(B).
-prolog_mustEach(Call):- prolog_must(Call).
-
-:-tryHide(prolog_must/1).
-prolog_must(Call):-notrace((prolog_safe)),!,Call.
-prolog_must(Call):-traceIf(var(Call)),tracing,!,debugOnError(Call). %%prolog_must_tracing(Call).
-prolog_must(Call):-prolog_must_call(Call).
-
 :-tryHide(system:catch/3).
 :-tryHide(system:not/1).
 
 :-tryHide(cyc:ctrace/0).
-
-:-tryHide(prolog_may/1).
-%%prolog_may(Call):-prolog_safe,!,Call.
-prolog_may(Call):-prolog_ecall(debugOnError,Call).
 
 :-tryHide(debugOnError/1).
 :-tryHide(debugOnError0/1).
@@ -394,26 +426,37 @@ datatypeMustPred(prolog_must_call0,Call):-functor(Call,F,A),((A=1,test_pred(F));
 test_pred(T):-member(T,[var,nonvar,atom,atomic,number,is_list,compound,ground,not]),!.
 
 :-tryHide(prolog_ecall/2).
-prolog_ecall(_Pred,Call):-var(Call),!,ctrace,randomVars(Call).
-prolog_ecall(Pred,Call):-tracing,!,call(Pred,Call).
-prolog_ecall(Pred,(X->Y;Z)):-!,(call(X) -> prolog_ecall(Pred,Y) ; prolog_ecall(Pred,Z)).
-prolog_ecall(Pred,(X->Y)):-!,(call(X)->prolog_ecall(Pred,Y)).
-prolog_ecall(Pred,catch(C,E,H)):-!,catch(prolog_ecall(Pred,C),E,prolog_ecall(Pred,H)).
-prolog_ecall(Pred,error_catch(C,E,H)):-!,error_catch(prolog_ecall(Pred,C),E,prolog_ecall(Pred,H)).
-prolog_ecall(Pred,(X;Y)):-!,prolog_ecall(Pred,X);prolog_ecall(Pred,Y).
-prolog_ecall(Pred,(X,Y)):- !,
-                             debugOnError(X), %%prolog_ecall(Pred,X),
-                             prolog_ecall(Pred,Y).
-prolog_ecall(Pred,prolog_must(Call)):-!,prolog_must(prolog_ecall(Pred,Call)).
-prolog_ecall(_Pred,prolog_may(Call)):-!,prolog_may(Call).
-%%prolog_ecall(Pred,Call):- datatypeMustPred(Pred,Call),!,((call(Pred,Call),!);ctrace).
-prolog_ecall(_Pred,Call):- fail, ignore((Call=atom(_),ctrace)), 
+prolog_ecall(Pred,Call):-prolog_ecall(call,Pred,Call).
+
+prolog_ecall(_Conj,_Pred,Call):-var(Call),!,ctrace,randomVars(Call).
+prolog_ecall(Conj,Pred,Call):-tracing,!,prolog_ecall_conj(Conj,Pred,Call).
+prolog_ecall(call,Pred,notrace(Call)):-prolog_ecall(notrace,Pred,Call).
+prolog_ecall(Conj,Pred,(X->Y;Z)):-!,(prolog_call(Conj,X) -> prolog_ecall(Conj,Pred,Y) ; prolog_ecall(Conj,Pred,Z)).
+prolog_ecall(Conj,Pred,(X->Y)):-!,(prolog_call(Conj,X)->prolog_ecall(Conj,Pred,Y)).
+prolog_ecall(Conj,Pred,catch(C,E,H)):-!,catch(prolog_ecall(Conj,Pred,C),E,prolog_ecall(Conj,Pred,H)).
+prolog_ecall(Conj,Pred,error_catch(C,E,H)):-!,error_catch(prolog_ecall(Conj,Pred,C),E,prolog_ecall(Conj,Pred,H)).
+prolog_ecall(Conj,Pred,(X;Y)):-!,prolog_ecall(Conj,Pred,X);prolog_ecall(Conj,Pred,Y).
+prolog_ecall(Conj,Pred,(X,Y)):- !,
+                             debugOnError(prolog_call(Conj,X)), %%prolog_ecall(Conj,Pred,X),
+                             prolog_ecall(Conj,Pred,Y).
+prolog_ecall(Conj,Pred,prolog_must(Call)):-!,prolog_must(prolog_ecall(Conj,Pred,Call)).
+prolog_ecall(Conj,_Pred,prolog_may(Call)):-!,prolog_may(prolog_call(Conj,Call)).
+%%prolog_ecall(Conj,Pred,Call):- datatypeMustPred(Pred,Call),!,((prolog_call(Pred,Call),!);ctrace).
+prolog_ecall(_Conj,_Pred,Call):- fail, ignore((Call=atom(_),ctrace)), 
     predicate_property(Call,number_of_clauses(_Count)),
     error_catch((clause(Call,AB),AB\==true),_,((ctrace,predicate_property(Call,number_of_clauses(_Count2)),fail))),!,
     clause(Call,Body),debugOnError(Body).
-prolog_ecall(Pred,Call):- !, call(Pred,Call).
-prolog_ecall(Pred,Call):- debugOnError0(call(Pred,Call)).
+prolog_ecall(Conj,Pred,Call):-prolog_ecall_conj(Conj,Pred,Call).
 
+:-tryHide(prolog_ecall_conj/3).
+prolog_ecall_conj(call,call,Call):- !, Call.
+prolog_ecall_conj(call,Pred,Call):- !, prolog_call(Pred,Call).
+prolog_ecall_conj(Pred,call,Call):- !, prolog_ecall(call,Pred,Call).
+prolog_ecall_conj(Conj,Pred,Call):- !, prolog_call(Pred,prolog_call(Conj,Call)).
+prolog_ecall_conj(Conj,Pred,Call):- debugOnError0(prolog_call(Pred,prolog_call(Conj,Call))).
+
+prolog_call(call,Call):-!,Call.
+prolog_call(Pred,Call):-call(Pred,Call).
 
 :-tryHide(atLeastOne/1).
 :-tryHide(atLeastOne/2).
@@ -694,8 +737,10 @@ clean_out_atom(X,Y):-atom_codes(X,C),clean_codes(C,D),!,atom_codes(X,D),!,Y=X.
 %%%%%% everything tries to lowercase (fails case-sensitive tests)
 %%atomWSplit(A,B):-atom(A),literal_atom(A,L),hotrace((cyc:atomSplit(L,BB),!,BB=B)).
 %%%%%% puts backspaces in places of no spaces
+:-dynamic(atomWSplit_cached/2).
 %%atomWSplit(A,B):- hotrace((cyc:atomWSplit(A,BB),!,BB=B)).
-atomWSplit(A,B):- hotrace((cyc:atomSplit(A,BB),!,BB=B)).
+atomWSplit(A,B):-prolog_must(atom(A)),atomWSplit_cached(A,B),!.
+atomWSplit(A,B):- hotrace((cyc:atomSplit(A,BB),!,BB=B,asserta(atomWSplit_cached(A,B)))).
 
 
 %%atomWSplit(A,B):-token_stream_of(A,AA),findall(B0,arg(1,AA,B),B).
@@ -857,14 +902,15 @@ catchAnRethrow(X):-catch(X,E,(debugFmt(X->E),throw(E))).
 %% "trace,tracing" .. detects if we are in a notrace/1
 %% prolog_exception_hook
 interactStep(String):-interactStep(String,true,true).
-interactStep(String,CallYes,CallNo):-debugFmt(promptUser(String,[call,-,CallYes,-,or,-,CallNo])),trace,tracing,!,prolog_must(CallYes).
+interactStep(String,CallYes,CallNo):-debugFmt(promptUser(String,[call,-,CallYes,-,or,-,CallNo])),trace,tracing,CallYes.
 interactStep(_String,CallYes,CallNo):-prompt1('>>>>>>>>>>>>>>'),read(YN),debugFmt(red(YN)),YN=yes->CallYes;CallNo.
 
 % ===================================================================
 % traceIf/warnIf(_Call):-!.
 % ===================================================================
 :-tryHide(traceIf/1).
-traceIf(Call):-ignore((hotrace(Call),debugFmt(traceIf(Call)),ctrace)).
+
+traceIf(Call):-copy_term(Call,Call0),Call0->debugFmt(traceIf0(Call0));true.
 
 :-tryHide(warnIf/1).
 warnIf(Call):-hotrace(ignore((Call,debugFmt(warnIf(Call))))).

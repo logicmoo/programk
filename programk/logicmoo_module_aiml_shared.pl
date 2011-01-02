@@ -8,7 +8,7 @@
 % Revised At:   $Date: 2002/07/11 21:57:28 $
 % ===================================================================
 :-dynamic(prolog_is_vetted_safe).
-prolog_is_vetted_safe:-fail.
+prolog_is_vetted_safe:-true.
 :-'$hide'(tryCatchIgnore/1).
 
 tryCatchIgnore(MFA):- error_catch(MFA,_E,true). %%debugFmt(tryCatchIgnoreError(MFA:E))),!.
@@ -739,7 +739,7 @@ clean_out_atom(X,Y):-atom_codes(X,C),clean_codes(C,D),!,atom_codes(X,D),!,Y=X.
 %%%%%% puts backspaces in places of no spaces
 :-dynamic(atomWSplit_cached/2).
 %%atomWSplit(A,B):- hotrace((cyc:atomWSplit(A,BB),!,BB=B)).
-atomWSplit(A,B):-prolog_must(atom(A)),atomWSplit_cached(A,B),!.
+atomWSplit(A,B):-prolog_must(ground(A)),atomWSplit_cached(A,B),!.
 atomWSplit(A,B):- hotrace((cyc:atomSplit(A,BB),!,BB=B,asserta(atomWSplit_cached(A,B)))).
 
 

@@ -294,29 +294,32 @@ ensureValue(ValueO,['$value'(ValueO)]).
 % ===============================================================================================
 withValueAdd(Ctx,Pred,IDict,NameI,Value):- dictNameDictNameC(Ctx,IDict,NameI,Dict,Name),!,withValueAdd(Ctx,Pred,Dict,Name,Value),!.
 withValueAdd(Ctx,Pred,IDict,Name,Value):-is_list(IDict),!,trace,foreach(member(Dict,IDict),withValueAdd(Ctx,Pred,Dict,Name,Value)),!.
-withValueAdd(Ctx,Pred,Dict,Name,Var):-var(Var),!,withValueAdd(Ctx,Pred,Dict,Name,['$var'(Var)]).
+withValueAdd(Ctx,_Pred:Print,Dict,Name,Var):-neverActuallyAdd(Ctx,Print,Dict,Name,Var),!.
+withValueAdd(Ctx,Pred,Dict,Name,Var):-debugFmt(withValueAdd(Ctx,Pred,Dict,Name,Var)),var(Var),!,withValueAdd(Ctx,Pred,Dict,Name,['$var'(Var)]).
 withValueAdd(Ctx,Pred,Dict,Name,Atomic):-atomic(Atomic),Atomic\==[],!,withValueAdd(Ctx,Pred,Dict,Name,[Atomic]).
-withValueAdd(Ctx,Pred,Dict,Name,NonList):-not(is_list(NonList)),ctrace,!,withValueAdd(Ctx,Pred,Dict,Name,[NonList]).
-withValueAdd(Ctx,Pred,Dict,Name,Value):-immediateCall(Ctx,call(Pred,Ctx,Dict,Name,Value)),fail.
-withValueAdd(Ctx,Pred,Dict,Name,Value):-isStarValue(Value),debugFmt(withValueAdd(Ctx,Pred,Dict,Name,Value)),ctrace.
+withValueAdd(Ctx,_Pred:Print,Dict,Name,Value):-immediateCall(Ctx,call(Print,Ctx,Dict,Name,Value)),fail.
+withValueAdd(Ctx,Pred,Dict,Name,Value):-isStarValue(Value),debugFmt(withValueAdd(Ctx,Pred,Dict,Name,Value)),traceIf(nonStarDict(Dict)).
 %%withValueAdd(Ctx,Pred,Dict,default(Name),DefaultValue):-getAliceMem(Ctx,Pred,Dict,Name,'OM')->setAliceMem(Ctx,Dict,Name,DefaultValue);true.
-withValueAdd(Ctx,Pred,Dict,Name,Value):-checkDictIn(Value,ValueO),call(Pred,exec,Ctx,Dict,Name,ValueO).
+withValueAdd(Ctx,Pred,Dict,Name,NonList):-(not(is_list(NonList))),!,withValueAdd(Ctx,Pred,Dict,Name,[NonList]).
+withValueAdd(Ctx,Pred:_Print,Dict,Name,Value):-checkDictIn(Value,ValueO),call(Pred,Ctx,Dict,Name,ValueO).
 
-
+nonStarDict(catefallback):-!,fail.
+neverActuallyAdd(Ctx,Pred,Dict,Name,Var):-var(Var),debugFmt(neverActuallyAdd(Ctx,Pred,Dict,Name,Var)),!.
+neverActuallyAdd(Ctx,Pred,Dict,Name,Var):-not(ground(var(Var))),debugFmt(maybeNeverActuallyAdd(Ctx,Pred,Dict,Name,Var)),!.
 % ===============================================================================================
 % Setting globals
 % ===============================================================================================
 setAliceMem(Dict,X,E):-currentContext(setAliceMem(Dict,X,E),Ctx), prolog_must(setAliceMem(Ctx,Dict,X,E)).
 
-setAliceMem(Ctx,IDict,Name,Value):-withValueAdd(Ctx,setAliceMem,IDict,Name,Value).
+setAliceMem(Ctx,IDict,Name,Value):-withValueAdd(Ctx,setAliceMem0:setAliceMem,IDict,Name,Value).
 setAliceMem(Ctx,Dict,default(Name),DefaultValue):-getAliceMem(Ctx,Dict,Name,'OM')->setAliceMem(Ctx,Dict,Name,DefaultValue);true.
-setAliceMem(exec,Ctx,Dict,Name,Value):-notrace((resetAliceMem0(Ctx,Dict,Name,Value))),!.
+setAliceMem0(Ctx,Dict,Name,Value):-notrace((resetAliceMem0(Ctx,Dict,Name,Value))),!.
 
 % ===============================================================================================
 % Inserting globals
 % ===============================================================================================
-insert1StValue(Ctx,IDict,Name,Value):-withValueAdd(Ctx,insert1StValue,IDict,Name,Value).
-insert1StValue(exec,_Ctx,Dict,Name,Value):-asserta(dict(Dict,Name,Value)),!.
+insert1StValue(Ctx,IDict,Name,Value):-withValueAdd(Ctx,insert1StValue0:insert1StValue,IDict,Name,Value).
+insert1StValue0(_Ctx,Dict,Name,Value):-asserta(dict(Dict,Name,Value)),!.
 
 % ===============================================================================================
 %    AIML Runtime Database
@@ -330,8 +333,10 @@ checkDictIn(Value,Value):-prolog_must(ground(Value)),(Value=['ERROR'|_];Value=[[
 
 checkDictIn(Value,Value):-warnIf(not(checkDictValue(Value))).
 
-
+dictValue(V):-ground(V),dictValue0k(V),!.
 dictValue(Value):-valuePresent(Value).
+dictValue0k(['ERROR',understanding|_]):-!.
+dictValue0k([X|_]):-dictValue0k(X).
 
 
 resetAliceMem0(Ctx,IDict,NameI,ValueIn):- dictNameDictName(Ctx,IDict,NameI,Dict,Name),
@@ -348,7 +353,12 @@ resetAliceMem0(Ctx,IDict,NameI,ValueIn):- dictNameDictName(Ctx,IDict,NameI,Dict,
 %%getContextStoredValue(Ctx,Dict,Name,Value):-dictNameKey(Dict,Name,Key),debugOnError(current_value(Ctx,Key,Value)),dictValue(Value).
 currentContextValue(Ctx,Scope,Name,Value):- dictNameKey(Scope,Name,Key),getCtxValueND(Ctx,Key,Value).
 currentContextValue(Ctx,Dict,Name,Value):- debugOnError((getContextStoredValue(Ctx,Dict,Name,Value))),!.
-currentContextValue(_Ctx,_Dict,_Name,'OM'):-ctrace.
+currentContextValue(_Ctx,_Dict,_Name,OMValue):- omOrNil(OMValue).
+
+omOrNil([]):-!.
+omOrNil('OM').
+omOrNil(['Nothing']).
+
 
 getContextStoredValue(Ctx,IDict,NameI,Value):-dictNameDictNameC(Ctx,IDict,NameI,Dict,Name),!,getContextStoredValue(Ctx,Dict,Name,Value).
 getContextStoredValue(_Ctx,Dict,Name,ValueO):- copy_term(ValueO,ValueI),dict(Dict,Name,ValueI),

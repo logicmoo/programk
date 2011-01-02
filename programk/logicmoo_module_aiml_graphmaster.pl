@@ -41,10 +41,6 @@ innerTagPriority(template,[template,postpattern]).
 
 :-retractall(dict(_,_,_)).
 
-%:- cateFallback(ATTRIBS), pushAttributes(_Ctx,default,ATTRIBS).
-%:- cateFallback(ATTRIBS), popAttributes(_Ctx,default,ATTRIBS).
-%:- cateFallback(ATTRIBS), pushAttributes(_Ctx,default,ATTRIBS).
-
 :-pp_listing(dict(_,_,_)).
 
 
@@ -537,16 +533,19 @@ computeSRAI222(CtxIn,Votes,ConvThreadHint,SYM,Pattern,Compute,VotesO,ProofOut,Ou
          subclassMakeUserDict(CtxIn,UserDict,SYM),
          getAliceMemOrSetDefault(CtxIn,ConvThread,SYM,'that',That,['Nothing']),
   
-   PreTopic = true,%%(CtxIn=Ctx),
-   debugFmt(topicThatPattern(Topic,That,Pattern)),!,
+   PreTopic = ignore(CtxIn=Ctx),PreTopic,
+   TTP = topicThatPattern(Topic,That,Pattern),
+   debugFmt(TTP),!,
+   traceIf(not(ground(TTP))),
    must_be_openCate(CateSig),!,
    /*
    prolog_must(topicThatPattern(Ctx,Topic,That,Pattern,PreTopic,Out,CateSig,OutputLevel,StarSets_All,ClauseNumber,CommitTemplate)),
    */
    
    UNIF= topicThatPattern(Ctx,Topic,That,Pattern,PreTopic,Out,CateSig,OutputLevel,StarSets_All,ClauseNumber,CommitTemplate),
+   singletons([ClauseNumber]),
    findall(UNIF,UNIF,UNIFS),!,
-   traceIf(UNIFS=[_]),
+   traceIf(UNIFS=[]),
    %%%%% iterate from here %%%%%
    member(UNIF,UNIFS), 
          once(prolog_mustEach((

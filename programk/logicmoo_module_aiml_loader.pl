@@ -79,11 +79,11 @@ load_aiml_files.
 
 %%tell(f5),load_aiml_files('part5/*.aiml'),told.
 
-load_aiml_files(Files):-currentContext(load_aiml_files,Ctx),load_aiml_files(Ctx,Files),!,do_pending_loads(Ctx).
+load_aiml_files(Files):-currentContext(load_aiml_files,Ctx),prolog_must(load_aiml_files(Ctx,Files)),!,prolog_must(do_pending_loads(Ctx)).
 
 % Detect between content vs filename
 load_aiml_files(Ctx,element(Tag,Attribs,ContentIn)):- !, prolog_must((load_aiml_structure(Ctx,element(Tag,Attribs,ContentIn)),!,do_pending_loads(Ctx))).
-load_aiml_files(Ctx,File):- withAttributes(Ctx,[withCategory=[writeqnl,assert_cate_in_load]],with_files(load_single_aiml_file(Ctx),File)),!,do_pending_loads(Ctx).
+load_aiml_files(Ctx,File):- withAttributes(Ctx,[withCategory=[writeqnl,assert_cate_in_load]],prolog_must(with_files(load_single_aiml_file(Ctx),File))),!,do_pending_loads(Ctx).
 
 
 translate_aiml_files(Files):-currentContext(translate_aiml_files,Ctx),translate_aiml_files(Ctx,Files),!.
@@ -316,7 +316,7 @@ load_inner_aiml_lineno(Attributes,Ctx,element(Tag,Attribs,ContentIn)):-
    */
 
 %catagory
-load_aiml_structure(Ctx,element(catagory,ALIST,LIST)):-load_aiml_structure(Ctx,element(category,ALIST,LIST)),!.
+load_aiml_structure(Ctx,element(catagory,ALIST,LIST)):-!,load_aiml_structure(Ctx,element(category,ALIST,LIST)),!.
 
 
 % aiml
@@ -336,7 +336,7 @@ load_aiml_structure(Ctx,O):-atomic(O),!,debugFmt(load_aiml_structure(Ctx,O)),!.
 % topic/category/flags/that
 load_aiml_structure(Ctx,element(Tag,ALIST,INNER_XML)):- member(Tag,[topic,category,flags,that]),!,
      replaceAttribute(Ctx,name,Tag,ALIST,ATTRIBS),
-         withAttributes(Ctx,ATTRIBS, pushCateElement(Ctx,ATTRIBS,element(Tag,ALIST,INNER_XML))),!.
+         withAttributes(Ctx,ATTRIBS, load_aiml_cate_element(Ctx,ATTRIBS,element(Tag,ALIST,INNER_XML))),!.
 
 % substitute,learn,aiml,genlMt,srai,think,system,javascript,eval,template
 load_aiml_structure(Ctx,element(A,B,C)):-
@@ -568,6 +568,9 @@ each_category(Ctx,ATTRIBS,NOPATTERNS,element(TAG,ALIST,PATTERN)):-
    gatherEach(Ctx,[TAG=PATTERN|NEWATTRIBS],NOPATTERNS,Results),!,
    prolog_must(dumpListHere(Ctx,Results)))),!.
 
+
+load_aiml_cate_element(Ctx,ATTRIBS,element(Tag,ALIST,INNER_XML)):-
+   prolog_must(pushCateElement(Ctx,ATTRIBS,element(Tag,ALIST,INNER_XML))).
 
 %catagory
 pushCateElement(Ctx,ATTRIBS,element(catagory, A, B)):- !,pushCateElement(Ctx,ATTRIBS,element(category, A, B)),!.

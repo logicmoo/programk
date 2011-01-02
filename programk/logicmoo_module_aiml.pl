@@ -8,6 +8,8 @@
 % Revised At:   $Date: 2002/07/11 21:57:28 $
 % ===================================================================
 
+:-ensure_loaded(library('programk/logicmoo_module_aiml_shared.pl')).
+
 %:-module()
 %:-include('logicmoo_utils_header.pl'). %<?
 %:- style_check(-singleton).
@@ -33,7 +35,6 @@ asserta_if_new_hlper1(C):-asserta(C),!.
    writeq(logicmoo_module_aiml:asserta(library_directory(ParentDir))),
    asserta_if_new_hlper1(library_directory(ParentDir)).
 
-:-ensure_loaded(library('programk/logicmoo_module_aiml_shared.pl')).
 :-ensure_loaded(library('programk/logicmoo_module_aiml_graphmaster.pl')).
 :-ensure_loaded(library('programk/logicmoo_module_aiml_memory.pl')).
 :-ensure_loaded(library('programk/logicmoo_module_aiml_natlang.pl')).
@@ -135,6 +136,7 @@ alicebotCTX(Ctx,Input,Resp):-
 % Main Alice Source-Input-Output
 % ===============================================================================================
 alicebotCTX4(Ctx,String,Input,Res):- callableInput(Ctx,String,Input,Res),!.
+alicebotCTX4(_Ctx,String,Input,_Resp):- isNoInput(String,Input), debugFmt('no input'),!,fail.
 alicebotCTX4(Ctx,String,Input,Resp):-
   prolog_mustEach((
    ground(String),ground(Input),
@@ -161,7 +163,10 @@ alicebotCTX4(Ctx,String,Input,Resp):-
    degrade(Resp),
    rememberSaidIt(Ctx,Resp))),!.
 
-
+isNoInput(String,Input):-trimWhitepaceOffEnds(Input,InputTrimed),Input\==InputTrimed,!,isNoInput(String,InputTrimed).
+isNoInput(_,[]):-!.
+isNoInput(_,['']):-!.
+isNoInput(_,_):-fail.
 % ===============================================================================================
 % Call like a SRAI tag
 % ===============================================================================================
@@ -273,7 +278,10 @@ isAimlTag(get).
 isAimlTag(_).
 
 prolog_mostly_ground(Out):-ground(Out),!.
-prolog_mostly_ground(Out):-prolog_must(nonvar(Out)),!.
+prolog_mostly_ground(Out):-var(Out),!,ctrace.
+prolog_mostly_ground([H|_Out]):-!,prolog_must(prolog_mostly_ground1(H)),!.
+prolog_mostly_ground(Out):- ((arg(_N,Out,Arg),prolog_must(prolog_mostly_ground1(Arg)),fail));true.
+prolog_mostly_ground1(Out):-prolog_must(nonvar(Out)).
 
 computeInner(_Ctx, _Votes, In, Out) :- atom(In),!,Out=In.
 computeInner(Ctx,Votes, In, Out) :- not(Out=(_-_)),!,computeAnswer(Ctx,Votes, In, Out, _VoteMid),!.
@@ -287,6 +295,12 @@ computeInnerEach(Ctx, _Votes, element(eval,ATTRIBS,INNER_XML),Rendered):-!,
 computeInnerEach(  Ctx, Votes, In, Out) :- prolog_must(computeAnswer(Ctx,Votes, In, Out, _VoteMid)),!, prolog_mostly_ground(Out).
 computeInnerEach(_Ctx, _Votes, In, Out) :- !, Out=In,  prolog_mostly_ground((Out)).
 
+isNonCallable(A):-atomic(A),!.
+isNonCallable([_|_]):-!.
+isNonCallable(Pred):-predicate_property(Pred,number_of_clauses(_)),!,fail.
+isNonCallable(_).
+
+isCallable(Pred):-not(isNonCallable(Pred)).
 
 % ===============================================================================================
 % Compute Answer Element Probilities
@@ -295,8 +309,11 @@ computeElementMust(Ctx,Votes,Tag,Attribs,InnerXml,Resp,VotesO):-catch(computeEle
 computeElementMust(Ctx,Votes,Tag,Attribs,InnerXml,Resp,VotesO):-ctrace,computeElement(Ctx,Votes,Tag,Attribs,InnerXml,Resp,VotesO),!.
 
 computeAnswerMaybe(Ctx,Votes,element(Tag,Attribs,InnerXml),Output,VotesO):-!,computeElement(Ctx,Votes,Tag,Attribs,InnerXml,Output,VotesO),!.
+computeAnswerMaybe(Ctx,Votes,InnerXml,Resp,VotesO):-isCallable(InnerXml),!,prolog_ecall(computeAnswerMaybeInnerLast(Ctx,Votes,Resp,VotesO),InnerXml),!.
 computeAnswerMaybe(Ctx,Votes,InnerXml,Resp,VotesO):-computeAnswer(Ctx,Votes,InnerXml,Resp,VotesO),!.
 computeAnswerMaybe(Ctx,Votes,InnerXml,Resp,VotesO):-debugFmt(computeAnswerMaybe(Ctx,Votes,InnerXml,Resp,VotesO)),fail.
+
+computeAnswerMaybeInnerLast(Ctx,Votes,Resp,VotesO,InnerXml):-computeAnswerMaybe(Ctx,Votes,InnerXml,Resp,VotesO).
 
 unused_computeElement(Ctx,Votes, Tag, ATTRIBS, [DO|IT], OUT, VotesO) :- recursiveTag(Tag),!,
       withAttributes(_Ctx,ATTRIBS,
@@ -940,4 +957,11 @@ substituteFromDict_l(Ctx,DictName,Hidden,[verbatum(After)|Output]):-dictReplace(
    debugOnError((length(Before,Left),length(NewBefore,Left))),
    append(NewBefore,Rest,Hidden),sameBinding(NewBefore,Before),!,substituteFromDict_l(Ctx,DictName,Rest,Output).
 substituteFromDict_l(Ctx,DictName,[V|Hidden],[V|Output]):-substituteFromDict_l(Ctx,DictName,Hidden,Output).
+
+:- addScopeParent(toplevel,cateFallback).
+:- addScopeParent(filelevel,toplevel).
+:- addScopeParent(category,filelevel).
+:- prolog_mustEach((cateFallback(ATTRIBS), pushAttributes(_Ctx,cateFallback,ATTRIBS))).
+%%:- prolog_mustEach((cateFallback(ATTRIBS), popAttributes(_Ctx,cateFallback,ATTRIBS), !)).
+%%:- cateFallback(ATTRIBS), pushAttributes(_Ctx,cateFallback,ATTRIBS).
 

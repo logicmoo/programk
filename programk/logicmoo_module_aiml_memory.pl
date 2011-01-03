@@ -295,7 +295,7 @@ ensureValue(ValueO,['$value'(ValueO)]).
 withValueAdd(Ctx,Pred,IDict,NameI,Value):- dictNameDictNameC(Ctx,IDict,NameI,Dict,Name),!,withValueAdd(Ctx,Pred,Dict,Name,Value),!.
 withValueAdd(Ctx,Pred,IDict,Name,Value):-is_list(IDict),!,trace,foreach(member(Dict,IDict),withValueAdd(Ctx,Pred,Dict,Name,Value)),!.
 withValueAdd(Ctx,_Pred:Print,Dict,Name,Var):-neverActuallyAdd(Ctx,Print,Dict,Name,Var),!.
-withValueAdd(Ctx,Pred,Dict,Name,Var):-debugFmt(withValueAdd(Ctx,Pred,Dict,Name,Var)),var(Var),!,withValueAdd(Ctx,Pred,Dict,Name,['$var'(Var)]).
+withValueAdd(Ctx,Pred,Dict,Name,Var):-var(Var),!,withValueAdd(Ctx,Pred,Dict,Name,['$var'(Var)]).
 withValueAdd(Ctx,Pred,Dict,Name,Atomic):-atomic(Atomic),Atomic\==[],!,withValueAdd(Ctx,Pred,Dict,Name,[Atomic]).
 withValueAdd(Ctx,_Pred:Print,Dict,Name,Value):-immediateCall(Ctx,call(Print,Ctx,Dict,Name,Value)),fail.
 withValueAdd(Ctx,Pred,Dict,Name,Value):-isStarValue(Value),debugFmt(withValueAdd(Ctx,Pred,Dict,Name,Value)),traceIf(nonStarDict(Dict)).

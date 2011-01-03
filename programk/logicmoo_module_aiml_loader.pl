@@ -624,7 +624,8 @@ each_pattern(Ctx,ATTRIBS,NOPATTERNS,element(TAG,ALIST,PATTERNA)):-
 dumpListHere(Ctx,DumpListHere):-
    prolog_must((
     %%debugFmt(DumpListHere),
-    current_value(Ctx,withCategory,Verbs),
+    peekNameValue(Ctx,DumpListHere,withCategory,Verbs,'$first'(['$current_value','$value'([assert_cate_in_load])])),
+    %%%current_value(Ctx,withCategory,Verbs),
     assertCate(Ctx,DumpListHere,Verbs))).
 
 %%dumpListHere([]):-debugFmt(dumpListHere).

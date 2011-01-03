@@ -7,10 +7,12 @@
 % Revision:  $Revision: 1.7 $
 % Revised At:   $Date: 2002/07/11 21:57:28 $
 % ===================================================================
-:-dynamic(prolog_is_vetted_safe).
-prolog_is_vetted_safe:-true.
-:-'$hide'(tryCatchIgnore/1).
 
+:-dynamic(prolog_is_vetted_safe).
+%% True means the program skips many many runtime safety checks (runs faster)
+prolog_is_vetted_safe:-false.
+
+:-'$hide'(tryCatchIgnore/1).
 tryCatchIgnore(MFA):- error_catch(MFA,_E,true). %%debugFmt(tryCatchIgnoreError(MFA:E))),!.
 tryCatchIgnore(MFA):- !,debugFmt(tryCatchIgnoreFailed(MFA)).
 
@@ -19,10 +21,11 @@ tryCatchIgnore(MFA):- !,debugFmt(tryCatchIgnoreFailed(MFA)).
 tryHide(MFA):- asserta(remember_tryHide(MFA)).
 
 :-tryHide(prolog_may/1).
-%%prolog_may(Call):-prolog_is_vetted_safe,!,Call.
+prolog_may(Call):-notrace((prolog_is_vetted_safe)),!,Call.
 prolog_may(Call):-prolog_ecall(debugOnError,Call).
 
 :-tryHide(prolog_mustEach/1).
+prolog_mustEach(Call):-notrace((prolog_is_vetted_safe)),!,Call.
 prolog_mustEach(Call):-prolog_Each(prolog_must,Call).
 
 prolog_Each(Pred,(A,B)):- !,prolog_Each(Pred,A),prolog_Each(Pred,B).
@@ -58,7 +61,7 @@ term_expansion_safe((A:-B),(A:-BB)):- term_expansion_call(B,BB),!,B\=BB.
 
 term_expansion_safe(Call, Call0):-term_expansion_call(Call, Call0).
 
-%%user:term_expansion(Call, Call0):-prolog_is_vetted_safe,!,term_expansion_safe(Call, Call0),!.
+%%user:term_expansion(Call, Call0):-trace,prolog_is_vetted_safe,!,term_expansion_safe(Call, Call0),!.
 %%user:expand_goal(Call, Call0):-prolog_is_vetted_safe,!,term_expansion_safe(Call, Call0),!.
 
 
@@ -404,6 +407,7 @@ must_assign(From,To):-ctrace,To=From.
 
 :-tryHide(debugOnError/1).
 :-tryHide(debugOnError0/1).
+debugOnError(Call):-notrace((prolog_is_vetted_safe)),!,Call.
 debugOnError(Call):-prolog_ecall(debugOnError0,Call).
 debugOnError0(Call):- E = error(_,_),error_catch(Call,E,(notrace(debugFmt(caugth1st(Call,E))),debugOnError1((ctrace,Call)))).
 debugOnError1(Call):- E = error(_,_),error_catch(Call,E,(notrace(debugFmt(caugth2nd(Call,E))),throw(E))).
@@ -426,6 +430,7 @@ datatypeMustPred(prolog_must_call0,Call):-functor(Call,F,A),((A=1,test_pred(F));
 test_pred(T):-member(T,[var,nonvar,atom,atomic,number,is_list,compound,ground,not]),!.
 
 :-tryHide(prolog_ecall/2).
+prolog_ecall(Pred,Call):-notrace((prolog_is_vetted_safe)),!,call(Pred,Call).
 prolog_ecall(Pred,Call):-prolog_ecall(call,Pred,Call).
 
 prolog_ecall(_Conj,_Pred,Call):-var(Call),!,ctrace,randomVars(Call).
@@ -461,6 +466,7 @@ prolog_call(Pred,Call):-call(Pred,Call).
 :-tryHide(atLeastOne/1).
 :-tryHide(atLeastOne/2).
 :-tryHide(atLeastOne0/3).
+atLeastOne(Call):-notrace((prolog_is_vetted_safe)),!,call(Call).
 atLeastOne(OneA):- atLeastOne(OneA,(ctrace,OneA)).
 atLeastOne(OneA,Else):- gensym(atLeastOne,AtLeast),flag(AtLeast,_,0),atLeastOne0(AtLeast,OneA,Else).
 

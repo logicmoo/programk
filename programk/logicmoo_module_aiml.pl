@@ -170,9 +170,18 @@ isNoInput(_,_):-fail.
 % ===============================================================================================
 % Call like a SRAI tag
 % ===============================================================================================
+computeInput(Ctx, VoteIn,NotList,InputM):-not(is_list(NotList)),!,listify(NotList,Input),maplist_safe(computeInnerEach(Ctx, VoteIn),Input,InputM).
+computeInput(Ctx, VoteIn,Input,InputM):-maplist_safe(computeInnerEach(Ctx, VoteIn),Input,InputM).
+
+computeInputOutput(Ctx,VoteIn,Input,Output,VotesOut):-
+    prolog_mustEach((computeInput(Ctx, VoteIn,Input,InputM),!,
+                     computeElement(Ctx,VoteIn,srai,[],InputM,OutputM,VotesOM),
+                     computeTemplateOutput(Ctx,VotesOM,OutputM,Output,VotesOut))).
+
 computeInputOutput(Ctx,VoteIn,Input,Output,VotesOut):-
    ((prolog_mustEach((computeAnswer(Ctx,VoteIn,element(srai,[],Input),OutputM,VotesOM),
                           computeTemplateOutput(Ctx,VotesOM,OutputM,Output,VotesOut))))),!.
+
 
 
 % ===============================================================================================
@@ -715,7 +724,7 @@ computeAnswer_1_disabled(Ctx,Votes, element(Tag, ATTRIBS, [DO|IT]), OUT, VotesO)
 
 computeAnswer(Ctx,Votes, element(Tag, ATTRIBS, [DO|IT]), OUT, VotesO) :- recursiveTag(Tag),not(DO=(_-_)),!,
      appendAttributes(Ctx,ATTRIBS, [computeAnswer=[side_effects_allow=[transform],intag=Tag]], ATTRIBS_NEW),
-         withAttributes(Ctx,ATTRIBS_NEW, maplist_safe(computeInnerEach(Ctx, Votes),[DO|IT],INNERDONE)),
+         withAttributes(Ctx,ATTRIBS_NEW, computeInput(Ctx, Votes,[DO|IT],INNERDONE)),
        prolog_mostly_ground((INNERDONE)),
        computeElementMust(Ctx,Votes,Tag, ATTRIBS, INNERDONE, OUT, VotesO).
 

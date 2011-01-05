@@ -636,12 +636,14 @@ dumpListHere(Ctx,DumpListHere):-
    prolog_must((
     %%debugFmt(DumpListHere),
     loader_verb(Ctx,DumpListHere,Verbs),
+    prolog_must(nonvar(Verbs)),
     %%%current_value(Ctx,withCategory,Verbs),
     assertCate(Ctx,DumpListHere,Verbs))).
 
 loader_verb(Ctx,DumpListHere,Verbs):-debugOnError(peekNameValue(Ctx,DumpListHere,withCategory,Verbs,'$failure')),!.
 loader_verb(_Ctx,DumpListHere,Verbs):-lastMember(withCategory=Verbs,DumpListHere),nonvar(Verbs),!.
-loader_verb(Ctx,DumpListHere,Verbs):-trace,peekNameValue(Ctx,DumpListHere,withCategory,Verbs,'$first'(['$current_value','$value'([assert_cate_in_load])])).
+loader_verb(Ctx,DumpListHere,Verbs):-prolog_must((peekNameValue(Ctx,DumpListHere,withCategory,Verbs,'$first'(['$current_value','$value'([assert_cate_in_load])])))),prolog_must(isValid(Verbs)).
+loader_verb(Ctx,DumpListHere,Verbs):-ctrace,prolog_must((peekNameValue(Ctx,DumpListHere,withCategory,Verbs,'$first'(['$current_value','$value'([assert_cate_in_load])])))),!.
 
 %%dumpListHere([]):-debugFmt(dumpListHere).
 %%dumpListHere([R|Results]):-debugFmt(R),dumpListHere(Results),!.

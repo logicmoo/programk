@@ -115,13 +115,14 @@ annie:-withNamedContext(toplevel,Ctx),timeRecorded(run_chat_tests_here(Ctx)).
 :-timeRecorded(blackjack_test_load).
 :-timeRecorded(blackjack_test).
 %:-timeRecorded(chomskyAIML).
-:-test_call(alicebot('<category><pattern>pppp</pattern><template>555555</template></category>')).
 :-timeRecorded(load_aiml_files('programk/test_suite/chomskyAIML/update013.aiml')).
 :-timeRecorded(load_aiml_files('programk/test_suite/chomskyAIML/update012.aiml')).
 :-timeRecorded(load_aiml_files('programk/test_suite/chomskyAIML/update007.aiml')).
 */
 :-timeRecorded(annie).
+:-unify_listing(unitTestResult(unit_passed,_)).
 :-unify_listing(unitTestResult(unit_failed,_)).
+:-alicebot('<category><pattern>pppp</pattern><template>555555</template><that></that></category>').
 :-timeRecorded(alicebot).
 
 

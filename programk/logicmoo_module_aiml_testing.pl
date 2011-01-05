@@ -121,6 +121,7 @@ annie:-withNamedContext(toplevel,Ctx),timeRecorded(run_chat_tests_here(Ctx)).
 :-timeRecorded(load_aiml_files('programk/test_suite/chomskyAIML/update007.aiml')).
 */
 :-timeRecorded(annie).
+:-unify_listing(unitTestResult(unit_failed,_)).
 :-timeRecorded(alicebot).
 
 

@@ -568,9 +568,18 @@ each_category(Ctx,ATTRIBS,NOPATTERNS,element(TAG,ALIST,PATTERN)):-
    gatherEach(Ctx,[TAG=PATTERN|NEWATTRIBS],NOPATTERNS,Results),!,
    prolog_must(dumpListHere(Ctx,Results)))),!.
 
+load_aiml_cate_element(Ctx,ATTRIBS,element(Tag,ALIST,INNER_XML)):-loader_verb(Ctx,ATTRIBS,LoaderVerbs),
+    load_aiml_cate_element2(Ctx,LoaderVerbs,ATTRIBS,element(Tag,ALIST,INNER_XML)).
 
-load_aiml_cate_element(Ctx,ATTRIBS,element(Tag,ALIST,INNER_XML)):-
-   prolog_must(pushCateElement(Ctx,ATTRIBS,element(Tag,ALIST,INNER_XML))).
+%% delayed load of Cate
+load_aiml_cate_element2(Ctx,LoaderVerbs,ATTRIBS,element(Tag,ALIST,INNER_XML)):- immediateCall(Ctx,load_aiml_cate_element_now(LoaderVerbs,ATTRIBS,element(Tag,ALIST,INNER_XML))),!.
+%% immediate load of Cate
+load_aiml_cate_element2(Ctx,LoaderVerbs,ATTRIBS,element(Tag,ALIST,INNER_XML)):- 
+   prolog_must(pushCateElement(Ctx,[withCategory=LoaderVerbs|ATTRIBS],element(Tag,[withCategory=LoaderVerbs|ALIST],INNER_XML))),!.
+
+load_aiml_cate_element_now(LoaderVerbs,ATTRIBS,element(Tag,ALIST,INNER_XML)):-
+  currentContext(load_aiml_cate_element_now,Ctx),
+   prolog_must(pushCateElement(Ctx,[withCategory=LoaderVerbs|ATTRIBS],element(Tag,ALIST,INNER_XML))).
 
 %catagory
 pushCateElement(Ctx,ATTRIBS,element(catagory, A, B)):- !,pushCateElement(Ctx,ATTRIBS,element(category, A, B)),!.

@@ -29,7 +29,8 @@ peekAttributes(Ctx,SList,Scope,Results):-prolog_must(peekAttributes0(Ctx,SList,S
 peekAttributes0(Ctx,[Name|SList],Scope,[Name=Value|Results]):- peekNameValue(Ctx,Scope,Name,Value,'$error'),peekAttributes0(Ctx,SList,Scope,Results),!.
 peekAttributes0(_Ctx,[],_Scope,[]):-!.
 
-current_value(Ctx,Name,Value):-peekNameValue(Ctx,_,Name,Value,'$error').
+current_value(Ctx,Name,Value):-current_value(Ctx,Name,Value,'$error').
+current_value(Ctx,Name,Value,Else):-peekNameValue(Ctx,_,Name,Value,Else).
 %%current_value(Ctx,Scope:Name,Value):-!,attributeValue(Ctx,Scope,Name,Value,'$error').
 %%current_value(Ctx,Name,Value):-attributeValue(Ctx,_,Name,Value,'$error').
 

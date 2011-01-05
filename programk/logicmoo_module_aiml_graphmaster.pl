@@ -60,7 +60,7 @@ aimlCateOrder([graph,precall,topic,that,request,pattern,flags,call,guard,userdic
 % [graph,precall,topic,that,pattern,flags,call,guard,template,userdict]
 cateMemberTags(Result):- aimlCateOrder(List), findall(E,(member(E0,List),once((E0=[E|_];E0=E))), Result).
 
-makeAimlCateSig(Ctx,ListOfValues,Pred):-aimlCateSig(Pred),!,makeAimlCate(Ctx,ListOfValues,Pred,'$current_value'),!.
+makeAimlCateSig(Ctx,ListOfValues,Pred):-aimlCateSig(Pred),!,makeAimlCate(Ctx,ListOfValues,Pred),!.
 
 :- aimlCateOrder(List),length(List,L),dynamic(aimlCate/L),multifile(aimlCate/L). 
 

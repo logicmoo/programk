@@ -274,19 +274,16 @@ assertCate3(Ctx,NEW,DoWhat):-
 % ===============================================================================================
 %  Make AIML Categories
 % ===============================================================================================
-makeAimlCate(Ctx,Cate,Value):-makeAimlCate(Ctx,Cate,Value,'$first'(['$current_value','$error'])).%%'$first'(['$value'('*'),'$current_value'])),!.
-makeAimlCate(Ctx,Cate,Value,UnboundDefault):- prolog_must((convert_template(Ctx,Cate,Assert),!,makeAimlCate1(Ctx,Assert,Value,UnboundDefault))).
-
-makeAimlCate1(Ctx,Assert,Value,UnboundDefault):-
+makeAimlCate(Ctx,Cate,Value):- 
+ prolog_mustEach((
+   convert_template(Ctx,Cate,Assert),
    aimlCateOrder(Order),
-   makeAllParams(Ctx,Order,Assert,UnboundDefault,Result),
-   makeAimlCate2(Ctx,Result,UnboundDefault,Value),!.
+   makeAllParams(Ctx,Order,Assert,Result),
+   arg2OfList(Result,LISTO), Value =.. [aimlCate|LISTO])).
 
-arg2OfList(UnboundDefault,LIST,LISTO):-maplist_safe(arg2(UnboundDefault),LIST,LISTO),!.
-arg2(_UnboundDefault,_=Value,Value):-!.
-arg2(_UnboundDefault,Value,Value):-!,ctrace.
-
-makeAimlCate2(_Ctx,LIST,UnboundDefault,Value):- arg2OfList(UnboundDefault,LIST,LISTO), Value =.. [aimlCate|LISTO],!.
+arg2OfList(LIST,LISTO):-maplist_safe(arg2,LIST,LISTO),!.
+arg2(_=Value,Value):-!.
+arg2(Value,Value):-!,ctrace.
 
 
 translate_cate(Ctx,CateSig):-replaceArgsVar(Ctx,[srcinfo=_],CateSig),assert_cate_in_load(Ctx,CateSig).

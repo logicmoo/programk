@@ -218,10 +218,11 @@ replaceAttribute0(_Ctx,_Before,_After,B,B):-!.
 
 
 
-makeAllParams(Ctx,[O|Order],Assert,UnboundDefault,[Tag=RR|Result]):-
+makeAllParams(Ctx,[O|Order],Assert,[Tag=RR|Result]):-
+   UnboundDefault = '$first'(['$current_value','$error'(makeAllParams(O))]),
    makeSingleTag(Ctx,O,Assert,UnboundDefault,Tag,RR),prolog_must(O\==RR),
-   makeAllParams(Ctx,Order,Assert,UnboundDefault,Result),!.
-makeAllParams(_Ctx,[],_,_,[]).
+   makeAllParams(Ctx,Order,Assert,Result),!.
+makeAllParams(_Ctx,[],_,[]).
 
 
 makeSingleTag(Ctx,Name,ATTRIBS,Default,Tag,Result):-atom(Name),!,makeSingleTag(Ctx,[Name],ATTRIBS,Default,Tag,Result),!.
@@ -246,7 +247,11 @@ makeParamFallback(_Ctx,_Scope,_NameS,_Value,'$failure'):-!,fail.
 makeParamFallback(_Ctx,_Scope,_NameS,_Value,'$succeed'):-!.
 makeParamFallback(Ctx,Scope,NameS,ValueO,   '$first'(List)):-!,member(E,List),makeParamFallback(Ctx,Scope,NameS,ValueO,E),!.
 makeParamFallback(_Ctx,_Scope,_NameS,_Value,'$call'(Prolog)):-!,call(Prolog).
+makeParamFallback(_Ctx,_Scope,NameL,_Value, '$call_name'(Prolog,Name)):-!,listify(NameL,NameS),member(Name,NameS),prolog_must(Prolog),!.
 makeParamFallback(Ctx,Scope,NameS,ValueO,   '$call_value'(Pred)):-!, call(Pred,Ctx,Scope,NameS,ValueO,'$failure').
+makeParamFallback(Ctx,_Scope,NameL,ValueO,  '$current_value'):- 
+   fail, %TODO: get rid of this fail
+   !, listify(NameL,NameS),member(Name,NameS),current_value(Ctx,Name,ValueO,'$failure'),valuePresent(ValueO),!.
 makeParamFallback(Ctx,_Scope,NameS,ValueO,  '$current_value'):- member(Name,NameS),current_value(Ctx,Name,ValueO),valuePresent(ValueO),!.
 %%makeParamFallback(Ctx,_Scope,NameI,ValueO,'$current_value'):-!,listify(NameI,NameS),member(Name,NameS),debugOnError((current_value(Ctx,Name,ValueO),valuePresent(ValueO))),!.
 %%makeParamFallback(Ctx,Scope,NameS,ValueO, '$current_value'):-!, current_value(Ctx,Scope,NameS,ValueO,'$failure'),valuePresent(ValueO),!.

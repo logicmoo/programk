@@ -469,14 +469,14 @@ computeElement(Ctx,Votes,cycrandom,_Attribs,RAND,Output,VotesO):-!, computeAnswe
 % <system...>
 computeElement(Ctx,Votes,Tag,Attribs,Input,result(RESULT,Tag=EVAL),VotesO):- 
    member(Tag,[system]),
-   checkNameValue(peekNameValue,Ctx,Attribs,[lang],Lang, 'bot'),
+   checkNameValue(peekNameValue,Ctx,Attribs,[lang],Lang, '$value'('bot')),
    computeInnerTemplate(Ctx,Votes,Input,EVAL,VotesO),
    systemCall(Ctx,Lang,EVAL,RESULT).
 
 % <cyc..>
 computeElement(Ctx,Votes,Tag,Attribs,Input,result(RESULT,Tag=EVAL),VotesO):- 
    member(Tag,[cycsystem,cyceval,cycquery]),
-   checkNameValue(peekNameValue,Ctx,Attribs,[lang],Lang, Tag),  
+   checkNameValue(peekNameValue,Ctx,Attribs,[lang],Lang,'$value'(Tag)),  
    computeInnerTemplate(Ctx,Votes,Input,EVAL,VotesO),
    systemCall(Ctx,Lang,EVAL,RESULT).
 

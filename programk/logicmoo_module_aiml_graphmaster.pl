@@ -324,21 +324,24 @@ defaultPredicates(N,V):-member(N,[username,botname]),V='*'.
 %defaultPredicates(N,V):-member(N,[input,pattern]),V='*'.
 defaultPredicates(N,V):-defaultPredicatesS(S),member(N=V,S).
 defaultPredicatesS([
-             topic='*',
+             graph='default',
              precall='true',
+             topic='*',
+             that='*',
+             request='*',
+             flags='*',
              pattern='*',
              call='true',
-             flags='*',
-             that='*',
              % hide for testing 
              dictionary='default',
              userdict='user',
              substitutions='input',
-             graph='default',
              guard='*',
-             request='*',
-             template=[/*'is ERROR IN CATE'*/],
-             lang='bot']).
+             template=['is ERROR IN CATE'],
+             lang='bot',
+             srcinfo=missinginfo,
+             srcfile=missingfile,
+             withCategory=[writeqnl,assert_cate_in_load]]).
  
 cateMember(Tag):-cateMemberTags(List),member(Tag,List).
 
@@ -353,12 +356,23 @@ They also can give us special permission on Mondays and Thursdays
 The main thing is that you are willing to give them the peace of mind that they dont need to "watch you".
 
 */
+cateFallback(N,V):-cateFallback(List),!,member(N=V,List).
 cateFallback([
+       graph = 'default',
+       precall = 'true',
+       topic = '*',
+       that = '*',
+       request = '*',
+       pattern='*',
+       flags= '*',
+       call = 'true',
+       guard = '*',
+       userdict = 'user',
+       template = '[]',
        srcinfo=missinginfo,
        srcfile=missingfile,
-       withCategory=[writeqnl,assert_cate_in_load],
-       pattern='*',%%%'ERROR PATTERN',
-       template=[]|MORE]):-findall(N=V,defaultPredicates(N,V),MORE).
+       withCategory=[writeqnl,assert_cate_in_load]]).
+       %%|MORE]):-findall(N=V,defaultPredicates(N,V),MORE).
 
 pathAttrib(S):-pathAttribS(SS),member(S,SS).
 pathAttribS([uri,loc,filename,url,path,dir,file,pathname,src,location]).

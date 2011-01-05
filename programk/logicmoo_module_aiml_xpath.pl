@@ -38,8 +38,8 @@ checkNameValue(Pred,Ctx,Scope,[Name],Value,Else):- nonvar(Name),!,checkNameValue
 checkNameValue(Pred,Ctx,Scope,Name,Value,Else):-hotrace(( call(Pred,Ctx,Scope,Name,ValueVar,Else),!,checkValue(ValueVar),valuesMatch(Ctx,ValueVar,Value))),!. %%,ctrace.
 
 peekNameValue(Ctx,Scope,Name,Value,Else):-nonvar(Value),!,checkNameValue(peekNameValue,Ctx,Scope,Name,Value,Else).
-peekNameValue(Ctx,Scope,Name,Value,_ElseVar):-peekNameValue0(Ctx,Scope,Name,Value),!.
-peekNameValue(Ctx,Scope,Name,Value,ElseVar):-locateNameValue(Ctx,Scope,Name,Value,ElseVar),!.
+%%peekNameValue(Ctx,Scope,Name,Value,_ElseVar):-peekNameValue0(Ctx,Scope,Name,Value),!.
+peekNameValue(Ctx,Scope,Name,Value,ElseVar):- locateNameValue(Ctx,Scope,Name,Value,'$first'(['$local_value','$global_value','$attribute_value',ElseVar])),!.
 
 peekNameValue0(Ctx,Scope,Name,Value):-contextScopeTerm(Ctx,Scope,Term),arg_value(Term,Name,Value),!.
 %%%peekNameValue0(Ctx,List,Name,Value):- nonvar(List),not(atom(List)),attributeValue(Ctx,List,Name,Value,'$failure'),!.

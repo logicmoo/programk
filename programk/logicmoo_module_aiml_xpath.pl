@@ -29,7 +29,7 @@ peekAttributes(Ctx,SList,Scope,Results):-prolog_must(peekAttributes0(Ctx,SList,S
 peekAttributes0(Ctx,[Name|SList],Scope,[Name=Value|Results]):- peekNameValue(Ctx,Scope,Name,Value,'$error'),peekAttributes0(Ctx,SList,Scope,Results),!.
 peekAttributes0(_Ctx,[],_Scope,[]):-!.
 
-current_value(Ctx,Name,Value):-current_value(Ctx,Name,Value,'$error').
+current_value(Ctx,Name,Value):-current_value(Ctx,Name,Value,'$global_value').
 current_value(Ctx,Name,Value,Else):-peekNameValue(Ctx,_,Name,Value,Else).
 %%current_value(Ctx,Scope:Name,Value):-!,attributeValue(Ctx,Scope,Name,Value,'$error').
 %%current_value(Ctx,Name,Value):-attributeValue(Ctx,_,Name,Value,'$error').
@@ -230,7 +230,9 @@ makeSingleTag(Ctx,NameS,ATTRIBS,Default,Tag,ValueO):-makeAimlSingleParam0(Ctx,Na
       transformTagData(Ctx,Tag,Default,ValueI,ValueO),!.
 
 makeAimlSingleParam0(_Ctx,[N|NameS],ATTRIBS,_D,N,Value):-member(O,[N|NameS]),lastMember(OI=Value,ATTRIBS),atomsSameCI(O,OI),!,prolog_must(N\==Value).
-makeAimlSingleParam0(Ctx,[N|NameS],ATTRIBS,ElseVar,N,Value):- hotrace((makeParamFallback(Ctx,ATTRIBS,[N|NameS],Value,ElseVar))),!,prolog_must(N\==Value).
+makeAimlSingleParam0(Ctx,[N|NameS],ATTRIBS,ElseVar,N,Value):- hotrace((makeParamFallback(Ctx,ATTRIBS,[N|NameS],Value,
+          '$first'(['$current_value','$global_value','$call_name'(prolog_must(defaultPredicates(N,Value)),N),ElseVar,'$error'])))),!,
+           prolog_must(N\==Value).
 
 
 % ===============================================================================================
@@ -253,7 +255,7 @@ makeParamFallback(Ctx,_Scope,NameL,ValueO,  '$current_value'):-
    fail, %TODO: get rid of this fail
    !, listify(NameL,NameS),member(Name,NameS),current_value(Ctx,Name,ValueO,'$failure'),valuePresent(ValueO),!.
 makeParamFallback(Ctx,_Scope,NameS,ValueO,  '$current_value'):- member(Name,NameS),current_value(Ctx,Name,ValueO),valuePresent(ValueO),!.
-%%makeParamFallback(Ctx,_Scope,NameI,ValueO,'$current_value'):-!,listify(NameI,NameS),member(Name,NameS),debugOnError((current_value(Ctx,Name,ValueO),valuePresent(ValueO))),!.
+%%makeParamFallback(Ctx,_Scope,NameI,ValueO,'$current_value'):-!,listify(NameI,NameS),member(Name,NameS),debugOnError((current_value(Ctx,Name,ValueO,'$failure'),valuePresent(ValueO))),!.
 %%makeParamFallback(Ctx,Scope,NameS,ValueO, '$current_value'):-!, current_value(Ctx,Scope,NameS,ValueO,'$failure'),valuePresent(ValueO),!.
 %%makeParamFallback(Ctx,Scope,NameS,ValueO, '$attributeValue'):-!, attributeValue(Ctx,Scope,NameS,ValueO,'$failure'),valuePresent(ValueO),!.
 makeParamFallback(_Ctx,_Scope,_NameS,ValueO,'$value'(Else)):-!,ValueO=Else,!.

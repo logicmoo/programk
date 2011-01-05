@@ -239,21 +239,21 @@ makeAimlSingleParam0(Ctx,[N|NameS],ATTRIBS,ElseVar,N,Value):- hotrace((makeParam
 %  Fallback
 % ===============================================================================================
 %%% arity 5 version
-makeParamFallback(Ctx,Scope,Name,Value,ElseVar):-var(ElseVar),!,throw_safe(makeParamFallback(Ctx,Scope,Name,Value,ElseVar)).
-makeParamFallback(_Ctx,_Scope,_NameS,Value,ElseVar):-'var'(ElseVar),!,Value=ElseVar,!.
-makeParamFallback(Ctx,Scope,NameS,ValueO,  '$global_value'):-!, peekGlobalMem(Ctx,Scope,NameS,ValueO),valuePresent(ValueO),!.
-makeParamFallback(Ctx,Scope,Name,Value,ElseVar):-atom(Name),!,makeParamFallback(Ctx,Scope,[Name],Value,ElseVar).
-makeParamFallback(_Ctx,_Scope,_NameS,_Value,'$aiml_error'(E)):-!,aiml_error(E),throw_safe(E),!.
-makeParamFallback(Ctx,Scope,NameS,Value,    '$error'):-E = fallbackValue(Ctx,Scope,NameS,Value,'$error'),aiml_error(E),throw_safe(E),!.
+makeParamFallback(Ctx,Scope,NameS,Value,ElseVar):-var(ElseVar),!,throw_safe(makeParamFallback(Ctx,Scope,NameS,Value,ElseVar)).
+makeParamFallback(Ctx,Scope,NameS,ValueO,   '$global_value'):-!, peekGlobalMem(Ctx,Scope,NameS,ValueO),valuePresent(ValueO).
+makeParamFallback(_Ctx,_Scope,_NameS,_Value,'$aiml_error'(E)):-!,aiml_error(E),throw_safe(E).
+makeParamFallback(_Ctx,_Scope,_NameS,_Value,'$error'(E)):-!,aiml_error(E),throw_safe(E).
+makeParamFallback(Ctx,Scope,NameS,Value,    '$error'):-E = fallbackValue(Ctx,Scope,NameS,Value,'$error'),aiml_error(E),throw_safe(E).
 makeParamFallback(_Ctx,_Scope,_NameS,_Value,'$failure'):-!,fail.
 makeParamFallback(_Ctx,_Scope,_NameS,_Value,'$succeed'):-!.
 makeParamFallback(Ctx,Scope,NameS,ValueO,   '$first'(List)):-!,anyOrEachOf(E,List),makeParamFallback(Ctx,Scope,NameS,ValueO,E),!.
 makeParamFallback(_Ctx,_Scope,_NameS,_Value,'$call'(Prolog)):-!,call(Prolog).
-makeParamFallback(_Ctx,_Scope,NameS,_Value, '$call_name'(Prolog,Name)):-!,anyOrEachOf(Name,NameS),prolog_must(Prolog),!.
+makeParamFallback(_Ctx,_Scope,NameS,_Value, '$call_name'(Prolog,NameS)):-!,prolog_must(Prolog).
 makeParamFallback(Ctx,Scope,NameS,ValueO,   '$call_value'(Pred)):-!, call(Pred,Ctx,Scope,NameS,ValueO,'$failure').
-makeParamFallback(Ctx,_Scope,NameS,ValueO,  '$current_value'):- anyOrEachOf(Name,NameS),current_value(Ctx,Name,ValueO),valuePresent(ValueO),!.
-%%makeParamFallback(Ctx,Scope,NameS,ValueO, '$attributeValue'):-!, attributeValue(Ctx,Scope,NameS,ValueO,'$failure'),valuePresent(ValueO),!.
+makeParamFallback(Ctx,Scope,NameS,ValueO,   '$current_value'):-!, peekNameValue(Ctx,Scope,NameS,ValueO,'$failure'),prolog_must(valuePresent(ValueO)).
+makeParamFallback(Ctx,Scope,NameS,ValueO,   '$attributeValue'):-!, attributeValue(Ctx,Scope,NameS,ValueO,'$failure'),prolog_must(valuePresent(ValueO)).
 makeParamFallback(_Ctx,_Scope,_NameS,ValueO,'$value'(Else)):-!,ValueO=Else,!.
+makeParamFallback(Ctx,Scope,NameS,Value,ElseVar):-not(atom(NameS)),!,anyOrEachOf(Name,NameS),makeParamFallback(Ctx,Scope,Name,Value,ElseVar).
 makeParamFallback(_Ctx,_Scope,_NameS,ValueO,Else):-ValueO=Else,!.
 makeParamFallback(_Ctx,_Scope,_NameS,ValueO,Else):-ctrace,debugFmt(ignore(ValueO=Else)),!.
 

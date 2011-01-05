@@ -247,21 +247,18 @@ makeParamFallback(_Ctx,_Scope,_NameS,_Value,'$aiml_error'(E)):-!,aiml_error(E),t
 makeParamFallback(Ctx,Scope,NameS,Value,    '$error'):-E = fallbackValue(Ctx,Scope,NameS,Value,'$error'),aiml_error(E),throw_safe(E),!.
 makeParamFallback(_Ctx,_Scope,_NameS,_Value,'$failure'):-!,fail.
 makeParamFallback(_Ctx,_Scope,_NameS,_Value,'$succeed'):-!.
-makeParamFallback(Ctx,Scope,NameS,ValueO,   '$first'(List)):-!,member(E,List),makeParamFallback(Ctx,Scope,NameS,ValueO,E),!.
+makeParamFallback(Ctx,Scope,NameS,ValueO,   '$first'(List)):-!,anyOrEachOf(E,List),makeParamFallback(Ctx,Scope,NameS,ValueO,E),!.
 makeParamFallback(_Ctx,_Scope,_NameS,_Value,'$call'(Prolog)):-!,call(Prolog).
-makeParamFallback(_Ctx,_Scope,NameL,_Value, '$call_name'(Prolog,Name)):-!,listify(NameL,NameS),member(Name,NameS),prolog_must(Prolog),!.
+makeParamFallback(_Ctx,_Scope,NameS,_Value, '$call_name'(Prolog,Name)):-!,anyOrEachOf(Name,NameS),prolog_must(Prolog),!.
 makeParamFallback(Ctx,Scope,NameS,ValueO,   '$call_value'(Pred)):-!, call(Pred,Ctx,Scope,NameS,ValueO,'$failure').
-makeParamFallback(Ctx,_Scope,NameL,ValueO,  '$current_value'):- 
-   fail, %TODO: get rid of this fail
-   !, listify(NameL,NameS),member(Name,NameS),current_value(Ctx,Name,ValueO,'$failure'),valuePresent(ValueO),!.
-makeParamFallback(Ctx,_Scope,NameS,ValueO,  '$current_value'):- member(Name,NameS),current_value(Ctx,Name,ValueO),valuePresent(ValueO),!.
-%%makeParamFallback(Ctx,_Scope,NameI,ValueO,'$current_value'):-!,listify(NameI,NameS),member(Name,NameS),debugOnError((current_value(Ctx,Name,ValueO,'$failure'),valuePresent(ValueO))),!.
-%%makeParamFallback(Ctx,Scope,NameS,ValueO, '$current_value'):-!, current_value(Ctx,Scope,NameS,ValueO,'$failure'),valuePresent(ValueO),!.
+makeParamFallback(Ctx,_Scope,NameS,ValueO,  '$current_value'):- anyOrEachOf(Name,NameS),current_value(Ctx,Name,ValueO),valuePresent(ValueO),!.
 %%makeParamFallback(Ctx,Scope,NameS,ValueO, '$attributeValue'):-!, attributeValue(Ctx,Scope,NameS,ValueO,'$failure'),valuePresent(ValueO),!.
 makeParamFallback(_Ctx,_Scope,_NameS,ValueO,'$value'(Else)):-!,ValueO=Else,!.
 makeParamFallback(_Ctx,_Scope,_NameS,ValueO,Else):-ValueO=Else,!.
 makeParamFallback(_Ctx,_Scope,_NameS,ValueO,Else):-ctrace,debugFmt(ignore(ValueO=Else)),!.
 
+anyOrEachOf(Name,NameL):-prolog_must(nonvar(NameL)),is_list(NameL),!,member(Name,NameL).
+anyOrEachOf(Name,Name):-!.
 
 
 % ===================================================================

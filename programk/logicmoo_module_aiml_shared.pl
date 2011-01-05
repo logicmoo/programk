@@ -10,19 +10,20 @@
 
 :-dynamic(prolog_is_vetted_safe).
 %% True means the program skips many many runtime safety checks (runs faster)
-prolog_is_vetted_safe:-false.
+prolog_is_vetted_safe:-true.
 
-:-'$hide'(tryCatchIgnore/1).
+tryHide(_MFA):-!.
+tryHide(MFA):- asserta(remember_tryHide(MFA)).
+
+:-tryHide(tryCatchIgnore/1).
 tryCatchIgnore(MFA):- error_catch(MFA,_E,true). %%debugFmt(tryCatchIgnoreError(MFA:E))),!.
 tryCatchIgnore(MFA):- !,debugFmt(tryCatchIgnoreFailed(MFA)).
 
 :-dynamic(remember_tryHide/1).
 
-tryHide(MFA):- asserta(remember_tryHide(MFA)).
-
 :-tryHide(prolog_may/1).
 prolog_may(Call):-notrace((prolog_is_vetted_safe)),!,Call.
-prolog_may(Call):-prolog_ecall(debugOnError,Call).
+prolog_may(Call):-debugOnError(Call).
 
 :-tryHide(prolog_mustEach/1).
 prolog_mustEach(Call):-notrace((prolog_is_vetted_safe)),!,Call.
@@ -34,8 +35,7 @@ prolog_Each(Pred,hotrace(A)):-!, hotrace(prolog_Each(Pred,A)).
 prolog_Each(Pred,Call):- prolog_call(Pred,Call).
 
 :-tryHide(prolog_must/1).
-prolog_must(Call):-notrace((prolog_is_vetted_safe)),!,Call.
-prolog_must(Call):-not(tracing),traceIf(var(Call)),tracing,!,debugOnError(Call). %%prolog_must_tracing(Call).
+prolog_must(Call):-tracing,!,debugOnError(Call).
 prolog_must(Call):-prolog_must_call(Call).
 
 
@@ -294,7 +294,7 @@ bugger:-hideTrace,traceAll,error_catch(guitracer,_,true),debug,list_undefined.
 singletons(_).
 
 % ===================================================================
-:-dynamic(lineInfoElement/4).
+:-thread_local(lineInfoElement/4).
 
 nthAnswerOf(Call,Nth):-flag(nthAnswerOf,_,Nth), Call,flag(nthAnswerOf,R,R-1),R=1,!.
 
@@ -414,6 +414,7 @@ debugOnError1(Call):- E = error(_,_),error_catch(Call,E,(notrace(debugFmt(caugth
 
 :-tryHide(prolog_must_call/1).
 :-tryHide(prolog_must_call0/1).
+prolog_must_call(Call):-notrace((prolog_is_vetted_safe)),!,Call.
 prolog_must_call(Call):- prolog_ecall(prolog_must_call0,Call).   
 prolog_must_call0(Call):- atLeastOne(Call,interactStep(prolog_must_call0,Call,true)).
 
@@ -744,6 +745,7 @@ clean_out_atom(X,Y):-atom_codes(X,C),clean_codes(C,D),!,atom_codes(X,D),!,Y=X.
 %%atomWSplit(A,B):-atom(A),literal_atom(A,L),hotrace((cyc:atomSplit(L,BB),!,BB=B)).
 %%%%%% puts backspaces in places of no spaces
 :-dynamic(atomWSplit_cached/2).
+:-volatile(atomWSplit_cached/2).
 %%atomWSplit(A,B):- hotrace((cyc:atomWSplit(A,BB),!,BB=B)).
 atomWSplit(A,B):-prolog_must(ground(A)),atomWSplit_cached(A,B),!.
 atomWSplit(A,B):- hotrace((cyc:atomSplit(A,BB),!,BB=B,asserta(atomWSplit_cached(A,B)))).

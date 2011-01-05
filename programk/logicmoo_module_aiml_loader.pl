@@ -229,8 +229,8 @@ addAttribsToXML(Attribs,[H|T],OUT):-maplist_safe(addAttribsToXML(Attribs),[H|T],
 addAttribsToXML(Attribs,OUT,OUT):-!,debugFmt(addAttribsToXML(Attribs,OUT,OUT)),!.
 
 
-:-dynamic(in_aiml_tag/1).
-:-dynamic(inLineNum).
+:-thread_local(in_aiml_tag/1).
+:-thread_local(inLineNum).
 
 skipOver(_).
 
@@ -267,7 +267,7 @@ on_begin_ctx(_TAG, _URL, _Parser, _Context) :- !. %%, debugFmt(on_begin_ctx(URL,
 
 
 
-:- dynamic
+:- thread_local
         xmlns/3.
 
 on_xmlns(rdf, URL, _Parser) :- !,debugFmt(on_xmlns(URL, rdf)),asserta(xmlns(URL, rdf, _)).
@@ -624,9 +624,13 @@ each_pattern(Ctx,ATTRIBS,NOPATTERNS,element(TAG,ALIST,PATTERNA)):-
 dumpListHere(Ctx,DumpListHere):-
    prolog_must((
     %%debugFmt(DumpListHere),
-    peekNameValue(Ctx,DumpListHere,withCategory,Verbs,'$first'(['$current_value','$value'([assert_cate_in_load])])),
+    loader_verb(Ctx,DumpListHere,Verbs),
     %%%current_value(Ctx,withCategory,Verbs),
     assertCate(Ctx,DumpListHere,Verbs))).
+
+loader_verb(Ctx,DumpListHere,Verbs):-debugOnError(peekNameValue(Ctx,DumpListHere,withCategory,Verbs,'$failure')),!.
+loader_verb(_Ctx,DumpListHere,Verbs):-lastMember(withCategory=Verbs,DumpListHere),nonvar(Verbs),!.
+loader_verb(Ctx,DumpListHere,Verbs):-trace,peekNameValue(Ctx,DumpListHere,withCategory,Verbs,'$first'(['$current_value','$value'([assert_cate_in_load])])).
 
 %%dumpListHere([]):-debugFmt(dumpListHere).
 %%dumpListHere([R|Results]):-debugFmt(R),dumpListHere(Results),!.

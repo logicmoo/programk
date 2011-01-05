@@ -572,7 +572,9 @@ load_aiml_cate_element(Ctx,ATTRIBS,element(Tag,ALIST,INNER_XML)):-loader_verb(Ct
     load_aiml_cate_element2(Ctx,LoaderVerbs,ATTRIBS,element(Tag,ALIST,INNER_XML)).
 
 %% delayed load of Cate
-load_aiml_cate_element2(Ctx,LoaderVerbs,ATTRIBS,element(Tag,ALIST,INNER_XML)):- immediateCall(Ctx,load_aiml_cate_element_now(LoaderVerbs,ATTRIBS,element(Tag,ALIST,INNER_XML))),!.
+load_aiml_cate_element2(Ctx,LoaderVerbs,ATTRIBS,element(Tag,ALIST,INNER_XML)):- fail, %%TODO: unfail this
+   immediateCall(Ctx,load_aiml_cate_element_now(LoaderVerbs,ATTRIBS,element(Tag,ALIST,INNER_XML))),!.
+
 %% immediate load of Cate
 load_aiml_cate_element2(Ctx,LoaderVerbs,ATTRIBS,element(Tag,ALIST,INNER_XML)):- 
    prolog_must(pushCateElement(Ctx,[withCategory=LoaderVerbs|ATTRIBS],element(Tag,[withCategory=LoaderVerbs|ALIST],INNER_XML))),!.

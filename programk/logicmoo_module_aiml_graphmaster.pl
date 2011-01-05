@@ -334,13 +334,13 @@ defaultPredicatesS([
              flags='*',
              that='*',
              % hide for testing 
-             %dictionary='default',
+             dictionary='default',
              userdict='user',
              substitutions='input',
              graph='default',
              guard='*',
              request='*',
-             %%%template=[/*'is ERROR IN CATE'*/],
+             template=[/*'is ERROR IN CATE'*/],
              lang='bot']).
  
 cateMember(Tag):-cateMemberTags(List),member(Tag,List).

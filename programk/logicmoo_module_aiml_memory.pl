@@ -57,10 +57,16 @@ dictNameKey(Dict,Name,Key):-dictNameKey0(Dict,Name,Key).
 
 dictNameKey0([Dict],Name,Key):-nonvar(Dict),!,dictNameKey0(Dict,Name,Key).
 dictNameKey0(Dict,[Name],Key):-nonvar(Name),!,dictNameKey0(Dict,Name,Key).
+dictNameKey0(Dict,Name,Name):-nonvar(Dict),neverDictName(Dict),!.
 dictNameKey0(Dict,Name,Dict:Name):-nonvar(Dict),!.
 dictNameKey0(_Dict,DictName,Key):- nonvar(DictName),DictName=Dict:Name,!,dictNameKey0(Dict,Name,Key).
 dictNameKey0(_Dict,NameKey,NameKey).
 dictNameKey0(Dict,Name,Key):-var(Dict),nonvar(Name),!,Key=Name.
+
+neverDictName(Var):-var(Var),!.
+neverDictName([_=_|_]).
+neverDictName([]).
+neverDictName(_=_).
 
 
 getStoredValue(Ctx,Dict,Name,Value):-prolog_must(var(Value)),getContextStoredValue(Ctx,Dict,Name,Value).

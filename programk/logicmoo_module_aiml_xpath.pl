@@ -62,11 +62,12 @@ peekNameValue0(Ctx,ATTRIBS,NameS,ValueO):- compound(ATTRIBS),compound_or_list(AT
 peekNameValue0(CtxI,Scope,Name,Value):-nop(debugFmt(not(peekNameValue0(CtxI,Scope,Name,Value)))),!,fail.
 */
 
-local_value(Ctx,Scope,Name,Value):-contextScopeTerm(Ctx,Scope,Term),arg_value(Term,Name,Value),!.
+local_value(Ctx,Scope,Name,Value):-contextScopeTerm(Ctx,Scope,Term),arg_value(Term,Name,Value).
 local_value(CtxI,Scope,Name,Value):-dictNameKey(Scope,Name,Key),getCtxValueND(CtxI,Key,Value).
-local_value(Ctx,List,Name,Value):- nonvar(List),not(atom(List)),attributeValue(Ctx,List,Name,Value,'$failure'),!.
+local_value(Ctx,Scope,Name,Value):-is_list(Name),!,member(N0,Name),local_value(Ctx,Scope,N0,Value).
+local_value(Ctx,List,Name,Value):- nonvar(List),not(atom(List)),attributeValue(Ctx,List,Name,Value,'$failure').
 %%local_value(Ctx,Scope,Name,Value):-attributeValue(Ctx,Scope,Name,ValueO,'$failure')
-local_value(Ctx,Scope,Name,Value):-is_list(Name),member(N0,Name),local_value(Ctx,Scope,N0,Value),!.
+
 
 
 arg_value(Ctx,Name,Value):-atomic(Name),!,Name==lastArg,!,arg_value_lastArg(Ctx,Value).

@@ -118,9 +118,12 @@ translate_single_aiml_file0(Ctx,File,PLNAME,FileMatch):-
         printPredCount('Loaded',FileMatch, _FM),
         retractall(creating_aiml_file(File,PLNAME)))),!.
 
+stream_file(user,PLNAME):-!,ctrace,stream_property(user,file_name(Name)),prolog_must(PLNAME=Name).
+stream_file(PLNAMET,PLNAME):-ctrace,is_stream(PLNAMET),stream_property(PLNAMET,file_name(Name)),prolog_must(PLNAME=Name).
+stream_file(PLNAMET,PLNAME):-exists_file(PLNAMET),!,prolog_must(PLNAME=PLNAMET).
 
 translate_single_aiml_file1(File,PLNAME,FileMatch):-
-    ignore((telling(PLNAME),told(PLNAME))),
+    ignore((telling(PLNAMET),PLNAMET\==user,stream_file(PLNAMET,PLNAME),told)),
     ignore((creating_aiml_file(File,PLNAME),delete_file(PLNAME))),
     retractall(lineInfoElement(File,_,_,_)),
     retractall(FileMatch),

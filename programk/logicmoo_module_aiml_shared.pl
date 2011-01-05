@@ -10,7 +10,7 @@
 
 :-dynamic(prolog_is_vetted_safe).
 %% True means the program skips many many runtime safety checks (runs faster)
-prolog_is_vetted_safe:-true.
+prolog_is_vetted_safe:-false.
 
 tryHide(_MFA):-!.
 tryHide(MFA):- asserta(remember_tryHide(MFA)).

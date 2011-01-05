@@ -61,10 +61,11 @@ peekNameValue0(Ctx,ATTRIBS,NameS,ValueO):- compound(ATTRIBS),compound_or_list(AT
 %%peekAnyNameValue(Ctx,Scope,Name,Value):-atom(Name),getCtxValueND(Ctx,Scope,Name,Value).
 peekNameValue0(CtxI,Scope,Name,Value):-nop(debugFmt(not(peekNameValue0(CtxI,Scope,Name,Value)))),!,fail.
 
-arg_value(Ctx,arg(N),Value):-integer(N), N = -1,!,current_value(Ctx,lastArg,Value),!.
-arg_value(Ctx,Name,Value):-Name==lastArg,compound(Ctx),functor(Ctx,_F,A),arg(A,Ctx,Value),!.
-arg_value(Ctx,Name,Ctx):-Name==lastArg,!.
-arg_value(Ctx,arg(N),Value):-integer(N),prolog_must(compound(Ctx)),arg(N,Ctx,Value),!.
+arg_value(Ctx,Name,Value):-atomic(Name),!,Name==lastArg,!,arg_value_lastArg(Ctx,Value).
+arg_value(Ctx,arg(N),Value):-integer(N),arg_value_ArgN(Ctx,N,Value).
+arg_value_lastArg(Ctx,Value):-compound(Ctx),functor(Ctx,_F,A),arg(A,Ctx,Value),!.
+arg_value_ArgN(Ctx,-1,Value):- !,current_value(Ctx,lastArg,Value),!.
+arg_value_ArgN(Ctx,N,Value):-prolog_must(compound(Ctx)),arg(N,Ctx,Value),!.
 
 contextScopeTerm(Ctx,Scope,Term):- (Scope=Term;Ctx=Term),nonvar(Term).
 

@@ -29,25 +29,24 @@ peekAttributes(Ctx,SList,Scope,Results):-prolog_must(peekAttributes0(Ctx,SList,S
 peekAttributes0(Ctx,[Name|SList],Scope,[Name=Value|Results]):- peekNameValue(Ctx,Scope,Name,Value,'$error'),peekAttributes0(Ctx,SList,Scope,Results),!.
 peekAttributes0(_Ctx,[],_Scope,[]):-!.
 
+%%%%TODO: use?%%%%%%% current_value(Ctx,Scope:Name,Value):-!,attributeValue(Ctx,Scope,Name,Value,'$error').
+%%%%TODO: use?%%%%%%% current_value(Ctx,Name,Value):-attributeValue(Ctx,_,Name,Value,'$error').
 current_value(Ctx,Name,Value):-current_value(Ctx,Name,Value,'$global_value').
 current_value(Ctx,Name,Value,Else):-locateNameValue(Ctx,_,Name,Value,'$first'(['$local_value','$global_value','$attribute_value',Else])).
-%%current_value(Ctx,Scope:Name,Value):-!,attributeValue(Ctx,Scope,Name,Value,'$error').
-%%current_value(Ctx,Name,Value):-attributeValue(Ctx,_,Name,Value,'$error').
 
 checkNameValue(Pred,Ctx,Scope,[Name],Value,Else):- nonvar(Name),!,checkNameValue(Pred,Ctx,Scope,Name,Value,Else).
 checkNameValue(Pred,Ctx,Scope,Name,Value,Else):-hotrace(( call(Pred,Ctx,Scope,Name,ValueVar,Else),!,checkValue(ValueVar),valuesMatch(Ctx,ValueVar,Value))),!. %%,ctrace.
 
 peekNameValue(Ctx,Scope,Name,Value,Else):-nonvar(Value),!,checkNameValue(peekNameValue,Ctx,Scope,Name,Value,Else).
-%%peekNameValue(Ctx,Scope,Name,Value,_ElseVar):-peekNameValue0(Ctx,Scope,Name,Value),!.
 peekNameValue(Ctx,Scope,Name,Value,ElseVar):- locateNameValue(Ctx,Scope,Name,Value,'$first'(['$local_value','$global_value','$attribute_value',ElseVar])),!.
 
+/*
 peekNameValue0(Ctx,Scope,Name,Value):-contextScopeTerm(Ctx,Scope,Term),arg_value(Term,Name,Value),!.
 %%%peekNameValue0(Ctx,List,Name,Value):- nonvar(List),not(atom(List)),attributeValue(Ctx,List,Name,Value,'$failure'),!.
 %%%%peekNameValue0(CtxI,_Scope,Name,Value):-getCtxValueND(CtxI,Name,Value).
 peekNameValue0(Ctx,Scope,Name,Value):-is_list(Name),member(N0,Name),peekNameValue(Ctx,Scope,N0,Value,'$failure'),!.
 peekNameValue0(CtxI,Scope,Name,Value):-dictNameKey(Scope,Name,Key),getCtxValueND(CtxI,Key,Value).
 peekNameValue0(Ctx,Scope,Name,Value):-peekGlobalMem(Ctx,Scope,Name,Value).
-/*
 peekNameValue0(CtxI,Scope,Name,Value):-var(Scope),!,peekAnyNameValue(CtxI,Scope,Name,Value).
 peekNameValue0(CtxI,Scope,Name,Value):-getCtxValueND(CtxI,Scope:Name,Value).
 peekNameValue0(Ctx,ATTRIBS,NameS,ValueO):- hotrace((findAttributeValue(Ctx,ATTRIBS,NameS,ValueO,'$failure'))).
@@ -258,21 +257,25 @@ valuePresentOrStar(Var):-valuePresent(Var),!.
 locateNameValue(Ctx,Scope,NameS,ValueO,ElseVar):-makeParamFallback(Ctx,Scope,NameS,ValueO,ElseVar),prolog_must(valuePresentOrStar(ValueO)).
 
 makeParamFallback(Ctx,Scope,NameS,Value,ElseVar):-var(ElseVar),!,throw_safe(makeParamFallback(Ctx,Scope,NameS,Value,ElseVar)).
-makeParamFallback(Ctx,Scope,NameS,ValueO,   '$global_value'):-!, peekGlobalMem(Ctx,Scope,NameS,ValueO),valuePresent(ValueO).
 makeParamFallback(_Ctx,_Scope,_NameS,_Value,'$aiml_error'(E)):-!,aiml_error(E),throw_safe(E).
 makeParamFallback(_Ctx,_Scope,_NameS,_Value,'$error'(E)):-!,aiml_error(E),throw_safe(E).
 makeParamFallback(Ctx,Scope,NameS,Value,    '$error'):-E =!,fallbackValue(Ctx,Scope,NameS,Value,'$error'),aiml_error(E),throw_safe(E).
 makeParamFallback(_Ctx,_Scope,_NameS,_Value,'$failure'):-!,fail.
 makeParamFallback(_Ctx,_Scope,_NameS,_Value,'$succeed'):-!.
+
 makeParamFallback(Ctx,Scope,NameS,ValueO,   '$first'(List)):-!,anyOrEachOf(E,List),locateNameValue(Ctx,Scope,NameS,ValueO,E),!.
 makeParamFallback(Ctx,Scope,NameS,ValueO,   '$current_value'):-!, locateNameValue(Ctx,Scope,NameS,ValueO,'$first'(['$local_value','$global_value','$attribute_value','$failure'])).
+
+makeParamFallback(Ctx,Scope,NameS,ValueO,   '$local_value'):-!,local_value(Ctx,Scope,NameS,ValueO).
+makeParamFallback(Ctx,Scope,NameS,ValueO,   '$global_value'):-!, peekGlobalMem(Ctx,Scope,NameS,ValueO),valuePresent(ValueO).
+makeParamFallback(Ctx,Scope,NameS,ValueO,   '$attribute_value'):-!, attributeValue(Ctx,Scope,NameS,ValueO,'$failure').
+
 makeParamFallback(_Ctx,_Scope,_NameS,_Value,'$call'(Prolog)):-!,call(Prolog).
 makeParamFallback(_Ctx,_Scope,NameS,_Value, '$call_name'(Prolog,NameS)):-!,prolog_must(Prolog).
 makeParamFallback(Ctx,Scope,NameS,ValueO,   '$call_value'(Pred)):-!, call(Pred,Ctx,Scope,NameS,ValueO,'$failure').
-%%makeParamFallback(Ctx,Scope,NameS,ValueO,   '$current_value'):-!, peekNameValue(Ctx,Scope,NameS,ValueO,'$failure').
-makeParamFallback(Ctx,Scope,NameS,ValueO,   '$attribute_value'):-!, attributeValue(Ctx,Scope,NameS,ValueO,'$failure').
-makeParamFallback(Ctx,Scope,NameS,ValueO,   '$local_value'):-!,local_value(Ctx,Scope,NameS,ValueO).
+
 makeParamFallback(_Ctx,_Scope,_NameS,ValueO,'$value'(Else)):-!,ValueO=Else,!.
+
 makeParamFallback(Ctx,Scope,NameS,Value,ElseVar):-not(atom(NameS)),!,anyOrEachOf(Name,NameS),makeParamFallback(Ctx,Scope,Name,Value,ElseVar).
 makeParamFallback(_Ctx,_Scope,_NameS,ValueO,Else):-ValueO=Else,!.
 makeParamFallback(_Ctx,_Scope,_NameS,ValueO,Else):-ctrace,debugFmt(ignore(ValueO=Else)),!.

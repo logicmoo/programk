@@ -252,6 +252,7 @@ makeAimlSingleParam0(Ctx,[N|NameS],ATTRIBS,ElseVar,N,Value):- hotrace((locateNam
 
 valuePresentOrStar(Var):-var(Var),!,throw_safe(valuePresentOrStar(Var)).
 valuePresentOrStar(*):-!.
+valuePresentOrStar([]):-!.
 valuePresentOrStar(Var):-valuePresent(Var),!.
 
 %%% arity 5 version
@@ -283,7 +284,7 @@ makeParamFallback(_Ctx,_Scope,_NameS,ValueO,Else):-ctrace,debugFmt(ignore(ValueO
 
 anyOrEachOf(Name,NameL):-prolog_must(nonvar(NameL)),is_list(NameL),!,member(Name,NameL).
 anyOrEachOf(Name,NameA):-atom(NameA),!,prolog_must(NameA=Name).
-anyOrEachOf(Name,Name):-ctrace.
+anyOrEachOf(Name,NameA):-ctrace,!,prolog_must(NameA=Name).
 
 % ===================================================================
 %  AimlContexts

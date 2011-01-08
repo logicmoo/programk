@@ -69,7 +69,7 @@ aiml_call(Ctx,element(Learn, ATTRIBS, Value)):-  member(Learn,[load,learn]),!,
  prolog_must((
      attributeValue(Ctx,ATTRIBS,[graph],Graph,'$current_value'),
      pathAttrib(PathAttrib),
-     attributeValue(Ctx,ATTRIBS,PathAttrib,Filename,Value),
+     attributeValue(Ctx,ATTRIBS,PathAttrib,Filename,'$value'(Value)),
       withAttributes(Ctx,[srcfile=Filename,graph=Graph|ATTRIBS],
       load_aiml_files(Ctx,Filename)))).
 
@@ -253,7 +253,7 @@ showCtx(Ctx):-forall(
 systemCall_Load(Ctx,[],template([loaded,Ctx])):-!.
 systemCall_Load(Ctx,[File,Name|S],Output):-joinAtoms([File,Name|S],'',Filename),!,systemCall(Ctx,'bot',['load',Filename],Output).
 systemCall_Load(Ctx,[Filename],template([loaded,Filename])):-
-    peekNameValue(Ctx,_,graph,GraphI,'*'), 
+    peekNameValue(Ctx,_,graph,GraphI,'$first'(['$current_value','$value'('*')])), 
     (GraphI=='*'->Graph=default; Graph=GraphI),
     ATTRIBS=[srcfile=Filename,graph=Graph],
     gather_aiml_graph(Ctx,ATTRIBS,Graph,Filename,AIML),

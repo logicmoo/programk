@@ -32,7 +32,7 @@ peekAttributes0(_Ctx,[],_Scope,[]):-!.
 %%%%TODO: use?%%%%%%% current_value(Ctx,Scope:Name,Value):-!,attributeValue(Ctx,Scope,Name,Value,'$error').
 %%%%TODO: use?%%%%%%% current_value(Ctx,Name,Value):-attributeValue(Ctx,_,Name,Value,'$error').
 current_value(Ctx,Name,Value):-current_value(Ctx,Name,Value,'$global_value').
-current_value(Ctx,Name,Value,Else):-locateNameValue(Ctx,_,Name,Value,'$first'(['$local_value','$global_value','$attribute_value',Else])).
+current_value(Ctx,Name,Value,ElseVar):-peekNameValue(Ctx,_Scope,Name,Value,ElseVar).
 
 checkNameValue(Pred,Ctx,Scope,[Name],Value,Else):- nonvar(Name),!,checkNameValue(Pred,Ctx,Scope,Name,Value,Else).
 checkNameValue(Pred,Ctx,Scope,Name,Value,Else):-hotrace(( call(Pred,Ctx,Scope,Name,ValueVar,Else),!,checkValue(ValueVar),valuesMatch(Ctx,ValueVar,Value))),!. %%,ctrace.
@@ -252,16 +252,21 @@ makeAimlSingleParam0(Ctx,[N|NameS],ATTRIBS,ElseVar,N,Value):- hotrace((locateNam
 
 valuePresentOrStar(Var):-var(Var),!,throw_safe(valuePresentOrStar(Var)).
 valuePresentOrStar(*):-!.
-valuePresentOrStar([]):-!.
+valuePresentOrStar([]):-!,trace.
 valuePresentOrStar(Var):-valuePresent(Var),!.
+
+checkElseValue(_ElseVar):-!. %% good for now
+checkElseValue(ElseVar):-var(ElseVar),!,throw_safe(checkElseValue(ElseVar)).
+checkElseValue(ElseVar):-prolog_must((functor(ElseVar,F,_),!,atom_concat('$',_,F))).
+
 
 %%% arity 5 version
 locateNameValue(Ctx,Scope,NameS,ValueO,ElseVar):-makeParamFallback(Ctx,Scope,NameS,ValueO,ElseVar),prolog_must(valuePresentOrStar(ValueO)).
 
-makeParamFallback(Ctx,Scope,NameS,Value,ElseVar):-var(ElseVar),!,throw_safe(makeParamFallback(Ctx,Scope,NameS,Value,ElseVar)).
+makeParamFallback(Ctx,Scope,NameS,Value,ElseVar):-checkElseValue(ElseVar),var(ElseVar),!,throw_safe(makeParamFallback(Ctx,Scope,NameS,Value,ElseVar)).
 makeParamFallback(_Ctx,_Scope,_NameS,_Value,'$aiml_error'(E)):-!,aiml_error(E),throw_safe(E).
 makeParamFallback(_Ctx,_Scope,_NameS,_Value,'$error'(E)):-!,aiml_error(E),throw_safe(E).
-makeParamFallback(Ctx,Scope,NameS,Value,    '$error'):-E =!,fallbackValue(Ctx,Scope,NameS,Value,'$error'),aiml_error(E),throw_safe(E).
+makeParamFallback(Ctx,Scope,NameS,Value,    '$error'):-!, E=fallbackValue(Ctx,Scope,NameS,Value,'$error'),aiml_error(E),throw_safe(E).
 makeParamFallback(_Ctx,_Scope,_NameS,_Value,'$failure'):-!,fail.
 makeParamFallback(_Ctx,_Scope,_NameS,_Value,'$succeed'):-!.
 

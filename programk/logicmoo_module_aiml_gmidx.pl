@@ -179,53 +179,87 @@ toNonIndexableArg(A,[AA|AL]):-A=..[A0,idxl,AN|AL],AA=..[A0|AN].
 toNonIndexableArg(A,[A]).
 
 /*
-[*] ==> *
-[he] ==> he
 
-[*,likes,*] ==>  likes(idxm,*)
-[*,likes,it] ==>  likes(idxm,it)
-[he,likes,it] ==>  he(likes,it)
+ [*] ==> *
+ [he] ==> he
+
+ [*,likes,*] ==>  likes(idxm,*)
+ [*,likes,it] ==>  likes(idxm,it)
+ [he,likes,it] ==>  he(likes,it)
  ['DO', 'THE', 'GENDER', 'TEST'] => do(idx, the, gender, test)).
 
 
  [*,Word|More]  => Word(idxm,REST)
 
- [i,like,birds] ===> i(_), like(_,_), birds(_,_,_,_), '*'
- [i,like,many,birds] ===> i(_), like(_,_), many(_,_), birds(_,_,_,_), '*'
+ [i,like,birds] ===> i(_), like(_,_), birds(_,_,_), star_star(_,_), '*'
 
- */
+ [i,like,many,birds] ===> i(_), like(_,_), many(_,_), birds(_,_,_), star_star(_,_), '*'
+
+*/
+
+notStarCard(X):- \+ isStarCard(X), prolog_must(atom(X)).
+
+is1Star(X):-isStar0(X).
+is1Star(element(_,_,_)).
+is1Star(star(_,_,_)).
+
+mustCardSpec(X):-prolog_must(is1Star(X)),!.
+
+isStarCard(X):-var(X),!,aiml_error(isStarCard(X)).
+isStarCard(X):-is1Star(X).
+isStarCard([_|_]):-!,fail.
+isStarCard(X):- functor(X,F,_A),member(F,[star1,star_star]).
+
+fromIndexableSArg(B,A):-isStarCard(B),!,prolog_must(desegmentStars(B,A)).
+fromIndexableSArg(B,A):-prolog_must(toIndexableSArg(A,B)),!.
+
+
+reSegmentStars(Star,StarStarO):-desegmentStars(Star,Seg),segmentStar(Seg,StarStar),
+    (StarStar=Star->StarStarO=Star;StarStarO=StarStar),!.
+
+segmentStar([Star],Star):-is1Star(Star),!.
+segmentStar([Star],star1(Star)):-mustCardSpec(Star),!.
+segmentStar([Star|SegS],star_star(Len,[Star|SegS])):-length([Star|SegS],Len),mustCardSpec(Star).
+
+desegmentStars([Star|SegS],[Star|SegS]):-mustCardSpec(Star).
+desegmentStars(star_star(_,B),A):-!,desegmentStars(B,A).
+desegmentStars(star1(B),A):-!,desegmentStars(B,A).
+desegmentStars(Star,[Star]):-mustCardSpec(Star).
+
+mergeStars(Star1,Star2,star_star(Len,StarStar)):-desegmentStars(Star1,Seg1),desegmentStars(Star2,Seg2),append(Seg1,Seg2,StarStar),length(StarStar,Len).
+
+% star1/1
+toIndexableSArg([Star],StarStar):-isStarCard(Star),!,toIndexableSArg(Star,StarStar).
+% star1/1 and(/)  star_star/2
+toIndexableSArg(Star,StarStar):-isStarCard(Star),!,PROLOG_,UST(reSegmentStars(Star,StarStar)).
+
+toIndexableSArg(Star,Star):-atomic(Star),!.
 
 % word/0
 toIndexableSArg([Word],Word):-!.
-toIndexableSArg(star_star(S1,S2),star_star(S1,S2)):-!.
+toIndexableSArg([Star],StarStar):-toIndexableSArg(Star,StarStar).
 
-% word/4
-toIndexableSArg([Star,Word|[]],INDEXABLE):-isStarCard(Star),notStarCard(Word),INDEXABLE=..[Word,idx_endswith,(Star),Word,four].
-% star_star/1 implicit
-%toIndexableSArg([Star1,Star2|[]],star_star(Star1,Star2)):-isStarCard(Star1),isStarCard(Star2).
+% word/3
+toIndexableSArg([Star,Word|[]],INDEXABLE):-isStarCard(Star),notStarCard(Word),INDEXABLE=..[Word,idx_endswith,(Star),Word].
+% star_star/2 implicit
+toIndexableSArg([Star1,Star2|[]],StarStar):-isStarCard(Star1),isStarCard(Star2),mergeStars(Star1,Star2,StarStar).
 % word/1
-toIndexableSArg([Word,Star|[]],INDEXABLE):-isStarCard(Star),notStarCard(Word),INDEXABLE=..[Word,Star].
+toIndexableSArg([Word,Star|[]],INDEXABLE):-isStarCard(Star),notStarCard(Word),INDEXABLE=..[Word,StarStar],reSegmentStars(Star,StarStar).
 % word/1 implicit
 %toIndexableSArg([Word1,Word2|[]],INDEXABLE):-notStarCard(Word1),notStarCard(Word2),INDEXABLE=..[Word1,Word2].
 
-% word/3
-toIndexableSArg([Star,Word|More],INDEXABLE):-isStarCard(Star),notStarCard(Word),INDEXABLE=..[Word,idx_middleof,(Star),REST],toIndexableArg(More,REST).
-% Unk/N
-toIndexableSArg([W,Star1,Star2|More],INDEXABLE):-isStarCard(Star1),isStarCard(Star2),toIndexableArg([W,star_star(Star1,Star2)|More],INDEXABLE).
-% Unk/N
-toIndexableSArg([Star1,Star2|More],INDEXABLE):-isStarCard(Star1),isStarCard(Star2),toIndexableArg([star_star(Star1,Star2)|More],INDEXABLE).
 % word/2
-toIndexableSArg([Word,Star|More],INDEXABLE):-isStarCard(Star),notStarCard(Word),INDEXABLE=..[Word,idx_startof(Star),REST],toIndexableArg(More,REST).
+toIndexableSArg([Star,Word|More],INDEXABLE):-isStarCard(Star),notStarCard(Word),INDEXABLE=..[Word,idx_startswith(Star),REST],toIndexableArg(More,REST).
+% Unk/N
+toIndexableSArg([W,Star1,Star2|More],INDEXABLE):-isStarCard(Star1),isStarCard(Star2),mergeStars(Star1,Star2,StarStar),toIndexableArg([W,StarStar|More],INDEXABLE).
+% Unk/N
+toIndexableSArg([Star1,Star2|More],INDEXABLE):-isStarCard(Star1),isStarCard(Star2),mergeStars(Star1,Star2,StarStar),toIndexableArg([StarStar|More],INDEXABLE).
+% word/1
+toIndexableSArg([Word,Star|More],INDEXABLE):-isStarCard(Star),notStarCard(Word),INDEXABLE=..[Word,REST],toIndexableArg([Star|More],REST).
 % word/1
 toIndexableSArg([Word1,Word2|More],INDEXABLE):-notStarCard(Word1),notStarCard(Word2),INDEXABLE=..[Word1,REST],!,toIndexableArg([Word2|More],REST).
 
-notStarCard(X):- atom(X), \+ isStar0(X).
 
-isStarCard('*').
-isStarCard('_').
-isStarCard(X):- \+ atom(X).
-
-fromIndexableSArg(B,A):-prolog_must(toIndexableSArg(A,B)),!.
 
 %%toIndexable(FAKE,FAKE):-!.
 
@@ -284,8 +318,8 @@ withArgIndexing4(CateSig,Functor,DoWhat,Indexable):- argNumsTracked(Functor,ArgN
 
 withArgIndexing4(_CateSig,_F,_DoWhat,_Indexable).
 
-staredArgIndex(_CateSig,_Indexable,_Functor,_ArgName,_ArgNumber,[IndexableArg],IndexableArg,ArgType):-argTypeIndexable(ArgType),isStar0(IndexableArg),!.
-staredArgIndex(_CateSig,_Indexable,_Functor,_ArgName,_ArgNumber,IndexableArg,IndexableArg,ArgType):-argTypeIndexable(ArgType),isStar0(IndexableArg),!.
+staredArgIndex(_CateSig,_Indexable,_Functor,_ArgName,_ArgNumber,[IndexableArg],IndexableArg,ArgType):-argTypeIndexable(ArgType),is1Star(IndexableArg),!.
+staredArgIndex(_CateSig,_Indexable,_Functor,_ArgName,_ArgNumber,IndexableArg,IndexableArg,ArgType):-argTypeIndexable(ArgType),is1Star(IndexableArg),!.
 
 addArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType):-staredArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType),!.
 

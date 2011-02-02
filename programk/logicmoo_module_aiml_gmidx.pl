@@ -172,12 +172,63 @@ toNonIndexableArg(A,A):-member(A,['*','[]','_']),!.
 toNonIndexableArg([A|H],[A|H]):-!.
 toNonIndexableArg(A,A):-not(compound(A)),!.
 toNonIndexableArg(A,[A]):-not(compound(A)),!.
-toNonIndexableArg(A,[A0]):-A=..[A0/*,idx0*/].
+toNonIndexableArg(A,B):-fromIndexableSArg(B,A),!.
+toNonIndexableArg(A,[A0]):- trace,A=..[A0/*,idx0*/].
 toNonIndexableArg(A,[A0|AN]):-A=..[A0,idx|AN].
 toNonIndexableArg(A,[AA|AL]):-A=..[A0,idxl,AN|AL],AA=..[A0|AN].
 toNonIndexableArg(A,[A]).
 
+/*
+[*] ==> *
+[he] ==> he
+
+[*,likes,*] ==>  likes(idxm,*)
+[*,likes,it] ==>  likes(idxm,it)
+[he,likes,it] ==>  he(likes,it)
+ ['DO', 'THE', 'GENDER', 'TEST'] => do(idx, the, gender, test)).
+
+
+ [*,Word|More]  => Word(idxm,REST)
+
+ [i,like,birds] ===> i(_), like(_,_), birds(_,_,_,_), '*'
+ [i,like,many,birds] ===> i(_), like(_,_), many(_,_), birds(_,_,_,_), '*'
+
+ */
+
+% word/0
+toIndexableSArg([Word],Word):-!.
+toIndexableSArg(star_star(S1,S2),star_star(S1,S2)):-!.
+
+% word/4
+toIndexableSArg([Star,Word|[]],INDEXABLE):-isStarCard(Star),notStarCard(Word),INDEXABLE=..[Word,idx_endswith,(Star),Word,four].
+% star_star/1 implicit
+%toIndexableSArg([Star1,Star2|[]],star_star(Star1,Star2)):-isStarCard(Star1),isStarCard(Star2).
+% word/1
+toIndexableSArg([Word,Star|[]],INDEXABLE):-isStarCard(Star),notStarCard(Word),INDEXABLE=..[Word,Star].
+% word/1 implicit
+%toIndexableSArg([Word1,Word2|[]],INDEXABLE):-notStarCard(Word1),notStarCard(Word2),INDEXABLE=..[Word1,Word2].
+
+% word/3
+toIndexableSArg([Star,Word|More],INDEXABLE):-isStarCard(Star),notStarCard(Word),INDEXABLE=..[Word,idx_middleof,(Star),REST],toIndexableArg(More,REST).
+% Unk/N
+toIndexableSArg([W,Star1,Star2|More],INDEXABLE):-isStarCard(Star1),isStarCard(Star2),toIndexableArg([W,star_star(Star1,Star2)|More],INDEXABLE).
+% Unk/N
+toIndexableSArg([Star1,Star2|More],INDEXABLE):-isStarCard(Star1),isStarCard(Star2),toIndexableArg([star_star(Star1,Star2)|More],INDEXABLE).
+% word/2
+toIndexableSArg([Word,Star|More],INDEXABLE):-isStarCard(Star),notStarCard(Word),INDEXABLE=..[Word,idx_startof(Star),REST],toIndexableArg(More,REST).
+% word/1
+toIndexableSArg([Word1,Word2|More],INDEXABLE):-notStarCard(Word1),notStarCard(Word2),INDEXABLE=..[Word1,REST],!,toIndexableArg([Word2|More],REST).
+
+notStarCard(X):- atom(X), \+ isStar0(X).
+
+isStarCard('*').
+isStarCard('_').
+isStarCard(X):- \+ atom(X).
+
+fromIndexableSArg(B,A):-prolog_must(toIndexableSArg(A,B)),!.
+
 %%toIndexable(FAKE,FAKE):-!.
+
 toIndexable(OF,INDEXABLE):-OF=..[F|ARGS],functor(OF,F,A),toIndexable0(A,F,ARGS,NEWARGS),!,INDEXABLE=..[F|NEWARGS].
 toIndexable0(0,_F,_,[]):-!.
 toIndexable0(3,aimlCate,List,List):-!.
@@ -200,7 +251,8 @@ toIndexableArg([A],AA):-not(compound(A)),!,toIndexableArg(A,AA).
 toIndexableArg(A,A):-not(compound(A)),!.
 toIndexableArg([A],AH):- atom(A),!,AH=..[A/*,idx0*/],!.
 toIndexableArg([A],N):-toIndexableArg(A,N).
-toIndexableArg([A|H],AH):- atom(A),AH=..[A,idx|H],!.
+toIndexableArg(B,A):-prolog_must(toIndexableSArg(B,A)),!.
+toIndexableArg([A|H],AH):- trace,atom(A),AH=..[A,idx|H],!.
 toIndexableArg([A|H],AH):- A=..[A0|AN],predify(A,AH,A0,AN,H),!.
 toIndexableArg(A,A).
 

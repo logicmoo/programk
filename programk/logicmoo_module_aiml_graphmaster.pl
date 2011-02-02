@@ -583,6 +583,7 @@ starSet(Ctx,StarNameI,Pattern):-
 %%REAL-UNUSED    set_matchit2(StarName,Pattern,Matcher,MaxLen,OnBind).
 
 %%isStar0(Word1):- member(Word1,[*,'_']).
+isStar0(X):-var(X),!,aiml_error(isStar0(X)).
 isStar0('*').
 isStar0('_').
 

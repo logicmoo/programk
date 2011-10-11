@@ -9,7 +9,7 @@
 % ===================================================================
 
 :-dynamic(recordedTime/2).
-timeRecorded(Call):-timeRecorded(Call,Time),asserta(recordedTime(Time,Call)),listing(recordedTime/2).
+timeRecorded(Call):-timeRecorded(Call,Time),asserta(recordedTime(Time,Call)),listing(recordedTime/2),!.
 timeRecorded(Call,Time):- statistics(cputime,Start),time(Call),statistics(cputime,End),Time is End - Start.
 :-catch(guitracer,E,writeq(E)),nl.
 
@@ -60,6 +60,9 @@ dttt:-timeRecorded(consult(aimlCate_checkpoint)),alicebot.
 
 :-catch(guitracer,_,true).
 :-traceAll.
+
+:-asserta((portray_text:do_portray_text(X) :- writeq(p(X)))).
+
 :-list_undefined.
 
 :-debug.
@@ -119,6 +122,11 @@ annie:-withNamedContext(toplevel,Ctx),timeRecorded(run_chat_tests_here(Ctx)).
 :-timeRecorded(load_aiml_files('programk/test_suite/chomskyAIML/update012.aiml')).
 :-timeRecorded(load_aiml_files('programk/test_suite/chomskyAIML/update007.aiml')).
 */
+
+
+
+:-unify_listing(unitTestResult(unit_passed,_)).
+end_of_file.
 :-timeRecorded(annie).
 :-unify_listing(unitTestResult(unit_passed,_)).
 :-unify_listing(unitTestResult(unit_failed,_)).

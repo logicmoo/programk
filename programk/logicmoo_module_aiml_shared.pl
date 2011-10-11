@@ -36,6 +36,7 @@ prolog_Each(Pred,Call):- prolog_call(Pred,Call).
 
 :-tryHide(prolog_must/1).
 prolog_must(Call):-tracing,!,debugOnError(Call).
+%%prolog_must(Call):- prolog_is_vetted_safe,!,debugOnError(Call).
 prolog_must(Call):-prolog_must_call(Call).
 
 
@@ -185,7 +186,7 @@ addLibraryDir :- buggerDir(Here),atom_concat(Here,'/..',UpOne), absolute_file_na
 % if not has library suport, add this direcotry as a library directory
 :-not(hasLibraryBuggerySupport) -> addLibraryDir ; true .
 
-:-hasLibraryBuggerySupport->true;throwNoLibBugger.
+%:-hasLibraryBuggerySupport->true;throwNoLibBugger.
 
 % TODO remove this next line
 % :-ensure_loaded(library('logicmoo/logicmoo_util_bugger.pl')).
@@ -646,6 +647,7 @@ list_to_set_preserve_order([H|T],[H|TT]):-delete(T,H,M),list_to_set_preserve_ord
 % Utils
 % =================================================================================
 
+unify_listing(F/A):-!,functor(P,F,A),unify_listing(P).
 unify_listing(FileMatch):-unify_listing(FileMatch,_NumberFound).
 unify_listing(FileMatch,NumberFound):-unify_listing0(FileMatch),flag(printAll,NumberFound,0).
 

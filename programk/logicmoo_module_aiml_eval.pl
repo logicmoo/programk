@@ -34,6 +34,7 @@ aiml_call(Ctx,[Atomic|Rest]):- !, %%ctrace,
 % ============================================
 % Test Suite  
 % ============================================
+:-dynamic(unitTestResult/2).
 aiml_call(Ctx,element('testsuite',ATTRIBS,LIST)):-
      withAttributes(Ctx,ATTRIBS,maplist_safe(aiml_call(Ctx),LIST)),
      unify_listing(unitTestResult(unit_passed,PRINTRESULT),Passed),
@@ -217,15 +218,23 @@ systemCall(Ctx,Lang,Eval,Out):-once((atom(Eval),atomWSplit(Eval,Atoms))),Atoms=[
 systemCall(_Ctx,Lang,Eval,writeq(evaled(Lang,Eval))):- aiml_error(evaled(Lang,Eval)).
 
 systemCall_Bot(Ctx,['@'|REST],DONE):-!,systemCall_Bot(Ctx,REST,DONE).
+
+%% break appart '@'s
+systemCall_Bot(Ctx,ALLREST,template([mutiple,DONE1,DONE])):-append([F|IRST],['@'|REST],ALLREST),!,
+      systemCall_Bot(Ctx,[F|IRST],DONE1),systemCall_Bot(Ctx,REST,DONE).
+
 systemCall_Bot(Ctx,[Skipable|REST],DONE):-isWhiteWord(Skipable),!,systemCall_Bot(Ctx,REST,DONE).
 systemCall_Bot(Ctx,[FIRST|REST],DONE):-atom_concat_safe('@',CMD,FIRST),CMD\=='',!,systemCall_Bot(Ctx,['@',CMD|REST],DONE).
 systemCall_Bot(_Ctx,['eval'|DONE],template([evaled,DONE])):-!.
 systemCall_Bot(_Ctx,['echo'|DONE],DONE):-!.
 systemCall_Bot(Ctx,['set'],template([setted,Ctx])):-!,unify_listing(getUserDicts(_User,_Name,_Value)),!.
+systemCall_Bot(Ctx,['set',Name,Value],template([setted,Name,Value])):- setAliceMem(Ctx,'user',Name,Value),!.
+
 systemCall_Bot(Ctx,['get',Name|MajorMinor],template([getted,Dict,Value,Found1])):- getDictFromAttributes(Ctx,evalsrai,[],SYM),
   list_to_set_preserve_order([SYM,user,robot,Name],List),
   debugFmt(getIndexedValue(Ctx,List,Name,MajorMinor,values)),
-  forall(member(Dict,List),ignore((unify_listing(getIndexedValue(Ctx,Dict,Name,MajorMinor,Value),Found),Found>0,Found1=Found))).
+  forall(member(Dict,List),ignore((unify_listing(getIndexedValue(Ctx,Dict,Name,MajorMinor,Value),Found),Found>0,Found1=Found))),!.
+
 systemCall_Bot(Ctx,['get'],template([getted,Passed])):- unify_listing(getContextStoredValue(Ctx,_,_,_),Passed).
 systemCall_Bot(Ctx,['ctx'],template([ctxed,Atom])):-!,term_to_atom(Ctx,Atom),!.
 systemCall_Bot(Ctx,['ctx'],template([ctxed,prologCall(Atom,term_to_atom(Ctx,Atom))])):-!,showCtx(Ctx).
@@ -244,7 +253,7 @@ systemCall_Bot(Ctx,['ctxlist'],template([ctxed,current_value(Ctx,Name,Value),Cou
 
 systemCall_Bot(Ctx,[FIRST|REST],DONE):-toLowerIfAtom(FIRST,CMD),FIRST\==CMD,!,systemCall_Bot(Ctx,[CMD|REST],DONE).
 
-systemCall_Bot(_Ctx,DONE,template([delayed,DONE])):-!.
+systemCall_Bot(_Ctx,DONE,template([delayed,DONE])).
 
 showCtx(Ctx):-forall(
   (get_ctx_frame_holder(Ctx,Dict,Frame,Held)),
@@ -293,6 +302,7 @@ gather_aiml_graph(Ctx,XML,Graph,Filename,AIML):-
 % ============================================
 % Test Suite  (now uses aiml_call/2 instead of tag_eval/3)
 % ============================================
+:-dynamic(unitTestResult/2).
 
 tagIsCall('testsuite').
 tagIsCall('testcase').

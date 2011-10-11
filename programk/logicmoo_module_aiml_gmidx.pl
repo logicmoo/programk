@@ -63,7 +63,7 @@ cateMemberTags(Result):- aimlCateOrder(List), findall(E,(member(E0,List),once((E
 
 makeAimlCateSig(Ctx,ListOfValues,Pred):-aimlCateSig(Pred),!,makeAimlCate(Ctx,ListOfValues,Pred),!.
 
-:- aimlCateOrder(List),length(List,L),dynamic(aimlCate/L),multifile(aimlCate/L). 
+:- aimlCateOrder(List),length(List,L),dynamic(aimlCate/L),multifile(aimlCate/L).
 
 replaceArgsVar(_Ctx,[],_CateSig):-!.
 replaceArgsVar(Ctx,[E=Replacement|L],CateSig):-
@@ -116,7 +116,7 @@ assert_cate_in_load(Ctx,CateSig):-
     load_category(Ctx,CateSigTest),!.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% load_category(Ctx,CateSig) 
+%% load_category(Ctx,CateSig)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 load_category(Ctx,CateSig):-
@@ -231,7 +231,7 @@ mergeStars(Star1,Star2,star_star(Len,StarStar)):-desegmentStars(Star1,Seg1),dese
 % star1/1
 toIndexableSArg([Star],StarStar):-isStarCard(Star),!,toIndexableSArg(Star,StarStar).
 % star1/1 and(/)  star_star/2
-toIndexableSArg(Star,StarStar):-isStarCard(Star),!,PROLOG_,UST(reSegmentStars(Star,StarStar)).
+toIndexableSArg(Star,StarStar):-isStarCard(Star),!,prolog_must(reSegmentStars(Star,StarStar)).
 
 toIndexableSArg(Star,Star):-atomic(Star),!.
 
@@ -304,13 +304,13 @@ predify(AH,A0,AN,H):-AH=..[A0,idxl,AN|H].
 
 withArgIndexing(CateSig,_DoWhat,Indexable):-not(useIndexPatternsForCateSearch),!,duplicate_term(CateSig,Indexable).
 withArgIndexing(CateSig,DoWhat,Indexable):-
-  functor(CateSig,F,A),  
+  functor(CateSig,F,A),
   prolog_must(var(Indexable)),
   functor(Indexable,F,A),
   duplicate_term(CateSig,Indexable),
   prolog_must(withArgIndexing4(CateSig,F,DoWhat,Indexable)),!.
 
-withArgIndexing4(CateSig,Functor,DoWhat,Indexable):- argNumsTracked(Functor,ArgName,ArgNumber), 
+withArgIndexing4(CateSig,Functor,DoWhat,Indexable):- argNumsTracked(Functor,ArgName,ArgNumber),
   argNumsIndexedRepr(Functor,ArgName,ArgNumber,ArgType),
   once((arg(ArgNumber,CateSig,Arg),
          once((call(DoWhat,CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType),
@@ -324,22 +324,22 @@ staredArgIndex(_CateSig,_Indexable,_Functor,_ArgName,_ArgNumber,IndexableArg,Ind
 addArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType):-staredArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType),!.
 
 addArgIndex(_CateSig,_Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType):-argTypeIndexable(ArgType),
-  makeIndexableArg(Functor,ArgNumber,Arg,IndexableArg),  
+  makeIndexableArg(Functor,ArgNumber,Arg,IndexableArg),
   asserta_if_new(argNFound(Functor,ArgName,Arg,IndexableArg)),!.
 addArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType):- ctrace,
   debugFmt(addArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType)),
   prolog_must(Arg=IndexableArg),!.
-  
+
 
 dirtyArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType):-staredArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType),!.
-dirtyArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType):- 
+dirtyArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType):-
   debugFmt(dirtyArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType)),!.
 
 %%%% todo maybe this.. once((retract(NEW),asserta(NEW)) ; (asserta(NEW),(debugFmt('~q.~n',[asserta(N)])))),!.
 /*
 asserta_if_new(NEW):-!,
   once(
-   (retract(NEW),asserta(NEW)) ; 
+   (retract(NEW),asserta(NEW)) ;
    (asserta(NEW),debugFmt('~q.~n',[asserta(NEW)])) ),!.
 */
 asserta_if_new(N):-catch(N,E,debugFmt(error_in(E,N))),!.
@@ -356,12 +356,12 @@ assertCate(Ctx,Cate,DoWhat):-
 %% todo maybe this.. once((retract(NEW),asserta(NEW)) ; (asserta(NEW),(debugFmt('~q.~n',[NEW])))),!.
 % assertCate3(Ctx,NEW,DoWhat):-NEW,!.
 assertCate3(Ctx,NEW,DoWhat):-
-  flag(cateSigCount,X,X+1), 
+  flag(cateSigCount,X,X+1),
   forall(member(Pred,DoWhat),prolog_must(call(Pred,Ctx,NEW))).
 % ===============================================================================================
 %  Make AIML Categories
 % ===============================================================================================
-makeAimlCate(Ctx,Cate,Value):- 
+makeAimlCate(Ctx,Cate,Value):-
  prolog_mustEach((
    convert_template(Ctx,Cate,Assert),
    aimlCateOrder(Order),
@@ -419,7 +419,7 @@ defaultPredicatesS([
              flags='*',
              pattern='*',
              call='true',
-             % hide for testing 
+             % hide for testing
              dictionary='default',
              userdict='user',
              substitutions='input',
@@ -429,16 +429,16 @@ defaultPredicatesS([
              srcinfo=missinginfo,
              srcfile=missingfile,
              withCategory=[writeqnl,assert_cate_in_load]]).
- 
+
 cateMember(Tag):-cateMemberTags(List),member(Tag,List).
 
 defaultCatePredicatesS(Defaults):-cateFallback(Defaults).
 
 /*
-And your chair is kept this time For some confidence you can ask them when the next trip to Value Villiage is.. 
+And your chair is kept this time For some confidence you can ask them when the next trip to Value Villiage is..
 You should be permited to keep your chair since you are willing to not leave the grounds except on nursing facility sanctioned trips.
-I Think they have trips to the Dollar Tree and other places 
-They also can give us special permission on Mondays and Thursdays 
+I Think they have trips to the Dollar Tree and other places
+They also can give us special permission on Mondays and Thursdays
 
 The main thing is that you are willing to give them the peace of mind that they dont need to "watch you".
 

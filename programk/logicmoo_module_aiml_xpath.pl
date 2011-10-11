@@ -261,7 +261,7 @@ checkElseValue(ElseVar):-prolog_must((functor(ElseVar,F,_),!,atom_concat('$',_,F
 
 
 %%% arity 5 version
-locateNameValue(Ctx,Scope,NameS,ValueO,ElseVar):-makeParamFallback(Ctx,Scope,NameS,ValueO,ElseVar),prolog_must(valuePresentOrStar(ValueO)).
+locateNameValue(Ctx,Scope,NameS,ValueO,ElseVar):-makeParamFallback(Ctx,Scope,NameS,ValueO,ElseVar),!. %%,prolog_must(valuePresentOrStar(ValueO)).
 
 makeParamFallback(Ctx,Scope,NameS,Value,ElseVar):-checkElseValue(ElseVar),var(ElseVar),!,throw_safe(makeParamFallback(Ctx,Scope,NameS,Value,ElseVar)).
 makeParamFallback(_Ctx,_Scope,_NameS,_Value,'$aiml_error'(E)):-!,aiml_error(E),throw_safe(E).
@@ -519,17 +519,20 @@ attributeValue(Ctx,Scope,Name,Value,Else):-nonvar(Value),!,checkNameValue(attrib
 attributeValue(Ctx,Scope,Name,Value,_ElseVar):-peekNameValue0(Ctx,Scope,Name,Value),!.
 attributeValue(Ctx,_Scope,Name,Value,ElseVar):-makeParamFallback(Ctx,Name,Value,ElseVar),!.
 */
-attributeValue(Ctx,ATTRIBS,NameS,ValueO,_Else):- hotrace((findAttributeValue(Ctx,ATTRIBS,NameS,ValueO,'$failure'))),!.
+attributeValue(Ctx,ATTRIBS,NameS,ValueO,_Else):- ((findAttributeValue(Ctx,ATTRIBS,NameS,ValueO,'$failure'))),!.
 attributeValue(Ctx,XML,NameS,ValueO,_Else):- hotrace((findTagValue(Ctx,XML,NameS,ValueO,'$failure'))),!.
 attributeValue(Ctx,ATTRIBS,NameS,ValueO,_Else):-compound(ATTRIBS),ATTRIBS=..[_|LIST],member(E,LIST),
    attributeValue(Ctx,E,NameS,ValueO,'$failure'),!.
 attributeValue(Ctx,Scope,NameS,ValueO,ElseVar):-ElseVar\=='$failure',makeParamFallback(Ctx,Scope,NameS,ValueO,ElseVar),!.
 
-findAttributeValue(Ctx,ATTRIBS,NameS,ValueO,Else):- hotrace((findAttributeValue0(Ctx,ATTRIBS,NameS,ValueI,Else), aiml_eval_to_unit(Ctx,ValueI,ValueO))),!.
+findAttributeValue(Ctx,ATTRIBS,NameS,ValueO,Else):- ((findAttributeValue0(Ctx,ATTRIBS,NameS,ValueI,Else), aiml_eval_to_unit(Ctx,ValueI,ValueO))),!.
 findAttributeValue(Ctx,ATTRIBS,NameS,ValueO,Else):-   Else\=='$failure',prolog_must((findAttributeValue0(Ctx,ATTRIBS,NameS,ValueI,Else), aiml_eval_to_unit(Ctx,ValueI,ValueO))),!.
 
-findAttributeValue0(_Ctx,ATTRIBS,NameS,ValueO,_Else):- member(Name,NameS), lastMember(NameE=ValueO,ATTRIBS), atomsSameCI(Name,NameE),!.
+findAttributeValue0(_Ctx,ATTRIBS,NameS,ValueO,_Else):- lastMemberTest(NameE=ValueO,ATTRIBS), member(Name,NameS), atomsSameCI(Name,NameE),!.
 findAttributeValue0(Ctx,ATTRIBS,NameS,Value,ElseVar):- makeParamFallback(Ctx,ATTRIBS,NameS,Value,ElseVar),!.
+
+lastMemberTest(E,L):- ground(L),!,reverse(L,R),member(E,R).
+lastMemberTest(E,L):-lastMember(E,L).
 
 findTagValue(_Ctx,XML,_NameS,_ValueO,_Else):-var(XML),!,fail.
 

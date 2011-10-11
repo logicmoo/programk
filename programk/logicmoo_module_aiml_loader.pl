@@ -32,8 +32,9 @@ graph_or_file(Ctx,ATTRIBS,Filename,XML):-graph_or_file_or_dir(Ctx,ATTRIBS,Filena
 graph_or_file(Ctx,ATTRIBS, Filename, XML):- atom(Filename),member(Quote-Pair,['\''-'\'','"'-'"','<'-'>','('-')']),
      concat_atom([Quote,Mid,Pair],'',Filename),!,ctrace,graph_or_file(Ctx,ATTRIBS, Mid, XML).
 graph_or_file(Ctx,ATTRIBS, Filename, XML):- 
-     prolog_must((getCurrentFileDir(Ctx, ATTRIBS, CurrentDir),join_path(CurrentDir,Filename,Name))),
-     prolog_must(graph_or_file_or_dir(Ctx,[currentDir=CurrentDir|ATTRIBS],Name,XML)),!.
+     getCurrentFileDir(Ctx, ATTRIBS, CurrentDir),join_path(CurrentDir,Filename,Name),os_to_prolog_filename(Name,NameO),ctrace,
+     prolog_must(graph_or_file_or_dir(Ctx,[currentDir=CurrentDir|ATTRIBS],NameO,XML)),!.
+graph_or_file(Ctx,ATTRIBS, Filename, XML):- os_to_prolog_filename(Filename,NameO),!, prolog_must(graph_or_file_or_dir(Ctx,ATTRIBS,NameO,XML)),!.
 
 graph_or_file(_Ctx,ATTRIBS, Filename, [nosuchfile(Filename,ATTRIBS)]):-ctrace.
 
@@ -54,11 +55,18 @@ graph_or_file_or_dir(Ctx,ATTRIBS, F, [element(aiml,DIRTRIBS,OUT)]):- DIRTRIBS = 
                    graph_or_file_or_dir(Ctx,[srcfile=FF|DIRTRIBS],FF,X))), OUT),!.
 
 
-getCurrentFile(Ctx,_ATTRIBS,CurrentFile):-current_value(Ctx,proof,Proof),nonvar(Proof),            
+getCurrentFile(Ctx,ATTRIBS,CurrentFile):- ctrace,attributeValue(Ctx,ATTRIBS,[srcfile,currentFile],CurrentFile,'$failure'),!.
+getCurrentFile(Ctx,_ATTRIBS,CurrentFile):-
+            prolog_must(current_value(Ctx,proof,Proof)),
+            nonvar(Proof),
             current_value(Proof,lastArg,CurrentFile1),current_value(CurrentFile1,lastArg,CurrentFile2),
             current_value(CurrentFile2,arg(1),CurrentFile3),!,
+            prolog_must(atom(CurrentFile3)),
             absolute_file_name(CurrentFile3,CurrentFile),!.
 
+            
+
+getCurrentFileDir(Ctx,ATTRIBS,CurrentFile):- attributeValue(Ctx,ATTRIBS,[currentDir],CurrentFile,'$failure'),!.
 getCurrentFileDir(Ctx,ATTRIBS,Dir):- prolog_must((getCurrentFile(Ctx, ATTRIBS, CurrentFile),atom(CurrentFile),
       file_directory_name(CurrentFile,Dir0),absolute_file_name(Dir0,Dir))).
 

@@ -135,10 +135,13 @@ computeSRAI0(Ctx,Votes,ConvThread,SYM,Input,Result,VotesO,Proof):- not(is_list(I
 
 computeSRAI0(Ctx,Votes,ConvThread,SYM,Input,Result,VotesO,Proof):-
   Each = (OutputLevel - e(VotesM,Result,Proof)), %% VotesO make it sort/2-able
+  Each2Test = (_ - e(_,Result2Test,_)), 
   Call = computeSRAI2(Ctx,Votes,ConvThread,SYM,Input,Result,VotesM,Proof,OutputLevel),
   copy_term(Each:Call,EachFound:CallFound),  
   findall(EachFound:CallFound, CallFound, FOUND),
   FOUND=[_|_],
+  memberchk(Each2Test:_,FOUND),
+  nonvar(Result2Test),
   sort(FOUND,ORDER),!,
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    member(Each:Call,ORDER),
@@ -192,7 +195,7 @@ computeSRAI222(CtxIn,Votes,ConvThreadHint,SYM,Pattern,Compute,VotesO,ProofOut,Ou
    traceIf(UNIFS=[]),
    %%%%% iterate from here %%%%%
    member(UNIF,UNIFS), 
-         once(prolog_mustEach((
+         once(/* prolog_mustEach */((
             retractallSrais(SYM),
             prolog_must(CommitTemplate),
             prolog_must(nonvar(Out)),

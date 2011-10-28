@@ -8,6 +8,36 @@
 % Revised At:   $Date: 2002/07/11 21:57:28 $
 % ===================================================================
 
+ppfs:-ppfs('../aiml/chomskyAIML/chomsky04*.aiml').
+
+% ppfs('../aiml/chomskyAIML/*.aiml').
+
+ppfs:-ppfs('../aiml/chomskyAIML/chomsky001.aiml').
+ppfs(FN):-expand_file_name(FN,Exp),member(F,Exp),ppfs1(F),fail.
+ppfs(_).
+
+ppfs1(File):-
+    fileToLineInfoElements(_Ctx,File,Z),
+    atom_concat(File,'.term',Elis),
+    (file_newer(Elis,File) 
+      -> 
+       ('format'('%% skipping: ~q ~n',[Elis]),flush_output(user_output))
+        ; 
+         prolog_mustEach(('format'('%% writing: ~q ~n',[Elis]),flush_output(user_output),setup_call_cleanup(open(Elis,write,Str),writeEachTo(Str,Z),close(Str))))).
+
+writeEachTo(_Str,[]):-!.
+writeEachTo(Str,Atom):-atom(Atom),'format'(Str,'atom_load(~q).~n',[Atom]),'format'('atom_load(~q).~n',[Atom]),!.
+writeEachTo(Str,[H|T]):- !, maplist_safe(writeEachTo(Str),[H|T]).
+writeEachTo(Str,element(aiml,[],STUFF)):- !,writeEachTo(Str,STUFF).
+writeEachTo(Str,element(Foo,S,STUFF)):- member(Foo,[category,topic]),!,'format'(Str,'~q.~n',[element(Foo,S,STUFF)]),!.
+writeEachTo(Str,S):-'format'(Str,'~q.~n',[S]), 'format'('%% UNK ~q.~n',[S]).
+
+
+file_newer(File1,File2):-
+   time_file_safe(File1,Time1), % fails on non-existent
+   time_file_safe(File2,Time2),Time1>Time2.
+
+
 
 %:-module()
 %:-include('logicmoo_utils_header.pl'). %<?
@@ -63,11 +93,8 @@ translate_single_aiml_file(_Ctx,File,PLNAME,FileMatch):- creating_aiml_file(File
   throw_safe(already(creating_aiml_file(File,PLNAME),FileMatch)),!.
 
 translate_single_aiml_file(_Ctx,File,PLNAME,_FileMatch):-  fail, %% fail if want to always remake file
-   exists_file_safe(PLNAME),
-   time_file_safe(PLNAME,PLTime), % fails on non-existent
-   time_file_safe(File,FTime),
+   file_newer(PLNAME,File), % fails on non-existent
    %not(aimlOption(rebuild_Aiml_Files,true)),
-   PLTime > FTime,!,
    debugFmt(up_to_date(create_aiml_file(File,PLNAME))),!,
    retractall(creating_aiml_file(File,PLNAME)).
 

@@ -86,9 +86,9 @@ unusedCates:-assert_cate_in_load(aimlCate(*,*,*,*,*,[34],*,*,*,*,element(templat
  assert_cate_in_load(aimlCate(*,*,*,*,*,['40'],*,*,*,*,element(template,[],[element(srai,[],['9'])]),foo3,'c:/development/opensim4opencog/bin/cynd/programk/test_suite/customtagtest.aiml':44-3205)).
 
 chomskyAIML:-catch(consult(chomskyAIML),_,fail),!.
-chomskyAIML:-once(load_aiml_files(library('programk/test_suite/chomskyAIML/*.aiml'))).
+chomskyAIML:-once(load_aiml_files(library('../aiml/chomskyAIML/*.aiml'))).
 
-test_suite_files:-once(load_aiml_files(library('programk/test_suite/*.aiml'))).
+test_suite_files:-once(load_aiml_files(library('../aiml/test_suite/*.aiml'))).
 
 run_chat_tests_here(Ctx):-     
    timeRecorded(test_suite_files),
@@ -108,32 +108,46 @@ blackjack_test:-
    test_call(alicebotCTX(Ctx,'d')),
    test_call(alicebotCTX(Ctx,'3')),!.
 
-annie:-withNamedContext(toplevel,Ctx),timeRecorded(run_chat_tests_here(Ctx)).
+annie:-withNamedContext(toplevel,Ctx),timeRecorded(run_chat_tests_here(Ctx)),unify_listing(unitTestResult(unit_failed,_)).
 
 %%:-timeRecorded(test_suite_files).
 
-:-timeRecorded(blackjack_test_load).
+%%:-timeRecorded(blackjack_test_load).
 /*
-:-timeRecorded(load_aiml_files('programk/test_suite/chomskyAIML/update007.aiml')).
+:-timeRecorded(load_aiml_files('../aiml/test_suite/chomskyAIML/update007.aiml')).
 :-timeRecorded(blackjack_test_load).
 :-timeRecorded(blackjack_test).
 %:-timeRecorded(chomskyAIML).
-:-timeRecorded(load_aiml_files('programk/test_suite/chomskyAIML/update013.aiml')).
-:-timeRecorded(load_aiml_files('programk/test_suite/chomskyAIML/update012.aiml')).
-:-timeRecorded(load_aiml_files('programk/test_suite/chomskyAIML/update007.aiml')).
+:-timeRecorded(load_aiml_files('../aiml/test_suite/chomskyAIML/update013.aiml')).
+:-timeRecorded(load_aiml_files('../aiml/test_suite/chomskyAIML/update012.aiml')).
 */
 
 
 
-:-unify_listing(unitTestResult(unit_passed,_)).
+%%:-unify_listing(unitTestResult(unit_passed,_)).
+
+%%:-timeRecorded(ppfs('../aiml/chomskyAIML/*.aiml')).
+
+
+:-timeRecorded(ppfs('../aiml/std_alice/*.aiml')).
+
+%%:-timeRecorded(load_aiml_files('../aiml/chomskyAIML/*.aiml')).
+%%:-timeRecorded(alicebot).
+
+
+:-alicebot('<category><pattern>pppp</pattern><template>555555</template><that>*</that></category>').
+stdalice:-timeRecorded(load_aiml_files('../aiml/std_alice/*.aiml')),!. %%timeRecorded(load_aiml_files('../aiml/std_alice/hide/*.aiml')).
+
+:-statistics.
+
+:-timeRecorded(alicebot).
 end_of_file.
 :-timeRecorded(annie).
 :-unify_listing(unitTestResult(unit_passed,_)).
 :-unify_listing(unitTestResult(unit_failed,_)).
-:-alicebot('<category><pattern>pppp</pattern><template>555555</template><that></that></category>').
 :-timeRecorded(alicebot).
 
 
-%%:-timeRecorded(load_aiml_files('programk/test_suite/special/*.aiml')).
+%%:-timeRecorded(load_aiml_files('../aiml/special/*.aiml')).
 
 

@@ -7,10 +7,11 @@
 % Revision:  $Revision: 1.7 $
 % Revised At:   $Date: 2002/07/11 21:57:28 $
 % ===================================================================
+:-multifile(expire1Cache/0).
 
 :-dynamic(prolog_is_vetted_safe).
 %% True means the program skips many many runtime safety checks (runs faster)
-prolog_is_vetted_safe:-false.
+prolog_is_vetted_safe:-true.
 
 tryHide(_MFA):-!.
 tryHide(MFA):- asserta(remember_tryHide(MFA)).
@@ -748,9 +749,16 @@ clean_out_atom(X,Y):-atom_codes(X,C),clean_codes(C,D),!,atom_codes(X,D),!,Y=X.
 %%%%%% puts backspaces in places of no spaces
 :-dynamic(atomWSplit_cached/2).
 :-volatile(atomWSplit_cached/2).
+expire1Cache:-retractall(atomWSplit_cached(_,_)).
 %%atomWSplit(A,B):- hotrace((cyc:atomWSplit(A,BB),!,BB=B)).
 atomWSplit(A,B):-prolog_must(ground(A)),atomWSplit_cached(A,B),!.
 atomWSplit(A,B):- hotrace((cyc:atomSplit(A,BB),!,BB=B,asserta(atomWSplit_cached(A,B)))).
+
+
+
+expireCaches:-expire1Cache,fail.
+expireCaches:-garbage_collect_atoms,garbage_collect.
+
 
 
 %%atomWSplit(A,B):-token_stream_of(A,AA),findall(B0,arg(1,AA,B),B).

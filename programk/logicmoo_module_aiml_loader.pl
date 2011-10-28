@@ -185,8 +185,23 @@ string_parse_structure(Len,Parser, M:Options, Document, In) :-
 		   ]).
 
 
+
+fileToLineInfoElements(Ctx,File,XMLSTRUCTURES):-
+    atom_concat(File,'.term',Elis),
+     (file_newer(Elis,File) ->  
+      termFileContents(Ctx,Elis,XMLSTRUCTURES) ;
+       fileToLineInfoElements0(Ctx,File,XMLSTRUCTURES)).
+
+
+termFileContents(_Ctx,File,termFileContents(File)):-!. %%,ctrace.
+
+termFileContents(_Ctx,File,element(aiml,[],XMLSTRUCTURES)):- %% another way to fileToLineInfoElements
+   setup_call_cleanup((open(File, read, In, [])), findall(Elem,((repeat,read(In,Elem),((Elem\=end_of_file)->true;!))),XMLSTRUCTURES), close(In)),!.
+
+
+
 % gather line numbers
-fileToLineInfoElements(Ctx,F0,XMLSTRUCTURES):-
+fileToLineInfoElements0(Ctx,F0,XMLSTRUCTURES):-
    global_pathname(F0,File),
        retractall(lineInfoElement(File,_,_,_)),
         setup_call_cleanup((open(File, read, In, [type(binary)]),new_sgml_parser(Parser, [])),
@@ -202,8 +217,8 @@ fileToLineInfoElements(Ctx,F0,XMLSTRUCTURES):-
 % gather line contents
 fileToLineInfoElements2(Ctx,File,XMLSTRUCTURES):-!,
   sgml_parser_defs(PARSER_DEFAULTS,_PARSER_CALLBACKS),
-  load_structure(File,Whole, [file(File)|PARSER_DEFAULTS]),!,
-   load_inner_aiml_w_lineno(File,[],[],[],Ctx,Whole,XMLSTRUCTURES),!.
+  setup_call_cleanup(open(File, read, In, [type(binary)]),(load_structure(In,Whole, [file(File)|PARSER_DEFAULTS]),!,
+   load_inner_aiml_w_lineno(File,[],[],[],Ctx,Whole,XMLSTRUCTURES)),close(In)),!.
 
 load_inner_aiml_w_lineno(_SrcFile,_OuterTag,_Parent,_Attributes,_Ctx,Atom,Atom):-(atomic(Atom);var(Atom)),!.
 load_inner_aiml_w_lineno(SrcFile,OuterTag,Parent,Attributes,Ctx,[H|T],LL):-!,
@@ -323,9 +338,22 @@ load_inner_aiml_lineno(Attributes,Ctx,element(Tag,Attribs,ContentIn)):-
 
    */
 
-%catagory
-load_aiml_structure(Ctx,element(catagory,ALIST,LIST)):-!,load_aiml_structure(Ctx,element(category,ALIST,LIST)),!.
+addGenltMT(X,Y):-debugFmt(addGenltMT(X,Y)).
 
+
+%load end_of_file
+load_aiml_structure(_Ctx,end_of_file):-!.
+
+%load termFileContents
+load_aiml_structure(Ctx,termFileContents(File)):- !,
+ setup_call_cleanup((open(File, read, In, [])), 
+     ((repeat,
+       read(In,Elem),
+         once(load_aiml_structure(Ctx,Elem)),Elem==end_of_file)),
+      close(In)),!,expireCaches,statistics.
+
+%catagory (mispelling?)
+load_aiml_structure(Ctx,element(catagory,ALIST,LIST)):-!,load_aiml_structure(Ctx,element(category,ALIST,LIST)),!.
 
 % aiml
 load_aiml_structure(Ctx,element(aiml,ALIST,LIST)):-
@@ -334,6 +362,15 @@ load_aiml_structure(Ctx,element(aiml,ALIST,LIST)):-
   withAttributes(Ctx,Defaults,
         %withAttributes(Ctx,ATTRIBS,load_aiml_structure_lineno(ATTRIBS,Ctx,LIST)),!.
      withAttributes(Ctx,ATTRIBS,maplist_safe(load_aiml_structure(Ctx),LIST))),!.
+
+
+%genlMt (mispelling?)
+load_aiml_structure(Ctx,element(genlMt,ALIST,LIST)):-!,ctrace,
+   attributeValue(Ctx,ALIST,[to],To,'$error'),
+   current_value(Ctx,graph,Else),
+   attributeValue(Ctx,ALIST,[from],From,'$value'(Else)),
+   prolog_must(LIST=[]),
+   addGenltMT(From,To).
 
 
 

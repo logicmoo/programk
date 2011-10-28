@@ -48,6 +48,26 @@ innerTagPriority(template,[template,postpattern]).
 useNewCateSigSearch_broken_now:-false.
 useIndexPatternsForCateSearch:-true.
 
+/*
+
+True:
+Heap         :                             247,144,816 Bytes
+Global stack : 1,073,741,824  536,866,808  499,637,152 Bytes
+predicate_property(argNFound(_,_,_,_),number_of_clauses(3)).
+
+Fail:
+Heap         :                             249,146,168 Bytes
+Global stack : 1,073,741,824  536,866,808  499,637,152 Bytes
+predicate_property(argNFound(_,_,_,_),number_of_clauses(6634)).
+
+
+Heap         :                             243,197,576 Bytes
+Global stack : 1,073,741,824  536,866,808  500,222,008 Bytes
+*/
+
+dontAssertIndex:-fail.  % true adds 5 test failures!
+
+
 % ===================================================================
 %  aimlCate database decl
 % ===================================================================
@@ -107,6 +127,8 @@ argNumsTracked(Pred,ArgName,Position):-argNumsIndexedRepr(Pred,ArgName,Position,
 
 argNFound(F,A,'_','_'):-argNumsIndexedRepr(F,A,_,textInput).
 argNFound(F,A,*,*):-argNumsIndexedRepr(F,A,_,textInput).
+argNFound(F,A,List,Index):- dontAssertIndex, argNumsIndexedRepr(F,A,Num,textInput),aimlCateSig(Call),arg(Num,Call,Index),!,call(Call),
+    not(member(Index,[*,'_'])),fromIndexableSArg(Index,List).
 
 
 assert_cate_in_load(NEW) :- currentContext(assert_cate_in_load,Ctx),prolog_must(assert_cate_in_load(Ctx,NEW)),!.
@@ -118,6 +140,8 @@ assert_cate_in_load(Ctx,CateSig):-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% load_category(Ctx,CateSig)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+assertaFront(argNFound(_,_,_,_)):-dontAssertIndex,!.
+assertaFront(Indexable):-retractall(Indexable),asserta(Indexable),!.
 
 load_category(Ctx,CateSig):-
       isRetraction(Ctx,CateSig,RemovemeMask),!,
@@ -126,7 +150,7 @@ load_category(Ctx,CateSig):-
 
 load_category(Ctx,CateSig):-
       withArgIndexing(CateSig,addArgIndex,Indexable),
-      asserta(Indexable),!,
+      assertaFront(Indexable),!,
       traceIf(((not(not(Indexable==CateSig))),not(arg(6,CateSig,*)))),!,
       immediateCall(Ctx,assert_cate_post_index(Indexable)),!,
       confirm_args_indexed(Indexable).
@@ -134,7 +158,7 @@ load_category(Ctx,CateSig):-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% assert_cate_post_index(Indexable)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-assert_cate_post_index(Indexable):- asserta(Indexable),debugFmt(asserta(Indexable)),confirm_args_indexed(Indexable).
+assert_cate_post_index(Indexable):- assertaFront(Indexable),debugFmt(assertaFront(Indexable)),confirm_args_indexed(Indexable).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% retract_cate_post_index(Indexable)
@@ -149,6 +173,8 @@ retract_cate_post_index(Removeme):-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% confirm_args_indexed(Indexable)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+confirm_args_indexed(_Indexable):-dontAssertIndex,!.
 confirm_args_indexed(Indexable):-functor(Indexable,F,_),
       argNumsIndexedRepr(F,ArgName,N,ArgType),argTypeIndexable(ArgType),
       arg(N,Indexable,Value),
@@ -168,7 +194,7 @@ toNonIndexable0(N,F,[A|ARGS],[NEW|NEWARGS]):-N2 is N-1, toNonIndexableArg(A,NEW)
 
 toNonIndexableArg(A,A):-var(A),!.
 
-toNonIndexableArg(A,A):-member(A,['*','[]','_']),!.
+toNonIndexableArg(A,A):-(member(A,['*','[]','_',true]);atomic(A)),!.
 toNonIndexableArg([A|H],[A|H]):-!.
 toNonIndexableArg(A,A):-not(compound(A)),!.
 toNonIndexableArg(A,[A]):-not(compound(A)),!.
@@ -210,7 +236,15 @@ isStarCard(X):-is1Star(X).
 isStarCard([_|_]):-!,fail.
 isStarCard(X):- functor(X,F,_A),member(F,[star1,star_star]).
 
-fromIndexableSArg(B,A):-isStarCard(B),!,prolog_must(desegmentStars(B,A)).
+
+fromIndexableSArg0(I,[I]):-atomic(I),!.
+fromIndexableSArg0(element(E,A,B),[element(E,A,B)]):-!.
+fromIndexableSArg0(I,ABS):-I=..[A,B],!,fromIndexableSArg0(A,AS),fromIndexableSArg0(B,BS),append(AS,BS,ABS).
+fromIndexableSArg0(I,ABS):-I=..[B,idx_endswith,A,_],!,fromIndexableSArg0(A,AS),fromIndexableSArg0(B,BS),append(AS,BS,ABS).
+fromIndexableSArg0(I,ABCS):-I=..[B,A,C],!,fromIndexableSArg0(A,AS),fromIndexableSArg0(B,BS),fromIndexableSArg0(C,CS),append(AS,BS,ABS),append(ABS,CS,ABCS),!.
+
+fromIndexableSArg(B,A):-dontAssertIndex,!,prolog_must(fromIndexableSArg0(B,A)),!.
+fromIndexableSArg(B,A):-nonvar(B),isStarCard(B),!,prolog_must(desegmentStars(B,A)).
 fromIndexableSArg(B,A):-prolog_must(toIndexableSArg(A,B)),!.
 
 
@@ -325,7 +359,7 @@ addArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType
 
 addArgIndex(_CateSig,_Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType):-argTypeIndexable(ArgType),
   makeIndexableArg(Functor,ArgNumber,Arg,IndexableArg),
-  asserta_if_new(argNFound(Functor,ArgName,Arg,IndexableArg)),!.
+  assertaFront(argNFound(Functor,ArgName,Arg,IndexableArg)),!.
 addArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType):- ctrace,
   debugFmt(addArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType)),
   prolog_must(Arg=IndexableArg),!.
@@ -343,7 +377,7 @@ asserta_if_new(NEW):-!,
    (asserta(NEW),debugFmt('~q.~n',[asserta(NEW)])) ),!.
 */
 asserta_if_new(N):-catch(N,E,debugFmt(error_in(E,N))),!.
-asserta_if_new(N):-asserta(N),debugFmt(asserta(N)),!.
+asserta_if_new(N):-asserta(N),debugFmt(asserta_if_new(N)),!.
 
 % ===============================================================================================
 %  Save Categories

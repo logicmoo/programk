@@ -345,12 +345,12 @@ addGenltMT(X,Y):-debugFmt(addGenltMT(X,Y)).
 load_aiml_structure(_Ctx,end_of_file):-!.
 
 %load termFileContents
-load_aiml_structure(Ctx,termFileContents(File)):- !,
+load_aiml_structure(Ctx,termFileContents(File)):- !,inThreadJoin((
  setup_call_cleanup((open(File, read, In, [])), 
      ((repeat,
        read(In,Elem),
          once(load_aiml_structure(Ctx,Elem)),Elem==end_of_file)),
-      close(In)),!,expireCaches,statistics.
+      close(In)),!,expireCaches,statistics)).
 
 %catagory (mispelling?)
 load_aiml_structure(Ctx,element(catagory,ALIST,LIST)):-!,load_aiml_structure(Ctx,element(category,ALIST,LIST)),!.

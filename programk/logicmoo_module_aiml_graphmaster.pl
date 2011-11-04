@@ -71,11 +71,12 @@ evalSRAI(Ctx,Votes,_SraiDepth,ATTRIBS,Input,Output,VotesO):-
  var(Proof), 
    withAttributes(Ctx,['evalsrai'=SYM,proof=Proof],
   ((
-    addInherit(SYM,SYMPREV),
+    setup_call_cleanup(addInherit(SYM,SYMPREV),
+    ((
     debugOnError(computeSRAI(Ctx,Votes,SYM,Input,MidIn,VotesM,Proof)),
 
-    computeSRAIStars(Ctx,ATTRIBS,Input,MidIn,VotesM,SYM,Proof,Output,VotesO),
-    remInherit(SYM,SYMPREV),
+    computeSRAIStars(Ctx,ATTRIBS,Input,MidIn,VotesM,SYM,Proof,Output,VotesO))),
+    remInherit(SYM,SYMPREV)),
     ifThen(nonvar(SYM),retractallSrais(SYM))))).
 
     
@@ -236,8 +237,36 @@ combineStarSets(StarSets_Topic,StarSets_That,StarSets_Pattern,StarSets_All):-
 
 cate_match(Ctx,CateSigFunctor,StarName,TextPattern,CateSig,MatchPattern,StarSets,OutputLevel):-
     getCategoryArg1(Ctx,StarName,MatchPattern,_StarNumber,CateSig),!,
-    argNFound(CateSigFunctor,StarName,MatchPattern,_),
+    argNFoundGenerate(CateSigFunctor,StarName,MatchPattern,_IndexPattern,TextPattern),
     make_star_binders(Ctx,StarName,1,TextPattern,MatchPattern,OutputLevelInv,StarSets),OutputLevel is 1/OutputLevelInv.
+
+ctrace2:-ctrace.
+
+checkStarSets(StarSets):-member(Bad=[],StarSets),!,ctrace2,warnIf(member(Bad=[],StarSets)).
+checkStarSets(_StarSets). %%ctrace2.
+
+
+argNFoundGenerate(CateSigFunctor,StarName,MatchPattern,IndexPattern,Nothing):-meansNothing(Nothing,_),!,argNFound(CateSigFunctor,StarName,MatchPattern,IndexPattern).
+argNFoundGenerate(CateSigFunctor,StarName,MatchPattern,IndexPattern,TextPattern):-textPatternToMatchPattern(TextPattern,MatchPattern),argNFound(CateSigFunctor,StarName,MatchPattern,IndexPattern).
+%%%argNFoundGenerate(CateSigFunctor,StarName,MatchPattern,IndexPattern,TextPattern):-trace,argNFound(CateSigFunctor,StarName,MatchPattern,IndexPattern).
+
+toTAtom(Text,Text):-atom(Text),!.
+toTAtom(Text,Atom):-number(Text),atom_number(Atom,Text),!.
+toTAtom(Text,Atom):-trace,atom_to_number(Atom,Text).
+
+textPred(Text,Pred):-toTAtom(Text,Atom),toLowercase(Atom,Pred).
+
+
+%%textPatternToMatchPattern([Text],MatchPattern):-textPred(Text,Pred),!,member(MatchPattern,[Pred,*,'_']).
+textPatternToMatchPattern([Text,_P|_Attern],MatchPattern):-textPred(Text,Pred),functor(MatchPattern,Pred,1).
+textPatternToMatchPattern([_Text|Pattern],MatchPattern):-member(T,Pattern),textPred(T,Pred),functor(MatchPattern,Pred,2).
+%textPatternToMatchPattern(_TextPattern,'_').
+%textPatternToMatchPattern(_TextPattern,'*').
+textPatternToMatchPattern(_TextPattern,_).
+
+%%argNFound(aimlCate,pattern,['ARE', *, 'REAL'],are(real(idx_endswith, *, real))).
+%%argNFound(aimlCate, pattern, ['_', 'OFF'], off(idx_endswith, '_', off)).
+%%argNFound(aimlCate,pattern,['HOW', 'MANY', 'YEARS', *, 'IN', 'SAN', 'FRANCISCO'],how(many(years(in(idx_startswith(*), san(francisco)))))).
 
 %% simpler but slower.. maybe comment (fail) this one out for the faster next one
 %% DOES NOT USE INDEXES 
@@ -372,7 +401,8 @@ generateMatchPatterns(Ctx,StarName,Out,InputPattern,CateSigIn,MinedCates,SetOfEa
   getCategoryArg(Ctx,StarName,IndexPattern,Out,CateSig),
   savedSetPatterns(LSP,OutputLevel,StarSets,IndexPattern),   
   findall(LSP,
-             (argNFound(CateSigFunctor,StarName,MatchPattern,IndexPattern),
+             (argNFoundGenerate(CateSigFunctor,StarName,MatchPattern,IndexPattern,InputPattern),
+              %%argNFound(CateSigFunctor,StarName,MatchPattern,IndexPattern),
               canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern,OutputLevel,StarSets)),
       EachMatchSig),
   prolog_must(EachMatchSig=[_|_]),
@@ -416,7 +446,7 @@ generateMatchPatterns(Ctx,StarName,Out,InputPattern,CateSig,_MinedCates,EachMatc
 % ========================================================================================
 
 canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern,OutputLevel,StarSets):-
-    make_star_binders(Ctx,StarName,1,InputPattern,MatchPattern,OutputLevelInv,StarSets),!,OutputLevel is 1/OutputLevelInv ,
+    make_star_binders(Ctx,StarName,1,InputPattern,MatchPattern,OutputLevelInv,StarSets),checkStarSets(StarSets),!,OutputLevel is 1/OutputLevelInv ,
     nop(debugFmt(pass_canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern,OutputLevel,StarSets))),!.
 
 canMatchAtAll_debug(Ctx,StarName,InputPattern,MatchPattern,_OutputLevel,_StarSets):-
@@ -455,27 +485,27 @@ make_star_binders(Ctx,StarName,N,[Word1|B],[Word2|BB],CountO,StarSets):-
      sameWords(Word1,Word2),!,make_star_binders(Ctx,StarName,N,B,BB,Count,StarSets),CountO is Count + 1.
 
 % tail (all now in) star/wildcard
-make_star_binders(_Ctx,StarName,N,InputText,WildCard,WildValue,[Pred]):-isStarOrWild(StarName,N,WildCard,WildValue,InputText,Pred),!.
+make_star_binders(_Ctx,StarName,N,InputText,WildCard,WildValue,[Pred]):-isStarOrWild(StarName,N,WildCard,WildValue,InputText,Pred),!,checkStarSets([Pred]).
 
 % once in star.. walk past star
 make_star_binders(Ctx,StarName,N,InputText,[WildCard,M0|More],ValueO,[Pred|StarSets]):-isStarOrWild(StarName,N,WildCard,WildValue,SkipedSTAR,Pred),
-         append(SkipedSTAR,[M1|LeftMore],InputText),sameWords(M0,M1),N2 is N+1,
-         make_star_binders(Ctx,StarName,N2,LeftMore,More,Value,StarSets),!,ValueO is WildValue + Value.
+         SkipedSTAR=[_|_],append(SkipedSTAR,[M1|LeftMore],InputText),sameWords(M0,M1),N2 is N+1,
+         make_star_binders(Ctx,StarName,N2,LeftMore,More,Value,StarSets),!,ValueO is WildValue + Value,checkStarSets([Pred|StarSets]).
 
 % is mid-right hand wildcard (this should be the last test)
 make_star_binders(Ctx,StarName,N,[Match|B],[WildCard|BB],ValueO,[Pred|StarSets]):- isStarOrWild(StarName,N,WildCard,WildValue,Match, Pred),!,
      N2 is N+1,
-     make_star_binders(Ctx,StarName,N2,B,BB,Value,StarSets),!,ValueO is WildValue + Value.
+     make_star_binders(Ctx,StarName,N2,B,BB,Value,StarSets),!,ValueO is WildValue + Value,checkStarSets([Pred|StarSets]).
 
 % tail is an atom (indexical unifier)
 make_star_binders(Ctx,StarName,N,InputText,Indexical,WildValue,Pred):-
       atom(Indexical),!,
-      make_star_binders(Ctx,StarName,N,InputText,[Indexical],WildValue,Pred).
+      make_star_binders(Ctx,StarName,N,InputText,[Indexical],WildValue,Pred),checkStarSets([Pred]).
 
 % tail is a compound (indexical unifier)
 make_star_binders(Ctx,StarName,N,InputText,Indexical,WildValue,Pred):-
-      not(is_list(Indexical)),/*compound(Indexical),*/toNonIndexable(Indexical,[L|IST]),
-      make_star_binders(Ctx,StarName,N,InputText,[L|IST],WildValue,Pred).
+      not(is_list(Indexical)),/*compound(Indexical),*/fromIndexableSArg0(Indexical,LIST),LIST=[_|_],
+      make_star_binders(Ctx,StarName,N,InputText,LIST,WildValue,Pred),checkStarSets([Pred]).
 
 
 
@@ -594,4 +624,5 @@ sameWords(Word1,Word2):-atom(Word1),atom(Word2),atoms_match0(Word1,Word2).
  atoms_match0(Word1,Word2):- (isStar0(Word1);isStar0(Word2)),!,fail.
  atoms_match0(Word1,Word1):-!.
  atoms_match0(Word1,Word2):-literal_atom(Word1,WordO),literal_atom(Word2,WordO),!.
+
 

@@ -228,7 +228,9 @@ systemCall_Bot(Ctx,[FIRST|REST],DONE):-atom_concat_safe('@',CMD,FIRST),CMD\=='',
 systemCall_Bot(_Ctx,['eval'|DONE],template([evaled,DONE])):-!.
 systemCall_Bot(_Ctx,['echo'|DONE],DONE):-!.
 systemCall_Bot(Ctx,['set'],template([setted,Ctx])):-!,unify_listing(getUserDicts(_User,_Name,_Value)),!.
-systemCall_Bot(Ctx,['set',Name,Value],template([setted,Name,Value])):- setAliceMem(Ctx,'user',Name,Value),!.
+systemCall_Bot(Ctx,['set',Dict,Name,'='|Value],template([setted,Name,Value])):- setAliceMem(Ctx,Dict,Name,Value),!.
+systemCall_Bot(Ctx,['set',Name,'='|Value],template([setted,Name,Value])):- setAliceMem(Ctx,'user',Name,Value),!.
+systemCall_Bot(Ctx,['set',Name|Value],template([setted,Name,Value])):- setAliceMem(Ctx,'user',Name,Value),!.
 
 systemCall_Bot(Ctx,['get',Name|MajorMinor],template([getted,Dict,Value,Found1])):- getDictFromAttributes(Ctx,evalsrai,[],SYM),
   list_to_set_preserve_order([SYM,user,robot,Name],List),

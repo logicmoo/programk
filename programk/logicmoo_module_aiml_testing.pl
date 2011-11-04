@@ -136,11 +136,16 @@ annie:-withNamedContext(toplevel,Ctx),timeRecorded(run_chat_tests_here(Ctx)),uni
 
 
 :-alicebot('<category><pattern>pppp</pattern><template>555555</template><that>*</that></category>').
+:-alicebot('<category><pattern>suggest a topic</pattern><template><srai>random topic</srai></template><that>*</that></category>').
 stdalice:-timeRecorded(load_aiml_files('../aiml/std_alice/*.aiml')),!. %%timeRecorded(load_aiml_files('../aiml/std_alice/hide/*.aiml')).
 
-:-statistics.
+%%:-initialization((stdalice,statistics)).
 
-:-timeRecorded(alicebot).
+saveAIMLCore :- tell('aimlCore.pl'),listing(aimlCate),listing(argNFound),listing(dict),told.
+saveAIMLCore2 :- tell('aimlCore2.pl'),listing(aimlCate),listing(argNFound),listing(dict),told.
+
+%%:-initialization(timeRecorded(alicebot)).
+
 end_of_file.
 :-timeRecorded(annie).
 :-unify_listing(unitTestResult(unit_passed,_)).
@@ -151,3 +156,57 @@ end_of_file.
 %%:-timeRecorded(load_aiml_files('../aiml/special/*.aiml')).
 
 
+stdalice: 
+
+517.27 seconds cpu time for 813,888,978 inferences
+87,573 atoms, 14,811 functors, 6,105 predicates, 118 modules, 2,906,150 VM-codes
+
+                       Limit    Allocated       In use
+Heap         :                              36,362,224 Bytes
+Local  stack : 1,073,741,824    2,093,056        8,272 Bytes
+Global stack : 1,073,741,824 1,073,737,720 1,042,914,328 Bytes
+Trail  stack : 1,073,741,824  268,433,408        3,448 Bytes
+
+
+
+
+519.78 seconds cpu time for 813,933,333 inferences
+84,379 atoms, 14,811 functors, 6,105 predicates, 118 modules, 2,357,066 VM-codes
+
+                       Limit    Allocated       In use
+Heap         :                              30,136,344 Bytes
+Local  stack : 1,073,741,824    2,093,056        8,272 Bytes
+Global stack : 1,073,741,824 1,073,737,720 1,042,914,328 Bytes
+Trail  stack : 1,073,741,824  268,433,408        3,448 Bytes
+
+63 atom garbage collections gained 344,622 atoms in 34.75 seconds.
+Stack shifts: 5 local, 21 global, 18 trail.
+1 threads, 0 finished threads used 0.00 seconds.
+
+
+
+'PP'=number_of_clauses(20230)]
+
+
+?521.59 seconds cpu time for 813,992,073 inferences
+83,598 atoms, 14,812 functors, 6,106 predicates, 118 modules, 657,131 VM-codes
+
+   Limit    Allocated       In use
+Heap         :                              14,549,344 Bytes
+Global stack : 1,073,741,824 1,073,737,720 1,042,973,384 Bytes
+Trail  stack : 1,073,741,824  268,433,408        3,448 Bytes
+
+65 atom garbage collections gained 365,703 atoms in 36.31 seconds.
+Stack shifts: 5 local, 21 global, 18 trail.
+1 threads, 0 finished threads used 0.00 seconds.
+
+
+
+18 ?- findall(Arg,(aimlCateSig(Call),Call,arg(4,Call,Arg),Arg\=(*)),List),length(List,Len),sort(List,Sort),length(Sort,SLen).
+List = [i(have(got(teeth))), are(you(married)), yes(it(is(cool))), that(is(all(i(hear(from(...)))))), the(movies(are(the(only(...))))), are(you(interested(in(...)))), i(know(what(...))), maybe(you(...)), sex(...)|...],
+Len = 28080,
+Sort = ['39', [], absolutely, adios, again, ah, all, and, ayuh|...],
+SLen = 7910.
+
+
+?-  aimlCateSig(Call),Call,arg(4,Call,Arg),Arg\=(*),aimlCateSig(Call2),arg(6,Call2,Arg),Call2.

@@ -125,7 +125,7 @@ ignorecase_literal(A,B):-toLowercase(A,B),!.
 % ===============================================================================================
 
 outputPaths(Ctx,Input,Paths):- 
-   withAttributes(Ctx,[generateUnknownVars=true],
-    (computeInnerTemplate(Ctx,1,Input,Output,_VotesO))),!,Paths=[Output].
+   withAttributes(Ctx,[generateUnknownVars=true,generateTemplate=true],
+    (computeInnerTemplate(Ctx,1,Input,Output,_VotesO))),Paths=[Output].
 
 

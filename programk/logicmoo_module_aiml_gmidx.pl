@@ -116,10 +116,10 @@ argNumsIndexedRepr(aimlCate,request,5,flags).
 argNumsIndexedRepr(aimlCate,flags,7,flags).
 argNumsIndexedRepr(aimlCate,call,8,callable).
 argNumsIndexedRepr(aimlCate,guard,9,callable).
-argNumsIndexedRepr(aimlCate,userdict,9,name).
-argNumsIndexedRepr(aimlCate,template,10,textOutput).
-argNumsIndexedRepr(aimlCate,srcinfo,11,any).
-argNumsIndexedRepr(aimlCate,srcfile,12,any).
+argNumsIndexedRepr(aimlCate,userdict,10,name).
+argNumsIndexedRepr(aimlCate,template,11,textOutput).
+argNumsIndexedRepr(aimlCate,srcinfo,12,any).
+argNumsIndexedRepr(aimlCate,srcfile,13,any).
 
 aimlCateSigArg(That,Aiml,Arg):-aimlCateSig(Aiml),argNumsIndexedRepr(aimlCate,That,N,_),arg(N,Aiml,Arg).
 aimlCateArg(That,Aiml,Arg):-aimlCateSigArg(That,Aiml,Arg),call(Aiml).

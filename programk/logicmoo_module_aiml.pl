@@ -216,8 +216,8 @@ degrade(OR):-asserta(degraded(OR)).
 % ===============================================================================================
 flatten_if_list(List,Flat):-is_list(List),!,flatten(List,Flat),!.
 
-computeTemplate(Ctx,Votes,Input,Output,VotesO):-flatten_if_list(Input,Flat),!,computeTemplate0(Ctx,Votes,Flat,Output,VotesO).
-computeTemplate(Ctx,Votes,Input,Output,VotesO):-computeTemplate0(Ctx,Votes,Input,Output,VotesO).
+computeTemplate(Ctx,Votes,Input,Output,VotesO):-flatten_if_list(Input,Flat),!,computeTemplate0(Ctx,Votes,Flat,Output,VotesO),!.
+computeTemplate(Ctx,Votes,Input,Output,VotesO):-computeTemplate0(Ctx,Votes,Input,Output,VotesO),!.
 
 computeTemplate0(Ctx,Votes,Input,Output,VotesO):-computeTemplate1(Ctx,Votes,Input,Output,VotesO),!.
 computeTemplate0(Ctx,Votes,Input,Output,VotesO):-ctrace,computeTemplate1(Ctx,Votes,Input,Output,VotesO),!.
@@ -680,7 +680,8 @@ computeGetSetVar(Ctx,Votes,Dict,get,VarName,ATTRIBS,_InnerXml,proof(ValueO,VarNa
 
 % GET no value found
 computeGetSetVar(Ctx,Votes,Dict,get,VarName,ATTRIBS,_InnerXml,proof(ReturnValueO,Dict:VarName='OM',ATTRIBS),VotesO):-!,VotesO is Votes * 0.7,
-     lastMemberOrDefault('default'=DefaultValue,ATTRIBS,_AttribsNew,[]),
+     once((attributeValue(Ctx,ATTRIBS,generateUnknownVars,GenerateUnknown,'false'),((GenerateUnknown=true) -> DefaultEmpty=[unKnowN,VarName,of,Dict];DefaultEmpty=[]))),
+     lastMemberOrDefault('default'=DefaultValue,ATTRIBS,_AttribsNew,DefaultEmpty),
      returnNameOrValue(Ctx,Dict,VarName,DefaultValue,ReturnValueO),!.
 
 computeGetSetVar(Ctx,Votes,Dict,set,VarName,ATTRIBS,InnerXml,proof(ReturnValue,VarName=InnerXml),VotesO):-!,

@@ -119,3 +119,13 @@ ignorecase_literal(A,B):-literal_atom_safe(A,B),!.
 ignorecase_literal(A,B):-number(A),atom_number(N,A),literal_atom_safe(N,B),!.
 ignorecase_literal(A,B):-toLowercase(A,B),!.
 
+
+% ===============================================================================================
+% Create Talk Generation Paths
+% ===============================================================================================
+
+outputPaths(Ctx,Input,Paths):- 
+   withAttributes(Ctx,[generateUnknownVars=true],
+    (computeInnerTemplate(Ctx,1,Input,Output,_VotesO))),!,Paths=[Output].
+
+

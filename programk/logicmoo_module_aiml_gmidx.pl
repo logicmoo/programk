@@ -97,6 +97,7 @@ replaceArgsVar(Ctx,[E=Replacement|L],CateSig):-
 
 :-dynamic(argNumsTracked/3).
 :-dynamic(argNFound/4).
+:-multifile(argNFound/4).
 :-index(argNFound(1,1,1,1)).
 
 
@@ -120,6 +121,8 @@ argNumsIndexedRepr(aimlCate,template,10,textOutput).
 argNumsIndexedRepr(aimlCate,srcinfo,11,any).
 argNumsIndexedRepr(aimlCate,srcfile,12,any).
 
+aimlCateSigArg(That,Aiml,Arg):-aimlCateSig(Aiml),argNumsIndexedRepr(aimlCate,That,N,_),arg(N,Aiml,Arg).
+aimlCateArg(That,Aiml,Arg):-aimlCateSigArg(That,Aiml,Arg),call(Aiml).
 
 %%graph,precall,topic,that,request,pattern,flags,call,guard,userdict,template,srcinfo,srcfile
 
@@ -141,7 +144,7 @@ assert_cate_in_load(Ctx,CateSig):-
 %% load_category(Ctx,CateSig)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 assertaFront(argNFound(_,_,_,_)):-dontAssertIndex,!.
-assertaFront(Indexable):-retractall(Indexable),asserta(Indexable),!.
+assertaFront(Indexable):-tryCatchIgnore(retractall(Indexable)),asserta(Indexable),!.
 
 load_category(Ctx,CateSig):-
       isRetraction(Ctx,CateSig,RemovemeMask),!,
@@ -237,13 +240,22 @@ isStarCard([_|_]):-!,fail.
 isStarCard(X):- functor(X,F,_A),member(F,[star1,star_star]).
 
 
+fromIndexableSArg0(I,[var(I)]):-var(I),!.
+%%fromIndexableSArg0(I,S):-argNFound(_,_,S,I),!.
+fromIndexableSArg0([A|B],ABS):-!,fromIndexableSArg0(A,AS),fromIndexableSArg0(B,BS),append(AS,BS,ABS),!.
+fromIndexableSArg0([],[]):-!.
 fromIndexableSArg0(I,[I]):-atomic(I),!.
 fromIndexableSArg0(element(E,A,B),[element(E,A,B)]):-!.
+fromIndexableSArg0(idx_startswith(E),[E]):-!.
+fromIndexableSArg0(star_star(_Len,List),ABS):-fromIndexableSArg0(List,ABS).
+
+
 fromIndexableSArg0(I,ABS):-I=..[A,B],!,fromIndexableSArg0(A,AS),fromIndexableSArg0(B,BS),append(AS,BS,ABS).
 fromIndexableSArg0(I,ABS):-I=..[B,idx_endswith,A,_],!,fromIndexableSArg0(A,AS),fromIndexableSArg0(B,BS),append(AS,BS,ABS).
 fromIndexableSArg0(I,ABCS):-I=..[B,A,C],!,fromIndexableSArg0(A,AS),fromIndexableSArg0(B,BS),fromIndexableSArg0(C,CS),append(AS,BS,ABS),append(ABS,CS,ABCS),!.
 
 fromIndexableSArg(B,A):-dontAssertIndex,!,prolog_must(fromIndexableSArg0(B,A)),!.
+fromIndexableSArg(B,A):-prolog_must(fromIndexableSArg0(B,A)),!.
 fromIndexableSArg(B,A):-nonvar(B),isStarCard(B),!,prolog_must(desegmentStars(B,A)).
 fromIndexableSArg(B,A):-prolog_must(toIndexableSArg(A,B)),!.
 

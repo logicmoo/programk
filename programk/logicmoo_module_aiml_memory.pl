@@ -225,6 +225,7 @@ numberFyList([A|MajorMinor],[B|MajorMinorM]):-
 numberFyList([A|MajorMinor],[A|MajorMinorM]):-numberFyList(MajorMinor,MajorMinorM).
 
 isStarValue(Value):-ground(Value),not([_,_|_]=Value),member(Value,[[ValueM],ValueM]),!,member(ValueM,['*','_']),!.
+isEmptyValue([]):-ctrace.
 
 xformOutput(Value,ValueO):-isStarValue(Value),!,ctrace,Value=ValueO.
 xformOutput(Value,ValueO):-listify(Value,ValueL),Value\==ValueL,!,xformOutput(ValueL,ValueO).
@@ -312,6 +313,7 @@ withValueAdd(Ctx,Pred:_Print,Dict,Name,Value):-checkDictIn(Value,ValueO),call(Pr
 
 nonStarDict(catefallback):-!,fail.
 neverActuallyAdd(Ctx,Pred,Dict,Name,Var):-var(Var),debugFmt(neverActuallyAdd(Ctx,Pred,Dict,Name,Var)),!.
+neverActuallyAdd(Ctx,Pred,Dict,topic,[TooGeneral]):-member(TooGeneral,[general]),debugFmt(neverActuallyAdd(Ctx,Pred,Dict,topic,TooGeneral)),!.
 neverActuallyAdd(Ctx,Pred,Dict,Name,Var):-not(ground(var(Var))),debugFmt(maybeNeverActuallyAdd(Ctx,Pred,Dict,Name,Var)),!.
 
 
@@ -373,6 +375,10 @@ omOrNil([]):-!.
 omOrNil('OM').
 omOrNil(['Nothing']).
 
+
+expire1Cache:-dict(N,_,_),number(N),retractall(dict(N,_,_)),fail.
+expire1Cache:-dict(_,_,E),atom(E),atom_concat(evalsrai,_,E),retractall(dict(_,_,E)),fail.
+expire1Cache:-dict(E,_,_),atom(E),atom_concat(evalsrai,_,E),retractall(dict(E,_,_)),fail.
 
 getContextStoredValue(Ctx,IDict,NameI,Value):-dictNameDictNameC(Ctx,IDict,NameI,Dict,Name),!,getContextStoredValue(Ctx,Dict,Name,Value).
 getContextStoredValue(_Ctx,Dict,Name,ValueO):- copy_term(ValueO,ValueI),dict(Dict,Name,ValueI),

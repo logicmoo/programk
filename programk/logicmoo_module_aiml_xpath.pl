@@ -204,8 +204,9 @@ popNameValue(Ctx,Scope,N,Expect):-
 %dyn_retract(dict(Scope,N,V)):-(retract(dict(Scope,N,V))),!.
 
 ensureScope(Ctx,Attribs,ScopeName):-prolog_must(ensureScope0(Ctx,Attribs,ScopeName)),!.
-ensureScope0(_Ctx,_ATTRIBS,Scope):-nonvar(Scope),!.
-ensureScope0(_Ctx,_ATTRIBS,Scope):-gensym(scope,Scope),!.
+ensureScope0(_Ctx,_ATTRIBS,Scope):-nonvar(Scope).
+ensureScope0(_Ctx,_ATTRIBS,Scope):-flag(scope,Scope,Scope+1).
+ensureScope0(_Ctx,_ATTRIBS,Scope):-gensym(scope,Scope).
 
 
 % ===================================================================

@@ -22,6 +22,8 @@ tryCatchIgnore(MFA):- !,debugFmt(tryCatchIgnoreFailed(MFA)).
 
 :-dynamic(remember_tryHide/1).
 
+inThreadJoin(Goal):-thread_create(Goal,Id,[]),thread_join(Id,_).
+
 :-tryHide(prolog_may/1).
 prolog_may(Call):-notrace((prolog_is_vetted_safe)),!,Call.
 prolog_may(Call):-debugOnError(Call).
@@ -108,10 +110,10 @@ debugFmtList0([],[]):-!.
 debugFmtList0([A|ListA],[B|ListB]):-debugFmtList1(A,B),!,debugFmtList0(ListA,ListB),!.
 
 debugFmtList1(Value,Value):-var(Value),!.
-debugFmtList1(Name=Number,Name=Number):-number(Number).
+debugFmtList1(Name=Number,Name=Number):-atomic(Number).
 debugFmtList1(Name=Value,Name=Value):-var(Value),!.
-debugFmtList1(Name=Value,Name=(len:Len)):-copy_term(Value,ValueO),append(ValueO,[],ValueO),is_list(ValueO),length(ValueO,Len),!.
-debugFmtList1(Name=Value,Name=(F:A)):-functor(Value,F,A).
+debugFmtList1(Name=Value,Name=(len:Len)):-copy_term(Value,ValueO),append(ValueO,[],ValueO),is_list(ValueO),length(ValueO,Len),Len>9,!.
+debugFmtList1(Name=Value,Name=(F:A)):-not(is_list(Value)),functor(Value,F,A).
 debugFmtList1(Value,shown(Value)).
 
 

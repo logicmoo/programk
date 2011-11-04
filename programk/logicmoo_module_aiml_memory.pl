@@ -277,7 +277,7 @@ addReplacement(Dict,Find,Replace):-currentContext(addReplacement(Dict,Find,Repla
 % ===============================================================================================
 % context/name cleanups
 % ===============================================================================================
-dictNameDictNameC(Ctx,IDict,NameI,Dict,Name):-dictNameDictName(Ctx,IDict,NameI,Dict,Name),!, IDict+NameI \==Dict+Name, debugFmt(IDict+NameI is Dict+Name).
+dictNameDictNameC(Ctx,IDict,NameI,Dict,Name):-dictNameDictName(Ctx,IDict,NameI,Dict,Name),!, IDict+NameI \==Dict+Name, nop(debugFmt(IDict+NameI is Dict+Name)).
 
 dictNameDictName(Ctx,IDict,NameI,Dict,Name):- traceIf(IDict=[_,_,_]),hotrace(dictNameDictName0(Ctx,IDict,NameI,Dict,Name)).
 dictNameDictName0(Ctx,_Dict,D:NameI,Dict,Name):- nonvar(D),!,dictNameDictName(Ctx,D,NameI,Dict,Name).

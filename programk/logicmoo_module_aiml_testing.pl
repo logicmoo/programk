@@ -90,6 +90,11 @@ chomskyAIML:-once(load_aiml_files(library('../aiml/chomskyAIML/*.aiml'))).
 
 test_suite_files:-once(load_aiml_files(library('../aiml/test_suite/*.aiml'))).
 
+loadBasicDictionaries:-once(load_aiml_files(library('../aiml/test_suite/ProgramD/predicates.xml'))),fail.
+loadBasicDictionaries:-once(load_aiml_files(library('../aiml/test_suite/ProgramD/properties.xml'))),fail.
+loadBasicDictionaries:-once(load_aiml_files(library('../aiml/test_suite/ProgramD/substitutions.xml'))),fail.
+loadBasicDictionaries.
+
 run_chat_tests_here(Ctx):-     
    timeRecorded(test_suite_files),
    timeRecorded(test_call(alicebotCTX(Ctx,'qt'))),
@@ -134,6 +139,7 @@ annie:-withNamedContext(toplevel,Ctx),timeRecorded(run_chat_tests_here(Ctx)),uni
 %%:-timeRecorded(load_aiml_files('../aiml/chomskyAIML/*.aiml')).
 %%:-timeRecorded(alicebot).
 
+:-alicebot('<category><pattern>*</pattern><that>what was it</that><template><think><set name="it"><star/></set></think></template></category>').
 
 :-alicebot('<category><pattern>pppp</pattern><template>555555</template><that>*</that></category>').
 :-alicebot('<category><pattern>suggest a topic</pattern><template><srai>random topic</srai></template><that>*</that></category>').
@@ -145,6 +151,7 @@ saveAIMLCore :- tell('aimlCore.pl'),listing(aimlCate),listing(argNFound),listing
 saveAIMLCore2 :- tell('aimlCore2.pl'),listing(aimlCate),listing(argNFound),listing(dict),told.
 
 %%:-initialization(timeRecorded(alicebot)).
+
 
 end_of_file.
 :-timeRecorded(annie).
@@ -210,3 +217,7 @@ SLen = 7910.
 
 
 ?-  aimlCateSig(Call),Call,arg(4,Call,Arg),Arg\=(*),aimlCateSig(Call2),arg(6,Call2,Arg),Call2.
+
+ aimlCateArg(that,Aiml2,Arg2),Arg2\=(*),fromIndexableSArg(Arg2,Sarg),
+
+

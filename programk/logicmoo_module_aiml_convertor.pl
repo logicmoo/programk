@@ -294,7 +294,7 @@ convert_ele(_Ctx,element(star,ALIST,MORE),star(pattern,XLAT2,MORE2)):-!,starInde
   starIndex(_Tag,_Star,ALIST,MORE,XLAT2,MORE2):-convert_attributes(Ctx,ALIST,XLAT2),convert_template(Ctx,MORE,MORE2),!.
 
 convert_ele(_Ctx,element(Tag,ALIST,MORE),star(Star,XLAT2,MORE2)):- starType(Tag,Star),!,starIndex(Tag,Star,ALIST,MORE,XLAT2,MORE2).
-   starType(Tag,Star):-member(Tag=Star,[star=pattern,topicstar=topic,guardstar=guard,inputstar=pattern,thatstar=that]),!.
+   starType(Tag,Star):-member(Tag=Star,[star=pattern,topicstar=topic,guardstar=guard,inputstar=pattern,thatstar=that,get_star=pattern]),!.
    starType(Tag,Star):-atom_concat_safe(Star,'_star',Tag),!.
    starType(Tag,Star):-atom_concat_safe(Star,'star',Tag),!.
 

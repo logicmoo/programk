@@ -306,7 +306,7 @@ withValueAdd(Ctx,Pred,Dict,Name,Var):-var(Var),!,withValueAdd(Ctx,Pred,Dict,Name
 withValueAdd(Ctx,Pred,Dict,Name,Atomic):-atomic(Atomic),Atomic\==[],!,withValueAdd(Ctx,Pred,Dict,Name,[Atomic]).
 withValueAdd(_Ctx,_Pred:_Print,Dict,Name,Value):-uselessNameValue(Dict,Name,Value),!.
 withValueAdd(Ctx,_Pred:Print,Dict,Name,Value):-immediateCall(Ctx,call(Print,Ctx,Dict,Name,Value)),fail.
-withValueAdd(Ctx,Pred,Dict,Name,Value):-isStarValue(Value),debugFmt(withValueAdd(Ctx,Pred,Dict,Name,Value)),traceIf(nonStarDict(Dict)).
+withValueAdd(Ctx,Pred,Dict,Name,Value):-isStarValue(Value),!,debugFmt(withValueAdd(Ctx,Pred,Dict,Name,Value)),traceIf(nonStarDict(Dict)).
 %%withValueAdd(Ctx,Pred,Dict,default(Name),DefaultValue):-getAliceMem(Ctx,Pred,Dict,Name,'OM')->setAliceMem(Ctx,Dict,Name,DefaultValue);true.
 withValueAdd(Ctx,Pred,Dict,Name,NonList):-(not(is_list(NonList))),!,withValueAdd(Ctx,Pred,Dict,Name,[NonList]).
 withValueAdd(Ctx,Pred:_Print,Dict,Name,Value):-checkDictIn(Value,ValueO),call(Pred,Ctx,Dict,Name,ValueO).

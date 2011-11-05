@@ -123,9 +123,45 @@ ignorecase_literal(A,B):-toLowercase(A,B),!.
 % ===============================================================================================
 % Create Talk Generation Paths
 % ===============================================================================================
+/*
 
-outputPaths(Ctx,Input,Paths):- 
+generally we have these types of transformers
+
+
+convert_ele (loading)
+outputPaths (generate possible grounded outputs)
+computeAnswer (really generate output at runtime)
+
+?-  tell(allSaid),allSaid(That,Aiml),'format'('~q.   %%  ~q. ~n',[That,Aiml]),fail.
+
+
+%% create transitions between <template> and <that> 
+tell('allSaid1.pl'),allSaid(That),'format'('oneSaid(~q).~n',[That]),fail. told.
+tell('allThat1.pl'),allThats(That),'format'('oneThat(~q).~n',[That]),fail. told.
+
+:-['allThat1.pl'],['allSaid1.pl'].
+*/
+
+findThatMatch(Aiml1,Aiml2):-allThats(Sarg,Aiml1),allSaid(Path,Aiml2),sameBindingIC(Sarg,Path).
+
+allThats(That):- findall(Sarg,(aimlCateArg(that,Aiml,Arg),Arg\=(*),fromIndexableSArg(Arg,Sarg)),List),sort(List,Set),length(Set,S),member(That,Set).
+allThats(That,Aiml):- findall(Sarg=Aiml,(aimlCateArg(that,Aiml,Arg),Arg\=(*),fromIndexableSArg(Arg,Sarg)),List),sort(List,Set),length(Set,S),member(That=Aiml,Set).
+
+allSaid(That):- findall(Sarg,(aimlCateArg(template,Aiml,Arg),outputPath(Ctx,Arg,Sarg)),List),sort(List,Set),length(Set,S),member(That,Set).
+allSaid(That,Aiml):- findall(Sarg=Aiml,(aimlCateArg(template,Aiml,Arg),outputPath(Ctx,Arg,Sarg)),List),sort(List,Set),length(Set,S),member(That=Aiml,Set).
+
+
+
+%%% ?- oneSaid(Text),oneThat(Pattern),starMatch(Pattern,Text,StarSets).
+
+%%:-dynamic(inGenOutput).
+%%inGenOutput.·
+
+outputPath(Ctx,Input,Path):-!, setup_call_cleanup(assert(inGenOutput),computeInnerTemplate(Ctx,1,Input,Path,_VotesO),retractall(inGenOutput)).
+
+
+outputPath(Ctx,Input,Path):- 
    withAttributes(Ctx,[generateUnknownVars=true,generateTemplate=true],
-    (computeInnerTemplate(Ctx,1,Input,Output,_VotesO))),Paths=[Output].
+    (computeInnerTemplate(Ctx,1,Input,Path,_VotesO))).
 
 

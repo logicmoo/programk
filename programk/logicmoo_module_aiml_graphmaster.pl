@@ -465,60 +465,81 @@ removeSkippables(A,A).
 % ======================================================================================== 
 % make_star_binders(Ctx, StarName, Text , Pattern, 1/OutputLevel, StarSetsNameValues).
 %
-% pattern_match(Text , Pattern)..  would be simply   make_star_binders(_Ctx, starName, Text , Pattern, _OutputLevel, _StarSetsNameValues).
+% pattern_match(Text , Pattern)..  would be simply   make_star_binders(_Ctx, starName, 1, Text , Pattern, _OutputLevel, _StarSetsNameValues).
 % ========================================================================================
 make_star_binders(_Ctx,StarName,_N,InputPattern,MatchPattern,OutputLevel,StarSets):- 
    prolog_must(var(StarSets)),prolog_must(var(OutputLevel)),prolog_must(ground(StarName:InputPattern:MatchPattern)),fail.  
 
-:-setLogLevel(make_star_binders,none).
+make_star_binders(Ctx,StarName,N,InputText,Indexical,WildValue,Pred):-
+   removeSkippables(Indexical,IndexicalChanged),
+   %% IF Pattern contains no skippables
+     (Indexical==IndexicalChanged-> 
+      %% THEN remove Skippables
+       (removeSkippables(InputText,Text),!,make_star_binders0(Ctx,StarName,N,Text,Indexical,WildValue,Pred));
+      %% ELSE use skippables
+       make_star_binders0(Ctx,StarName,N,InputText,Indexical,WildValue,Pred)),!.
+
+:-setLogLevel(make_star_binders0,none).
 
 %end check
-make_star_binders(_Ctx,_StarName,_N,L,R,1,[]):-R==[],!,consumeSkippables(L,LL),!,LL==[].
-make_star_binders(_Ctx,_StarName,_N,L,R,1,[]):-L==[],!,consumeSkippables(R,RR),!,RR==[].
+make_star_binders0(_Ctx,_StarName,_N,L,R,1,[]):-R==[],!,consumeSkippables(L,LL),!,LL==[].
+make_star_binders0(_Ctx,_StarName,_N,L,R,1,[]):-L==[],!,consumeSkippables(R,RR),!,RR==[].
 
 % left hand star/wild  (cannot really happen (i hope))
-%make_star_binders(_Ctx,StarName,_N,Star,_Match,_OutputLevel,_StarSets):- fail, not([StarName]=Star),isStarOrWild(StarName,Star,_WildValue,_WMatch,_Pred),!,ctrace,fail. 
+%make_star_binders0(_Ctx,StarName,_N,Star,_Match,_OutputLevel,_StarSets):- fail, not([StarName]=Star),isStarOrWild(StarName,Star,_WildValue,_WMatch,_Pred),!,ctrace,fail. 
 
 
 % simplify
-make_star_binders(Ctx,StarName,N,[Word1|B],[Word2|BB],CountO,StarSets):-
-     sameWords(Word1,Word2),!,make_star_binders(Ctx,StarName,N,B,BB,Count,StarSets),CountO is Count + 1.
+make_star_binders0(Ctx,StarName,N,[Word1|B],[Word2|BB],CountO,StarSets):-
+     sameWords(Word1,Word2),!,make_star_binders0(Ctx,StarName,N,B,BB,Count,StarSets),CountO is Count + 1.
+
+/*
+% simplify (from last)
+
+ 41 ?- starMatch([('"'),a,*,c,*,('"')],[('"'),a,be,c,('"')],StarSets).
+ StarSets = [tstar1=[be], tstar2='"']
+
+   might be good to uncomment the next two lines to prevent this!
+*/
+make_star_binders0(Ctx,StarName,N,Word1B,Word2BB,CountO,StarSets):-append(B,[Word1],Word1B),append(BB,[Word2],Word2BB),
+     sameWords(Word1,Word2),!,make_star_binders0(Ctx,StarName,N,B,BB,Count,StarSets),CountO is Count + 1.
+
 
 % tail (all now in) star/wildcard
-make_star_binders(_Ctx,StarName,N,InputText,WildCard,WildValue,[Pred]):-isStarOrWild(StarName,N,WildCard,WildValue,InputText,Pred),!,checkStarSets([Pred]).
+make_star_binders0(_Ctx,StarName,N,InputText,WildCard,WildValue,[Pred]):-isStarOrWild(StarName,N,WildCard,WildValue,InputText,Pred),!,checkStarSets([Pred]).
 
 % once in star.. walk past star
-make_star_binders(Ctx,StarName,N,InputText,[WildCard,M0|More],ValueO,[Pred|StarSets]):-isStarOrWild(StarName,N,WildCard,WildValue,SkipedSTAR,Pred),
+make_star_binders0(Ctx,StarName,N,InputText,[WildCard,M0|More],ValueO,[Pred|StarSets]):-isStarOrWild(StarName,N,WildCard,WildValue,SkipedSTAR,Pred),
          SkipedSTAR=[_|_],append(SkipedSTAR,[M1|LeftMore],InputText),sameWords(M0,M1),N2 is N+1,
-         make_star_binders(Ctx,StarName,N2,LeftMore,More,Value,StarSets),!,ValueO is WildValue + Value,checkStarSets([Pred|StarSets]).
+         make_star_binders0(Ctx,StarName,N2,LeftMore,More,Value,StarSets),!,ValueO is WildValue + Value,checkStarSets([Pred|StarSets]).
 
 % is mid-right hand wildcard (this should be the last test)
-make_star_binders(Ctx,StarName,N,[Match|B],[WildCard|BB],ValueO,[Pred|StarSets]):- isStarOrWild(StarName,N,WildCard,WildValue,Match, Pred),!,
+make_star_binders0(Ctx,StarName,N,[Match|B],[WildCard|BB],ValueO,[Pred|StarSets]):- isStarOrWild(StarName,N,WildCard,WildValue,Match, Pred),!,
      N2 is N+1,
-     make_star_binders(Ctx,StarName,N2,B,BB,Value,StarSets),!,ValueO is WildValue + Value,checkStarSets([Pred|StarSets]).
+     make_star_binders0(Ctx,StarName,N2,B,BB,Value,StarSets),!,ValueO is WildValue + Value,checkStarSets([Pred|StarSets]).
 
 % tail is an atom (indexical unifier)
-make_star_binders(Ctx,StarName,N,InputText,Indexical,WildValue,Pred):-
+make_star_binders0(Ctx,StarName,N,InputText,Indexical,WildValue,Pred):-
       atom(Indexical),!,
-      make_star_binders(Ctx,StarName,N,InputText,[Indexical],WildValue,Pred),checkStarSets([Pred]).
+      make_star_binders0(Ctx,StarName,N,InputText,[Indexical],WildValue,Pred),checkStarSets([Pred]).
 
 % tail is a compound (indexical unifier)
-make_star_binders(Ctx,StarName,N,InputText,Indexical,WildValue,Pred):-
+make_star_binders0(Ctx,StarName,N,InputText,Indexical,WildValue,Pred):-
       not(is_list(Indexical)),/*compound(Indexical),*/fromIndexableSArg0(Indexical,LIST),LIST=[_|_],
-      make_star_binders(Ctx,StarName,N,InputText,LIST,WildValue,Pred),checkStarSets([Pred]).
+      make_star_binders0(Ctx,StarName,N,InputText,LIST,WildValue,Pred),checkStarSets([Pred]).
 
 
 
 % skip over skippable words
-make_star_binders(Ctx,StarName,N,Skipable,BB,CountO,StarSets):- 
-  skipablePhrase(Skipable,B),!,make_star_binders(Ctx,StarName,N,B,BB,Count,StarSets),CountO is Count + 1.
-  %%warnIf((isIgnoreableWord(Skipable),!,make_star_binders(Ctx,StarName,N,B,BB,Count,StarSets),CountO is Count + 1)),number(CountO).
+make_star_binders0(Ctx,StarName,N,Skipable,BB,CountO,StarSets):- 
+  skipablePhrase(Skipable,B),!,make_star_binders0(Ctx,StarName,N,B,BB,Count,StarSets),CountO is Count + 1.
+  %%warnIf((isIgnoreableWord(Skipable),!,make_star_binders0(Ctx,StarName,N,B,BB,Count,StarSets),CountO is Count + 1)),number(CountO).
 
 
 skipablePhrase([Skipable|B],B):-isIgnoreableWord(Skipable),!.
 skipablePhrase([Skip,'\b',Ble|B],[Skipable|B]):-joinAtoms([Skip,'\b',Ble],' ',Skipable),!.
 
-isIgnoreableWord(Skipable):-member(Skipable,['-','(',')',',','?','.','','\'']).
+isIgnoreableWord(Skipable):-member(Skipable,['-','(',')',',','?','.','','\'',('"')]).
 isIgnoreableWord(Skipable):-isWhiteWord(Skipable).
 
 isWhiteWord(Skipable):-member(Skipable,[' ','\b','\n','']).

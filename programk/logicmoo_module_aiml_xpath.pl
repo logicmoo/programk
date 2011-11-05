@@ -21,7 +21,7 @@
 %    Context values API
 % ===============================================================================================
 pushAttributes(Ctx,Scope,List):-prolog_mustEach((prolog_mostly_ground(List),pushCtxFrame(Ctx,Scope,List),pushAttributes1(Ctx,Scope,List))),!.
-pushAttributes1(Ctx,Scope,[N=V|L]):-pushNameValue(Ctx,Scope,N,V),pushAttributes1(Ctx,Scope,L).
+pushAttributes1(Ctx,Scope,[N=V|L]):-pushNameValue(Ctx,Scope,N,V),!,pushAttributes1(Ctx,Scope,L).
 pushAttributes1(_Ctx,_Scope,[]).
 pushAttributes1(_Ctx,_Scope,_AnyPushed):-!.
 
@@ -113,7 +113,7 @@ valuesMatch11(Ctx,[V|VV],[A|AA]):-valuesMatch1(Ctx,V,A),!,valuesMatch11(Ctx,VV,A
 
 valueMP(Var,M):- member(M, [var(Var), Var=missing, Var=[], Var=(*) ,  Var=('_') , Var=('OM') , (Var=(-(_))) ]),M,!.
 %valueMP(Var,'$deleted'):-functor(Var,·'$deleted',_),!.
-valueMP(V,(V='ERROR')):-prolog_must(ground(V)),term_to_atom(V,A), concat_atom([_,_|_],'ERROR',A),trace,!.
+%valueMP(V,(V='ERROR')):-prolog_must(ground(V)),term_to_atom(V,A), concat_atom([_,_|_],'ERROR',A),trace,!.
 
 
 checkValue(Value):- valueMP(Value,M),throw_safe(M),!.

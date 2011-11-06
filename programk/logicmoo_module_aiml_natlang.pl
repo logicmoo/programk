@@ -139,20 +139,20 @@ computeAnswer (really generate output at runtime)
 tell('allSaid1.pl'),allSaid(That),'format'('oneSaid(~q).~n',[That]),fail. told.
 tell('allThat1.pl'),allThats(That),'format'('oneThat(~q).~n',[That]),fail. told.
 
-:-['allThat1.pl'],['allSaid1.pl'].
 */
+:-['allThat1.pl'],['allSaid1.pl'].
 
 findThatMatch(Aiml1,Aiml2):-allThats(Sarg,Aiml1),allSaid(Path,Aiml2),sameBindingIC(Sarg,Path).
 
-allThats(That):- findall(Sarg,(aimlCateArg(that,Aiml,Arg),Arg\=(*),fromIndexableSArg(Arg,Sarg)),List),sort(List,Set),length(Set,S),member(That,Set).
-allThats(That,Aiml):- findall(Sarg=Aiml,(aimlCateArg(that,Aiml,Arg),Arg\=(*),fromIndexableSArg(Arg,Sarg)),List),sort(List,Set),length(Set,S),member(That=Aiml,Set).
+allThats(That):- findall(Sarg,(aimlCateArg(that,_Aiml,Arg),Arg\=(*),fromIndexableSArg(Arg,Sarg)),List),sort(List,Set),member(That,Set).
+allThats(That,Aiml):- findall(Sarg=Aiml,(aimlCateArg(that,Aiml,Arg),Arg\=(*),fromIndexableSArg(Arg,Sarg)),List),sort(List,Set),member(That=Aiml,Set).
 
-allSaid(That):- findall(Sarg,(aimlCateArg(template,Aiml,Arg),outputPath(Ctx,Arg,Sarg)),List),sort(List,Set),length(Set,S),member(That,Set).
-allSaid(That,Aiml):- findall(Sarg=Aiml,(aimlCateArg(template,Aiml,Arg),outputPath(Ctx,Arg,Sarg)),List),sort(List,Set),length(Set,S),member(That=Aiml,Set).
+allSaid(That):- findall(Sarg,(aimlCateArg(template,_Aiml,Arg),outputPath(_Ctx,Arg,Sarg)),List),sort(List,Set),member(That,Set).
+allSaid(That,Aiml):- findall(Sarg=Aiml,(aimlCateArg(template,Aiml,Arg),outputPath(_Ctx,Arg,Sarg)),List),sort(List,Set),member(That=Aiml,Set).
 
 
+%%?- length(Text,T1),(T1<100->true;!),oneThat(Pattern),oneSaid(Text),starMatch(Pattern,Text,StarSets),'format'('~q.~n',[arMatch(Pattern,Text)]),fail.
 
-%%% ?- oneSaid(Text),oneThat(Pattern),starMatch(Pattern,Text,StarSets).
 
 %%:-dynamic(inGenOutput).
 %%inGenOutput.·

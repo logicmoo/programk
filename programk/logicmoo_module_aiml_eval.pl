@@ -363,25 +363,16 @@ sameBinding1(X,Y):- balanceBinding(X,Y),!.
 
 sameBindingIC(X,Y):-hotrace((sameBinding1(X,X1),convertToMatchable(X1,X2),sameBinding1(Y,Y1),convertToMatchable(Y1,Y2),!,closeEnough1(X2,Y2))),!.
 
-closeEnough1(X2,Y2):-X2=Y2,!.
-closeEnough1([],_):-!,fail.
-closeEnough1(_,[]):-!,fail.
-closeEnough1([_,X1|X2],Y2):-closeEnough1([X1|X2],Y2),!.
-closeEnough1(X2,[_,Y1|Y2]):-closeEnough1(X2,[Y1|Y2]),!.
+closeEnough1(X,Y):-X=Y,!.
+closeEnough1(X,Y):-X\=[],Y\=[],closeEnough2(X,Y),!.
+closeEnough2(X,Y):-starMatch(Y,X,_) ; starMatch(X,Y,_).
 
-starMatch(Pattern,Text,StarSets):-make_star_binders(_Ctx,'t',1,Text,Pattern,_OutputLevelInv,StarSets).
+
 
 /*
-sameBindingIC([yes,i,agree],[i,agree]).
-
-make_star_binders(Ctx,StarName,1,TextPattern,MatchPattern,OutputLevelInv,StarSets).
-
-make_star_binders(Ctx,here,1,[yes,i,agree],[*,agree],OutputLevelInv,StarSets)
-
-starMatch([*,agree,*],[yes,i,agree,to]).
-
-closeEnough1([X2],Y2):-!,closeEnough1(X2,Y2).
-closeEnough1(X2,[Y2]):-!,closeEnough1(X2,Y2).
+sameBindingIC([yes,i,agree],[no,i,dont,agree]).
+sameBindingIC([yes,i,agree],[*,agree])
+sameBindingIC([*,agree,*],[yes,i,agree,to]).
 
 
 */

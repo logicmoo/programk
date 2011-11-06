@@ -471,6 +471,7 @@ make_star_binders(_Ctx,StarName,_N,InputPattern,MatchPattern,OutputLevel,StarSet
    prolog_must(var(StarSets)),prolog_must(var(OutputLevel)),prolog_must(ground(StarName:InputPattern:MatchPattern)),fail.  
 
 make_star_binders(Ctx,StarName,N,InputText,Indexical,WildValue,Pred):-
+   ((is_list(InputText),is_list(Indexical))-> (length(InputText,IL),length(Indexical,PL),PL=<IL) ; true),
    removeSkippables(Indexical,IndexicalChanged),
    %% IF Pattern contains no skippables
      (Indexical==IndexicalChanged-> 
@@ -478,6 +479,20 @@ make_star_binders(Ctx,StarName,N,InputText,Indexical,WildValue,Pred):-
        (removeSkippables(InputText,Text),!,make_star_binders0(Ctx,StarName,N,Text,Indexical,WildValue,Pred));
       %% ELSE use skippables
        make_star_binders0(Ctx,StarName,N,InputText,Indexical,WildValue,Pred)),!.
+
+/*
+SO.. The IF/THEN/ELSE pattern is for when the pattern contains non-text
+
+46 ?- starMatch([('"'),a,*,*],[('"'),a,be,c,('"')],StarSets).
+StarSets = [tstar1=be, tstar2=[c, '"']].
+
+47 ?- starMatch([a,*,*],[('"'),a,be,c,('"')],StarSets).
+StarSets = [tstar1=be, tstar2=[c]].
+
+starMatch(Pattern,Text,StarSets)
+*/
+
+starMatch(Pattern,Text,StarSets):-make_star_binders(_Ctx,'t',1,Text,Pattern,_OutputLevelInv,StarSets).
 
 :-setLogLevel(make_star_binders0,none).
 

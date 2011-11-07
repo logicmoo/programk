@@ -81,7 +81,12 @@ main_loop1(Atom):- current_input(In),!,
             atom_codes(Atom,Codes),!,
             alicebot(Atom),!.
 
-main_loop:-repeat,main_loop1(_),fail.
+
+ping_default_files:-exists_file('temp/aimlCore3.pl'),ensure_loaded('temp/aimlCore3.pl'),!.
+ping_default_files:-exists_file('temp/aimlCore.pl'),ensure_loaded('temp/aimlCore.pl'),!.
+ping_default_files.
+
+main_loop:- ping_default_files,repeat,main_loop1(_),fail.
 
 :-dynamic(default_channel/1).
 :-dynamic(default_user/1).

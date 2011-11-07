@@ -40,6 +40,7 @@ prolog_Each(Pred,Call):- prolog_call(Pred,Call).
 :-tryHide(prolog_must/1).
 prolog_must(Call):-tracing,!,debugOnError(Call).
 %%prolog_must(Call):- prolog_is_vetted_safe,!,debugOnError(Call).
+prolog_must(OneA):- !, (OneA *-> true ; (ctrace,OneA)).
 prolog_must(Call):-prolog_must_call(Call).
 
 

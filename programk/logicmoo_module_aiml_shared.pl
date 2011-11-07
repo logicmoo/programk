@@ -11,7 +11,7 @@
 
 :-dynamic(prolog_is_vetted_safe).
 %% True means the program skips many many runtime safety checks (runs faster)
-prolog_is_vetted_safe:-true.
+prolog_is_vetted_safe:-false.
 
 tryHide(_MFA):-!.
 tryHide(MFA):- asserta(remember_tryHide(MFA)).
@@ -473,6 +473,7 @@ prolog_call(Pred,Call):-call(Pred,Call).
 :-tryHide(atLeastOne0/3).
 atLeastOne(Call):-notrace((prolog_is_vetted_safe)),!,call(Call).
 atLeastOne(OneA):- atLeastOne(OneA,(ctrace,OneA)).
+atLeastOne(OneA,Else):- !, (OneA *-> true ; Else).
 atLeastOne(OneA,Else):- gensym(atLeastOne,AtLeast),flag(AtLeast,_,0),atLeastOne0(AtLeast,OneA,Else).
 
 atLeastOne0(AtLeast,OneA,_Else):- OneA, flag(AtLeast,X,X+1).
@@ -483,6 +484,7 @@ atLeastOne0(AtLeast,OneA,Else):- flag(AtLeast,X,X),!,X=0,debugFmt(notAtLeastOnce
 
 
 atLeastN(OneA,N):- atLeastN(OneA,N,(ctrace,OneA)).
+atLeastN(OneA,1,Else):-!,atLeastOne(OneA,Else).
 atLeastN(OneA,N,Else):- gensym(atLeastN,AtLeast),flag(AtLeast,_,0),atLeastN0(AtLeast,N,OneA,Else).
 atLeastN0(AtLeast,_N,OneA,_Else):- OneA, flag(AtLeast,X,X+1).
 atLeastN0(AtLeast,N,OneA,Else):- flag(AtLeast,X,X),!,X<N,debugFmt(atLeastN(OneA,X>=N)),tryCatchIgnore(Else).
@@ -827,6 +829,10 @@ map_tree_to_list(Pred,IN,Output):-
   prolog_must((compound(IN), IN=..INP, append(Left,[Last],INP), map_tree_to_list(Pred,Last,UT),!, 
    append(Left,[UT],OUTP),!, OUT =.. OUTP)),must_assign([OUT],Output).
 map_tree_to_list(_,IN,IN):-ctrace,must_assign([IN],IN).
+
+
+dcg_maplist(_DCGPred,[    ],[    ]) --> [].
+dcg_maplist( DCGPred,[A|As],[B|Bs]) --> call(DCGPred,A,B),dcg_maplist(DCGPred,As,Bs).
 
 
 dumpList(B):-currentContext(dumpList,Ctx),dumpList(Ctx,B).

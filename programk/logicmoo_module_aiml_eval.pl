@@ -114,7 +114,9 @@ aiml_eval(Ctx,TAGATTRXML,RESULT):-
            immediateCall(Ctx,aiml_eval_now(Ctx,TAGATTRXML)),
            aiml_eval0(Ctx,TAGATTRXML,RESULT),!.
 
-aiml_eval_now(Ctx,TAGATTRXML):-aiml_eval(Ctx,TAGATTRXML,RESULT),!,debugFmt(aiml_eval_now(Ctx,TAGATTRXML,RESULT)).
+aiml_eval_now(Ctx,TAGATTRXML):-Ctx==[[fctx]],!,aiml_eval_now0(_,TAGATTRXML).
+aiml_eval_now(Ctx,TAGATTRXML):-aiml_eval_now0(Ctx,TAGATTRXML).
+aiml_eval_now0(Ctx,TAGATTRXML):-aiml_eval(Ctx,TAGATTRXML,RESULT),!,debugFmt(aiml_eval_now(Ctx,TAGATTRXML,RESULT)).
 
 
 immediateCall(Ctx,:-(Call)):-!,immediateCall0(Ctx,:-(Call)),!.

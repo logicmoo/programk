@@ -242,7 +242,7 @@ cate_match(Ctx,CateSigFunctor,StarName,TextPattern,CateSig,MatchPattern,StarSets
 
 ctrace2:-ctrace.
 
-checkStarSets(StarSets):-member(Bad=[],StarSets),!,ctrace2,warnIf(member(Bad=[],StarSets)).
+%%checkStarSets(StarSets):-member(Bad=[],StarSets),!,ctrace2,warnIf(member(Bad=[],StarSets)).
 checkStarSets(_StarSets). %%ctrace2.
 
 
@@ -471,7 +471,8 @@ make_star_binders(_Ctx,StarName,_N,InputPattern,MatchPattern,OutputLevel,StarSet
    prolog_must(var(StarSets)),prolog_must(var(OutputLevel)),prolog_must(ground(StarName:InputPattern:MatchPattern)),fail.  
 
 make_star_binders(Ctx,StarName,N,InputText,Indexical,WildValue,Pred):-
-   ((is_list(InputText),is_list(Indexical))-> (length(InputText,IL),length(Indexical,PL),PL=<IL) ; true),
+   %%% side with most stars should have to be shorter or same length?
+   %%% cant preguess dual sided stars: ((is_list(InputText),is_list(Indexical))-> (length(InputText,IL),IL2 is IL+2,length(Indexical,PL),PL=<IL2) ; true),
    removeSkippables(Indexical,IndexicalChanged),
    %% IF Pattern contains no skippables
      (Indexical==IndexicalChanged-> 
@@ -497,11 +498,11 @@ starMatch(Pattern,Text,StarSets):-make_star_binders(_Ctx,'t',1,Text,Pattern,_Out
 :-setLogLevel(make_star_binders0,none).
 
 %end check
-make_star_binders0(_Ctx,_StarName,_N,L,R,1,[]):-R==[],!,consumeSkippables(L,LL),!,LL==[].
-make_star_binders0(_Ctx,_StarName,_N,L,R,1,[]):-L==[],!,consumeSkippables(R,RR),!,RR==[].
+make_star_binders0(_Ctx,_StarName,_N,L,R,1,[]):-R==[],consumeSkippables(L,LL),LL==[],!.
+make_star_binders0(_Ctx,_StarName,_N,L,R,1,[]):-L==[],consumeSkippables(R,RR),RR==[],!.
 
 % left hand star/wild  (cannot really happen (i hope))
-%make_star_binders0(_Ctx,StarName,_N,Star,_Match,_OutputLevel,_StarSets):- fail, not([StarName]=Star),isStarOrWild(StarName,Star,_WildValue,_WMatch,_Pred),!,ctrace,fail. 
+%make_star_binders0(_Ctx,StarName,N,Star,_Match,_OutputLevel,_StarSets):- fail, not([StarName]=Star),isStarOrWild(StarName,N,Star,_WildValue,_WMatch,_Pred),!,ctrace,fail. 
 
 
 % simplify
@@ -519,13 +520,16 @@ make_star_binders0(Ctx,StarName,N,[Word1|B],[Word2|BB],CountO,StarSets):-
 make_star_binders0(Ctx,StarName,N,Word1B,Word2BB,CountO,StarSets):-append(B,[Word1],Word1B),append(BB,[Word2],Word2BB),
      sameWords(Word1,Word2),!,make_star_binders0(Ctx,StarName,N,B,BB,Count,StarSets),CountO is Count + 1.
 
+% wildcard and match on opposite sides!  makes tests fail though TODO .. make this possible w/o loops
+%%make_star_binders0(Ctx,StarName,N,[WildCard|BB],[MW|MatchB],ValueO,PredO):- isStarOrWild(StarName,N,WildCard,_WildValue,_Match,_Pred),not(isStarOrWild(StarName,N,MW,_,_,_)),
+%%     make_star_binders0(Ctx,StarName,N,[MW|MatchB],[WildCard|BB],ValueO,PredO).
 
 % tail (all now in) star/wildcard
 make_star_binders0(_Ctx,StarName,N,InputText,WildCard,WildValue,[Pred]):-isStarOrWild(StarName,N,WildCard,WildValue,InputText,Pred),!,checkStarSets([Pred]).
 
 % once in star.. walk past star
 make_star_binders0(Ctx,StarName,N,InputText,[WildCard,M0|More],ValueO,[Pred|StarSets]):-isStarOrWild(StarName,N,WildCard,WildValue,SkipedSTAR,Pred),
-         SkipedSTAR=[_|_],append(SkipedSTAR,[M1|LeftMore],InputText),sameWords(M0,M1),N2 is N+1,
+         (WildCard=='^'->SkipedSTAR=_;SkipedSTAR=[_|_]),append(SkipedSTAR,[M1|LeftMore],InputText),sameWords(M0,M1),N2 is N+1,
          make_star_binders0(Ctx,StarName,N2,LeftMore,More,Value,StarSets),!,ValueO is WildValue + Value,checkStarSets([Pred|StarSets]).
 
 % is mid-right hand wildcard (this should be the last test)
@@ -592,28 +596,32 @@ starNameTransform(Star,StarStar):-starName(Star,StarStar),!.
 starNameTransform(StarName,StarName):-atom_concat(_,'star',StarName),!.
 starNameTransform(StarName,StarNameStar):-atom_concat(StarName,'star',StarNameStar),!.
 
-isStarOrWild(StarName,[StarNameText],WildValue,InputText,Pred):-nonvar(StarNameText),!,isStarOrWild(StarName,_,StarNameText,WildValue,InputText,Pred),!.
+isStarOrWild(StarName,N,[StarNameText],WildValue,InputText,Pred):-nonvar(StarNameText),!,isStarOrWild(StarName,N,StarNameText,WildValue,InputText,Pred),!.
 
+isStarOrWild(StarName,_N,WildCardText,WildValue,InputText,Pred):- isWildCard(StarName,WildCardText,WildValue,InputText,Pred),!.
 isStarOrWild(StarName,N,StarNameText,WildValue,InputText,StarNameStarN=InputText):-
    isStar(StarName,StarNameText,WildValue),!,starNameTransform(StarName,StarNameStar),atom_concat(StarNameStar,N,StarNameStarN),!,traceIf(isStarValue(InputText)).
-isStarOrWild(StarName,_N,WildCardText,WildValue,InputText,Pred):- isWildCard(StarName,WildCardText,WildValue,InputText,Pred),!.
 
-isWildCard(StarName,Wild,1,InputText,call(sameBinding(Wild,InputText))):- not(is_list(Wild)),compound(Wild),Wild=..LWild,not(not(member(StarName,LWild))),!.
+isWildCard(StarName,Wild,1,InputText,call(sameWCBinding(StarName,Wild,InputText))):- not(is_list(Wild)),compound(Wild),!. %%Wild=..LWild,!. %%not(not(member(StarName,LWild))),!.
 
 requireableWord(StarName,M):-not(isOptionalOrStar(StarName,M)).
 
 isOptionalOrStar(_StarName,M):-not(atom(M)),!,ctrace.
-isOptionalOrStar(StarName,M):-isStar(StarName,M),!.
+isOptionalOrStar(StarName,M):-isStar2(StarName,M),!.
 
 /*
 isStar(StarName,'topic'):-!. %%,ctrace.
 isStar(StarName,'that'):-!.
 isStar(StarName,'input'):-!.
 */
-isStar(StarName,StarNameText):-isStar(StarName,StarNameText,_Order),!.
+isStar2(StarName,StarNameText):-isStar(StarName,StarNameText,_Order),!.
 isStar(StarName,StarNameText,WildValue):-not(ground(StarNameText)),ctrace,debugFmt(isStar(StarName,StarNameText,WildValue)),!,fail.
 isStar(StarName,[StarNameText],WildValue):-isStar(StarName,StarNameText,WildValue),!.
+isStar(StarName,element(StarName,_,_),0.8).
+isStar(StarName,star(StarName,_,_),0.8).
+%%isStar(_StarName,element(_,_,_),0.7).
 isStar(_StarName,'*',0.3).
+isStar(_StarName,'^',0.8).
 isStar(_StarName,'_',0.8).
 %%WAS VERY BAD IDEA:  isStar(StarName,StarNameText,6):-atom(StarName),!,StarNameText==StarName,writeq(qqqq-qq),ctrace.
 

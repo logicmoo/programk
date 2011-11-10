@@ -134,7 +134,7 @@ annie:-withNamedContext(toplevel,Ctx),timeRecorded(run_chat_tests_here(Ctx)),uni
 %%:-timeRecorded(ppfs('../aiml/chomskyAIML/*.aiml')).
 
 
-:-timeRecorded(ppfs('../aiml/std_alice/*.aiml')).
+%%:-timeRecorded(ppfs('../aiml/std_alice/*.aiml')).
 
 %%:-timeRecorded(load_aiml_files('../aiml/chomskyAIML/*.aiml')).
 %%:-timeRecorded(alicebot).
@@ -152,6 +152,11 @@ saveAIMLCore2 :- tell('aimlCore2.pl'),listing(aimlCate),listing(argNFound),listi
 
 %%:-initialization(timeRecorded(alicebot)).
 
+blastAll:-aimlCateSig(Sig),retractall(Sig),fail.
+blastAll:-retractall(argNFound(_,_,_,_)),fail.
+blastAll.
+
+%% :-sdtCatchAll.
 
 end_of_file.
 :-timeRecorded(annie).

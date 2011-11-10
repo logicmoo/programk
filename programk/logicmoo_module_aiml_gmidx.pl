@@ -22,6 +22,7 @@
 
 :-discontiguous(load_dict_structure/2).
 
+innerTagPriority(cateid,[template,postpattern]):-useCateID.
 innerTagPriority(graph,[topic,prepattern]).
 innerTagPriority(precall,[that,prepattern]).
 innerTagPriority(topic,[topic,prepattern]).
@@ -47,6 +48,7 @@ innerTagPriority(template,[template,postpattern]).
 
 useNewCateSigSearch_broken_now:-false.
 useIndexPatternsForCateSearch:-true.
+useCateID:-false.
 
 /*
 
@@ -76,7 +78,8 @@ dontAssertIndex:-fail.  % true adds 5 test failures!
 aimlCateSig(X):-aimlCateSigCached(X),!.
 aimlCateSig(X):-aimlCateOrder(List),length(List,L),functor(Pred,aimlCate,L),asserta(aimlCateSigCached(Pred)),!,copy_term(Pred,X).
 
-aimlCateOrder([graph,precall,topic,that,request,pattern,flags,call,guard,userdict,template,srcinfo,srcfile]).
+aimlCateOrder([graph,precall,topic,that,request,pattern,flags,call,guard,userdict,template,srcinfo,srcfile,cateid]):-useCateID,!.
+aimlCateOrder([graph,precall,topic,that,request,pattern,flags,call,guard,userdict,template,srcinfo,srcfile]):-not(useCateID),!.
 
 % [graph,precall,topic,that,pattern,flags,call,guard,template,userdict]
 cateMemberTags(Result):- aimlCateOrder(List), findall(E,(member(E0,List),once((E0=[E|_];E0=E))), Result).
@@ -120,6 +123,7 @@ argNumsIndexedRepr(aimlCate,userdict,10,name).
 argNumsIndexedRepr(aimlCate,template,11,textOutput).
 argNumsIndexedRepr(aimlCate,srcinfo,12,any).
 argNumsIndexedRepr(aimlCate,srcfile,13,any).
+argNumsIndexedRepr(aimlCate,cateid,14,name):-useCateID.
 
 aimlCateSigArg(That,Aiml,Arg):-aimlCateSig(Aiml),argNumsIndexedRepr(aimlCate,That,N,_),arg(N,Aiml,Arg).
 aimlCateArg(That,Aiml,Arg):-aimlCateSigArg(That,Aiml,Arg),call(Aiml).
@@ -170,7 +174,7 @@ retract_cate_post_index(Removeme):-
    immediateCall(_Ctx,retract_cate_post_index(Removeme)),!,
    %%withArgIndexing(Retract,dirtyArgIndex,Removeme),
    %%debugFmt(retract_cate_post_index(Removeme)),!,
-   prolog_must(retract(Removeme)),!.
+   prolog_must(ignore(retract(Removeme))),!.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -457,6 +461,7 @@ defaultPredicates(N,V):-member(N,[username,botname]),V='*'.
 %defaultPredicates(N,V):-member(N,[input,pattern]),V='*'.
 defaultPredicates(N,V):-defaultPredicatesS(S),member(N=V,S).
 defaultPredicatesS([
+             cateid=gensym(cateid),
              graph='default',
              precall='true',
              topic='*',
@@ -491,6 +496,7 @@ The main thing is that you are willing to give them the peace of mind that they 
 */
 cateFallback(N,V):-cateFallback(List),!,member(N=V,List).
 cateFallback([
+       cateid=gensym(arule),
        graph = 'default',
        precall = 'true',
        topic = '*',

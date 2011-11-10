@@ -70,6 +70,7 @@ translate_aiml_structure(Ctx,Structure):- trace,
    load_aiml_structure(Ctx,XMLStructures),!.
 
 
+cateForFile(_Ctx,SRCFILE,aimlCate(_GRAPH,_PRECALL,_TOPIC,_THAT,_INPUT,_PATTERN,_FLAGS,_CALL,_GUARD,_USERDICT,_TEMPLATE,_LINENO,SRCFILE:_-_,_RULESYM)):-useCateID,!.
 cateForFile(_Ctx,SRCFILE,aimlCate(_GRAPH,_PRECALL,_TOPIC,_THAT,_INPUT,_PATTERN,_FLAGS,_CALL,_GUARD,_USERDICT,_TEMPLATE,_LINENO,SRCFILE:_-_)):-!.
 cateForFile(Ctx,File,FileMatch):- ctrace,withNamedValue(Ctx,[anonvarsFroCate=true], makeAimlCate(Ctx,[srcfile=File:_-_],FileMatch)),!.
 
@@ -364,6 +365,7 @@ transformTagData0(_Ctx,TAG,_Default,*,TAGSTAR):-tagStar(TAG,*,TAGSTAR),!.
 transformTagData0(_Ctx,TAG,_Default,['_'],TAGSTAR):-tagStar(TAG,'_',TAGSTAR),!.
 transformTagData0(_Ctx,TAG,_Default,'_',TAGSTAR):-tagStar(TAG,'_',TAGSTAR),!.
 transformTagData0(Ctx,Tag,_Else,ValueI,ValueO):- ValueI=='$current_value', current_value(Ctx,Tag,ValueO),!.
+transformTagData0(_Ctx,_N,_Else,gensym(Named),ValueO):-useCateID,atom(Named),gensym(Named,ValueO),!.
 transformTagData0(_Ctx,N,Else,ValueO,ValueO):-isVerbatumTag(N),!, member(Else,['$current_value']),!.
 transformTagData0(Ctx,TAG,_Default,PATTERN_IN,PATTERN_OUT):-isPatternTag(TAG),convert_pattern(Ctx,PATTERN_IN,PATTERN_OUT),!.
 

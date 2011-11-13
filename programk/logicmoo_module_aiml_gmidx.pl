@@ -22,6 +22,21 @@
 
 :-discontiguous(load_dict_structure/2).
 
+% ===============================================================================================
+% ===============================================================================================
+%%:-abolish(dict/3).
+
+:-retractall(dict(_,_,_)).
+
+:-pp_listing(dict(_,_,_)).
+
+
+useNewCateSigSearch_broken_now:-false.
+useIndexPatternsForCateSearch:-true.
+useCateID:-true.
+dontAssertIndex:-fail.  % true adds 5 test failures! saves 7mb
+
+
 innerTagPriority(cateid,[template,postpattern]):-useCateID.
 innerTagPriority(graph,[topic,prepattern]).
 innerTagPriority(precall,[that,prepattern]).
@@ -37,37 +52,6 @@ innerTagPriority(userdict,[template,postpattern]).
 innerTagPriority(template,[template,postpattern]).
 
 
-% ===============================================================================================
-% ===============================================================================================
-%%:-abolish(dict/3).
-
-:-retractall(dict(_,_,_)).
-
-:-pp_listing(dict(_,_,_)).
-
-
-useNewCateSigSearch_broken_now:-false.
-useIndexPatternsForCateSearch:-true.
-useCateID:-false.
-
-/*
-
-True:
-Heap         :                             247,144,816 Bytes
-Global stack : 1,073,741,824  536,866,808  499,637,152 Bytes
-predicate_property(argNFound(_,_,_,_),number_of_clauses(3)).
-
-Fail:
-Heap         :                             249,146,168 Bytes
-Global stack : 1,073,741,824  536,866,808  499,637,152 Bytes
-predicate_property(argNFound(_,_,_,_),number_of_clauses(6634)).
-
-
-Heap         :                             243,197,576 Bytes
-Global stack : 1,073,741,824  536,866,808  500,222,008 Bytes
-*/
-
-dontAssertIndex:-fail.  % true adds 5 test failures!
 
 
 % ===================================================================
@@ -80,6 +64,30 @@ aimlCateSig(X):-aimlCateOrder(List),length(List,L),functor(Pred,aimlCate,L),asse
 
 aimlCateOrder([graph,precall,topic,that,request,pattern,flags,call,guard,userdict,template,srcinfo,srcfile,cateid]):-useCateID,!.
 aimlCateOrder([graph,precall,topic,that,request,pattern,flags,call,guard,userdict,template,srcinfo,srcfile]):-not(useCateID),!.
+
+
+oneOrList([ID],ID):-!.
+oneOrList([],_ID):-!,fail.
+oneOrList(IDs,IDs).
+
+oneOrListEach([],_IDs):-!,fail.
+oneOrListEach(ID,ID):-atomic(ID),!.
+oneOrListEach(IDs,ID):-member(ID,IDs).
+
+%%textToMatchPattern([Text],MatchPattern):-textPred(Text,Pred),!,member(MatchPattern,[Pred,*,'_']).
+textToMatchPattern([Text,_P|_Attern],MatchPattern):-textPred(Text,Pred),functor(MatchPattern,Pred,1).
+textToMatchPattern([_Text|Pattern],MatchPattern):-member(T,Pattern),textPred(T,Pred),functor(MatchPattern,Pred,2).
+textToMatchPattern(_TextPattern,'*').
+textToMatchPattern(_TextPattern,'_').
+%%textToMatchPattern(_TextPattern,_).
+
+aimlPattern2CateID(Name,Text,IDO):-argNumsIndexedRepr(aimlCate,Name,N,textInput),aimlCateSig(CateSig),arg(N,CateSig,Pattern),arg(14,CateSig,ID),!,   
+   findall(ID,(textToMatchPattern(Text,Pattern),CateSig),IDs),oneOrList(IDs,IDO).
+
+aimlCate2ID(Name,Pattern,IDO):-argNumsIndexedRepr(aimlCate,Name,N,textInput),!,argNFound(aimlCate,Name,_S,Pattern),aimlCateSig(CateSig),arg(N,CateSig,Pattern),arg(14,CateSig,ID),findall(ID,CateSig,IDs),oneOrList(IDs,IDO).
+aimlCate4ID(Name,IDs,Result):-aimlCateSig(CateSig),argNumsIndexedRepr(aimlCate,Name,N,_IndexType),arg(N,CateSig,Result),oneOrListEach(IDs,ID),arg(14,CateSig,ID),CateSig.
+
+% textPatternToMatchPattern([suggest,a,topic],Pattern),aimlCate2ID(pattern,Pattern,IDO),aimlCate4ID(template,IDO,Result).
 
 % [graph,precall,topic,that,pattern,flags,call,guard,template,userdict]
 cateMemberTags(Result):- aimlCateOrder(List), findall(E,(member(E0,List),once((E0=[E|_];E0=E))), Result).
@@ -103,8 +111,6 @@ replaceArgsVar(Ctx,[E=Replacement|L],CateSig):-
 :-multifile(argNFound/4).
 :-index(argNFound(1,1,1,1)).
 
-
-%% aimlCateOrder([graph,precall,topic,that,request,pattern,flags,call,guard,userdict,template,srcinfo,srcfile]).
 
 argTypeIndexable(textInput).
 %%argTypeIndexable(name).
@@ -138,6 +144,171 @@ argNFound(F,A,List,Index):- dontAssertIndex, argNumsIndexedRepr(F,A,Num,textInpu
     not(member(Index,[*,'_'])),fromIndexableSArg(Index,List).
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%% aimlCateOrder([graph,precall,topic,that,request,pattern,flags,call,guard,userdict,template,srcinfo,srcfile]).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+
+makeBanner(Name):-
+   'format'(':-dynamic(cid_~w/2).~n',[Name]),
+   'format'(':-discontiguous(cid_~w/2).~n',[Name]),
+   'format'(':-multifile(cid_~w/2).~n',[Name]),
+   'format'(':-indexed(cid_~w(1,1)).~n',[Name]).
+
+makeAccesors:-aimlCateSig(CateSig),aimlCateOrder(List),member(Name,List),
+   once((argNumsIndexedRepr(aimlCate,Name,Num,_ADef),arg(Num,CateSig,V),arg(14,CateSig,ID),cateFallback(Name,Def),ID='ID',V='V')),
+   makeBanner(Name),
+   'format'('cateid_~w(ID,V):- cid_~w(ID,V),!.~n',[Name,Name]),
+   'format'('cateid_~w(ID,V):- cateid_~w0(ID,V),!.~n',[Name,Name]),
+   ignore( ((arg(_,CateSig,'_')),fail ) ),
+   'format'('cateid_~w(_,~q).~n',[Name,Def]),
+   'format'('cateid_~w0(~w,~w):- ~w.~n',[Name,ID,V,CateSig]),
+   'format'('~n',[]).
+
+makePreloaders:-aimlCateSig(CateSig),aimlCateOrder(List),member(Name,List),
+   once((argNumsIndexedRepr(aimlCate,Name,Num,_ADef),arg(Num,CateSig,V),arg(14,CateSig,ID),cateFallback(Name,Def),ID='ID',V='V')),   
+   'format'('makeBanner(~w),cateid_~w0(ID,V),V \\== (~w),\'format\'(\'~~q.~~n\',[cid_~w(ID,V)]),fail.',[Name,Name,Def,Name]).
+
+dumpCates:-aimlCateSig(CateSig),aimlCateOrder(Order),CateSig,
+    %%aimlCate(Graph,Precall,Topic,That,Request,Pattern,Flags,Call,Guard,Userdict,Template,Srcinfo,Srcfile,ID),
+    arg(14,CateSig,ID),
+    CateSig=..[_|List],
+    makeSigPairs(ID,Order,List),
+    'format'('~n',[]).
+
+
+makeSigPairs(_ID,[],_List):-!.
+makeSigPairs(ID,[O|Order],[L|List]):-makeSPairs(ID,O,L),makeSigPairs(ID,Order,List).
+
+makeSPairs(_ID,Name,Def):-cateFallback(Name,Def),!.
+makeSPairs(_ID,cateid,_):-!.
+makeSPairs(ID,srcfile,File:Line-POS):- Term=..[File,Line,POS],!,makeSPairs(ID,srcfile,Term).
+makeSPairs(ID,Name,[Value]):-!,makeSPairs(ID,Name,Value).
+makeSPairs(ID,Name,Value):-'format'('cid_~w(~q,~q).~n',[Name,ID,Value]).
+
+
+
+:-dynamic(cid_graph/2).
+:-multifile(cid_graph/2).
+cateid_graph(ID,V):- cid_graph(ID,V),!.
+cateid_graph(ID,V):- cateid_graph0(ID,V),!.
+cateid_graph(_,default).
+cateid_graph0(ID,V):- aimlCate(V,_G951,_G952,_G953,_G954,_G955,_G956,_G957,_G958,_G959,_G960,_G961,_G962,ID).
+
+
+
+:-dynamic(cid_precall/2).
+:-multifile(cid_precall/2).
+cateid_precall(ID,V):- cid_precall(ID,V),!.
+cateid_precall(ID,V):- cateid_precall0(ID,V),!.
+cateid_precall(_,true).
+cateid_precall0(ID,V):- aimlCate(_G950,V,_G952,_G953,_G954,_G955,_G956,_G957,_G958,_G959,_G960,_G961,_G962,ID).
+
+
+
+:-dynamic(cid_topic/2).
+:-multifile(cid_topic/2).
+cateid_topic(ID,V):- cid_topic(ID,V),!.
+cateid_topic(ID,V):- cateid_topic0(ID,V),!.
+cateid_topic(_,*).
+cateid_topic0(ID,V):- aimlCate(_G950,_G951,V,_G953,_G954,_G955,_G956,_G957,_G958,_G959,_G960,_G961,_G962,ID).
+
+
+
+:-dynamic(cid_that/2).
+:-multifile(cid_that/2).
+cateid_that(ID,V):- cid_that(ID,V),!.
+cateid_that(ID,V):- cateid_that0(ID,V),!.
+cateid_that(_,*).
+cateid_that0(ID,V):- aimlCate(_G950,_G951,_G952,V,_G954,_G955,_G956,_G957,_G958,_G959,_G960,_G961,_G962,ID).
+
+
+
+:-dynamic(cid_request/2).
+:-multifile(cid_request/2).
+cateid_request(ID,V):- cid_request(ID,V),!.
+cateid_request(ID,V):- cateid_request0(ID,V),!.
+cateid_request(_,*).
+cateid_request0(ID,V):- aimlCate(_G950,_G951,_G952,_G953,V,_G955,_G956,_G957,_G958,_G959,_G960,_G961,_G962,ID).
+
+
+
+:-dynamic(cid_pattern/2).
+:-multifile(cid_pattern/2).
+cateid_pattern(ID,V):- cid_pattern(ID,V),!.
+cateid_pattern(ID,V):- cateid_pattern0(ID,V),!.
+cateid_pattern(_,*).
+cateid_pattern0(ID,V):- aimlCate(_G950,_G951,_G952,_G953,_G954,V,_G956,_G957,_G958,_G959,_G960,_G961,_G962,ID).
+
+
+
+:-dynamic(cid_flags/2).
+:-multifile(cid_flags/2).
+cateid_flags(ID,V):- cid_flags(ID,V),!.
+cateid_flags(ID,V):- cateid_flags0(ID,V),!.
+cateid_flags(_,*).
+cateid_flags0(ID,V):- aimlCate(_G950,_G951,_G952,_G953,_G954,_G955,V,_G957,_G958,_G959,_G960,_G961,_G962,ID).
+
+
+
+:-dynamic(cid_call/2).
+:-multifile(cid_call/2).
+cateid_call(ID,V):- cid_call(ID,V),!.
+cateid_call(ID,V):- cateid_call0(ID,V),!.
+cateid_call(_,true).
+cateid_call0(ID,V):- aimlCate(_G950,_G951,_G952,_G953,_G954,_G955,_G956,V,_G958,_G959,_G960,_G961,_G962,ID).
+
+
+
+:-dynamic(cid_guard/2).
+:-multifile(cid_guard/2).
+cateid_guard(ID,V):- cid_guard(ID,V),!.
+cateid_guard(ID,V):- cateid_guard0(ID,V),!.
+cateid_guard(_,*).
+cateid_guard0(ID,V):- aimlCate(_G950,_G951,_G952,_G953,_G954,_G955,_G956,_G957,V,_G959,_G960,_G961,_G962,ID).
+
+
+
+:-dynamic(cid_userdict/2).
+:-multifile(cid_userdict/2).
+cateid_userdict(ID,V):- cid_userdict(ID,V),!.
+cateid_userdict(ID,V):- cateid_userdict0(ID,V),!.
+cateid_userdict(_,user).
+cateid_userdict0(ID,V):- aimlCate(_G950,_G951,_G952,_G953,_G954,_G955,_G956,_G957,_G958,V,_G960,_G961,_G962,ID).
+
+
+
+:-dynamic(cid_template/2).
+:-multifile(cid_template/2).
+cateid_template(ID,V):- cid_template(ID,V),!.
+cateid_template(ID,V):- cateid_template0(ID,V),!.
+cateid_template(_,[]).
+cateid_template0(ID,V):- aimlCate(_G950,_G951,_G952,_G953,_G954,_G955,_G956,_G957,_G958,_G959,V,_G961,_G962,ID).
+
+
+
+:-dynamic(cid_srcinfo/2).
+:-multifile(cid_srcinfo/2).
+cateid_srcinfo(ID,V):- cid_srcinfo(ID,V),!.
+cateid_srcinfo(ID,V):- cateid_srcinfo0(ID,V),!.
+cateid_srcinfo(_,missinginfo).
+cateid_srcinfo0(ID,V):- aimlCate(_G950,_G951,_G952,_G953,_G954,_G955,_G956,_G957,_G958,_G959,_G960,V,_G962,ID).
+
+
+
+:-dynamic(cid_srcfile/2).
+:-multifile(cid_srcfile/2).
+cateid_srcfile(ID,V):- cid_srcfile(ID,V),!.
+cateid_srcfile(ID,V):- cateid_srcfile0(ID,V),!.
+cateid_srcfile(_,missingfile).
+cateid_srcfile0(ID,V):- aimlCate(_G950,_G951,_G952,_G953,_G954,_G955,_G956,_G957,_G958,_G959,_G960,_G961,V,ID).
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5555
+
+
 assert_cate_in_load(NEW) :- currentContext(assert_cate_in_load,Ctx),prolog_must(assert_cate_in_load(Ctx,NEW)),!.
 
 assert_cate_in_load(Ctx,CateSig):-
@@ -153,7 +324,8 @@ assertaFront(Indexable):-tryCatchIgnore(retractall(Indexable)),asserta(Indexable
 load_category(Ctx,CateSig):-
       isRetraction(Ctx,CateSig,RemovemeMask),!,
       withArgIndexing(RemovemeMask,dirtyArgIndex,Removeme),
-      findall(Removeme,retract_cate_post_index(Removeme),_Retracted),!.
+      immediateCall(Ctx,findall(Removeme,retract_cate_post_index(Removeme),Retracted)),!,
+      findall(Removeme,retract_cate_post_index(Removeme),Retracted),!.
 
 load_category(Ctx,CateSig):-
       withArgIndexing(CateSig,addArgIndex,Indexable),
@@ -165,7 +337,7 @@ load_category(Ctx,CateSig):-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% assert_cate_post_index(Indexable)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-assert_cate_post_index(Indexable):- assertaFront(Indexable),debugFmt(assertaFront(Indexable)),confirm_args_indexed(Indexable).
+assert_cate_post_index(Indexable):-assertaFront(Indexable),confirm_args_indexed(Indexable),!,immediateCall(_Ctx,assert_cate_post_index(Indexable)).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% retract_cate_post_index(Indexable)
@@ -185,9 +357,12 @@ confirm_args_indexed(_Indexable):-dontAssertIndex,!.
 confirm_args_indexed(Indexable):-functor(Indexable,F,_),
       argNumsIndexedRepr(F,ArgName,N,ArgType),argTypeIndexable(ArgType),
       arg(N,Indexable,Value),
-      not(argNFound(F,ArgName,_,Value)),
-      debugFmt(not(argNFound(F,ArgName,_,Value))),fail.
+      confirm_1arg_indexed(F,ArgName,Value),
+      fail.
 confirm_args_indexed(_Indexable). %%confirmed
+
+confirm_1arg_indexed(F,ArgName,Value):-argNFound(F,ArgName,_,Value),!. %% all good
+confirm_1arg_indexed(F,ArgName,Value):-fromIndexableSArg(Value,SList),debugFmt(not(argNFound(F,ArgName,SList,Value))),!. %% made now!
 
 %%%
 ffffffff.
@@ -252,6 +427,7 @@ fromIndexableSArg0(I,[I]):-atomic(I),!.
 fromIndexableSArg0(element(E,A,B),[element(E,A,B)]):-!.
 fromIndexableSArg0(idx_startswith(E),[E]):-!.
 fromIndexableSArg0(star_star(_Len,List),ABS):-fromIndexableSArg0(List,ABS).
+fromIndexableSArg0(OTHER,[OTHER]):-debugFmt(fromIndexableSArg0(OTHER)).
 
 
 fromIndexableSArg0(I,ABS):-I=..[A,B],!,fromIndexableSArg0(A,AS),fromIndexableSArg0(B,BS),append(AS,BS,ABS).
@@ -375,11 +551,15 @@ addArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType
 
 addArgIndex(_CateSig,_Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType):-argTypeIndexable(ArgType),
   makeIndexableArg(Functor,ArgNumber,Arg,IndexableArg),
-  assertaFront(argNFound(Functor,ArgName,Arg,IndexableArg)),!.
+  assertaFront(argNFound(Functor,ArgName,Arg,IndexableArg)),!,
+  immediateCall(_Ctx,assert_argNFound(Functor,ArgName,Arg,IndexableArg)).
+
 addArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType):- ctrace,
   debugFmt(addArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType)),
   prolog_must(Arg=IndexableArg),!.
 
+
+assert_argNFound(Functor,ArgName,Arg,IndexableArg):-assertaFront(argNFound(Functor,ArgName,Arg,IndexableArg)).
 
 dirtyArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType):-staredArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType),!.
 dirtyArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType):-
@@ -428,7 +608,7 @@ translate_cate(Ctx,CateSig):-replaceArgsVar(Ctx,[srcinfo=_],CateSig),assert_cate
 is_xml_missing(Var):-prolog_must(nonvar(Var)),!,member(Var,['[]','*','_']),!.
 
 isRetraction(Ctx,CateSig,OF):-getCategoryArg1(Ctx,'template',NULL,_StarNumber,CateSig),!,is_xml_missing(NULL),
-   duplicate_term(CateSig,OF),replaceArgsVar(Ctx,['template'=_,srcinfo=_,srcfile=_],OF),!.
+   duplicate_term(CateSig,OF),replaceArgsVar(Ctx,['template'=_,srcinfo=_,srcfile=_,cateid=_],OF),!.
 
 % ===============================================================================================
 %  Popping when Building categories

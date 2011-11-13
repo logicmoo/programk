@@ -93,11 +93,11 @@ load_pending_aiml_file(Ctx,File,PLNAME):- debugFmt(load_pending_aiml_file(Ctx,Fi
 translate_single_aiml_file(_Ctx,File,PLNAME,FileMatch):- creating_aiml_file(File,PLNAME),!,
   throw_safe(already(creating_aiml_file(File,PLNAME),FileMatch)),!.
 
-translate_single_aiml_file(_Ctx,File,PLNAME,_FileMatch):-  fail, %% fail if want to always remake file
+translate_single_aiml_file(_Ctx,File,PLNAME,_FileMatch):-   %% fail if want to always remake file
    file_newer(PLNAME,File), % fails on non-existent
    %not(aimlOption(rebuild_Aiml_Files,true)),
    debugFmt(up_to_date(create_aiml_file(File,PLNAME))),!,
-   retractall(creating_aiml_file(File,PLNAME)).
+   retractall(creating_aiml_file(File,PLNAME)),!.
 
 %%translate_single_aiml_file(_Ctx,File,PLNAME,FileMatch):- loaded_aiml_file(File,PLNAME,Time),!, throw_safe(already(loaded_aiml_file(File,PLNAME,Time),FileMatch)).
 translate_single_aiml_file(Ctx,File,PLNAME,FileMatch):- loaded_aiml_file(File,PLNAME,Time),!,

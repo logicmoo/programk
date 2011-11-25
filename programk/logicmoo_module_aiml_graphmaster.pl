@@ -211,7 +211,7 @@ computeSRAI222(CtxIn,Votes,ConvThreadHint,SYM,Pattern,Compute,VotesO,ProofOut,Ou
 
 clauseRef(_CateSig,0):-!.
 clauseRef(CateSig,Pattern:Template):-arg(6,CateSig,Pattern),arg(11,CateSig,Template),!.
-clauseRef(CateSig,ClauseNumber):-clause(CateSig,true,ClauseNumber).
+clauseRef(CateSig,ClauseNumber):-trace,clause(CateSig,true,ClauseNumber).
 clauseRef(_CateSig,-1):-!.
 
 savedParts(Save,PreTopic,CommitTemplate,OutputLevel,StarSets_All,Out,ClauseNumber,CateSig):-
@@ -247,22 +247,30 @@ checkStarSets(_StarSets). %%ctrace2.
 
 
 argNFoundGenerate(CateSigFunctor,StarName,MatchPattern,IndexPattern,Nothing):-meansNothing(Nothing,_),!,argNFound(CateSigFunctor,StarName,MatchPattern,IndexPattern).
-argNFoundGenerate(CateSigFunctor,StarName,MatchPattern,IndexPattern,TextPattern):-textPatternToMatchPattern(TextPattern,MatchPattern),argNFound(CateSigFunctor,StarName,MatchPattern,IndexPattern).
+argNFoundGenerate(CateSigFunctor,StarName,MatchPattern,IndexPattern,TextPattern):-textPatternToMatchPatternTest(TextPattern,IndexPattern),argNFound(CateSigFunctor,StarName,MatchPattern,IndexPattern),nop(traceIf(not(textPatternToMatchPattern(TextPattern,IndexPattern)))).
 %%%argNFoundGenerate(CateSigFunctor,StarName,MatchPattern,IndexPattern,TextPattern):-trace,argNFound(CateSigFunctor,StarName,MatchPattern,IndexPattern).
+
+argNFoundGenerate(_CateSigFunctor,pattern,MatchPattern,IndexPattern,TextPattern):-textPatternToMatchPattern(TextPattern,IndexPattern),cid_pattern(_,IndexPattern),fromIndexableSArg0(IndexPattern,MatchPattern).
+argNFoundGenerate(_CateSigFunctor,that,MatchPattern,IndexPattern,TextPattern):-textPatternToMatchPattern(TextPattern,IndexPattern),cid_that(_,IndexPattern),fromIndexableSArg0(IndexPattern,MatchPattern).
+argNFoundGenerate(_CateSigFunctor,topic,MatchPattern,IndexPattern,TextPattern):-textPatternToMatchPattern(TextPattern,IndexPattern),cid_topic(_,IndexPattern),fromIndexableSArg0(IndexPattern,MatchPattern).
+
 
 toTAtom(Text,Text):-atom(Text),!.
 toTAtom(Text,Atom):-number(Text),atom_number(Atom,Text),!.
 toTAtom(Text,Atom):-trace,atom_to_number(Atom,Text).
 
+textPred(element(A,B,C),element(A,B,C)):-!.
 textPred(Text,Pred):-toTAtom(Text,Atom),toLowercase(Atom,Pred).
 
 
-%%textPatternToMatchPattern([Text],MatchPattern):-textPred(Text,Pred),!,member(MatchPattern,[Pred,*,'_']).
+textPatternToMatchPattern([Text],MatchPattern):-textPred(Text,Pred),!,member(MatchPattern,[Pred,*,'_']).
 textPatternToMatchPattern([Text,_P|_Attern],MatchPattern):-textPred(Text,Pred),functor(MatchPattern,Pred,1).
 textPatternToMatchPattern([_Text|Pattern],MatchPattern):-member(T,Pattern),textPred(T,Pred),functor(MatchPattern,Pred,2).
-%textPatternToMatchPattern(_TextPattern,'_').
-%textPatternToMatchPattern(_TextPattern,'*').
-textPatternToMatchPattern(_TextPattern,_).
+textPatternToMatchPattern(_TextPattern,'_').
+textPatternToMatchPattern(_TextPattern,'*').
+
+%%textPatternToMatchPatternTest(I,O):-textPatternToMatchPattern(I,O).
+textPatternToMatchPatternTest(_TextPattern,_).
 
 %%argNFound(aimlCate,pattern,['ARE', *, 'REAL'],are(real(idx_endswith, *, real))).
 %%argNFound(aimlCate, pattern, ['_', 'OFF'], off(idx_endswith, '_', off)).

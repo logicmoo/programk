@@ -119,12 +119,12 @@ annie:-withNamedContext(toplevel,Ctx),timeRecorded(run_chat_tests_here(Ctx)),uni
 
 %%:-timeRecorded(blackjack_test_load).
 /*
-:-timeRecorded(load_aiml_files('../aiml/test_suite/chomskyAIML/update007.aiml')).
+:-timeRecorded(load_aiml_files('../aiml/chomskyAIML/update007.aiml')).
 :-timeRecorded(blackjack_test_load).
 :-timeRecorded(blackjack_test).
 %:-timeRecorded(chomskyAIML).
-:-timeRecorded(load_aiml_files('../aiml/test_suite/chomskyAIML/update013.aiml')).
-:-timeRecorded(load_aiml_files('../aiml/test_suite/chomskyAIML/update012.aiml')).
+:-timeRecorded(load_aiml_files('../aiml/chomskyAIML/update013.aiml')).
+:-timeRecorded(load_aiml_files('../aiml/chomskyAIML/update012.aiml')).
 */
 
 

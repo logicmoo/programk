@@ -154,15 +154,15 @@ makeBanner(Name):-
    'format'(':-multifile(cid_~w/2).~n',[Name]),
    'format'(':-indexed(cid_~w(1,1)).~n',[Name]).
 
-makeAccesors:-aimlCateSig(CateSig),aimlCateOrder(List),member(Name,List),
+makeAccesors:-aimlCateOrder(List),member(Name,List),aimlCateSig(CateSig),
    once((argNumsIndexedRepr(aimlCate,Name,Num,_ADef),arg(Num,CateSig,V),arg(14,CateSig,ID),cateFallback(Name,Def),ID='ID',V='V')),
    makeBanner(Name),
    'format'('cateid_~w(ID,V):- cid_~w(ID,V),!.~n',[Name,Name]),
    'format'('cateid_~w(ID,V):- cateid_~w0(ID,V),!.~n',[Name,Name]),
-   ignore( ((arg(_,CateSig,'_')),fail ) ),
+   ignore( (arg(N,CateSig,Old),var(Old),nb_setarg(N,CateSig,'_'),fail ) ),
    'format'('cateid_~w(_,~q).~n',[Name,Def]),
    'format'('cateid_~w0(~w,~w):- ~w.~n',[Name,ID,V,CateSig]),
-   'format'('~n',[]).
+   'format'('~n~n',[]).
 
 makePreloaders:-aimlCateSig(CateSig),aimlCateOrder(List),member(Name,List),
    once((argNumsIndexedRepr(aimlCate,Name,Num,_ADef),arg(Num,CateSig,V),arg(14,CateSig,ID),cateFallback(Name,Def),ID='ID',V='V')),   
@@ -172,25 +172,34 @@ dumpCates:-aimlCateSig(CateSig),aimlCateOrder(Order),CateSig,
     %%aimlCate(Graph,Precall,Topic,That,Request,Pattern,Flags,Call,Guard,Userdict,Template,Srcinfo,Srcfile,ID),
     arg(14,CateSig,ID),
     CateSig=..[_|List],
-    makeSigPairs(ID,Order,List),
+    dumpSigPairs(ID,Order,List),
     'format'('~n',[]).
 
+aimlCateFormed(Graph,Precall,Topic,That,Request,Pattern,Flags,Call,Guard,Userdict,Template,Srcinfo,Srcfile,ID):- cid_template(ID,Template),
+  cateid_graph(ID,Graph),cateid_precall(ID,Precall),cateid_topic(ID,Topic),cateid_that(ID,That),cateid_request(ID,Request),cateid_pattern(ID,Pattern),cateid_flags(ID,Flags),
+  cateid_call(ID,Call),cateid_guard(ID,Guard),cateid_userdict(ID,Userdict),cateid_srcinfo(ID,Srcinfo),cateid_srcfile(ID,Srcfile).
 
-makeSigPairs(_ID,[],_List):-!.
-makeSigPairs(ID,[O|Order],[L|List]):-makeSPairs(ID,O,L),makeSigPairs(ID,Order,List).
+aimlCate(Graph,Precall,Topic,That,Request,Pattern,Flags,Call,Guard,Userdict,Template,Srcinfo,Srcfile,ID):-
+   aimlCateFormed(Graph,Precall,Topic,That,Request,Pattern,Flags,Call,Guard,Userdict,Template,Srcinfo,Srcfile,ID).
 
-makeSPairs(_ID,Name,Def):-cateFallback(Name,Def),!.
-makeSPairs(_ID,cateid,_):-!.
-makeSPairs(ID,srcfile,File:Line-POS):- Term=..[File,Line,POS],!,makeSPairs(ID,srcfile,Term).
-makeSPairs(ID,Name,[Value]):-!,makeSPairs(ID,Name,Value).
-makeSPairs(ID,Name,Value):-'format'('cid_~w(~q,~q).~n',[Name,ID,Value]).
+dumpSigPairs(_ID,[],_List):-!.
+dumpSigPairs(ID,[O|Order],[L|List]):-dumpSPairs(ID,O,L),dumpSigPairs(ID,Order,List).
 
+dumpSPairs(_ID,Name,Def):-cateFallback(Name,Def),!.
+dumpSPairs(_ID,cateid,_):-!.
+dumpSPairs(ID,srcfile,File:Line-POS):- Term=..[File,Line,POS],!,dumpSPairs(ID,srcfile,Term).
+dumpSPairs(ID,Name,[Value]):-!,dumpSPairs(ID,Name,Value).
+dumpSPairs(ID,Name,Value):-'format'('cid_~w(~q,~q).~n',[Name,ID,Value]).
 
+redumpFormed:-
+   aimlCateFormed(Graph,Precall,Topic,That,Request,Pattern,Flags,Call,Guard,Userdict,Template,Srcinfo,Srcfile,ID),
+   'format'('~q.~n',[aimlCate(Graph,Precall,Topic,That,Request,Pattern,Flags,Call,Guard,Userdict,Template,Srcinfo,Srcfile,ID)]),fail.
+redumpFormed.
 
 :-dynamic(cid_graph/2).
 :-multifile(cid_graph/2).
 cateid_graph(ID,V):- cid_graph(ID,V),!.
-cateid_graph(ID,V):- cateid_graph0(ID,V),!.
+%cateid_graph(ID,V):- cateid_graph0(ID,V),!.
 cateid_graph(_,default).
 cateid_graph0(ID,V):- aimlCate(V,_G951,_G952,_G953,_G954,_G955,_G956,_G957,_G958,_G959,_G960,_G961,_G962,ID).
 
@@ -199,7 +208,7 @@ cateid_graph0(ID,V):- aimlCate(V,_G951,_G952,_G953,_G954,_G955,_G956,_G957,_G958
 :-dynamic(cid_precall/2).
 :-multifile(cid_precall/2).
 cateid_precall(ID,V):- cid_precall(ID,V),!.
-cateid_precall(ID,V):- cateid_precall0(ID,V),!.
+%cateid_precall(ID,V):- cateid_precall0(ID,V),!.
 cateid_precall(_,true).
 cateid_precall0(ID,V):- aimlCate(_G950,V,_G952,_G953,_G954,_G955,_G956,_G957,_G958,_G959,_G960,_G961,_G962,ID).
 
@@ -208,7 +217,7 @@ cateid_precall0(ID,V):- aimlCate(_G950,V,_G952,_G953,_G954,_G955,_G956,_G957,_G9
 :-dynamic(cid_topic/2).
 :-multifile(cid_topic/2).
 cateid_topic(ID,V):- cid_topic(ID,V),!.
-cateid_topic(ID,V):- cateid_topic0(ID,V),!.
+%cateid_topic(ID,V):- cateid_topic0(ID,V),!.
 cateid_topic(_,*).
 cateid_topic0(ID,V):- aimlCate(_G950,_G951,V,_G953,_G954,_G955,_G956,_G957,_G958,_G959,_G960,_G961,_G962,ID).
 
@@ -217,7 +226,7 @@ cateid_topic0(ID,V):- aimlCate(_G950,_G951,V,_G953,_G954,_G955,_G956,_G957,_G958
 :-dynamic(cid_that/2).
 :-multifile(cid_that/2).
 cateid_that(ID,V):- cid_that(ID,V),!.
-cateid_that(ID,V):- cateid_that0(ID,V),!.
+%cateid_that(ID,V):- cateid_that0(ID,V),!.
 cateid_that(_,*).
 cateid_that0(ID,V):- aimlCate(_G950,_G951,_G952,V,_G954,_G955,_G956,_G957,_G958,_G959,_G960,_G961,_G962,ID).
 
@@ -226,7 +235,7 @@ cateid_that0(ID,V):- aimlCate(_G950,_G951,_G952,V,_G954,_G955,_G956,_G957,_G958,
 :-dynamic(cid_request/2).
 :-multifile(cid_request/2).
 cateid_request(ID,V):- cid_request(ID,V),!.
-cateid_request(ID,V):- cateid_request0(ID,V),!.
+%cateid_request(ID,V):- cateid_request0(ID,V),!.
 cateid_request(_,*).
 cateid_request0(ID,V):- aimlCate(_G950,_G951,_G952,_G953,V,_G955,_G956,_G957,_G958,_G959,_G960,_G961,_G962,ID).
 
@@ -235,7 +244,7 @@ cateid_request0(ID,V):- aimlCate(_G950,_G951,_G952,_G953,V,_G955,_G956,_G957,_G9
 :-dynamic(cid_pattern/2).
 :-multifile(cid_pattern/2).
 cateid_pattern(ID,V):- cid_pattern(ID,V),!.
-cateid_pattern(ID,V):- cateid_pattern0(ID,V),!.
+%cateid_pattern(ID,V):- cateid_pattern0(ID,V),!.
 cateid_pattern(_,*).
 cateid_pattern0(ID,V):- aimlCate(_G950,_G951,_G952,_G953,_G954,V,_G956,_G957,_G958,_G959,_G960,_G961,_G962,ID).
 
@@ -244,7 +253,7 @@ cateid_pattern0(ID,V):- aimlCate(_G950,_G951,_G952,_G953,_G954,V,_G956,_G957,_G9
 :-dynamic(cid_flags/2).
 :-multifile(cid_flags/2).
 cateid_flags(ID,V):- cid_flags(ID,V),!.
-cateid_flags(ID,V):- cateid_flags0(ID,V),!.
+%cateid_flags(ID,V):- cateid_flags0(ID,V),!.
 cateid_flags(_,*).
 cateid_flags0(ID,V):- aimlCate(_G950,_G951,_G952,_G953,_G954,_G955,V,_G957,_G958,_G959,_G960,_G961,_G962,ID).
 
@@ -253,7 +262,7 @@ cateid_flags0(ID,V):- aimlCate(_G950,_G951,_G952,_G953,_G954,_G955,V,_G957,_G958
 :-dynamic(cid_call/2).
 :-multifile(cid_call/2).
 cateid_call(ID,V):- cid_call(ID,V),!.
-cateid_call(ID,V):- cateid_call0(ID,V),!.
+%cateid_call(ID,V):- cateid_call0(ID,V),!.
 cateid_call(_,true).
 cateid_call0(ID,V):- aimlCate(_G950,_G951,_G952,_G953,_G954,_G955,_G956,V,_G958,_G959,_G960,_G961,_G962,ID).
 
@@ -262,8 +271,8 @@ cateid_call0(ID,V):- aimlCate(_G950,_G951,_G952,_G953,_G954,_G955,_G956,V,_G958,
 :-dynamic(cid_guard/2).
 :-multifile(cid_guard/2).
 cateid_guard(ID,V):- cid_guard(ID,V),!.
-cateid_guard(ID,V):- cateid_guard0(ID,V),!.
-cateid_guard(_,*).
+%cateid_guard(ID,V):- cateid_guard0(ID,V),!.
+cateid_guard(_,true).
 cateid_guard0(ID,V):- aimlCate(_G950,_G951,_G952,_G953,_G954,_G955,_G956,_G957,V,_G959,_G960,_G961,_G962,ID).
 
 
@@ -271,7 +280,7 @@ cateid_guard0(ID,V):- aimlCate(_G950,_G951,_G952,_G953,_G954,_G955,_G956,_G957,V
 :-dynamic(cid_userdict/2).
 :-multifile(cid_userdict/2).
 cateid_userdict(ID,V):- cid_userdict(ID,V),!.
-cateid_userdict(ID,V):- cateid_userdict0(ID,V),!.
+%cateid_userdict(ID,V):- cateid_userdict0(ID,V),!.
 cateid_userdict(_,user).
 cateid_userdict0(ID,V):- aimlCate(_G950,_G951,_G952,_G953,_G954,_G955,_G956,_G957,_G958,V,_G960,_G961,_G962,ID).
 
@@ -280,7 +289,7 @@ cateid_userdict0(ID,V):- aimlCate(_G950,_G951,_G952,_G953,_G954,_G955,_G956,_G95
 :-dynamic(cid_template/2).
 :-multifile(cid_template/2).
 cateid_template(ID,V):- cid_template(ID,V),!.
-cateid_template(ID,V):- cateid_template0(ID,V),!.
+%cateid_template(ID,V):- cateid_template0(ID,V),!.
 cateid_template(_,[]).
 cateid_template0(ID,V):- aimlCate(_G950,_G951,_G952,_G953,_G954,_G955,_G956,_G957,_G958,_G959,V,_G961,_G962,ID).
 
@@ -289,7 +298,7 @@ cateid_template0(ID,V):- aimlCate(_G950,_G951,_G952,_G953,_G954,_G955,_G956,_G95
 :-dynamic(cid_srcinfo/2).
 :-multifile(cid_srcinfo/2).
 cateid_srcinfo(ID,V):- cid_srcinfo(ID,V),!.
-cateid_srcinfo(ID,V):- cateid_srcinfo0(ID,V),!.
+%cateid_srcinfo(ID,V):- cateid_srcinfo0(ID,V),!.
 cateid_srcinfo(_,missinginfo).
 cateid_srcinfo0(ID,V):- aimlCate(_G950,_G951,_G952,_G953,_G954,_G955,_G956,_G957,_G958,_G959,_G960,V,_G962,ID).
 
@@ -298,7 +307,7 @@ cateid_srcinfo0(ID,V):- aimlCate(_G950,_G951,_G952,_G953,_G954,_G955,_G956,_G957
 :-dynamic(cid_srcfile/2).
 :-multifile(cid_srcfile/2).
 cateid_srcfile(ID,V):- cid_srcfile(ID,V),!.
-cateid_srcfile(ID,V):- cateid_srcfile0(ID,V),!.
+%cateid_srcfile(ID,V):- cateid_srcfile0(ID,V),!.
 cateid_srcfile(_,missingfile).
 cateid_srcfile0(ID,V):- aimlCate(_G950,_G951,_G952,_G953,_G954,_G955,_G956,_G957,_G958,_G959,_G960,_G961,V,ID).
 
@@ -427,12 +436,10 @@ fromIndexableSArg0(I,[I]):-atomic(I),!.
 fromIndexableSArg0(element(E,A,B),[element(E,A,B)]):-!.
 fromIndexableSArg0(idx_startswith(E),[E]):-!.
 fromIndexableSArg0(star_star(_Len,List),ABS):-fromIndexableSArg0(List,ABS).
-fromIndexableSArg0(OTHER,[OTHER]):-debugFmt(fromIndexableSArg0(OTHER)).
-
-
 fromIndexableSArg0(I,ABS):-I=..[A,B],!,fromIndexableSArg0(A,AS),fromIndexableSArg0(B,BS),append(AS,BS,ABS).
 fromIndexableSArg0(I,ABS):-I=..[B,idx_endswith,A,_],!,fromIndexableSArg0(A,AS),fromIndexableSArg0(B,BS),append(AS,BS,ABS).
 fromIndexableSArg0(I,ABCS):-I=..[B,A,C],!,fromIndexableSArg0(A,AS),fromIndexableSArg0(B,BS),fromIndexableSArg0(C,CS),append(AS,BS,ABS),append(ABS,CS,ABCS),!.
+fromIndexableSArg0(OTHER,[OTHER]):-debugFmt(fromIndexableSArg0(OTHER)).
 
 fromIndexableSArg(B,A):-dontAssertIndex,!,prolog_must(fromIndexableSArg0(B,A)),!.
 fromIndexableSArg(B,A):-prolog_must(fromIndexableSArg0(B,A)),!.

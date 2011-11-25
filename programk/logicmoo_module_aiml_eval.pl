@@ -125,6 +125,7 @@ immediateCall(Ctx,Call):-immediateCall0(Ctx,:-(Call)),!.
 immediateCall0(Ctx,C):-functor(C,call,_),prolog_mustEach((C=..[call,A|Args],A=..L,append(L,Args,Out),Call=..Out,!,immediateCall0(Ctx,Call))).
 immediateCall0(Ctx,C):-toReadableObject(C,Call),immediateCall1(Ctx,Call),!.
 %%immediateCall1(_Ctx,C):- prolog_mostly_ground((C)),fail.
+immediateCall1(_Ctx,_Call):- noConsoleDebug,isConsole,!.
 immediateCall1(_Ctx,Call):- fresh_line,(format('~q.',[Call])),fresh_line. %%,debugFmt(Call),!.
 
 %aiml_eval0(Ctx,[ValueI],ValueO):-atom(ValueI),!,aiml_eval(Ctx,ValueI,ValueO),!.

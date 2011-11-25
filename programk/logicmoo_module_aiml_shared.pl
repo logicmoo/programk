@@ -7,9 +7,81 @@
 % Revision:  $Revision: 1.7 $
 % Revised At:   $Date: 2002/07/11 21:57:28 $
 % ===================================================================
-:-multifile(expire1Cache/0).
 
+%================================================================
+:-multifile(expire1Cache/0).
+%================================================================
+
+
+%================================================================
+prolog_trace_interception_pce(A, B, C, E) :- true,
+%================================================================
+    pce_prolog_tracer:
+    (   current_prolog_flag(gui_tracer, true),
+        (   notrace(intercept(A, B, C, D)),
+            map_action(D, B, E)
+        ->  true
+        ;   print_message(warning, guitracer(intercept_failed(A, B, C, E))),
+            E=continue
+        )
+    ).
+
+
+defineSelfTrace:- \+ clause(prolog_trace_interception(_, _, _, _),pce_prolog_tracer:_),!,'format'('~N % already defineSelfTrace~n',[]). % done already? 
+defineSelfTrace:-abolish(prolog_trace_interception,4),asserta((prolog_trace_interception(A, B, C, E):-prolog_trace_interception_pce(A, B, C, E))).
+
+:-defineSelfTrace.
+
+%================================================================
+%% printStackTrace(+Stream,[+Options..,goal,level,context_module,has_alternatives,show_hidden],+Depth). 
+%================================================================
+
+printStackTrace:-printStackTrace(user_error,[goal,show_hidden,level,has_alternatives,alternative,hide(hmod:_),hide(_:hpred)],10).
+
+printStackTrace(Stream,Options,Depth):-prolog_current_frame(Frame),printStackTrace(Stream,Options,Depth,Frame,1).
+
+printStackTrace(Stream,_Options,Depth,_Frame,PD):-Depth = 0,!,sindent(Stream,PD),'format'(Stream,'<toodeep/>~n',[]).
+printStackTrace(Stream,_Options,_Depth,top,PD):-!,sindent(Stream,PD),'format'(Stream,'<top/>~n',[]).
+printStackTrace(Stream,Options,Depth,Frame,PD):- prolog_frame_attribute(Frame,predicate_indicator,MFA),pred_mf(MFA,MF),memberchk(hide(MF),Options),!,parent_frame_of(Frame,Parent),!,
+         PD2 is PD+2,
+         printStackTrace(Stream,Options,Depth,Parent,PD2).
+printStackTrace(Stream,Options,Depth,Frame,PD):- prolog_frame_attribute(Frame,hidden,true), \+ memberchk(show_hidden,Options),parent_frame_of(Frame,Parent),!,
+         PD2 is PD+2,
+         printStackTrace(Stream,Options,Depth,Parent,PD2).
+printStackTrace(Stream,Options,Depth,Frame,PD):-
+         printStackFrame(Stream,Options,Frame,PD),
+         parent_frame_of(Frame,Parent),
+         Depth2 is Depth -1,PD2 is PD+2,
+         printStackTrace(Stream,Options,Depth2,Parent,PD2).
+
+parent_frame_of(Frame,Parent):-prolog_frame_attribute(Frame,parent,Parent),!.
+parent_frame_of(_,top).
+
+pred_mf((M:F)/_A,M:F):-!.
+pred_mf(M:(F/_A),M:F):-!.
+pred_mf(F/_A,user:F).
+
+printStackFrame(Stream,_Options,Frame,PD):-sindent(Stream,PD),'format'(Stream,'<frame id="~w">~n',[Frame]),fail.
+printStackFrame(Stream,Options,Frame,PD):-member(Opt,Options), 
+     \+ memberchk(Opt,[show_hidden,alternative,other_fake_properties,hide(_)]), 
+     prolog_frame_attribute(Frame,Opt,Value),sindent(Stream,PD),'format'(Stream,' ~w = ~q',[Opt,Value]),fail.
+printStackFrame(Stream,Options,Frame,PD):-memberchk(alternative,Options),delete(Options,alternative,Options2),
+     prolog_frame_attribute(Frame,alternative,Alt),
+     PD1 is PD + 1,PD3 is PD + 3,
+     sindent(Stream,PD1),
+     'format'(Stream,'<alt>~n',[]),
+     printStackFrame(Stream,Options2,Alt,PD3),
+     sindent(Stream,PD1),
+     'format'(Stream,'</alt>~n',[]),
+     fail.
+printStackFrame(Stream,_Options,_Frame,PD):-sindent(Stream,PD),'format'(Stream,'</frame>~n',[]).
+
+sindent(Stream,PD):-'format'(Stream,'~N',[]),sindent(Stream,PD,' ').
+sindent(Stream,PD,Txt):-ignore((  between(0,PD,_),'format'(Stream,Txt,[]),fail )).
+
+%================================================================
 :-dynamic(prolog_is_vetted_safe).
+%================================================================
 %% True means the program skips many many runtime safety checks (runs faster)
 prolog_is_vetted_safe:-false.
 
@@ -319,9 +391,26 @@ exists_directory_safe(File):-prolog_must(atomic(File)),exists_directory(File).
 :- style_check(-atom).
 :- style_check(-string).
 
+
+:- dynamic(noConsoleDebug/0).
+noConsoleDebug.
+lmdebugFmt(Stuff):- noConsoleDebug,Stuff \= say(_),!.
+lmdebugFmt(Stuff):- notrace((fresh_line,debugFmtS(Stuff),fresh_line)),!.
+
+lmdebugFmt(_,_):- noConsoleDebug,!.
+lmdebugFmt(F,A):- 
+        fresh_line(user_error),
+        writeFmtFlushed(user_error,F,A),
+        fresh_line(user_error),
+        flush_output_safe(user_error),!.
+
 :- abolish(cyc:debugFmt/1).
 
-cyc:debugFmt(Stuff):- notrace((fresh_line,debugFmtS(Stuff),fresh_line)),!.
+cyc:debugFmt(Stuff):-once(lmdebugFmt(Stuff)).
+
+:- abolish(cyc:debugFmt/2).
+
+cyc:debugFmt(F,A):-once(lmdebugFmt(F,A)).
 
 debugFmtS([]):-!.
 debugFmtS([A|L]):-!,debugFmt('% ~q',[[A|L]]).
@@ -522,7 +611,7 @@ meta_predicate_transparent(_M,X):-
 
 
 asserta_new(_Ctx,NEW):-ignore(retract(NEW)),asserta(NEW).
-writeqnl(_Ctx,NEW):- format('~N%%LOADING ~q.~N',[NEW]),!.
+writeqnl(_Ctx,NEW):- debugFmt('~N%%LOADING ~q.~N',[NEW]),!.
 
 
 revappend([], Ys, Ys).

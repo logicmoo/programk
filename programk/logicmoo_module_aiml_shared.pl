@@ -12,6 +12,17 @@
 :-multifile(expire1Cache/0).
 %================================================================
 
+:- op(1100,xfy,(=>)).
+% ( Antecedent => Consequent ) :-
+%     \+ ( Antecedent,
+%          \+ Consequent
+%        ).
+( Antecedent => Consequent ) :- forall(( Antecedent ),( Consequent )).
+
+
+fmt(A,B,C):-'format'(A,B,C).
+
+%%% Modified version of <http://pastebin.com/GvmVQ1f1>
 
 %================================================================
 prolog_trace_interception_pce(A, B, C, E) :- true,
@@ -22,62 +33,161 @@ prolog_trace_interception_pce(A, B, C, E) :- true,
             map_action(D, B, E)
         ->  true
         ;   print_message(warning, guitracer(intercept_failed(A, B, C, E))),
-            E=continue
+            E = continue
         )
     ).
 
 
-defineSelfTrace:- \+ clause(prolog_trace_interception(_, _, _, _),pce_prolog_tracer:_),!,'format'('~N % already defineSelfTrace~n',[]). % done already? 
-defineSelfTrace:-abolish(prolog_trace_interception,4),asserta((prolog_trace_interception(A, B, C, E):-prolog_trace_interception_pce(A, B, C, E))).
+define_self_trace :-
+    (   \+ clause(prolog_trace_interception(_, _, _, _),pce_prolog_tracer:_)
+    ->  fmt(user_error, '~N % already defineSelfTrace~n',[]) % done already?
+    ;   abolish(prolog_trace_interception,4),
+        asserta(( prolog_trace_interception(A, B, C, E) :-
+                      prolog_trace_interception_pce(A, B, C, E) ))
+    ).
 
-:-defineSelfTrace.
+:- initialization define_self_trace.
+
+%================================================================
+%% print_stack_trace(+Stream,[+Option,...],+Depth)
+% `Option' being one of
+% `goal',`level',`context_module',`has_alternatives',`show_hidden'
+%================================================================
+
+print_stack_trace :-
+    print_stack_trace(user_error
+                     ,[goal,show_hidden,level
+                      ,has_alternatives,alternative
+                      ,hide(hmod:_),hide(_:hpred)]
+                     ,10).
+
+print_stack_trace(Stream,Options,Depth):-
+    prolog_current_frame(Frame),
+    print_stack_trace(Stream,Options,Depth,frame(Frame),1).
+
+%%% Modified from older pastes
+%% <http://pastebin.com/Tq7eQqDT>,<http://pastebin.com/fk5agLgE>
+% print_stack_trace(Stream,Options,Depth,frame(Frame) :-
+%     (   Depth = 0
+%     ->  fmt(Stream,'~N<toodeep/>~n',[])
+%     ;   print_stack_trace1(Stream,Options,Depth,frame(Frame)),
+%         parent_frame_of(Frame,Parent),Depth2 is Depth -1,
+%         print_stack_trace(Stream,Options,Depth2,Parent)
+%     ).
+%
+% :- index(print_stack_trace1(0,0,0,1)).
+% print_stack_trace1(Stream,Options,Depth,top         ) :-
+%     fmt(Stream,'~N<top/>~n',[]).
+% print_stack_trace1(Stream,Options,Depth,frame(Frame)) :-
+%     fmt(Stream,'~N<frame id="~w">~n',[Frame]),
+%     (   prolog_frame_attribute(Frame,hidden,true),
+%         \+ memberchk(show_hidden,Options)
+%     ->  parent_frame_of(Frame,Parent),
+%         print_stack_trace(Stream,Options,Depth,Parent)
+%     ;   (   member(Opt,Options),
+%             \+ memberchk(Opt,[show_hidden,other_fake_properties]),
+%         =>  prolog_frame_attribute(Frame,Opt,Value),
+%             fmt(Stream,' ~w = ~q',[Opt,Value])
+%         )
+%     ),
+%     fmt(Stream,'~N</frame>~n',[]).
+
+print_stack_trace(Stream,Options,Depth,PFrame,PD) :-
+    (   Depth = 0
+    ->  pd(Stream,PD),fmt(Stream,'<toodeep/>~n',[])
+    ;   print_stack_trace_aux(Stream,Options,Depth,PFrame,PD)
+    ).
+
+:- index(print_stack_trace_aux(0,0,0,1,0)).
+print_stack_trace_aux(Stream,_Options, _Depth,top         ,PD) :-
+    pd(Stream,PD),fmt(Stream,'<top/>~n',[]).
+print_stack_trace_aux(Stream,Options,Depth,frame(Frame),PD) :-
+    (   (   prolog_frame_attribute(Frame,predicate_indicator,MFA),
+            pred_mf(MFA,MF),
+            memberchk(hide(MF),Options)
+        ;   prolog_frame_attribute(Frame,hidden,true),
+            \+ memberchk(show_hidden,Options)
+        )
+    ->  Depth2  = Depth
+    ;   print_stack_frame(Stream,Options,Frame,PD),
+        Depth2 is Depth - 1
+    ),
+    parent_frame_of(Frame,Parent),
+    PD2 is PD + 2,
+    print_stack_trace(Stream,Options,Depth2,Parent,PD2).
+
+parent_frame_of(Frame,Parent0) :-
+    (  prolog_frame_attribute(Frame,parent,Parent)
+    -> Parent0 = frame(Parent)
+    ;  Parent0 = top
+    ).
+
+pred_mf((M: F)/_A ,M   :F) :- !.
+pred_mf( M:(F /_A),M   :F) :- !.
+pred_mf(    F/ _A ,user:F).
+
+print_stack_frame(Stream,Options,Frame,PD) :-
+    pd(Stream,PD),fmt(Stream,'<frame id="~w">~n',[Frame]),
+    (   member(Opt,Options), 
+        \+ memberchk(Opt
+                    ,[show_hidden,alternative,other_fake_properties,hide(_)])
+    =>  prolog_frame_attribute(Frame,Opt,Value),
+        pd(Stream,PD),fmt(Stream,' ~w = ~q',[Opt,Value])
+    ),
+    (   memberchk(alternative,Options)
+    =>  delete(Options,alternative,Options2),
+        prolog_frame_attribute(Frame,alternative,Alt),
+        PD1 is PD + 1,PD3 is PD + 3,
+        pd(Stream,PD1),fmt(Stream,'<alt>~n',[]),
+            print_stack_frame(Stream,Options2,Alt,PD3),
+        pd(Stream,PD1),fmt(Stream,'</alt>~n',[])
+    ),
+    pd(Stream,PD),fmt(Stream,'</frame>~n',[]).
+
+pd(Stream,PD) :- fmt(Stream,'~N',[]),tab(Stream,PD + 1).
 
 %================================================================
 %% printStackTrace(+Stream,[+Options..,goal,level,context_module,has_alternatives,show_hidden],+Depth). 
 %================================================================
 
-printStackTrace:-printStackTrace(user_error,[goal,show_hidden,level,has_alternatives,alternative,hide(hmod:_),hide(_:hpred)],10).
+printStackTrace:-printStackTrace(user_error).
+
+printStackTrace(Stream):-printStackTrace(Stream,[goal,show_hidden,level,has_alternatives,alternative,hide(hmod:_),hide(_:printStackTrace)],10).
 
 printStackTrace(Stream,Options,Depth):-prolog_current_frame(Frame),printStackTrace(Stream,Options,Depth,Frame,1).
 
-printStackTrace(Stream,_Options,Depth,_Frame,PD):-Depth = 0,!,sindent(Stream,PD),'format'(Stream,'<toodeep/>~n',[]).
-printStackTrace(Stream,_Options,_Depth,top,PD):-!,sindent(Stream,PD),'format'(Stream,'<top/>~n',[]).
-printStackTrace(Stream,Options,Depth,Frame,PD):- prolog_frame_attribute(Frame,predicate_indicator,MFA),pred_mf(MFA,MF),memberchk(hide(MF),Options),!,parent_frame_of(Frame,Parent),!,
-         PD2 is PD+2,
-         printStackTrace(Stream,Options,Depth,Parent,PD2).
-printStackTrace(Stream,Options,Depth,Frame,PD):- prolog_frame_attribute(Frame,hidden,true), \+ memberchk(show_hidden,Options),parent_frame_of(Frame,Parent),!,
-         PD2 is PD+2,
-         printStackTrace(Stream,Options,Depth,Parent,PD2).
+printStackTrace(Stream,_Options,_Depth,top,PD):-!,sindent(Stream,PD),fmt(Stream,'<top/>~n',[]).
+printStackTrace(Stream,_Options,Depth,_Frame,PD):- 0 is Depth,!,sindent(Stream,PD),fmt(Stream,'<toodeep/>~n',[]).
+printStackTrace(Stream,Options,Depth,Frame,PD):- 
+    ( (prolog_frame_attribute(Frame,predicate_indicator,MFA),pred_mf(MFA,MF),memberchk(hide(MF),Options)) ;   %% hidden module:pred
+      (prolog_frame_attribute(Frame,hidden,true), \+ memberchk(show_hidden,Options))),!, %% hidden frame
+   parentFrameOf(Frame,Parent),printStackTrace(Stream,Options,Depth,Parent,PD+2).
 printStackTrace(Stream,Options,Depth,Frame,PD):-
          printStackFrame(Stream,Options,Frame,PD),
-         parent_frame_of(Frame,Parent),
-         Depth2 is Depth -1,PD2 is PD+2,
-         printStackTrace(Stream,Options,Depth2,Parent,PD2).
+         parentFrameOf(Frame,Parent),
+         printStackTrace(Stream,Options,Depth-1,Parent,PD+2).
 
-parent_frame_of(Frame,Parent):-prolog_frame_attribute(Frame,parent,Parent),!.
-parent_frame_of(_,top).
+parentFrameOf(Frame,Parent):-prolog_frame_attribute(Frame,parent,Parent),!.
+parentFrameOf(_,top).
 
-pred_mf((M:F)/_A,M:F):-!.
-pred_mf(M:(F/_A),M:F):-!.
-pred_mf(F/_A,user:F).
-
-printStackFrame(Stream,_Options,Frame,PD):-sindent(Stream,PD),'format'(Stream,'<frame id="~w">~n',[Frame]),fail.
+printStackFrame(Stream,_Options,Frame,PD):-sindent(Stream,PD),fmt(Stream,'<frame id="~w">~n',[Frame]),fail.
 printStackFrame(Stream,Options,Frame,PD):-member(Opt,Options), 
      \+ memberchk(Opt,[show_hidden,alternative,other_fake_properties,hide(_)]), 
-     prolog_frame_attribute(Frame,Opt,Value),sindent(Stream,PD),'format'(Stream,' ~w = ~q',[Opt,Value]),fail.
+     prolog_frame_attribute(Frame,Opt,Value),sindent(Stream,PD),fmt(Stream,' ~w = ~q',[Opt,Value]),fail.
 printStackFrame(Stream,Options,Frame,PD):-memberchk(alternative,Options),delete(Options,alternative,Options2),
      prolog_frame_attribute(Frame,alternative,Alt),
-     PD1 is PD + 1,PD3 is PD + 3,
-     sindent(Stream,PD1),
-     'format'(Stream,'<alt>~n',[]),
-     printStackFrame(Stream,Options2,Alt,PD3),
-     sindent(Stream,PD1),
-     'format'(Stream,'</alt>~n',[]),
+     sindent(Stream,PD+1),
+     fmt(Stream,'<alt>~n',[]),
+     printStackFrame(Stream,Options2,Alt,PD+3),
+     sindent(Stream,PD+1),
+     fmt(Stream,'</alt>~n',[]),
      fail.
-printStackFrame(Stream,_Options,_Frame,PD):-sindent(Stream,PD),'format'(Stream,'</frame>~n',[]).
+printStackFrame(Stream,_Options,_Frame,PD):-sindent(Stream,PD),fmt(Stream,'</frame>~n',[]).
 
-sindent(Stream,PD):-'format'(Stream,'~N',[]),sindent(Stream,PD,' ').
-sindent(Stream,PD,Txt):-ignore((  between(0,PD,_),'format'(Stream,Txt,[]),fail )).
+sindent(Stream,PD):-fmt(Stream,'~N',[]),sindent(Stream,PD,' ').
+sindent(Stream,PD,Txt):-PD2 is PD,forall(between(0,PD2,_),fmt(Stream,Txt,[])).
+
+
 
 %================================================================
 :-dynamic(prolog_is_vetted_safe).
@@ -1019,7 +1129,7 @@ catchAnRethrow(X):-catch(X,E,(debugFmt(X->E),throw(E))).
 %% prolog_exception_hook
 interactStep(String):-interactStep(String,true,true).
 interactStep(String,CallYes,CallNo):-debugFmt(promptUser(String,[call,-,CallYes,-,or,-,CallNo])),trace,tracing,CallYes.
-interactStep(_String,CallYes,CallNo):-prompt1('>>>>>>>>>>>>>>'),read(YN),debugFmt(red(YN)),YN=yes->CallYes;CallNo.
+interactStep(_String,CallYes,CallNo):-printStackTrace,prompt1('>>>>>>>>>>>>>>'),read(YN),debugFmt(red(YN)),YN=yes->CallYes;CallNo.
 
 % ===================================================================
 % traceIf/warnIf(_Call):-!.

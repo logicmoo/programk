@@ -62,6 +62,17 @@
 	 registerCycPred/2,
 	 registerCycPred/3,
          getSurfaceFromChars/3,
+         getSurface/2,
+         getSurface/3,
+
+         lisp_read/1,
+         lisp_read/3,
+         lisp_read_codes/2,
+         lisp_read_fully/2,
+
+         catchIO/1,
+         catchIgnore/1,
+
 	 assertThrough/1,
          cycSync/0,
          cycSyncThread/0,
@@ -141,6 +152,7 @@
 	 writeFailureLog/2,
 	 debugOnFailure/2,
 	 debugOnFailure/1,
+         cycDebugOnError/1,
 	 writeObject/2,
 	 writeObject/3,
 	 writeObject_conj/2,
@@ -160,6 +172,26 @@
       multi_transparent/1
 
 	 ]).
+:-module_transparent(user:nart/3).
+
+
+cyc:cyc_magic.
+
+current_file(FileBase,Dir):-current_stream(File,read,_Stream),atom(File),is_absolute_file_name(File),
+   file_directory_name(File,Dir),file_base_name(File,FilePart),once(FileBase=FilePart;file_name_extension(FileBase,_Ext,FilePart)).
+
+asserta_if_new(A):-retract(A),fail.
+asserta_if_new(A):-asserta(A),!.
+
+:-current_file(F,Dir),writeq(current_file(F,Dir)),nl,!,
+   asserta_if_new(user:library_directory(Dir)),
+   asserta_if_new(user:file_search_path(cyc_api, Dir)),
+   asserta_if_new(user:file_search_path(('.'), Dir)),!,
+   asserta_if_new(cyc_magic_dir(Dir)),!.
+
+addStagedDirs:-
+  cyc_magic_dir(Dir),expand_file_name('./stage*',X),member(A,X),absolute_file_name(A,[relative_to(Dir)],O),asserta_if_new(user:library_directory(O)),!.
+addStagedDirs.
 
 
 
@@ -170,6 +202,7 @@ failOnError(Call):-catch(Call,_,fail).
 fresh_line:-current_output(Strm),fresh_line(Strm),!.
 fresh_line(Strm):-failOnError((stream_property(Strm,position('$stream_position'(_,_,POS,_))),ifThen(POS>0,nl(Strm)))),!.
 fresh_line(Strm):-trace,nl(Strm),!.
+
 
 :-dynamic(withoutCyc).
 withoutCyc:-fail.
@@ -229,14 +262,14 @@ dynamic_transparent([]):-!.
 dynamic_transparent([X]):-dynamic_transparent(X),!.
 dynamic_transparent([X|Xs]):-!,dynamic_transparent(X),dynamic_transparent(Xs),!.
 dynamic_transparent(M:F/A):-!, module_transparent(M:F/A),dynamic(M:F/A).
-dynamic_transparent(F/A):-!,multi_transparent(user:F/A).
+dynamic_transparent(F/A):-!,context_module(M),dynamic_transparent(M:F/A).
 dynamic_transparent(X):-functor(X,F,A),dynamic_transparent(F/A),!.
 
 multi_transparent([]):-!.
 multi_transparent([X]):-multi_transparent(X),!.
 multi_transparent([X|Xs]):-!,multi_transparent(X),multi_transparent(Xs),!.
 multi_transparent(M:F/A):-!, module_transparent(M:F/A),dynamic(M:F/A),multifile(M:F/A).
-multi_transparent(F/A):-!,multi_transparent(user:F/A).
+multi_transparent(F/A):-!,context_module(M),multi_transparent(M:F/A).
 multi_transparent(X):-functor(X,F,A),multi_transparent(F/A),!.
    
 :-multi_transparent(holds/1).
@@ -249,6 +282,9 @@ multi_transparent(X):-functor(X,F,A),multi_transparent(F/A),!.
 :-multi_transparent(holds/8).
 
 
+
+:-dynamic(double_quotes_was/1).
+:-current_prolog_flag(double_quotes,X),asserta(double_quotes_was(X)).
 
 %:- set_prolog_flag(optimise,true).
 %:- set_prolog_flag(file_name_variables,false).
@@ -268,45 +304,76 @@ multi_transparent(X):-functor(X,F,A),multi_transparent(F/A),!.
 :-dynamic_transparent(termCyclify/2).
 
 
+
 loadLispFile(Filename):-
-   open(Filename,read,H),
+   open(Filename,read,Stream),
+   loadLispStream(Stream,doLispLine).
+
+loadLispStream(Stream,Callback):-
    repeat,
-   readUntil(10,H,Get),
-   doLispLine(Get),
-   at_end_of_stream(H).
+   %%%readUntil(10,Stream,Get),
+   lisp_read(Stream,_String,Get),
+   doSexpLine(Callback,Get),
+   at_end_of_stream(Stream).
    
-doLispLine(Get):- 
-  once(getSurfaceFromChars(Get,Surf,Vars)),
-   doLispLine(Surf,Vars). 
+doSexpLine(Callback,Get):-
+  once(getSurfaceFromTokens(Get,Surf,Vars)),
+   call(Callback,Surf,Vars). 
 
 
+s2p(X,Y,Feat):-s2p(nothingExtra,X,Y,Feat).
+nothingExtra(X,Y,Z):-fail.
 
-s2p(X,X,[]):- (var(X);number(X);is_string(X)),!.
-s2p(svar(X,Name),X,[Name=X]):-atom_concat(':',_,Name),!.
-s2p(svar(_,Name),Name,[])-!.
-s2p(var(X,Name),X,[Name=X]):-!.
-s2p([H|T],R,Opt):-!,s2Pred(H,T,R,Opt),!.
-s2p(C,R,Opt):-compound(C),C=..[H|T],s2Pred(H,T,R,Opt),!.
-s2p(X,X,[]).
-
-s2Pred(H,T,R,Opt):-atom(H),isFn(H),!,s2List(T,TT,Opt),R=[H|TT],!.
-s2Pred(H,T,R,Opt):-s2p(H,HH,O1),s2List(T,TT,O2),append(O1,O2,Out),!,((atom(HH),proper_list(TT))-> R=..[H|TT];R=[H|TT]).
-
-s2List(X,X,[]):- (atom(X);var(X);number(X);string(X)),!.
-s2List([H|T],[HH|TT],Opt):-s2p(H,HH,O1),s2List(T,TT,O2),append(O1,O2,Opt),!.
-s2List(X,Y,Opt):-s2p(X,Y,Opt),!.
+s2p(Extra,X,Y,Feat):-call(Extra,X,Y,Feat),!.
+s2p(Extra,X,X,[]):- (var(X);number(X);is_string(X)),!.
+s2p(Extra,svar(X,Name),X,[Name=X]):-atom_concat(':',_,Name),!.
+s2p(Extra,svar(X,Name),Name,[Name=X])-!.
+s2p(Extra,var(X,Name),X,[Name=X]):-!.
+s2p(Extra,[H|T],R,Features):-!,s2Pred(Extra,H,T,R,Features),!.
+s2p(Extra,C,R,Features):-compound(C),C=..[H|T],s2Pred(Extra,H,T,R,Features),!.
+s2p(Extra,Atom,X,[Atom=X]):-atom(Atom),atom_concat(':',_,Atom),hash_term(Atom,Hash),X='$VAR'(Hash),!.
+s2p(Extra,Atom,[Atom],[]):-atom(Atom),atom_concat('SKF',_,Atom),!.
+%s2p(Extra,Atom,[X],[Atom=X]):-atom(Atom),atom_concat('SKF',_,Atom),hash_term(Atom,Hash),X='$VAR'(Hash),!.
+s2p(Extra,X,X,[]):-!.
 
 
+s2Pred(Extra,H,T,R,Features):-atom(H),isFn(H),!,s2List(Extra,T,TT,Features),R=[H|TT],!.
+s2Pred(Extra,H,T,R,Features):-atom(H),isKeyword(H),!,s2List(Extra,T,TT,Features),R=[H|TT],!.
+%s2Pred(Extra,H,T,R,Features):-is_list(H),s2List(Extra,H,HH,F1),!,s2List(Extra,T,TT,F2),R=[HH|TT],!,append(F1,F2,Features).
+%s2Pred(Extra,H,T,R,Features):-isFn(H),!,s2List(Extra,T,TT,Features),R=[H|TT],!.
+%s2Pred(Extra,H,T,R,Features):-isKeyword(H),!,s2List(Extra,T,TT,Features),R=[H|TT],!.
+%s2Pred(Extra,H,T,R,Features):-s2List(Extra,T,TT,Features),R=..[H|TT],!.
+s2Pred(Extra,H,T,R,Features):-s2p(Extra,H,HH,F1),s2List(Extra,T,TT,F2),append(F1,F2,Features),!, 
+                                             s2Pred(Extra,H,T,HH,TT,R,Features).
+
+s2Pred(Extra,H,T,HH,TT,R,Features):- atom(HH),proper_list(TT),not(isFn(HH)),atom(H),!,R=..[H|TT],!.
+s2Pred(Extra,H,T,HH,TT,R,Features):- R=[HH|TT].
+
+s2List(Extra,X,X,[]):- (var(X);number(X);string(X);X==[]),!.
+%s2List(Extra,X,X,[]):- atom(X),!.
+s2List(Extra,[H|T],[HH|TT],Features):-s2p(Extra,H,HH,F1),s2List(Extra,T,TT,F2),append(F1,F2,Features),!.
+s2List(Extra,X,Y,Features):-s2p(Extra,X,Y,Features),!.
+
+
+isKeyword(X):-atom_prefix(X,':').
+
+isFn(X):-isKeyword(X),!.
+isFn(X):-name(X,[Cap|_]),char_type(Cap,upper),!.
 isFn(X):-atom_concat(_,'Fn',X),!.
+/*
+implied with uppercheck
 isFn(X):-atom_concat('The',_,X).  
 isFn(X):-atom_concat('SKF',_,X).
 isFn(X):-atom_concat('MT',_,X).
-isFn(X):-name(X,[Cap|_]),char_type(Cap,upper),!.
+*/
 
-balanceBindingS2P(X,Z):-
+
+balanceBindingS2P(X,Z):-balanceBindingS2P(X,Z,_Feats).
+
+balanceBindingS2P(X,Z,Feats):-
       balanceBinding(X,Y),
       unnumbervars(Y,UN),
-      s2p(UN,Z,_),!.
+      s2p(UN,Z,Feats),!.
 
 :-dynamic(cyc:dbCache/2).
 doLispLine([P|Surf],Vars):-toUppercase(P,UP),not(UP==P),!,doLispLine([UP|Surf],Vars).
@@ -714,15 +781,376 @@ readSubL(InStream,[G,E,T,Space|Response]):-
       get_code(InStream,Space),
       readCycLTermChars(InStream,Response),!.
 
+
+
+% ===================================================================
+% Lowlevel getSurface/lisp_read
+% ===================================================================
+
+getSurface(Surf,Vars):-getSurface(user_input,Surf,Vars).
+getSurface(InStream,Surf,Vars):-
+    readCycLTermChars(InStream,Response),
+    getSurfaceFromChars(Response,Surf,Vars).
+
+getSurface(Response):- readCycLTermChars(user_input,Response).
+
+
+:-dynamic(saved_stream_buffer/2).
+find_stream_buffer(I,B):-saved_stream_buffer(I,B),!.
+find_stream_buffer(I,[]):-!. %%throw(nobuffer(I)).
+set_stream_buffer(I,B):-retractall(saved_stream_buffer(I,_)),asserta(saved_stream_buffer(I,B)).
+
+read_codes_one_at_a_time(Stream,NewBuffer):-
+      set_stream_buffer(Stream,[]),
+      repeat,
+      read_line_to_codes_one_at_a_time_util(Stream,NewBuffer).
+
+read_line_to_codes_one_at_a_time_util(Stream,_):-
+      find_stream_buffer(Stream,NewBuffer),
+      NewBuffer = [Code|Buffer],char_type(Code,space),
+      set_stream_buffer(Stream,Buffer),fail.
+
+%%debugFmt('~n NewBuffer codes: ~s~n',[NewBuffer]),
+read_line_to_codes_one_at_a_time_util(Stream,NewBuffer):-
+      find_stream_buffer(Stream,Buffer),
+      get_code_no_eof(Stream,Code),
+      append(Buffer, [Code], NewBuffer),
+      set_stream_buffer(Stream,NewBuffer),
+      charGoodForInput(Stream,Code),!.
+
+:-flag(inbracket,_,0).
+
+charGoodForInput(_Stream,''):-!,fail.
+charGoodForInput(_Stream,C):-code_type(C,end_of_line),!.
+charGoodForInput(_Stream,C):-flag(inbracket,N,N),charGoodForInput1(_Stream, N,C).
+charGoodForInput1(_Stream,N,40):- flag(inbracket,N,N+1),!, fail.
+charGoodForInput1(_Stream,N,41):- flag(inbracket,N,N-1), !, N < 2.
+charGoodForInput1(_Stream,N,C):- N > 0,!,fail.
+charGoodForInput1(_Stream,N,C):-code_type(C,space),!.
+
+
+/*
+ lisp_read_codes("() ",Sexp)
+ lisp_read_codes("1 ",Sexp)
+ lisp_read_codes("a1 ",Sexp)
+ lisp_read_codes("( a )",S)
+ lisp_read_codes("( a ) ",S)
+ lisp_read_codes("(a )",S)
+ 
+ */
+
+% "fully" means at least one whitespace character was there
+lisp_read_fully(String,SexpO):-lisp_read_fully(user_input,String,SexpO).
+lisp_read_fully(InStream,String,SexpO):- phrase_codes(read_sexp_fully0(Sexp), String, []),!,
+   set_stream_buffer(InStream,[]),!,processEachReadResult(InStream,Sexp,SexpO).
+lisp_read_fully(InStream,String,SexpO):- %trace,
+    phrase_codes(read_sexp_fully0(Sexp), String, More),set_stream_buffer(InStream,More),
+    reportLeftInBuffer(InStream),!,
+    processEachReadResult(InStream,Sexp,SexpO). 
+
+%processEachReadResult(InStream,whitespace(String),SexpO):-!,whitespace(String)=SexpO.
+processEachReadResult(InStream,iterateEach(List),SexpO):-!,member(E,List),processEachReadResult(InStream,E,SexpO).
+processEachReadResult(InStream,read_from_string(String),SexpO):-!,lisp_read_fully(InStream,String,SexpO).
+%processEachReadResult(InStream,reader_error(Error,String),_SexpO):-!,throw(reader_error(Error,String)).
+processEachReadResult(InStream,SexpO,SexpO).
+
+lisp_read_codes(String,Sexp):-phrase_codes(sexp0(Sexp), String),!.
+
+lisp_read(Sexp) :- current_input(I),lisp_read(I,_,Sexp),!.
+lisp_read(InStream,String,Sexp) :-         
+        repeat,
+        read_line_to_codes_one_at_a_time_util(InStream,String),        
+        lisp_read_fully(InStream,String,Sexp).
+
+reportLeftInBuffer(I):- saved_stream_buffer(I,F),F \== [], debugFmt('~n reportLeftInBuffer: "~s" ~n',[F]),!.
+reportLeftInBuffer(_):- !.
+
+phrase_codes(DCG,LEFT):-phrase_codes(DCG,LEFT,[]).
+phrase_codes(A,[C|ODES],REST):-number(C),!,phrase(A,[C|ODES],REST).
+phrase_codes(A,[C|ODES],REST):-atom(C),atom_length(C,1),char_code(C,NumberCode),number(NumberCode),!,atom_to_chars(Atom,[C|ODES]),!,phrase_codes(A,Atom,REST).
+phrase_codes(A,String,REST):-string(String),string_to_list(String,Codes),!,phrase(A,Codes,REST).
+phrase_codes(A,String,REST):-atom(String),atom_codes(String,Codes),!,phrase(A,Codes,REST).
+
+
+spanStarted0(string,"\"") --> "\"".
+spanStarted0(pipequoted,"|#") --> "#|".
+spanStarted0(pipequoted,endOfLine) --> ";".
+
+endOfLine --> [13,10].
+endOfLine --> [10].
+endOfLine --> [13].
+endOfLine --> trimOffOneAndAllWhiteSpaces,!,endOfLine.
+
+
+
+allCharsAsString(Chars,Codes,[]):-string_to_list(Chars,Codes).
+
+% "fully" means at least one whitespace character was there
+read_sexp_fully0(whitepace(Chars)) --> dcgBothC(endOfLine,allCharsAsString(Chars)),!.
+read_sexp_fully0(iterateEach([whitepace(Chars),S])) --> dcgBothC(trimOffOneAndAllWhiteSpaces,allCharsAsString(Chars)),!,read_sexp_fully0(S).
+read_sexp_fully0(S) --> sexp0(S), !.
+read_sexp_fully0(iterateEach([Error,read_from_string(Next)])) 
+  --> {member(Chars,[re(",",'unmatched close parenthesis'),re(")",'Comma not inside a backquote.')])},
+      syntaxError(Chars,Error),!,
+      allCharsAsString(Next).
+read_sexp_fully0(iterateEach(Ns)) --> /*{!,trace},*/ listReader0(iterateEach,noMoreChars,alwaysFail,spaces0,Ns).
+
+syntaxError(re(Chars,Error),reader_error(Error,String)) --> Chars,{string_to_list(String,Chars)}.
+
+alwaysFail(_,_):-fail.
+noMoreChars(What,[]):-What==[].
+
+peekChar(Peek,SMORE,SMORE) :- phrase(Peek,SMORE,_).
+peekContainsChar(Peek,SMORE,SMORE) :- append(Left,Right,SMORE), phrase(Peek,Right,_).
+
+
+sexp0(S) --> trimOffOneAndAllWhiteSpaces,!,sexp0(S).
+sexp0(S) --> sexp1(S), allowWhiteSpaces.
+
+sexp1(quoted(S)) --> "'",!,sexp0(S).
+sexp1(back_quoted(S)) --> "`",!,sexp0(S).
+sexp1(comma_at_quoted(S)) --> ",@",!,sexp0(S).
+sexp1(comma_quoted(S)) --> ",",!,sexp0(S).
+sexp1(S) --> peekChar("("),!,list0(S).
+sexp1(S) --> atom0(S).
+
+
+list0(NsTyped) --> listSpan(Type,Ending,Dotted,LegalSeps),!,spaces0, listReader0(Type,Ending,Dotted,LegalSeps,Ns),{NsTyped= Ns /*..[Type,Ns]*/ ,!}.
+
+
+trimOffOneAndAllWhiteSpaces --> "(",{!,fail}.
+trimOffOneAndAllWhiteSpaces --> ")",{!,fail}.
+trimOffOneAndAllWhiteSpaces --> oneSpace,!, spaces0.
+
+listReader0(Type,Ending,Dotted,LegalSeps,Ns) --> trimOffOneAndAllWhiteSpaces,!,listReader0(Type,Ending,Dotted,LegalSeps,Ns).
+listReader0(Type,Ending,Dotted,LegalSeps,[]) --> Ending, !.
+listReader0(Type,Ending,Dotted,LegalSeps, N) --> Dotted,!, sexp0(N),!, Ending.
+listReader0(Type,Ending,Dotted,LegalSeps,[N|Ns]) --> sexp0(N),!,listReader0(Type,Ending,Dotted,LegalSeps,Ns).
+
+
+consElementSep-->spaces0.
+listSpan(cons,")",".",consElementSep) --> "(".
+
+allowWhiteSpaces --> endOfLine,!.
+allowWhiteSpaces --> oneSpace,!,allowWhiteSpaces.
+allowWhiteSpaces --> [].
+
+oneSpace --> [X],{ X<33 }.%%%, !, code_type(X,space),! }.
+
+spaces0 --> oneSpace,!,spaces0.
+spaces0 --> [].
+
+atom0(S) --> "(",{!,fail}.
+atom0(A) --> atom1(A).
+
+atom1(A) --> spanStarted0(Type,EndChars),{!}, charsUpTo(S,EndChars), {A=..[Type,S]}.
+atom1(A) --> char0(A).
+atom1(A) --> number0(A).
+%%atom1(A) --> {getTypeHintFromChar_hash(InStream,Chars,HashType)},Chars,symbolChars(Named),{A=..[HashType,Named]}.
+atom1(A) --> symbol0(A).
+
+
+number0(N) --> float0(N),!.
+number0('/'(N,D)) --> integer0(N),"/",number0(D).
+number0(N) --> integer0(N).
+
+symbol0('#$'(S)) --> "#$",{!},symbolChars(S).
+
+symbol0(nullPk(S)) --> "#:",{!},symbol1(S).
+symbol0(S) --> ":",{!},symbol1(SC),{atom_concat(':',SC,S)}.
+symbol0(S) --> symbol1(SC),{atom_concat('',SC,S)}.
+
+% no upcase
+symbol1(S) --> "|",{!}, charsUpTo(S,"|").
+symbol1(S) --> symbolChars(S), { upcase_atom(S,S)}.
+%% symbol1('#$'(S)) --> symbolChars(S).
+symbol1(S) --> symbolChars(S).
+%% symbol1(U) --> symbolChars(S), { upcase_atom(S,U)}.
+
+char0(char(S))-->"#\\",char1(S).
+char0(reader_error(char,C))-->"#\\",[C].
+char1(S)--> ")",{!,string_to_list(S,")")}.
+char1(S)--> "\\",{!,string_to_list(S,"\\")}.
+char1(S)--> symbolChars(S),{!}.
+char1(S)--> [C],{!,string_to_list(S,[C])}.
+
+
+symbolChars(S) --> validSymbolChars([C|Cs]), {  string_to_list(S,[C|Cs]) }.
+
+
+
+validSymbolChars([])--> dcgNoConsumeStartsC(invalidSymbolChar),!.
+validSymbolChars([C|Cs])--> validSymbolChar(C),!,validSymbolChars(Cs).
+validSymbolChars([])-->[].
+
+validSymbolChar(C) --> dcgBothC(char0ExceptFor(C,[graph],[white]),dcgNotC(invalidSymbolChar)).
+invalidSymbolChar --> meetsCharConstraitDCG([white,paren(_),quote|":,)"]).
+meetsCharConstraitDCG(Include) -->  [C], {(( meetsCharConstrait(C,Include)))}.
+
+
+dcgNotC(DCG2,S,E) :- not(phrase(DCG2,S,E)).
+dcgBothC(DCG1,DCG2,S,R) :- append(L,R,S),phrase(DCG1,L,[]),once(phrase(DCG2,L,[])).
+dcgNoConsumeStartsC(DCG,SE,SE):-phrase(DCG,SE,_).
+
+
+escapedChar(C)-->[92,C]. %%,{trace}.
+
+meetsCharConstrait(C,[]):-! /*,trace*/,  fail.
+meetsCharConstrait(C,List):- member(LType,List),(LType==C ;( code_type(C,Type), LType=Type)),!.
+
+char0ExceptFor(C,Include,Exclude) --> escapedChar(C),{!,not(member(escape, Exclude))}.
+char0ExceptFor(C,Include,Exclude) --> [C], {notrace(( meetsCharConstrait(C,Include) , not(meetsCharConstrait(C,Exclude)) ))}.
+
+chars0ExceptFor([C|Cs],Include,Exclude) --> escapedChar(C),{!,not(member(escape, Exclude))},chars0ExceptFor(Cs,Include,Exclude).
+chars0ExceptFor([C|Cs],Include,Exclude) --> char0ExceptFor(C,Include,Exclude), chars0ExceptFor(Cs,Include,Exclude),!.
+chars0ExceptFor([],_Include,_ExceptFor) --> [].
+
+charsUpTo(Cs0,Except) --> charsUpTo0(Cs,Except),{string_to_list(Cs0,Cs)}.
+charsUpTo0([C|Cs],Except) --> escapedChar(C), !, charsUpTo0(Cs,Except).
+charsUpTo0([],Except) --> Except,{!}.
+charsUpTo0([C|Cs],Except) --> [C], {!}, charsUpTo0(Cs,Except).
+
+
+integer0(I) -->
+        digit0(D0),
+        digits0(D),!,
+        noMoreSymbol,
+        { number_chars(I, [D0|D]) }.
+
+
+
+noMoreSymbol --> noMoreChars.
+noMoreSymbol --> peekChar(noMoreSymbol1).
+noMoreSymbol1 --> oneSpace.
+noMoreSymbol1 --> invalidSymbolChar.
+
+float0(I) -->
+        digits0([D0|D0s]),
+        ".",
+        digits0([D1|D1s]),
+        { append([D0|D0s],[46,D1|D1s],CODES),  number_codes(I, CODES) }.
+
+digits0([D|T]) --> digit0(D), !, digits0(T).
+digits0([]) --> [].
+
+digit0(D) --> [D], { code_type(D, digit) }.
+
+
 % ===================================================================
 % Lowlevel readCycLTermChars
 % ===================================================================
 readCycLTermChars(InStream,Response):-
-   readCycLTermChars(InStream,Response,_),!.
+  readCycLTermChars(InStream,Response,_ResponseType).
+
+readCycLTermChars(InStream,Response,ResponseType):-
+   debugOnFailure(readCycLTermChars(InStream,[],[sexp],Response,ResponseType)),!.
    %%(validLisp(Response)-> (!) ;(readMoreChars(Chars))).
    
+subType(_Type,_ExpectedType).
 
-readCycLTermChars(InStream,[Start|Response],Type):-
+:-set_prolog_flag(double_quotes,codes).
+
+getTypeHintFromChar(InStream,"\"",double_quotes).
+getTypeHintFromChar(InStream,"\\",any_char).
+getTypeHintFromChar(InStream,";",line_comment).
+getTypeHintFromChar(InStream,[10],newline).
+getTypeHintFromChar(InStream,[X],whitespace):- X < 33.
+getTypeHintFromChar(InStream,"#",hash_reader).
+getTypeHintFromChar(InStream,":",symbol(kw)).
+getTypeHintFromChar(InStream,"|",symbol(quoted)).
+getTypeHintFromChar(InStream,"#|",lisp_multiline_start).
+getTypeHintFromChar(InStream,"|#",lisp_multiline_end).
+
+getTypeHintFromChar(InStream,"#<",lisp_uglyobject).
+
+getTypeHintFromChar(InStream,Chars,HashType):-getTypeHintFromChar_hash(InStream,Chars,HashType).
+
+getTypeHintFromChar_hash(InStream,"#$",hash_dollar).
+getTypeHintFromChar_hash(InStream,"#\\x",lisp_char_hex).
+getTypeHintFromChar_hash(InStream,"#\\o",lisp_char_oct).
+getTypeHintFromChar_hash(InStream,"#\\d",lisp_char_dec).
+getTypeHintFromChar_hash(InStream,"#\\",lisp_char).
+
+
+% "whitepace reader is first"
+readCycLTermChars(InStream,Sofar,[whitespace|OuterType],Response,ResponseType):-
+   peek_code(InStream,White),White<33,get_code(InStream,White),
+   append(Sofar,[White],Sofar2), readCycLTermChars(InStream,Sofar2,[whitespace|OuterType],Response,ResponseType).
+
+% "whitepace reader terminator"
+readCycLTermChars(InStream,Sofar,[whitespace|OuterType],ResponseOut,ResponseType):-
+   peek_code(InStream,White),White>32,ResponseType=whitespace,
+   typedResponse(Sofar,ResponseType,ResponseOut).
+
+% "keyword symbol"
+readCycLTermChars(InStream,":",[sexp|OuterType],ResponseOut,SubSubResponseType):-
+   skip(InStream,58),
+   readCycLTermChars(InStream,[],[symbol(_)|OuterType],Response,SubSubResponseType),
+   atom_concat(':',Response,ResponseOut),!.
+
+% "| quoted symbol"
+readCycLTermChars(InStream,"|",[sexp|OuterType],ResponseOut,ResponseType):-
+   skip(InStream,192),
+   ResponseType = symbol(quoted),
+   readUntilUnless("|",[92,_],InStream,Codes),
+   skip(InStream,192),
+   typedResponse(Codes,ResponseType,ResponseOut).
+
+% "#\\ character start"
+readCycLTermChars(InStream,"\\#",[lisp_char|OuterType],Response,char(LispCharSubType)):-
+   skip(InStream,92),peek_code(InStream,Start),
+   getTypeHintFromChar(InStream,[35,92,Start],LispCharType),subType(LispCharType,OuterType),
+   skip(InStream,Start),
+   readCycLTermChars(InStream,[],[LispCharSubType|OuterType],Response,_Done).
+
+% "lisp char above found no subtype"
+readCycLTermChars(InStream,"\\#",[lisp_char|OuterType],char(Response),char(LispCharSubType)):-
+   skip(InStream,92),peek_code(InStream,Start),
+   readCycLTermChars(InStream,[Start],[symbol(_)|OuterType],Response,LispCharSubType).
+
+% "# hashreader start"
+readCycLTermChars(InStream,[35],[hash_reader|OuterType],Response,HashSubTypeSubType):-
+   skip(InStream,35),peek_code(InStream,Start),
+   getTypeHintFromChar(InStream,[35,Start],HashSubType),subType(HashSubType,OuterType),
+   skip(InStream,Start),
+   readCycLTermChars(InStream,[],[HashSubType|OuterType],Response,HashSubTypeSubType).
+
+% "\" double quotes" 
+readCycLTermChars(InStream,"\"",[sexp|OuterType],ResponseOut,ResponseType):-
+   skip(InStream,34),
+   ResponseType = lisp_string,
+   readUntilUnless("\"",[92,_],InStream,Codes),
+   skip(InStream,34),
+   typedResponse(Codes,ResponseType,ResponseOut).
+
+
+typedResponse(Sofar,whitespace,ResponseOut):-string_to_list(ResponseOut,Sofar).
+typedResponse(Sofar,lisp_string,ResponseOut):-string_to_list(ResponseOut,Sofar).
+typedResponse(Sofar,number,ResponseOut):-number_codes(ResponseOut,Sofar).
+typedResponse(Sofar,symbol,ResponseOut):-atom_codes(ResponseOut,Sofar).
+
+
+% "( cons reader"
+readCycLTermChars(InStream,"(",[sexp|OuterType],cons(ResponseHead,ResponseTail),cons(ResponseTypeHead,ResponseTypeTail)):-
+   skip(InStream,40),
+   readCycLTermChars(InStream,"",[sexp|OuterType],ResponseHead,ResponseTypeHead),
+   readCycLTermChars(InStream,"",[constail|OuterType],ResponseTail,ResponseTypeTail),!.
+
+% ") cons tail"
+readCycLTermChars(InStream,")",[constail|OuterType],[],constail):-
+   skip(InStream,41),!.
+
+% ". cons dot"
+readCycLTermChars(InStream,".",[constail|OuterType],ResponseTail,ResponseTypeTail):-
+   skip(InStream,46),
+   readCycLTermChars(InStream,"",[constail|OuterType],ResponseTail,ResponseTypeTail),!.
+
+% " cons next "
+readCycLTermChars(InStream,[],[constail|OuterType],ResponseTail,ResponseTypeTail):-
+   readCycLTermChars(InStream,[],[sexp,constail|OuterType],ResponseTail,ResponseTypeTail),!.
+
+% "any sexpr"
+readCycLTermChars(InStream,[],[sexp|OuterType],ResponseOut,ResponseType):-
    peek_code(InStream,Start),
    readCycLTermCharsUntil(Start,InStream,Response,Type),
    debugFmt('cyc>~s (~w)',[Response,Type]).
@@ -766,18 +1194,38 @@ readCycLTermCharsUntil(Char,InStream,Trim,atom):-!,
    streamClear(InStream).
 
 % needs better solution!  .01 seconds works but .001 seconds don't :(  meaning even .01 might in some circumstances be unreliable
-streamClear(InStream) :- once(wait_for_input([InStream], Inputs, 0.01)),Inputs=[],!.
+streamClear(InStream) :- once(catch(wait_for_input([InStream], Inputs, 0.01),E,(trace,debugFmt(E)))),Inputs=[],!.
 %streamClear(InStream) :-get_code(InStream, Was),((Was == -1) -> (true);(debugFmt('FoundMore ~c ~q ~n',[Was,Was]),streamClear(InStream))),!.
 streamClear(InStream) :- get_code(InStream, _Was),( (_Was == -1) -> true ; streamClear(InStream)),!.
 
-readUntil(Char,InStream,Response):-
-      get_code(InStream,C),
-      readUntil(0,Char,C,InStream,Response).
-      
-%readUntil(Prev,Char,Char,InStream,[Char]):-not(Prev=92),Char == -1,!,throw(cyc_error(InStream,end_of_stream)).
-readUntil(Prev,Char,Char,InStream,[Char]):-not(Prev=92),!.
-readUntil(Prev,Char,C,InStream,[C|Out]):-get_code(InStream,Next),
-    ( Next == -1 -> throw(cyc_error(InStream,end_of_stream)) ; readUntil(C,Char,Next,InStream,Out)).
+% ===================================================================
+%  Read until
+% ===================================================================
+get_code_no_eof(InStream,NoEOFCode):- get_code(InStream,NoEOFCode), (NoEOFCode == -1 -> throw(cyc_error('eof on',InStream)) ; true).
+
+readUntil(Char,InStream,Response):-readUntilUnless([Char],[92,_],InStream,Response).
+
+readUntilUnless(Chars,Unless,InStream,Response):-
+      peek_code(InStream,C),
+      readUntilUnless([C],Chars,Unless,InStream,Response).
+
+% must skip over unless
+readUntilUnless([Prev|Prevs],Chars,Unless,InStream,Response):-append(_,Unless,[Prev|Prevs]),!,
+   get_code_no_eof(InStream,_),
+   peek_code(InStream,Next),
+   append([Prev|Prevs],[Next],AllPrev),
+   readUntilUnless(AllPrev,Chars,Unless,InStream,ResponseSub).
+
+% Hit termination
+readUntilUnless(Prevs,Chars,Unless,InStream,Response):-append(Response,Chars,Prevs),!.
+
+% must consume
+readUntilUnless([Prev|Prevs],Chars,Unless,InStream,Response):-
+   get_code_no_eof(InStream,_),
+   peek_code(InStream,Next),
+   append([Prev|Prevs],[Next],AllPrev),
+   readUntilUnless(AllPrev,Chars,Unless,InStream,ResponseSub).
+   
 
       
 % ===================================================================
@@ -1343,7 +1791,7 @@ unquoteAtom(Atom,New):-concat_atom(LIST,'"',Atom),concat_atom(LIST,'',New),!.
 % ============================================
 
 :-dynamic_transparent(makeConstant/0).
-:-dynamic_transparent(user:isCycConstantMade/1).
+:-dynamic_transparent(isCycConstantMade/1).
 :-dynamic_transparent(isCycConstantNever/1).
 :-dynamic_transparent(isCycConstantNever/2).
 :-dynamic_transparent(isCycConstantGuess/1).
@@ -1854,9 +2302,9 @@ cycl_s([]) --> [].
 
 quantity(Number) -->  [Number] , {  number(Number),! } .
 
-variable(VN)-->  ['??',A], { var_number(A,VN)   } . 
-variable(VN)-->  ['??'], { var_gen(A),var_number(A,VN)   } .     %Anonymous
-variable(VN)-->  ['?',A], { var_number(A,VN)   } . 
+variable(VN)-->  ['??',A], { var_numbered(A,VN)   } . 
+variable(VN)-->  ['??'], { var_gen(A),var_numbered(A,VN)   } .     %Anonymous
+variable(VN)-->  ['?',A], { var_numbered(A,VN)   } . 
 
 checkValidConstAtoms(UQ,R):-not(member(UQ,['(',')','<','>','?','.','#'])),
       once(is_list(UQ) -> (stringToList(RR,UQ),R=string(RR)) ; R=UQ),!.
@@ -1895,7 +2343,7 @@ qual(Q) --> constant(Q), { nonvar(Q) }.
 
 % Construct arbitrary list of args
 arbitrary([]) -->  [].
-arbitrary(VN)-->  ['?',A], { var_number(A,VN)   } . 
+arbitrary(VN)-->  ['?',A], { var_numbered(A,VN)   } . 
 arbitrary([Head]) -->  cycl(Head).
 arbitrary([A|L]) --> cycl(A) , cycl_s(L).
 
@@ -1910,8 +2358,8 @@ arbitrary([A|L]) --> cycl(A) , cycl_s(L).
 %======================================================================
 idGen(X):-flag(idGen,X,X+1).
      
-var_number(A,'$VAR'(VN)):-numbered_var(A,'$VAR'(VN)),!.
-var_number(A,'$VAR'(VN)):-flag(get_next_num,VN,VN+1),asserta(numbered_var(A,'$VAR'(VN))),!.
+var_numbered(A,'$VAR'(VN)):-numbered_var(A,'$VAR'(VN)),!.
+var_numbered(A,'$VAR'(VN)):-flag(get_next_num,VN,VN+1),asserta(numbered_var(A,'$VAR'(VN))),!.
 
 :-dynamic_transparent(numbered_var/2).
 
@@ -3419,7 +3867,7 @@ parse_cyc_soap(Options):-memberchk(submit=ask,Options),!,make,
                      )))),
         write('</cycml:ask>\n').
 
-:-dynamic_transparent(invokeRequestToBuffer(NEWFORM,ChaseVars,Ctx,TrackingAtom,Context,User,Vars,CPU)).
+:-dynamic(invokeRequestToBuffer(NEWFORM,ChaseVars,Ctx,TrackingAtom,Context,User,Vars,CPU)).
 
 invokeRequest_xml(NEWFORM,ChaseVars,Ctx,TrackingAtom,Context,User,Vars,CPU):-
         invokeRequestToBuffer(NEWFORM,ChaseVars,Ctx,TrackingAtom,Context,User,Vars,CPU),
@@ -3795,7 +4243,7 @@ fresh_line(Strm):-stream_property(Strm,position('$stream_position'(_,_,POS,_))),
 fresh_line(Strm):-trace,nl(Strm),!.
 
 %debugFmt(C,T):- isCycOption(opt_debug=off),!.
-debugFmt(_,F):-F==[-1];F==[[-1]].
+%debugFmt(_,F):-F==[-1];F==[[-1]].
 
 debugFmt(F,A):-
         fresh_line(user_error),
@@ -3941,6 +4389,12 @@ debugOnFailure(X):-ctrace,call(X).
 
 debugOnFailure(arg_domains,CALL):-!,logOnFailure(CALL),!.
 debugOnFailure(Module,CALL):-debugOnFailure(Module:CALL),!.
+
+
+cycDebugOnError((X,Y)):-!,cycDebugOnError(X),cycDebugOnError(Y).
+cycDebugOnError((X;Y)):-!,(cycDebugOnError(X);cycDebugOnError(Y)).
+cycDebugOnError(call(X)):-!,cycDebugOnError(X).
+cycDebugOnError(X):-catch(X,E,(writeFailureLog(E,X),ctrace,call(X))).
 
 
 noDebug(CALL):-CALL.
@@ -4329,3 +4783,14 @@ valueToCheckMark(Value,'OFF',' ').
 %% ======================================
 % :-set_prolog_flag(double_quotes,codes).
 
+
+:-retract(double_quotes_was(X)),set_prolog_flag(double_quotes,X).
+
+
+% ===================================================================
+% Lowlevel readCycLTermChars
+% ===================================================================
+%%getSurfaceFromTokens(GET,TERM,VARS):-!.
+
+%getSurfaceFromTokens(GET,SURF,VARS):-debugOnFailure(s2p(surfFromTokens,GET,SURF,VARS)),!.
+getSurfaceFromTokens(GET,token(GET),_VARS):-!.

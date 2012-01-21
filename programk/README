@@ -2,7 +2,7 @@
 ProgramK:
  here in jellyfish/programk/
 
- swipl -f logicmoo_module_aiml_main.pl
+ swipl -f logicmoo_module_aiml.pl
  halt
 
 

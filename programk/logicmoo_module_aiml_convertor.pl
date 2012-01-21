@@ -72,7 +72,7 @@ translate_aiml_structure(Ctx,Structure):- trace,
 
 cateForFile(_Ctx,SRCFILE,aimlCate(_GRAPH,_PRECALL,_TOPIC,_THAT,_INPUT,_PATTERN,_FLAGS,_CALL,_GUARD,_USERDICT,_TEMPLATE,_LINENO,SRCFILE:_-_,_RULESYM)):-useCateID,!.
 cateForFile(_Ctx,SRCFILE,aimlCate(_GRAPH,_PRECALL,_TOPIC,_THAT,_INPUT,_PATTERN,_FLAGS,_CALL,_GUARD,_USERDICT,_TEMPLATE,_LINENO,SRCFILE:_-_)):-!.
-cateForFile(Ctx,File,FileMatch):- ctrace,withNamedValue(Ctx,[anonvarsFroCate=true], makeAimlCate(Ctx,[srcfile=File:_-_],FileMatch)),!.
+cateForFile(Ctx,File,FileMatch):- atrace,withNamedValue(Ctx,[anonvarsFroCate=true], makeAimlCate(Ctx,[srcfile=File:_-_],FileMatch)),!.
 
 withNamedValue(Ctx,[N=V],Call):-withAttributes(Ctx,[N=V],Call),!.
 
@@ -146,8 +146,8 @@ translate_single_aiml_file0(Ctx,File,PLNAME,FileMatch):-
         printPredCount('Loaded',FileMatch, _FM),
         retractall(creating_aiml_file(File,PLNAME)))),!.
 
-stream_file(user,PLNAME):-!,ctrace,stream_property(user,file_name(Name)),prolog_must(PLNAME=Name).
-stream_file(PLNAMET,PLNAME):-ctrace,is_stream(PLNAMET),stream_property(PLNAMET,file_name(Name)),prolog_must(PLNAME=Name).
+stream_file(user,PLNAME):-!,atrace,stream_property(user,file_name(Name)),prolog_must(PLNAME=Name).
+stream_file(PLNAMET,PLNAME):-atrace,is_stream(PLNAMET),stream_property(PLNAMET,file_name(Name)),prolog_must(PLNAME=Name).
 stream_file(PLNAMET,PLNAME):-exists_file(PLNAMET),!,prolog_must(PLNAME=PLNAMET).
 
 translate_single_aiml_file1(File,PLNAME,FileMatch):-
@@ -324,7 +324,7 @@ convert_ele(Ctx,element(A, B, C),INNER_XML):-
 
 convert_ele(Ctx,element(Tag, A, B),element(Tag, A, BB)):- member(Tag,[category]), convert_template(Ctx,B,BB).
 
-convert_ele(Ctx,element(Tag, A, B),element(Tag, A, BB)):- member(Tag,[srai]),ctrace,convert_template(Ctx,B,BB).
+convert_ele(Ctx,element(Tag, A, B),element(Tag, A, BB)):- member(Tag,[srai]),atrace,convert_template(Ctx,B,BB).
 
 convert_ele(_Ctx,O,O).
 

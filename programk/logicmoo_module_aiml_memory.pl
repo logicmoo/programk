@@ -37,7 +37,7 @@ getAliceMemOrSetDefault0(CtxIn,ConvThread,Name,Value,OrDefault):-
 :-multifile(dict/3).
 
 getAliceMemElse(Ctx,Dict,Name,ValueO):-getAliceMemComplete(Ctx,Dict,Name,ValueO),!.
-getAliceMemElse(_Ctx,Dict,Name,[Dict,(s),unknown,Name]):-ctrace.
+getAliceMemElse(_Ctx,Dict,Name,[Dict,(s),unknown,Name]):-atrace.
 
 getAliceMem(Ctx,Dict,DEFAULT,ValueOut):- compound(DEFAULT),DEFAULT=default(Name,Default),!, 
      (getAliceMemComplete(Ctx,Dict,Name,ValueO) -> xformOutput(ValueO, ValueOut)  ; xformOutput(Default, ValueOut)). 
@@ -176,7 +176,7 @@ getMajorIndexedValueLinear(Ctx,[D|List],Name,Major,ValueS):-
 getMajorIndexedValueLinear(Ctx,[D|List],Name,Major,ValueS):-!,fail,
    unify_listing(dict(_,Name,_)),
    member(Dict,[D|List]),
-   ctrace,
+   atrace,
    getMajorIndexedValueLinear0(Ctx,Dict,Name,Major,ValueS),!.
 
 getMajorIndexedValueLinear(Ctx,Dict,Name,Major,ValueS):-
@@ -191,7 +191,7 @@ getMajorIndexedValueLinear0(Ctx,Dict,Name,Major,ValueS):-
    nthResult(Major,getInheritedStoredValue(Ctx,Dict,Name,ValueS)),!.
 
 getMajorIndexedValueLinear0(_Ctx,Dict,Name,Major,ValueS):-
-   nthResult(Major,dict(Dict,Name,ValueS)),!,ctrace.
+   nthResult(Major,dict(Dict,Name,ValueS)),!,atrace.
 
 nthResult(N,Call):-flag(nthResult,_,N),nthResult0(Call,Rs),!,Rs=1.
 nthResult0(Call,N):-Call,flag(nthResult,N,N-1),N=1.
@@ -225,9 +225,9 @@ numberFyList([A|MajorMinor],[B|MajorMinorM]):-
 numberFyList([A|MajorMinor],[A|MajorMinorM]):-numberFyList(MajorMinor,MajorMinorM).
 
 isStarValue(Value):-ground(Value),not([_,_|_]=Value),member(Value,[[ValueM],ValueM]),!,member(ValueM,['*','_']),!.
-isEmptyValue([]):-ctrace.
+isEmptyValue([]):-atrace.
 
-xformOutput(Value,ValueO):-isStarValue(Value),!,ctrace,Value=ValueO.
+xformOutput(Value,ValueO):-isStarValue(Value),!,atrace,Value=ValueO.
 xformOutput(Value,ValueO):-listify(Value,ValueL),Value\==ValueL,!,xformOutput(ValueL,ValueO).
 xformOutput(Value,Value).
 
@@ -246,7 +246,7 @@ getMinorSubscript(Items,ANum,Value):-not(number(ANum)),!,prolog_must(atom_to_num
 getMinorSubscript(Items,Num,Value):- prolog_must(is_list(Items)),length(Items,Len),Index is Len-Num,nth0(Index,Items,Value),is_list(Value),!.
 getMinorSubscript([],1,[]):-!.
 getMinorSubscript(Items,1,Value):- last(Items,Last), (is_list(Last)->Value=Last;Value=Items),!.
-getMinorSubscript(Items,1,Value):- xformOutput(Items,Value),!,ctrace.
+getMinorSubscript(Items,1,Value):- xformOutput(Items,Value),!,atrace.
 getMinorSubscript(Items,Num,Value):-debugFmt(getMinorSubscriptFailed(Items,Num,Value)),fail.
 
 getUserDicts(User,Name,Value):-isPersonaUser(User),isPersonaPred(Name),once(getInheritedStoredValue(_Ctx,User,Name,Value)).
@@ -406,13 +406,13 @@ addNewContextValue(Ctx,Dict,Key,Name,ValueIn):-
 isLinearMemStore:-true.
 
 pushInto1DAnd2DArray(Ctx,Tall,Wide,_Ten,MultiSent,ConvThread):- isLinearMemStore,!,
-   %%ctrace,
+   %%atrace,
    splitSentences(MultiSent,Elements),
    maplist_safe(insert1StValue(Ctx,ConvThread,Tall),Elements),!,
    insert1StValue(Ctx,ConvThread,Wide,Elements),!.
 
 pushInto1DAnd2DArray(Ctx,Tall,Wide,Ten,MultiSent,ConvThread):-
-   %%ctrace,
+   %%atrace,
    splitSentences(MultiSent,Elements),
    previousVars(Tall,TallPrevVars,Ten),
    maplist_safe(setEachSentenceThat(Ctx,ConvThread,Tall,TallPrevVars),Elements),!,

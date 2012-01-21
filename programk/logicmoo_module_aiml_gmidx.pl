@@ -561,7 +561,7 @@ addArgIndex(_CateSig,_Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgTy
   assertaFront(argNFound(Functor,ArgName,Arg,IndexableArg)),!,
   immediateCall(_Ctx,assert_argNFound(Functor,ArgName,Arg,IndexableArg)).
 
-addArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType):- ctrace,
+addArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType):- atrace,
   debugFmt(addArgIndex(CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType)),
   prolog_must(Arg=IndexableArg),!.
 
@@ -607,7 +607,7 @@ makeAimlCate(Ctx,Cate,Value):-
 
 arg2OfList(LIST,LISTO):-maplist_safe(arg2,LIST,LISTO),!.
 arg2(_=Value,Value):-!.
-arg2(Value,Value):-!,ctrace.
+arg2(Value,Value):-!,atrace.
 
 
 translate_cate(Ctx,CateSig):-replaceArgsVar(Ctx,[srcinfo=_],CateSig),assert_cate_in_load(Ctx,CateSig).

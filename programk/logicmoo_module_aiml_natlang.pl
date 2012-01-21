@@ -13,7 +13,7 @@
 % ===============================================================================================
 % Split input into many words
 % ===============================================================================================
-toString_atom(Input,Atom):-toCycApiExpression(Input,Out,[]),ctrace,string_to_atom(Atom,Out).
+toString_atom(Input,Atom):-toCycApiExpression(Input,Out,[]),atrace,string_to_atom(Atom,Out).
 
 tokenizeInput(Input,Tokens):- notrace(is_string(Input)),toString_atom(Input,Atom),!,tokenizeInput(Atom,Tokens),!.
 %%tokenizeInput(String,Tokens):-hotrace(tokenizeInput0(String,Tokens)),!.

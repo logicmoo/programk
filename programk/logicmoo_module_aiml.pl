@@ -127,7 +127,7 @@ alicebot(Input):-
   alicebotCTX(Ctx,Input),!.
 
 alicebotCTX(Ctx,Input):- prolog_must(nonvar(Input)), alicebotCTX(Ctx,Input,Resp),!,say(Ctx,Resp),!.
-%%alicebotCTX(Ctx,_):- ctrace, say(Ctx,'-no response-'),!.
+%%alicebotCTX(Ctx,_):- atrace, say(Ctx,'-no response-'),!.
 
 % ===============================================================================================
 % Main Alice Input-Output
@@ -241,13 +241,13 @@ computeTemplate11(Ctx,Votes,[A|B],OO,VotesO):-expandVar(Ctx,A,AA),computeTemplat
 traceAIML:-!.
 
 expandVar(_Ctx,Var,Var):-var(Var),!,traceAIML.
-expandVar(_Ctx,[Var|_],Var):- !,ctrace,traceAIML.
+expandVar(_Ctx,[Var|_],Var):- !,atrace,traceAIML.
 expandVar(Ctx,In,Out):-atom(In),atom_concat('$',NameVar,In),!,expandVariable(Ctx,NameVar,Out).
 expandVar(_Ctx,In,Out):-atomic(In),Out=In,!.
 expandVar(Ctx,star(A,B,C),Out):-!,starName(A,AStar),!,expandVar(Ctx,element(AStar,B,C),Out).
 expandVar(Ctx,element(A,B,C),Out):-!,computeElementMust(Ctx,1,A,B,C,Out,_VotesO).
 expandVar(Ctx,In,Out):-computeAnswerMaybe(Ctx,1,In,Out,_VotesO),!.
-expandVar(_Ctx,In,Out):-ctrace,Out=In,!.
+expandVar(_Ctx,In,Out):-atrace,Out=In,!.
 
 expandVariable(Ctx,In,Out):-atom(In),atom_concat('$',NameVar,In),!,expandVariable(Ctx,NameVar,Out),!.
 expandVariable(Ctx,In,Out):-atom(In),atom_concat(NameVar,'$',In),!,expandVariable(Ctx,NameVar,Out),!.
@@ -302,7 +302,7 @@ isAimlTag(get).
 isAimlTag(_).
 
 prolog_mostly_ground(Out):-ground(Out),!.
-prolog_mostly_ground(Out):-var(Out),!,ctrace.
+prolog_mostly_ground(Out):-var(Out),!,atrace.
 prolog_mostly_ground([H|_Out]):-!,prolog_must(prolog_mostly_ground1(H)),!.
 prolog_mostly_ground(Out):- ((arg(_N,Out,Arg),prolog_must(prolog_mostly_ground1(Arg)),fail));true.
 prolog_mostly_ground1(Out):-prolog_must(nonvar(Out)).
@@ -355,7 +355,7 @@ still_computeElement(Ctx,Votes, Tag, ATTRIBS, [DO|IT], OUT, VotesO) :- recursive
 :-discontiguous(computeElement/7).%%ah iot would be fine to move the OXY
 
 computeElement(_Ctx,Votes,Tag,ATTRIBS,InnerXml,Output,VotesO):- G=a(Votes,Tag,ATTRIBS,InnerXml),
-   (prolog_must(ground(G)),not(var(Output);var(VotesO))),!,ctrace,throw(G).
+   (prolog_must(ground(G)),not(var(Output);var(VotesO))),!,atrace,throw(G).
 
 % <justthat ...>
 computeElement(Ctx,Votes,justthat,ATTRIBS,InnerXml,Output,VotesO):-!, computeElement(Ctx,Votes,input,[index=[2]|ATTRIBS],InnerXml,Output,VotesO).
@@ -385,7 +385,7 @@ computeElement(Ctx,Votes,sr,ATTRIBS,Input,Output,VotesO):- !,
 computeElement(Ctx,Votes,Tag,ATTRIBS,Input,element(Tag,ATTRIBS,Output),VotesO):- isGenTemplate(Ctx,ATTRIBS),member(Tag,[srai,personf]),!,computeInnerTemplate(Ctx,Votes,Input,Output,VotesO).
 
 % <srai/>s
-computeElement(_Ctx,Votes,srai,ATTRIBS,[],result([],srai=ATTRIBS),VotesO):-ctrace,!,VotesO is Votes * 0.6.
+computeElement(_Ctx,Votes,srai,ATTRIBS,[],result([],srai=ATTRIBS),VotesO):-atrace,!,VotesO is Votes * 0.6.
 
 % <srai>s
 computeElement(Ctx,Votes,srai,ATTRIBS,Input,Output,VotesO):- !, % for evalSRAI
@@ -414,7 +414,7 @@ computeElement_li(Ctx,Votes,Preconds,_InnerXml,OutProof,VotesO):-makeBlank(Ctx,V
   precondsTrue0(_Ctx,PC):-PC==[];var(PC),!.
   precondsTrue0(Ctx,[NV|MORE]):-!,precondsTrue0(Ctx,MORE),!,precondsTrue0(Ctx,NV).
   precondsTrue0(Ctx,N=V):- peekNameValue(Ctx,user,N,Value,'$value'([])),!,(valuesMatch(Ctx,Value,V)->debugFmt(valuesMatch(Value,V));debugFmt(valuesMatch(not,Value,V))),valuesMatch(Ctx,Value,V).
-  precondsTrue0(_Ctx,_NV):-ctrace.
+  precondsTrue0(_Ctx,_NV):-atrace.
 
 %%%%%%%%%%%%%%%%%%%%%
 % <random...>
@@ -502,7 +502,7 @@ computeElement(Ctx,Votes,BOT_ATOM,Attribs,InnerXml,element(BOT_ATOM,Attribs,Inne
 computeElement(Ctx,Votes,BOT_ATOM,[],[],proof(Resp,globalAliceTagVar(BOT_ATOM)),VotesO):- globalAliceTagVar(BOT_ATOM),!,expandVariable(Ctx,BOT_ATOM,Resp),VotesO is Votes  * 1.1.
 
 % <topicstar,star,thatstar...>
-computeElement(Ctx,Votes,StarTag,Attribs,InnerXml,Resp,VotesO):- hotrace(starType(StarTag,StarName)),!, %%ctrace,
+computeElement(Ctx,Votes,StarTag,Attribs,InnerXml,Resp,VotesO):- hotrace(starType(StarTag,StarName)),!, %%atrace,
       computeStar(Ctx,Votes,StarName,Attribs,InnerXml,Resp,VotesM),VotesO is VotesM * 1.1,!.
 
 
@@ -544,7 +544,7 @@ computeElement(Ctx,Votes,Tag,Attribs, Input, Output, VotesO) :- formatterProc(Ta
 % .... computeCall to formatter ....
 computeCall(Ctx,Method,Mid,Output,ElseResult):-
    error_catch(prolog_must(call(Method,Ctx,Mid,Output)),
-     E, (debugFmt(error(E,call(Method,Mid,Output))), ctrace, Output = ElseResult)).
+     E, (debugFmt(error(E,call(Method,Mid,Output))), atrace, Output = ElseResult)).
 computeCall(_Ctx,_Pred,_Mid,Result,ElseResult):-prolog_must(Result=ElseResult).
 
 % .... formatters ....
@@ -611,12 +611,12 @@ computeElement(Ctx,Votes,BOT_ATOM,[],[],proof(Resp,globalAliceTagVar(BOT_ATOM)),
 
 % rewrites
 computeElement(_Ctx,Votes,Tag,[],[],result([reply,from,tag,Tag],element(Tag,[],[])),Votes):-!.
-computeElement(_Ctx,Votes,Tag,Attribs,[],result([reply,from,Tag|Attribs],Tag,Attribs),Votes):-!,ctrace.
+computeElement(_Ctx,Votes,Tag,Attribs,[],result([reply,from,Tag|Attribs],Tag,Attribs),Votes):-!,atrace.
 computeElement(Ctx,Votes,Tag,Attribs,InnerXml,Resp,VotesO):-
   GETATTRIBS = element(Tag,Attribs,InnerXml),
   convert_element(Ctx,GETATTRIBS,GETATTRIBS0),
   GETATTRIBS \== GETATTRIBS0,!,
-  %%ctrace,
+  %%atrace,
   convert_element(Ctx,GETATTRIBS,_GETATTRIBS1),
   computeAnswer(Ctx,Votes,GETATTRIBS0, Resp,VotesO).
 
@@ -679,7 +679,7 @@ computeStar2(Ctx,Votes,Dict,ATTRIBS,StarVar,ValueI,ValueO,VotesM):-
 
 getStoredStarValue(Ctx,_Dict,StarVar,ValueI):-current_value(Ctx,StarVar,ValueI),!.
 getStoredStarValue(Ctx,Dict,StarVar,ValueI):-getStoredValue(Ctx,Dict,StarVar,ValueI),!.
-getStoredStarValue(_Ctx,Dict,StarVar,[starvar,StarVar,Dict]):-!,unify_listing(dict(Dict,_,_)),ctrace.
+getStoredStarValue(_Ctx,Dict,StarVar,[starvar,StarVar,Dict]):-!,unify_listing(dict(Dict,_,_)),atrace.
 
 
 computeMetaStar(Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Resp,VotesO):-computeMetaStar0(Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Resp,VotesO),!.
@@ -691,12 +691,12 @@ computeMetaStar0(Ctx,Votes,Star,MajorMinor,ATTRIBS,_InnerXml,proof(ValueO,Star=V
       getIndexedValue(Ctx,Dict,Star,MajorMinor,ValueI),!,
       computeInnerTemplate(Ctx,Votes,element(template,ATTRIBS,[ValueI]),ValueO,VotesM),VotesO is VotesM * 1.1.
 
-computeMetaStar0(_Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Resp,VotesO):- ctrace,
+computeMetaStar0(_Ctx,Votes,Star,Index,ATTRIBS,InnerXml,Resp,VotesO):- atrace,
       traceIf(Resp = result(InnerXml,Star,Index,ATTRIBS)),!,VotesO is Votes * 0.9.
 
 %%%%%%  peekNameValue(Ctx,Scope,Name,Value,else). %%
 getDictFromAttributes(Ctx,VarHolder,_ATTRIBS,SYM):-current_value(Ctx,VarHolder,SYM).
-getDictFromAttributes(_Ctx,_VarHolder,_ATTRIBS,'user'):-!. %%ctrace.
+getDictFromAttributes(_Ctx,_VarHolder,_ATTRIBS,'user'):-!. %%atrace.
 
 % ===============================================================================================
 % Compute Get/Set Probilities
@@ -718,7 +718,7 @@ computeGetSet(Ctx,Votes,GetSet,ATTRIBS,InnerXml,Resp,VotesO):- computeGetSetVar(
 dictVarName(N):-member(N,[dictionary,dict,userdict,type,user,botname,username,you,me]).
 % tests the dictionary contains at least one value
 dictFromAttribs(Ctx,ATTRIBS,Dict,NEW):-dictVarName(N),lastMember(N=DictV,ATTRIBS,NEW),convert_dictname(Ctx,DictV,Dict),getContextStoredValue(Ctx,Dict,_Name,Value),valuePresent(Value),!.
-dictFromAttribs(Ctx,ATTRIBS,Dict,NEW):-dictVarName(N),lastMember(N=DictV,ATTRIBS,NEW),ctrace,convert_dictname(Ctx,DictV,Dict),!,ctrace.
+dictFromAttribs(Ctx,ATTRIBS,Dict,NEW):-dictVarName(N),lastMember(N=DictV,ATTRIBS,NEW),atrace,convert_dictname(Ctx,DictV,Dict),!,atrace.
 
 lastKVMember(_Ctx,Keys,Value,ATTRIBS,NEW):-member(N,Keys),lastMember(N=Value,ATTRIBS,NEW),prolog_must(isValid(Value)),!.
 lastKVMember(Ctx,Keys,Value,ATTRIBS,ATTRIBS):-member(N,Keys),current_value(Ctx,N,Value),prolog_must(isValid(Value)),!.
@@ -790,7 +790,7 @@ computeAnswer0(Ctx,Votes,IN,Result,VotesOut):- prolog_must((number(Votes),nonvar
       nop(debugFmt(computeAnswer(Ctx,Votes,IN,Result,VotesOut))),fail.
 
 computeAnswer0(Ctx,Votes,MidVote - In,Out,VotesO):- prolog_must(nonvar(MidVote)),
-                           ctrace, !, computeAnswer(Ctx,Votes,In,Out,VotesA), VotesO is VotesA * MidVote.
+                           atrace, !, computeAnswer(Ctx,Votes,In,Out,VotesA), VotesO is VotesA * MidVote.
 
 computeAnswer0(_Ctx,Votes,_I,_,_):-(Votes>20;Votes<0.3),!,fail.
 
@@ -814,7 +814,7 @@ computeAnswerND(Ctx,Votes,element(Tag,Attribs,List),Out,VotesO):-!,computeElemen
 
 % never gets here due to element/3 cutted above
 computeAnswerND(Ctx,Votes,element(Tag,Attribs,List),Output,VotesO):- computeElement(Ctx,Votes,Tag,Attribs,List,Output,VotesO),!.
-computeAnswerND(Ctx,Votes,element(Tag,Attribs,List),Output,VotesO):-ctrace,computeElement(Ctx,Votes,Tag,Attribs,List,Output,VotesO),!.
+computeAnswerND(Ctx,Votes,element(Tag,Attribs,List),Output,VotesO):-atrace,computeElement(Ctx,Votes,Tag,Attribs,List,Output,VotesO),!.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
@@ -851,7 +851,7 @@ computeAnswerND(Ctx,Votes,prologCall(Method,Stuff),Resp,VotesO):-
   computeAnswer(Ctx,Votes,Stuff,Mid,VotesO),
   call(Method,Ctx,Mid,Resp),!.
 
-computeAnswerND(_Ctx,Votes,prologCall(Method),Resp,VotesO):- ctrace,
+computeAnswerND(_Ctx,Votes,prologCall(Method),Resp,VotesO):- atrace,
    once(call(Method)->(Resp=pass(Method),VotesO=Votes);(Resp=failed(Method),VotesO is Votes*0.5)),!.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
@@ -886,7 +886,7 @@ computeAnswerND(_Ctx,Votes,Res, Res,Votes):-resultOrProof(Res,_Mid),!.
 computeAnswerND(Ctx,Votes,GETATTRIBS, Resp,VotesO):-
   convert_element(Ctx,GETATTRIBS,GETATTRIBS0),
   GETATTRIBS \== GETATTRIBS0,!,
-  ctrace,
+  atrace,
   convert_element(Ctx,GETATTRIBS,_GETATTRIBS1),
   computeAnswer(Ctx,Votes,GETATTRIBS0, Resp,VotesO).
 
@@ -898,7 +898,7 @@ computeAnswerND(Ctx,Votes,GETATTRIBS, Resp,VotesO):- GETATTRIBS=..[GET], isAimlT
 computeAnswerND(Ctx,Votes,GETATTRIBS, Resp,VotesO):- GETATTRIBS=..[GET,ATTRIBS], isAimlTag(GET), !, computeElementMust(Ctx,Votes,GET,ATTRIBS,[],Resp,VotesO).
 computeAnswerND(Ctx,Votes,GETATTRIBS, Resp,VotesO):- GETATTRIBS=..[GET,ATTRIBS,INNER], isAimlTag(GET), !, computeElementMust(Ctx,Votes,GET,ATTRIBS,INNER,Resp,VotesO).
 
-computeAnswerND(_Ctx,Votes,Resp,Resp,Votes):-ctrace,aiml_error(computeAnswer(Resp)).
+computeAnswerND(_Ctx,Votes,Resp,Resp,Votes):-atrace,aiml_error(computeAnswer(Resp)).
 
 % ===============================================================================================
 % Run answer procs
@@ -933,7 +933,7 @@ rememberSaidIt_SH(Ctx,R1,Robot,User):-answerOutput(R1,SR1),!,
    setAliceMem(Ctx,Robot,'lastSaid',SR1),
    pushInto1DAnd2DArray(Ctx,'response','that',5,SR1,User).
 
-getRobot(Robot):-ctrace,getAliceMem(_Ctx,'bot','me',Robot),!.
+getRobot(Robot):-atrace,getAliceMem(_Ctx,'bot','me',Robot),!.
 
 getLastSaid(LastSaid):-getRobot(Robot),getAliceMem(_Ctx,Robot,'lastSaid',LastSaid).
 
@@ -968,7 +968,7 @@ answerOutput(Output,NonVar):-nonvar(NonVar),answerOutput(Output,Var),!,valuesMat
 answerOutput(Output,[Output]):-var(Output),!.
 answerOutput([],Output):- !, Output=[].
 %answerOutput(Output,Split):-atom(Output),atomWSplit(Output,Split),Split==[Output],!.
-%answerOutput(Output,Split):-atom(Output),ctrace,atomWSplit(Output,Split),!.
+%answerOutput(Output,Split):-atom(Output),atrace,atomWSplit(Output,Split),!.
 answerOutput('<br/>',['\n']):-!.
 answerOutput('<p/>',['\r\n']):-!.
 answerOutput(element('br',[],[]),['\n']):-!.

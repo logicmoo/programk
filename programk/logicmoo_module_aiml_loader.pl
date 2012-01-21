@@ -30,13 +30,13 @@ graph_or_file(Ctx,ATTRIBS, [Filename], XML):-atomic(Filename),!,graph_or_file(Ct
 
 graph_or_file(Ctx,ATTRIBS,Filename,XML):-graph_or_file_or_dir(Ctx,ATTRIBS,Filename,XML),!.
 graph_or_file(Ctx,ATTRIBS, Filename, XML):- atom(Filename),member(Quote-Pair,['\''-'\'','"'-'"','<'-'>','('-')']),
-     concat_atom([Quote,Mid,Pair],'',Filename),!,ctrace,graph_or_file(Ctx,ATTRIBS, Mid, XML).
+     concat_atom([Quote,Mid,Pair],'',Filename),!,atrace,graph_or_file(Ctx,ATTRIBS, Mid, XML).
 graph_or_file(Ctx,ATTRIBS, Filename, XML):- 
-     getCurrentFileDir(Ctx, ATTRIBS, CurrentDir),join_path(CurrentDir,Filename,Name),os_to_prolog_filename(Name,NameO),ctrace,
+     getCurrentFileDir(Ctx, ATTRIBS, CurrentDir),join_path(CurrentDir,Filename,Name),os_to_prolog_filename(Name,NameO),atrace,
      prolog_must(graph_or_file_or_dir(Ctx,[currentDir=CurrentDir|ATTRIBS],NameO,XML)),!.
 graph_or_file(Ctx,ATTRIBS, Filename, XML):- os_to_prolog_filename(Filename,NameO),!, prolog_must(graph_or_file_or_dir(Ctx,ATTRIBS,NameO,XML)),!.
 
-graph_or_file(_Ctx,ATTRIBS, Filename, [nosuchfile(Filename,ATTRIBS)]):-ctrace.
+graph_or_file(_Ctx,ATTRIBS, Filename, [nosuchfile(Filename,ATTRIBS)]):-atrace.
 
 
 graph_or_file_or_dir(Ctx,ATTRIBS, Filename, XML):- Filename=[A,B|_C],atom(A),atom(B),
@@ -55,7 +55,7 @@ graph_or_file_or_dir(Ctx,ATTRIBS, F, [element(aiml,DIRTRIBS,OUT)]):- DIRTRIBS = 
                    graph_or_file_or_dir(Ctx,[srcfile=FF|DIRTRIBS],FF,X))), OUT),!.
 
 
-getCurrentFile(Ctx,ATTRIBS,CurrentFile):- ctrace,attributeValue(Ctx,ATTRIBS,[srcfile,currentFile],CurrentFile,'$failure'),!.
+getCurrentFile(Ctx,ATTRIBS,CurrentFile):- atrace,attributeValue(Ctx,ATTRIBS,[srcfile,currentFile],CurrentFile,'$failure'),!.
 getCurrentFile(Ctx,_ATTRIBS,CurrentFile):-
             prolog_must(current_value(Ctx,proof,Proof)),
             nonvar(Proof),
@@ -193,7 +193,7 @@ fileToLineInfoElements(Ctx,File,XMLSTRUCTURES):-
        fileToLineInfoElements0(Ctx,File,XMLSTRUCTURES)).
 
 
-termFileContents(_Ctx,File,termFileContents(File)):-!. %%,ctrace.
+termFileContents(_Ctx,File,termFileContents(File)):-!. %%,atrace.
 
 termFileContents(_Ctx,File,element(aiml,[],XMLSTRUCTURES)):- %% another way to fileToLineInfoElements
    setup_call_cleanup((open(File, read, In, [])), findall(Elem,((repeat,read(In,Elem),((Elem\=end_of_file)->true;!))),XMLSTRUCTURES), close(In)),!.
@@ -365,7 +365,7 @@ load_aiml_structure(Ctx,element(aiml,ALIST,LIST)):-
 
 
 %genlMt (mispelling?)
-load_aiml_structure(Ctx,element(genlMt,ALIST,LIST)):-!,ctrace,
+load_aiml_structure(Ctx,element(genlMt,ALIST,LIST)):-!,atrace,
    attributeValue(Ctx,ALIST,[to],To,'$error'),
    current_value(Ctx,graph,Else),
    attributeValue(Ctx,ALIST,[from],From,'$value'(Else)),
@@ -659,7 +659,7 @@ pushCateElement(Ctx,INATTRIBS,element(Tag,ATTRIBS,INNER_XML)):- member(Tag,[oute
    maplist_safe(each_pattern(Ctx,OUTATTRIBS,NOPATTERNS),ALLPATTERNS))),!.
 
 % error
-pushCateElement(Ctx,ATTRIBS,M):-debugFmt('FAILURE'(pushCateElement(Ctx,ATTRIBS,M))),ctrace.
+pushCateElement(Ctx,ATTRIBS,M):-debugFmt('FAILURE'(pushCateElement(Ctx,ATTRIBS,M))),atrace.
 
 unify_partition(Mask, List, Included, Excluded):- partition(\=(Mask), List, Excluded , Included),!.
 %%unify_partition(Mask, +List, ?Included, ?Excluded)
@@ -688,7 +688,7 @@ dumpListHere(Ctx,DumpListHere):-
 loader_verb(Ctx,DumpListHere,Verbs):-debugOnError(peekNameValue(Ctx,DumpListHere,withCategory,Verbs,'$failure')),!.
 loader_verb(_Ctx,DumpListHere,Verbs):-lastMember(withCategory=Verbs,DumpListHere),nonvar(Verbs),!.
 loader_verb(Ctx,DumpListHere,Verbs):-prolog_must((peekNameValue(Ctx,DumpListHere,withCategory,Verbs,'$first'(['$current_value','$value'([assert_cate_in_load])])))),prolog_must(isValid(Verbs)).
-loader_verb(Ctx,DumpListHere,Verbs):-ctrace,prolog_must((peekNameValue(Ctx,DumpListHere,withCategory,Verbs,'$first'(['$current_value','$value'([assert_cate_in_load])])))),!.
+loader_verb(Ctx,DumpListHere,Verbs):-atrace,prolog_must((peekNameValue(Ctx,DumpListHere,withCategory,Verbs,'$first'(['$current_value','$value'([assert_cate_in_load])])))),!.
 
 %%dumpListHere([]):-debugFmt(dumpListHere).
 %%dumpListHere([R|Results]):-debugFmt(R),dumpListHere(Results),!.
@@ -715,7 +715,7 @@ gatherEach0(Ctx,NEWATTRIBS,[element(TAG,ALIST,PATTERN_IN)|NOPATTERNS],[TAG=PATTE
       appendAttributes(Ctx,ALIST,ResultM,Result),!.
 
 
-each_template(Ctx,M):-debugFmt('FAILURE'(each_template(Ctx,M))),ctrace.
-each_that(Ctx,M):-debugFmt('FAILURE'(each_that(Ctx,M))),ctrace.
+each_template(Ctx,M):-debugFmt('FAILURE'(each_template(Ctx,M))),atrace.
+each_that(Ctx,M):-debugFmt('FAILURE'(each_that(Ctx,M))),atrace.
 
 

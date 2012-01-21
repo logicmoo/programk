@@ -23,11 +23,11 @@
 
 aiml_call(Ctx,_ - Calls):- !,aiml_call(Ctx,Calls),!.
 
-aiml_call(Ctx,[Atomic|Rest]):- atom(Atomic),!, %%ctrace, 
+aiml_call(Ctx,[Atomic|Rest]):- atom(Atomic),!, %%atrace, 
             aiml_eval(Ctx,[Atomic|Rest],Output),!,
             debugFmt(resultOf(aiml_call(Ctx,[Atomic|Rest]),Output)),!.
 
-aiml_call(Ctx,[Atomic|Rest]):- !, %%ctrace, 
+aiml_call(Ctx,[Atomic|Rest]):- !, %%atrace, 
             aiml_eval(Ctx,[Atomic|Rest],Output),!,
             debugFmt(resultOf(aiml_call(Ctx,[Atomic|Rest]),Output)),!.
 
@@ -63,7 +63,7 @@ aiml_call(Ctx,element(A, B, C)):- prolog_must(nonvar(C)),
       convert_name(A,AA),
       convert_attributes(Ctx,B,BB),
       convert_template(Ctx,C,CC),
-      (element(A, B, C) \== element(AA, BB, CC)),!,ctrace,
+      (element(A, B, C) \== element(AA, BB, CC)),!,atrace,
       aiml_call(Ctx,element(AA, BB, C)),!.
 
 aiml_call(Ctx,element(Learn, ATTRIBS, Value)):-  member(Learn,[load,learn]),!,
@@ -219,7 +219,7 @@ systemCall(Ctx,Lang,[FIRST|REST],DONE):-atom_concat_safe('@',CMD,FIRST),!,system
 systemCall(Ctx,Lang,[FIRST|REST],DONE):-atom_contains(FIRST,' '),atomWSplit(FIRST,CMD),append(CMD,REST,CMDREST),!,systemCall(Ctx,Lang,CMDREST,DONE).
 systemCall(Ctx,'bot',REST,OUT):-!,prolog_must(systemCall_Bot(Ctx,REST,OUT)),!.
 systemCall(Ctx,Lang,[Eval],Out):-systemCall(Ctx,Lang,Eval,Out).
-systemCall(Ctx,Lang,Eval,Out):-once((atom(Eval),atomWSplit(Eval,Atoms))),Atoms=[_,_|_],!,ctrace,systemCall(Ctx,Lang,Atoms,Out).
+systemCall(Ctx,Lang,Eval,Out):-once((atom(Eval),atomWSplit(Eval,Atoms))),Atoms=[_,_|_],!,atrace,systemCall(Ctx,Lang,Atoms,Out).
 systemCall(_Ctx,Lang,Eval,writeq(evaled(Lang,Eval))):- aiml_error(evaled(Lang,Eval)).
 
 systemCall_Bot(Ctx,['@'|REST],DONE):-!,systemCall_Bot(Ctx,REST,DONE).

@@ -18,7 +18,7 @@ After making changes:
 
 
 Usage:
-xpce -G0 -H0 -L0 -S0 -f logicmoo_module_aiml_main.pl
+xpce -G0 -H0 -L0 -S0 -f logicmoo_module_aiml.pl
 ... bunch of gibberish...
 when you get the
 |:  

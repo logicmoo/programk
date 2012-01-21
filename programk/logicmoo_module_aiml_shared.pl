@@ -19,7 +19,10 @@
 %        ).
 ( Antecedent => Consequent ) :- forall(( Antecedent ),( Consequent )).
 
-atrace:- !.
+
+devmode:-fail.
+
+atrace:- not(devmode),!.
 atrace:- cyc:ctrace.
 
 fmt(A,B,C):-'format'(A,B,C).
@@ -1130,6 +1133,7 @@ catchAnRethrow(X):-catch(X,E,(debugFmt(X->E),throw(E))).
 %% "trace,tracing" .. detects if we are in a notrace/1
 %% prolog_exception_hook
 interactStep(String):-interactStep(String,true,true).
+interactStep(String,CallYes,CallNo):-not(devmode),debugFmt(promptUser(String,[call,-,CallYes,-,or,-,CallNo])),!,CallYes.
 interactStep(String,CallYes,CallNo):-debugFmt(promptUser(String,[call,-,CallYes,-,or,-,CallNo])),trace,tracing,CallYes.
 interactStep(_String,CallYes,CallNo):-printStackTrace,prompt1('>>>>>>>>>>>>>>'),read(YN),debugFmt(red(YN)),YN=yes->CallYes;CallNo.
 

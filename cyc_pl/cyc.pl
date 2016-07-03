@@ -255,8 +255,10 @@ withoutCyc(_,[]):-fail.
 
 :- style_check(-singleton).
 :- style_check(-discontiguous).
+:- if((current_prolog_flag(version,MMmmPP),MMmmPP<70000)).
 :- style_check(-atom).
 :- style_check(-string).
+:- endif.
 
 dynamic_transparent([]):-!.
 dynamic_transparent([X]):-dynamic_transparent(X),!.
@@ -2597,9 +2599,9 @@ sterm_to_pterm_list(VAR,[VAR]).
 
 
 atomSplit(Atom,WordsO):- atomSplit(Atom,WordsO,[' ','\t','\n','\v','\f','\r',' ','!','"','#','$','%','&','\'',
-    '(',')','*','+',',','-','.','/',':',';','<','=','>','?','@','[',\,']','^','_',`,'{','|','}','~']).
+    '(',')','*','+',',','-','.','/',':',';','<','=','>','?','@','[',('\\'),']','^','_',('`'),'{','|','}','~']).
    
-%%atomSplit(Atom,WordsO):- atomSplit(Atom,WordsO,[' ','\'',';',',','"','`',':','?','!','.','\n','\t','\r','\\','*','%','(',')','#']),!.
+%%atomSplit(Atom,WordsO):- atomSplit(Atom,WordsO,[' ','\'',';',(','),'"',('`'),':','?','!','.','\n','\t','\r',('\\'),'*','%','(',')','#']),!.
 
 atomSplit(Atom,WordsO,List):- notrace((atom(Atom), atomic_list_concat(Words1,' ',Atom),!, atomSplit2(Words1,Words,List),!,Words=WordsO)).
 atomSplit(Atom,Words,[Space|List]):-notrace((var(Atom),ground(Words),!,atomic_list_concat(Words,Space,AtomO),!,Atom=AtomO)).

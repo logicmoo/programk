@@ -13,8 +13,11 @@
 %:-include('logicmoo_utils_header.pl'). %<?
 %:- style_check(-singleton).
 %%:- style_check(-discontiguous).
+:- if((current_prolog_flag(version,MMmmPP),MMmmPP<70000)).
 :- style_check(-atom).
 :- style_check(-string).
+:- endif.
+
 
 :-ensure_loaded(library('programk/logicmoo_module_aiml_graphmaster.pl')).
 :-ensure_loaded(library('programk/logicmoo_module_aiml_convertor.pl')).

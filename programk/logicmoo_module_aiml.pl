@@ -12,9 +12,10 @@
 %:-include('logicmoo_utils_header.pl'). %<?
 %:- style_check(-singleton).
 %%:- style_check(-discontiguous).
+:- if((current_prolog_flag(version,MMmmPP),MMmmPP<70000)).
 :- style_check(-atom).
 :- style_check(-string).
-
+:- endif.
 :-catch(guitracer,E,writeq(E)),nl.
 
 :-multifile(what/3).

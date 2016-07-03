@@ -503,8 +503,10 @@ exists_directory_safe(File):-prolog_must(atomic(File)),exists_directory(File).
 %:-include('logicmoo_utils_header.pl'). %<?
 %:- style_check(-singleton).
 %%:- style_check(-discontiguous).
+:- if((current_prolog_flag(version,MMmmPP),MMmmPP<70000)).
 :- style_check(-atom).
 :- style_check(-string).
+:- endif.
 
 
 :- dynamic(noConsoleDebug/0).

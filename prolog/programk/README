@@ -1,24 +1,13 @@
 
 ProgramK:
- here in jellyfish/programk/
+ here in prolog/programk
 
  swipl -f logicmoo_module_aiml.pl
  halt
 
 
-After making changes:
-
-
-
-
-[root@titan programk]# git config --global user.name "DouglasRMiles"
-[root@titan programk]# git config --global user.email "dmiles@daxtron.com"
-[root@titan programk]# git commit . -m 'ProgramK - fixed syntax error that seems to be Linux SWI only'
-
-
-
 Usage:
-xpce -G0 -H0 -L0 -S0 -f logicmoo_module_aiml.pl
+swipl aiml_2_0 
 ... bunch of gibberish...
 when you get the
 |:  

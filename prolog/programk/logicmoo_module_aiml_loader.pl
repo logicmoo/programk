@@ -177,7 +177,9 @@ string_to_structure0(String,PARSER_DEFAULTS0,XMLSTRUCTURESIN):-
        (free_sgml_parser(Parser),close(In))),!,prolog_must(XMLSTRUCTURESIN=XMLSTRUCTURES).
 
 string_parse_structure(Len,Parser, M:Options, Document, In) :-
-	notrace((sgml:set_parser_options(Parser, Options, Options1),
+	notrace((
+	%sgml:set_parser_options(Parser, Options, Options1),
+	sgml:set_parser_options(Options, Parser, In, Options1),
 	sgml:parser_meta_options(Options1, M, Options2))),
 	sgml:sgml_parse(Parser,
 		   [ document(Document),
@@ -384,7 +386,9 @@ load_aiml_structure(Ctx,O):-atomic(O),!,debugFmt(load_aiml_structure(Ctx,O)),!.
 % topic/category/flags/that
 load_aiml_structure(Ctx,element(Tag,ALIST,INNER_XML)):- member(Tag,[topic,category,flags,that]),!,
      replaceAttribute(Ctx,name,Tag,ALIST,ATTRIBS),
-         withAttributes(Ctx,ATTRIBS, load_aiml_cate_element(Ctx,ATTRIBS,element(Tag,ALIST,INNER_XML))),!.
+         withAttributes(Ctx,ATTRIBS, 
+           load_aiml_cate_element(Ctx,ATTRIBS,
+              element(Tag,ALIST,INNER_XML))),!.
 
 % substitute,learn,aiml,genlMt,srai,think,system,javascript,eval,template
 load_aiml_structure(Ctx,element(A,B,C)):-

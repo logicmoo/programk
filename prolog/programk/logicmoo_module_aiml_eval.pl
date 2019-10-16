@@ -23,7 +23,7 @@
 %  Prolog-like call
 % ===================================================================
 
-aiml_call(Ctx,_ - Calls):- !,aiml_call(Ctx,Calls),!.
+aiml_call(Ctx,_ - Calls):- must(nonvar(Calls)), !,aiml_call(Ctx,Calls),!.
 
 aiml_call(Ctx,[Atomic|Rest]):- atom(Atomic),!, %%atrace, 
             aiml_eval(Ctx,[Atomic|Rest],Output),!,
@@ -57,8 +57,7 @@ aiml_call(Ctx,element(A, B, C)):-tagType(A, immediate), prolog_must(nonvar(C)),
       convert_name(A,AA),
       convert_attributes(Ctx,B,BB),
       convert_template(Ctx,C,CC),
-      (element(A, B, C) \== element(AA, BB, CC)),!,
-      aiml_call(Ctx,element(AA, BB, C)),!.
+      (element(A, B, C) \== element(AA, BB, CC)),!,      aiml_call(Ctx,element(AA, BB, C)),!.
 
 
 aiml_call(Ctx,element(A, B, C)):- prolog_must(nonvar(C)),

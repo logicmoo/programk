@@ -8,11 +8,19 @@
 % Revised At:   $Date: 2002/07/11 21:57:28 $
 % ===================================================================
 
+% :-ensure_loaded(('cyc_pl/cyc.pl')).
+:- use_module(library(programk/cyc_pl/cyc),[is_string/1,atom_to_number/2,balanceBinding/2,writeFmtFlushed/2,writeFmtFlushed/3,toCycApiExpression/3]).
+:- context_module(M),hidden_away:module(hidden_away),module(M).
+:- hidden_away:use_module(library(debuggery/dmsg),[dmsg/1,dmsg/2]).
+% :- use_module(library(logicmoo/util_strings)).
+% is_string
+
 %================================================================
 :-multifile(expire1Cache/0).
 %================================================================
 
 :- op(1100,xfy,(=>)).
+
 % ( Antecedent => Consequent ) :-
 %     \+ ( Antecedent,
 %          \+ Consequent
@@ -25,7 +33,11 @@ devmode:-fail.
 atrace:- not(devmode),!.
 atrace:- cyc:ctrace.
 
+:- if( \+ predicate_property(fmt(_,_,_),defined)).
+
 fmt(A,B,C):-'format'(A,B,C).
+
+:- endif.
 
 %%% Modified version of <http://pastebin.com/GvmVQ1f1>
 
@@ -103,7 +115,9 @@ print_stack_trace(Stream,Options,Depth,PFrame,PD) :-
     ;   print_stack_trace_aux(Stream,Options,Depth,PFrame,PD)
     ).
 
+:- if((current_prolog_flag(version,MMmmPP),MMmmPP<70000)).
 :- index(print_stack_trace_aux(0,0,0,1,0)).
+:- endif.
 print_stack_trace_aux(Stream,_Options, _Depth,top         ,PD) :-
     pd(Stream,PD),fmt(Stream,'<top/>~n',[]).
 print_stack_trace_aux(Stream,Options,Depth,frame(Frame),PD) :-
@@ -387,9 +401,11 @@ addLibraryDir :- buggerDir(Here),atom_concat(Here,'/..',UpOne), absolute_file_na
 % ==========================================================
 %  can/will Tracer.
 % ==========================================================
- 
-:-dynamic(canTrace/0).
-unused:canTrace.
+
+:- if( \+ predicate_property(canTrace(),defined)).
+:- dynamic(canTrace/0).
+canTrace.
+:- endif.
 
 %isConsole :- telling(user).
 unused:isConsole :- current_output(X),!,stream_property(X,alias(user_output)).
@@ -521,13 +537,18 @@ lmdebugFmt(F,A):-
         fresh_line(user_error),
         flush_output_safe(user_error),!.
 
+:- if( predicate_property(cyc:debugFmt(_), defined)).
 :- abolish(cyc:debugFmt/1).
-
 cyc:debugFmt(Stuff):-once(lmdebugFmt(Stuff)).
+:- endif.
 
+:- if( predicate_property(cyc:debugFmt(_,_), defined)).
 :- abolish(cyc:debugFmt/2).
-
 cyc:debugFmt(F,A):-once(lmdebugFmt(F,A)).
+:- else.
+debugFmt(F,A):-once(wdmsg(F,A)).
+:- endif.
+
 
 debugFmtS([]):-!.
 debugFmtS([A|L]):-!,debugFmt('% ~q',[[A|L]]).
@@ -535,8 +556,9 @@ debugFmtS(Comp):-toReadableObject(Comp,Comp2),!,debugFmt('% ~q',[Comp2]).
 debugFmtS(Stuff):-!,debugFmt('% ~q',[Stuff]).
 
 
+:- if(\+ predicate_property(nop(_),defined)).
 nop(_).
-
+:- endif.
 
 % ===============================================================================================
 % listify/ unlistify / unresultify
@@ -838,7 +860,7 @@ load_term2(Fact,Options):-!,load_assert(Fact,true,Options).
 load_assert(H,B,_Options):-assert((H:-B)),!.
 
 load_dirrective(include(PLNAME),_Options):-  (atom_concat_safe(Key,'.pl',PLNAME);Key=PLNAME),!, dynamic_load(Key,PLNAME).
-load_dirrective(module(M,Preds),_Options):-!,module(M),call(module(M,Preds)).
+load_dirrective(module(M,Preds),_Options):-!,module(M),maplist(M:export,Preds).
 load_dirrective(Term,_Options):-!,Term.
 
 showProfilerStatistics(FileMatch):-
@@ -904,7 +926,9 @@ canonical_pathname(Absolute,AbsoluteB):-prolog_to_os_filename(AbsoluteA,Absolute
 canonical_pathname0(AbsoluteA,AbsoluteB):-error_catch(expand_file_name(AbsoluteA,[AbsoluteB]),E,(debugFmt(E:AbsoluteA),fail)),!.
 canonical_pathname0(AbsoluteA,AbsoluteA).
 
+:- if(\+ predicate_property(alldiscontiguous(),defined)).
 alldiscontiguous:-!.
+:- endif.
 
 
 % =================================================================================
@@ -1002,8 +1026,10 @@ list_replace(List,Char,Replace,NewList):-
 	append(NewLeft,NewRight,NewList),!.
 list_replace(List,_Char,_Replace,List):-!.
 
+:- if( \+ predicate_property(term_to_string(_,_),defined)).
 term_to_string(I,IS):- error_catch(string_to_atom(IS,I),_,fail),!.
 term_to_string(I,IS):- term_to_atom(I,A),string_to_atom(IS,A),!.
+:- endif.
 
 %================================================================
 % maplist/[2,3]
@@ -1212,5 +1238,4 @@ tryHideProc(MFA):-tryCatchIgnore('$hide'(MFA)),tryCatchIgnore('trace'(MFA,[-all]
 
 doTryHides:-retract(remember_tryHide(MFA)),once(tryHideProc(MFA)),fail.
 doTryHides.
-
 

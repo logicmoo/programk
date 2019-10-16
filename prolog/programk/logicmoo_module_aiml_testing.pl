@@ -10,8 +10,8 @@
 
 :-dynamic(recordedTime/2).
 timeRecorded(Call):-timeRecorded(Call,Time),asserta(recordedTime(Time,Call)),listing(recordedTime/2),!.
-timeRecorded(Call,Time):- statistics(cputime,Start),time(Call),statistics(cputime,End),Time is End - Start.
-:-catch(guitracer,E,writeq(E)),nl.
+timeRecorded(Call,Time):- statistics(cputime,Start),context_module(M),prolog_statistics:time(M:Call),statistics(cputime,End),Time is End - Start.
+% :-catch(guitracer,E,writeq(E)),nl.
 
 save:-tell(aimlCate),
    aimlCateSig(CateSig),
@@ -31,7 +31,14 @@ hasLibrarySupport :- absolute_file_name(library('programk/logicmoo_module_aiml.p
 throwNoLib:-  absolute_file_name('.',Here),throw(error(existence_error(url, Here), context(_, status(404, Here)))).
 
 % up one if we are in same directory
-:-absolute_file_name('logicmoo_module_aiml.pl',File),(exists_file(File)->cd('../');true).
+up_one_if :- absolute_file_name('logicmoo_module_aiml.pl',File),(exists_file(File)->cd('../');true).
+
+%:- leash(-all).
+
+%:- trace.
+
+:- up_one_if.
+
 
 % if not has library suport, add this directory as a library directory
 addSupportHere:-
@@ -45,7 +52,6 @@ addSupportHere:-
 :-hasLibrarySupport->true;throwNoLib.
 
 % goal is to remove this next line and have it work!
-:-ensure_loaded(library('cyc_pl/cyc.pl')).
 %%:-ensure_loaded(library('autolog/autolog.pl')).
 :-ensure_loaded(library('programk/logicmoo_module_aiml.pl')).
 
@@ -61,18 +67,18 @@ dttt:-timeRecorded(consult(aimlCate_checkpoint)),alicebot.
 :-catch(guitracer,_,true).
 :-traceAll.
 
-:-asserta((portray_text:do_portray_text(X) :- writeq(p(X)))).
+% :-asserta((portray_text:do_portray_text(X) :- writeq(p(X)))).
 
-:-list_undefined.
+% :-list_undefined.
 
-:-debug.
+% :-debug.
 
 %:-dttt.
 %:-do.
 %:-load_aiml_files.
 %:-debug,run_chat_tests.
 %:-main_loop.
-:-'trace'(findall/3,[-all]).
+% :-'trace'(findall/3,[-all]).
 
 stdCatchAll:-assert_cate_in_load(aimlCate(*,*,*,*,*,*,*,*,*,*,[element(srai,[],['STDCATCHALL',star(pattern,[],[])])],element(category,[],[element(pattern,[],[*]),element(template,[],[element(srai,[],['STDCATCHALL',element(star,[],[])])])]),'c:/development/opensim4opencog/bin/cynd/programk/test_suite/customtagtest.aiml':737-20056,aruleStd2)),
   assert_cate_in_load(aimlCate(*,*,*,*,*,['STDCATCHALL',*],*,*,*,*,['ERROR',understanding,:,star(pattern,[],[])],element(category,[],[element(pattern,[],['STDCATCHALL *']),element(template,[],['ERROR understanding:',element(star,[],[])])]),'c:/development/opensim4opencog/bin/cynd/programk/test_suite/customtagtest.aiml':44-3205,aruleStd3)).

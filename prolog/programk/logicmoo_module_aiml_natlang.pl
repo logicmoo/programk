@@ -9,6 +9,9 @@
 % ===================================================================
 
 
+:- use_module(library(programk/cyc_pl/cyc),[is_string/1,atom_to_number/2,balanceBinding/2,writeFmtFlushed/2,writeFmtFlushed/3,toCycApiExpression/3]).
+
+
 
 % ===============================================================================================
 % Split input into many words
@@ -155,7 +158,7 @@ allSaid(That,Aiml):- findall(Sarg=Aiml,(aimlCateArg(template,Aiml,Arg),outputPat
 
 
 %%:-dynamic(inGenOutput).
-%%inGenOutput.·
+%%inGenOutput.Â·
 
 outputPath(Ctx,Input,Path):-!, setup_call_cleanup(assert(inGenOutput),computeInnerTemplate(Ctx,1,Input,Path,_VotesO),retractall(inGenOutput)).
 

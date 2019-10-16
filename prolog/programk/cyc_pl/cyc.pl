@@ -48,7 +48,7 @@
 	 subst/4,
 	 isCycOption/1,
 	 isCycOption/2,
-	 unnumbervars/2,
+	 unnumbervars_cyc/2,
 	 %% transparent defaultAssertMt/1,
          mtForCycL/2,
          assertIfNew/1,
@@ -136,9 +136,9 @@
          writeHTMLStdHeader/1,
          writeHTMLStdFooter/0,
 	 
-         debugFmt/1,
-	 debugFmt/2,
-	 debugFmtFast/1,
+         cycDebugFmt/1,
+	 cycDebugFmt/2,
+	 cycDebugFmtFast/1,
 
          loggerFmt/1,
          loggerFmt/2,
@@ -213,10 +213,12 @@ canTrace.
 %isConsole :- telling(user).
 isConsole :- current_output(X),!,stream_property(X,alias(user_output)).
 
+
+
 willTrace:-not(isConsole),!,fail.
 willTrace:-canTrace.
 hideTrace:-
-   trace(cyc:hideTrace/0, -all),
+%  trace(hideTrace/0, -all),
    trace(willTrace/0, -all),
    trace(canTrace/0, -all),
    trace(ctrace/0, -all),
@@ -226,13 +228,16 @@ hideTrace:-
    trace(system:message_to_string/2, +all).
 
 ctrace:-willTrace->trace;notrace.
+
+:- if((current_prolog_flag(version,MMmmPP),MMmmPP<70000)).
 :-hideTrace.
+:- endif.
 
 withoutCyc(_,[]):-fail.
 
 :-use_module(library(system)).
 :-use_module(library(shlib)).
-:-use_module(library(listing)).
+%:-use_module(library(listing)).
 :-use_module(library(sgml)).
 %:-use_module(library(rdf)).
 :- use_module(library(socket)).
@@ -374,7 +379,7 @@ balanceBindingS2P(X,Z):-balanceBindingS2P(X,Z,_Feats).
 
 balanceBindingS2P(X,Z,Feats):-
       balanceBinding(X,Y),
-      unnumbervars(Y,UN),
+      unnumbervars_cyc(Y,UN),
       s2p(UN,Z,Feats),!.
 
 :-dynamic(cyc:dbCache/2).
@@ -419,11 +424,11 @@ cycAssertBuffer(Out,Mt):-cycAssertBuffer(Mt:Out).
 cycAssertBuffer(_:end_fo_file):-!.
 cycAssertBuffer(forward(Out)):-!,cycAssertBuffer((Out)).
 cycAssertBuffer(Out):-not(Out=_:_),!,mtForCycL(Out,MT),!,cycAssertBuffer(MT:Out).
-cycAssertBuffer(Out):-cycCacheToDo(Out),!.
+cycAssertBuffer(Out):-call(call,cycCacheToDo(Out)),!.
 cycAssertBuffer(Out):-cycCache(Out),!.
 cycAssertBuffer(U):-unusedCycL(U),!.
 %cycAssertBuffer(Mt:Out):-coerceCyc(Out,CycL)
-cycAssertBuffer(Out):-debugFmt('% cycAssertion ~w ~n',[Out]),assertIfNew(cycCacheToDo(Out)),!.
+cycAssertBuffer(Out):-cycDebugFmt('% cycAssertion ~w ~n',[Out]),assertIfNew(cycCacheToDo(Out)),!.
 unusedCycL(_:end_fo_file).
 %unusedCycL(_:comment(_,_)).
 %unusedCycL(_:isa(A,'Property')):-nonvar(A),!.
@@ -434,7 +439,7 @@ cycSync:-!.%%d3Info.
 cycSync(_:end_fo_file):-!.
 cycSync(U):-unusedCycL(U),!.
 cycSync(Out):-cycCache(Out),!,ignore(retract(cycCacheToDo(Out))).
-cycSync(Out):-Out= MT : Assert,!,catch((myCycAssert(MT : Assert),ignore(assertIfNew(cycCache(Out))),ignore(retract(cycCacheToDo(Out)))),E,debugFmt('%%%%%%%%%%%%% ~q',[E])),!.
+cycSync(Out):-Out= MT : Assert,!,catch((myCycAssert(MT : Assert),ignore(assertIfNew(cycCache(Out))),ignore(retract(cycCacheToDo(Out)))),E,cycDebugFmt('%%%%%%%%%%%%% ~q',[E])),!.
 cycSync(Out):-mtForCycL(Out,Mt),!,cycSync(Mt:Out).
 
 % ===================================================================
@@ -651,7 +656,7 @@ getCycConnection(Server,SocketId,OutStream,InStream):-
       tcp_connect(SocketId,Server),
       tcp_open_socket(SocketId, InStream, OutStream),!,
       thread_self(Thread),
-      debugFmt('Thread ~w Connected to Cyc TCP Server {~w,~w}\n',[Thread,InStream,OutStream]),
+      cycDebugFmt('Thread ~w Connected to Cyc TCP Server {~w,~w}\n',[Thread,InStream,OutStream]),
       thread_at_exit(finishCycConnectionThread(Thread)),
       assertz(cyc:cycConnectionUsed(Thread,Server,SocketId,OutStream,InStream)),!.
 
@@ -690,7 +695,7 @@ loadCycL(File):-
 
 cycSyncThread:-
          createProcessedGoal(cycSyncThreadCode),
-         debugFmt(createProcessedGoal(cycSyncThreadCode)).
+         cycDebugFmt(createProcessedGoal(cycSyncThreadCode)).
 
 cycSyncThreadCode:-repeat,once((cycSync,sleep(5))),fail.
 
@@ -702,7 +707,7 @@ cycDatabase(CX):-nonvar(CX),cycCache(_:CX).
 cycCache(_:end_of_file).
 
 
-number_of_clauses(P):-number_of_clauses(P,Y),functor(P,F,A),debugFmt('% number_of_clauses(~q/~q)->~q~n',[F,A,Y]).
+number_of_clauses(P):-number_of_clauses(P,Y),functor(P,F,A),cycDebugFmt('% number_of_clauses(~q/~q)->~q~n',[F,A,Y]).
 number_of_clauses(P,Y):-predicate_property(P, number_of_clauses(Y)),!.
 number_of_clauses(P,0).
 
@@ -717,7 +722,7 @@ number_of_clauses(P,0).
 
 converse(Send):-
       converseRaw(Send,Receive),
-      debugFmt('% recv> ~s~n',[Receive]).
+      cycDebugFmt('% recv> ~s~n',[Receive]).
 
 converse(Send,Receive):-
       converseRaw(Send,ReceiveCodes),
@@ -773,7 +778,7 @@ writel(OutStream,Send,Vars):-
 
 formatCyc(OutStream,Format,Args):-
       writeFmtFlushed(OutStream,Format,Args),
-      debugFmt(Format,Args),
+      cycDebugFmt(Format,Args),
       flush_output_safe(OutStream),!.
 
 readSubL(InStream,[G,E,T,Space|Response]):-
@@ -812,7 +817,7 @@ read_line_to_codes_one_at_a_time_util(Stream,_):-
       NewBuffer = [Code|Buffer],char_type(Code,space),
       set_stream_buffer(Stream,Buffer),fail.
 
-%%debugFmt('~n NewBuffer codes: ~s~n',[NewBuffer]),
+%%cycDebugFmt('~n NewBuffer codes: ~s~n',[NewBuffer]),
 read_line_to_codes_one_at_a_time_util(Stream,NewBuffer):-
       find_stream_buffer(Stream,Buffer),
       get_code_no_eof(Stream,Code),
@@ -864,7 +869,7 @@ lisp_read(InStream,String,Sexp) :-
         read_line_to_codes_one_at_a_time_util(InStream,String),        
         lisp_read_fully(InStream,String,Sexp).
 
-reportLeftInBuffer(I):- saved_stream_buffer(I,F),F \== [], debugFmt('~n reportLeftInBuffer: "~s" ~n',[F]),!.
+reportLeftInBuffer(I):- saved_stream_buffer(I,F),F \== [], cycDebugFmt('~n reportLeftInBuffer: "~s" ~n',[F]),!.
 reportLeftInBuffer(_):- !.
 
 phrase_codes(DCG,LEFT):-phrase_codes(DCG,LEFT,[]).
@@ -1155,7 +1160,7 @@ readCycLTermChars(InStream,[],[constail|OuterType],ResponseTail,ResponseTypeTail
 readCycLTermChars(InStream,[],[sexp|OuterType],ResponseOut,ResponseType):-
    peek_code(InStream,Start),
    readCycLTermCharsUntil(Start,InStream,Response,Type),
-   debugFmt('cyc>~s (~w)',[Response,Type]).
+   cycDebugFmt('cyc>~s (~w)',[Response,Type]).
 
 /*
 readCycLTermCharsUntil(34,InStream,Response,string):-!, % double quoted
@@ -1196,8 +1201,8 @@ readCycLTermCharsUntil(Char,InStream,Trim,atom):-!,
    streamClear(InStream).
 
 % needs better solution!  .01 seconds works but .001 seconds don't :(  meaning even .01 might in some circumstances be unreliable
-streamClear(InStream) :- once(catch(wait_for_input([InStream], Inputs, 0.01),E,(trace,debugFmt(E)))),Inputs=[],!.
-%streamClear(InStream) :-get_code(InStream, Was),((Was == -1) -> (true);(debugFmt('FoundMore ~c ~q ~n',[Was,Was]),streamClear(InStream))),!.
+streamClear(InStream) :- once(catch(wait_for_input([InStream], Inputs, 0.01),E,(trace,cycDebugFmt(E)))),Inputs=[],!.
+%streamClear(InStream) :-get_code(InStream, Was),((Was == -1) -> (true);(cycDebugFmt('FoundMore ~c ~q ~n',[Was,Was]),streamClear(InStream))),!.
 streamClear(InStream) :- get_code(InStream, _Was),( (_Was == -1) -> true ; streamClear(InStream)),!.
 
 % ===================================================================
@@ -1606,7 +1611,7 @@ sublTransaction(Server,SubL,Result):-
 getTransactionSize([53,48,48],OutStream,InStream,PQSYM,SubL,Size):-
       get_code(InStream,Quote),
       readUntil(34,InStream,Errors),
-      debugFmt('~n% ~w> ~s',[PQSYM,Errors]),!,
+      cycDebugFmt('~n% ~w> ~s',[PQSYM,Errors]),!,
       streamClear(InStream),
          string_to_atom(Errors,Error),   
          sformat(SCycL,'~q',[SubL]),
@@ -1616,7 +1621,7 @@ getTransactionSize([53,48,48],OutStream,InStream,PQSYM,SubL,Size):-
 
 getTransactionSize([50,48,48],OutStream,InStream,PQSYM,SubL,Size):-
       readUntil(10,InStream,Sizess),
-      debugFmt('~n% ~w> ~s',[PQSYM,Sizess]),
+      cycDebugFmt('~n% ~w> ~s',[PQSYM,Sizess]),
       once((trim(Sizess,Sizes),number_codes(Size,Sizes))).
 
 releaseTransaction(PQSYM1):-converse(csetq(PQSYM1,nil)),!.
@@ -1633,9 +1638,9 @@ transGetResults(Size,OutStream,InStream,PQSYM,Vars):- fail,
          get_code(InStream,Space),
          readUntil(10,InStream,Result),
          %releaseTransaction(Exit,PQSYM,SocketId,OutStream,InStream),
-         debugFmt('~n~s',[Result]),
+         cycDebugFmt('~n~s',[Result]),
          getSurfaceFromChars(Result,Bindings,_))),!,
-         %debugFmt('~q.',[Result]),true,
+         %cycDebugFmt('~q.',[Result]),true,
          member(VarSet,Bindings),syncCycLVars(VarSet,Vars).
 
 transGetResults(Size,OutStream,InStream,PQSYM,Result):-
@@ -1650,12 +1655,12 @@ transGetResults(Size,OutStream,InStream,PQSYM,Result):-
 
       %readUntil(10,InStream,ResultTrim),
       readCycLTermCharsUntil(PCode,InStream,ResultTrim,Type),
-      debugFmt('~n~s~n',[[PCode|ResultTrim]]))),
+      cycDebugFmt('~n~s~n',[[PCode|ResultTrim]]))),
       eachResult(PCode,InStream,Result,[PCode|ResultTrim],Cut),
               ((Cut==cut,!);(Cut==fail,!,fail);true).
 
 eachResult(40,InStream,Vars,ResultTrim,more):-
-      getSurfaceFromChars(ResultTrim,Results,_),%debugFmt(('~q.~n',[Result])),
+      getSurfaceFromChars(ResultTrim,Results,_),%cycDebugFmt(('~q.~n',[Result])),
       syncCycLVars(Results,Vars),!.
 eachResult(78,InStream,Vars,Result,fail). % NIL
 %eachResult(78,InStream,Vars,Result,cut). % True/NIL
@@ -2140,7 +2145,7 @@ not_in_escape :- not(reading_in_comment),not(reading_in_string),not(read_in_atom
 isCycLTerminationStateChar(10,32):-not_in_escape,!.
 isCycLTerminationStateChar(13,32):-not_in_escape,!.
 isCycLTerminationStateChar(41,41):-not_in_escape,!.
-%isCycLTerminationStateChar(C,C):- debugFmt('Not terminal ~c ~q ~n',[C,C]),!,fail.
+%isCycLTerminationStateChar(C,C):- cycDebugFmt('Not terminal ~c ~q ~n',[C,C]),!,fail.
 
 cyclReadStateChange(_):- reading_in_comment,!.
 cyclReadStateChange(34):-flag('$prev_char',Char,Char),   % char 92 is "\"" and will escape a quote mark
@@ -2227,13 +2232,13 @@ getSurfaceFromToks(WFFClean,WFFOut,VARSOut):-
                (once(phrase(cycl(WFF),WFFClean))),
                collect_temp_vars(VARS),!,
                ((VARS=[],VARSOut=_,WFFOut=WFF);
-                    (unnumbervars(VARS,LIST),
+                    (unnumbervars_cyc(VARS,LIST),
                      cyclVarNums(LIST,WFF,WFFOut,VARSOut2) ,
                      list_to_set(VARSOut2,VARSOut1),
                      open_list(VARSOut1,VARSOut)))),ERROR,(trace,WFFOut=[error_tok,ERROR,WFFClean])),!.
 
 %getSurfaceFromToks(['('|WFFClean],WFFOut,VARSOut):-getSurfaceFromToks(WFFClean,WFFOut,VARSOut),!.
-getSurfaceFromToks(WFFClean,OUT,VARSOut):- OUT=[unk_comment,WFFClean], debugFmt('getSurfaceFromToks: ~q ~n',[OUT]),sleep(2),!.
+getSurfaceFromToks(WFFClean,OUT,VARSOut):- OUT=[unk_comment,WFFClean], cycDebugFmt('getSurfaceFromToks: ~q ~n',[OUT]),sleep(2),!.
 
 
 %===================================================================
@@ -2382,12 +2387,12 @@ cyclVarNums_list(LIST,[A|RGS],[V|ARARGS],VARLIST):-
             append(VARS1,VARS2,VARLIST).
 
 
-unnumbervars(STUFF,UN):-sformat(S,'~W',[STUFF,[quoted(true),character_escapes(true),module(user),numbervars(true),portray(false),double_quotes(true)]]),string_to_atom(S,Atom),atom_to_term(Atom,UN,_).
+unnumbervars_cyc(STUFF,UN):-sformat(S,'~W',[STUFF,[quoted(true),character_escapes(true),module(user),numbervars(true),portray(false),double_quotes(true)]]),string_to_atom(S,Atom),atom_to_term(Atom,UN,_).
 
 open_list(V,V):-var(V).
 open_list(A,B):-append(A,_,B).
 
-unnumbervars_nil(X,Y):-!,unnumbervars(X,Y).
+unnumbervars_cyc_nil(X,Y):-!,unnumbervars_cyc(X,Y).
 
 collect_temp_vars(VARS):-!,(setof(=(Name,Number),numbered_var(Name,Number),VARS);VARS=[]).
 
@@ -2404,7 +2409,7 @@ toCodeList(S,XS):-atom(S),atom_codes(S,C),trim(C,XS),!.
 toCodeList(S,XS):-ground(S),stringToList(S,X),trim(X,XS),!.
 
 %getWordTokens(M,['(',surf,')']):-nonvar(M),member(34,M),!.
-getWordTokens(S,Y):-toCodeList(S,XS),once( tokenize3(XS,Y) ). %,debugFmt('~q.~n',[Y]).
+getWordTokens(S,Y):-toCodeList(S,XS),once( tokenize3(XS,Y) ). %,cycDebugFmt('~q.~n',[Y]).
 
 isWhitespace(32).
 isWhitespace(N):-N<33;N>128.
@@ -2684,9 +2689,9 @@ weak_nd_subst2( X, Sk, L, L ).
 :-module(system_dependant,
       [getCputime/1,
       safe_numbervars/1,
-      unnumbervars/2,
-      debugFmt/1,
-      debugFmt/2,
+      unnumbervars_cyc/2,
+      cycDebugFmt/1,
+      cycDebugFmt/2,
       writeFmt/1,
       writeFmt/2,
       writeFmt/3,
@@ -2791,14 +2796,14 @@ writeFileToStream(Dest,Filename):-
 safe_numbervars(X):-get_time(T),convert_time(T,A,B,C,D,E,F,G),!,safe_numbervars(X,'$VAR',G,_).
 safe_numbervars(Copy,X,Z):-numbervars(Copy,X,Z,[attvar(skip)]).
 safe_numbervars(Copy,_,X,Z):-numbervars(Copy,X,Z,[attvar(skip)]).
-%unnumbervars(X,Y):-term_to_atom(X,A),atom_to_term(A,Y,_).
+%unnumbervars_cyc(X,Y):-term_to_atom(X,A),atom_to_term(A,Y,_).
 
 % ========================================================================================
 % Ensure a Module is loaded
 % ========================================================================================
 moduleEnsureLoaded(X):-
         catch(ensure_loaded(X),_,(catch((atom_concat('mod/',X,Y),
-        ensure_loaded(Y)),_,debugFmt(';; file find error ~q ~q',[X,E])))).
+        ensure_loaded(Y)),_,cycDebugFmt(';; file find error ~q ~q',[X,E])))).
 
 % ========================================================================================
 % Platform specifics
@@ -2885,9 +2890,9 @@ xmlPrologServer(Port):-
 
 attemptServerBind(ServerSocket, Port):-
         catch((tcp_bind(ServerSocket, Port),
-        debugFmt('% CYC Prolog API server started on port ~w. \n',[Port])),
+        cycDebugFmt('% CYC Prolog API server started on port ~w. \n',[Port])),
         error(E,_),
-        debugFmt('% CYC Prolog API server not started on port ~w becasue: "~w"\n',[Port,E])).
+        cycDebugFmt('% CYC Prolog API server not started on port ~w becasue: "~w"\n',[Port,E])).
 
 acceptClientsAtServerSocket(ServerSocket):-
 		tcp_open_socket(ServerSocket, AcceptFd, _),
@@ -2897,7 +2902,7 @@ acceptClientsAtServerSocket(ServerSocket):-
                 getPrettyDateTime(DateTime),
                 %setCycOption('$datetime',DateTime),
                 sformat(Name,'Dispatcher for ~w.~w.~w.~w  started ~w ',[A4,A3,A2,A1,DateTime]),
-         	debugFmt('~s',[Name]),!,
+         	cycDebugFmt('~s',[Name]),!,
         servantProcessCreate(killable,Name,serviceAcceptedClientSocketAtThread([ip(A4,A3,A2,A1)],ClientSocket),_,[]),!. %global(12800),local(12800),trail(12800)
 
 serviceAcceptedClientSocketAtThread(OClientInfo,ClientSocket):-
@@ -2907,7 +2912,7 @@ serviceAcceptedClientSocketAtThread(OClientInfo,ClientSocket):-
 %        setCycOption('$socket_in',In),
 %        setCycOption('$socket_out',Out),!,
         %set_prolog_IO(In,Out,user_error),
-        ignore(catch(serviceIO(ClientInfo,In,Out),E,debugFmt(E:serviceIO(ClientInfo,In,Out)))),
+        ignore(catch(serviceIO(ClientInfo,In,Out),E,cycDebugFmt(E:serviceIO(ClientInfo,In,Out)))),
         flush_output,seen,told,
         catchIgnore(close(In,[force(true)])),
         catchIgnore(close(Out,[force(true)])),
@@ -2917,11 +2922,11 @@ serviceAcceptedClientSocketAtThread(OClientInfo,ClientSocket):-
 getPrettyDateTime(String):-get_time(Time),convert_time(Time, String).
 
 
-%my_peek_char(In,Char):-debugFmt(my_peek_char(In,Char)),peek_char(In,Char).
+%my_peek_char(In,Char):-cycDebugFmt(my_peek_char(In,Char)),peek_char(In,Char).
 
 serviceIO(ClientInfo,In,Out):-
         peek_char(In,Char),!,
-	debugFmt('~q',serviceIOBasedOnChar([firstChar(Char)|ClientInfo],Char,In,Out)),
+	cycDebugFmt('~q',serviceIOBasedOnChar([firstChar(Char)|ClientInfo],Char,In,Out)),
         serviceIOBasedOnChar([firstChar(Char)|ClientInfo],Char,In,Out),!.
 
 serviceIOBasedOnChar(ClientInfo,'G',In,Out):-!,serviceHttpRequest(ClientInfo,In,Out).
@@ -2939,10 +2944,10 @@ serviceIOBasedOnChar(ClientInfo,'(',In,Out):-!,
          serviceCycApiRequest(ClientInfo,In,Out).
 
 serviceIOBasedOnChar(ClientInfo,SkipChar,In,Out):- char_type(SkipChar,space),!,
-	debugFmt(serviceIOBasedOnChar(ClientInfo,SkipChar)),
+	cycDebugFmt(serviceIOBasedOnChar(ClientInfo,SkipChar)),
         get_char(In,_),
         peek_char(In,Char),!,
-	%debugFmt(serviceIOBasedOnChar(ClientInfo,Char,In,Out)),
+	%cycDebugFmt(serviceIOBasedOnChar(ClientInfo,Char,In,Out)),
         serviceIOBasedOnChar(ClientInfo,Char,In,Out),!.
 
 serviceIOBasedOnChar(ClientInfo,ANY,In,Out):-!,serviceJavaApiRequest(In,Out).
@@ -2960,7 +2965,7 @@ serviceCycApiRequest(ClientInfo,In,Out):-
    %asserta(isKeepAlive(Session)),
         tell(Out),
  %  repeat,
-	 once((readLispStream(In,PrologGoal,ToplevelVars),debugFmt('remote API Call "~q" ~n',[PrologGoal]))),
+	 once((readLispStream(In,PrologGoal,ToplevelVars),cycDebugFmt('remote API Call "~q" ~n',[PrologGoal]))),
 	 ignore(once(catch(once(callCycApi(Out,PrologGoal,ToplevelVars)),E,(writeFmtFlushed(Out,'500 "~q"\n',[E]),writeFmtFlushed(user_error,'% sent cyc: 500 "~q"\n',[E]))))),
          !.
   %       not(isKeepAlive(Session)).
@@ -3128,7 +3133,7 @@ servCFasl(In,Out):-
       once((
 	 once((cfaslRead(In,PrologGoal), 
 	    %set_output(Out),set_input(In),
-	 debugFmt('%CFASL API Call ~q~n',[PrologGoal]), !,
+	 cycDebugFmt('%CFASL API Call ~q~n',[PrologGoal]), !,
       callCycApi(PrologGoal,ToplevelVars,Result))),
          cfaslWrite(Out,Result),flush_output_safe(Out))),
        isCycAPIQuit(PrologGoal),!.
@@ -3277,29 +3282,29 @@ callCycApi(Out,PrologGoal,ToplevelVars):-cycGoal(PrologGoal,ToplevelVars,Result)
 passAlong(X,Y):-toCycApiExpression(X,CycLX),evalSubL(CycLX,Y,Vars),asserta(evalSubLCache(X,Y)).
 
 
-notraceTry(Goal):-notrace(ignore(catch(Goal,E,writeCycL(Goal-E)))).
+notraceTry(Goal):-notrace(ignore(catch(Goal,E,debugFmt(Goal-E)))).
 
 
-cycGoal(X,Y,Z):-debugFmt('?- ~q.~n',[cycGoal(X,Y,Z)]),fail.
+cycGoal(X,Y,Z):-cycDebugFmt('?- ~q.~n',[cycGoal(X,Y,Z)]),fail.
 cycGoal([],Vars,[]):-!.
 %cycGoal(['END-OF-FILE'|_],_,'NIL'):-!.
 cycGoal(['END-OF-FILE'|_],_,'NIL'):-!.
 %cycGoal([APIQUIT|_],_,'T'):-isCycTrue(APIQUIT),!.
 %writecycGoal(['CONSTANT-INFO-FROM-GUID-STRINGS'|
 %cycGoal(['CYC-QUERY',PrologGoal,MT|OPTS],ToplevelVars,Result):-sterm_to_pterm(PrologGoal,PTERM), findall(ToplevelVars,PTERM,Result),!.
-%cycGoal(X,Vars,Lisp):- debugFmt(passIn(X)),passAlong(X,Y),toCycApiExpression(Y,Vars,Lisp),debugFmt('\n% Pass back->'),debugFmt(Lisp),!.
+%cycGoal(X,Vars,Lisp):- cycDebugFmt(passIn(X)),passAlong(X,Y),toCycApiExpression(Y,Vars,Lisp),cycDebugFmt('\n% Pass back->'),cycDebugFmt(Lisp),!.
 
 cycGoal(['PEVAL', string(EVAL)], _G94, Result):-
       catch((atom_to_term(EVAL,PTERM,ToplevelVars),failOnError(predicate_property(PTERM,_)),!,
-          debugFmt('?- ~q.~n',[PTERM]),
+          cycDebugFmt('?- ~q.~n',[PTERM]),
          catch(findall(ToplevelVars,PTERM,Result),E,Result=[E]),
-         debugFmt('-> ~q.~n',[ToplevelVars:Result])),E,Result=[E]),!.
+         cycDebugFmt('-> ~q.~n',[ToplevelVars:Result])),E,Result=[E]),!.
 
 
 cycGoal(PrologGoal,ToplevelVars,Result):-once(sterm_to_pterm(PrologGoal,PTERM)),failOnError(predicate_property(PTERM,_)),!,
-          debugFmt('?- ~q.~n',[PTERM]),
+          cycDebugFmt('?- ~q.~n',[PTERM]),
          findall(ToplevelVars,PTERM,Result),!,
-          debugFmt('-> ~q.~n',[ToplevelVars:Result]),!.
+          cycDebugFmt('-> ~q.~n',[ToplevelVars:Result]),!.
           
 %cycGoal([F|A],ToplevelVars,Result):-toUppercase([F|A],FU),not([F|A]==FU),!,cycUCaseGoal(FU,ToplevelVars,Result),!.
 cycGoal(X,Y,Z):-functor(X,F,_),sformat(S,'"~q is not defined in the API"',[F]),throw(unknown(S,X)),!.
@@ -3329,7 +3334,9 @@ createProcessedGoal((
 
 
 :- dynamic cycAssertionCache/6.
+:- if((current_prolog_flag(version,MMmmPP),MMmmPP<70000)).
 :- index(cycAssertionCache(0,1,1,1,1,0)).
+:- endif.
 cacheAssertionById(Id):-cycAssertionCache(Id,Assertion,Mt,Strength,Direction,Vars),!.
 cacheAssertionById(Id):-getAssertionById(Id,Assertion,Mt,Strength,Direction,Vars),
       asserta(cycAssertionCache(Id,Assertion,Mt,Strength,Direction,Vars)).
@@ -3501,7 +3508,7 @@ serviceHttpRequest(ClientInfo,In,Out):-!,
 
 
 reply(Request) :-
-        debugFmt('REQUEST DATA: ~q',[Request]),
+        cycDebugFmt('REQUEST DATA: ~q',[Request]),
         setCycOption(client,html),!,
         %Set-Cookie: nameTest=valueTest
         writeFmtFlushed('HTTP/1.1 200 OK\nServer: LOGICMOO HTTPD\nContent-Type: text/html\n\n',[]),
@@ -3518,7 +3525,7 @@ sigma_ua(X):-processRequest(X).
 :-dynamic(user:processRequestHook/1).
 :-multifile(user:processRequestHook/1).
 
-processRequest(X):-catch(user:processRequestHook(X),E,( debugFmt('processRequestHook: "~q" \n',[X:E]), fail)),!.
+processRequest(X):-catch(user:processRequestHook(X),E,( cycDebugFmt('processRequestHook: "~q" \n',[X:E]), fail)),!.
 
 % =================================================
 % SubL
@@ -3527,16 +3534,16 @@ processRequest(X):-catch(user:processRequestHook(X),E,( debugFmt('processRequest
 :-multifile(processRequestHook/1).
 :-module_transparent(processRequestHook/1).
 
-user:processRequestHook(ARGS):-member(file='subl.moo',ARGS),!,
+user:processRequestHook(ARGS):- member(file='subl.moo',ARGS),!,
       ignore(member(formula=W,ARGS)),
       ignore(W=''),
-      writeHTMLStdHeader('SubL Interactor'),
+      call(call,cyc:writeHTMLStdHeader('SubL Interactor')),
       writeFmtFlushed('
       <form method="GET">
 	<p><textarea rows="9" name="formula" cols="40">~w</textarea><br>
 	<input type="submit" value="Call" name="submit">&nbsp;<input type="reset" value="Reset" name="resetButton"></p>
       </form>',[W]),
-      writeHTMLStdFooter,!.
+      call(call,cyc:writeHTMLStdFooter()),!.
 	
         
 processRequest(X):-
@@ -3659,7 +3666,7 @@ serviceNativeRequestAsRDF(_,In,Out):-
                         read_term(In,PrologGoal,[variable_names(ToplevelVars),character_escapes(true),syntax_errors(error)]),
                         E,
                         writeErrMsg(Out,E)),
-                %debugFmt(PrologGoal:ToplevelVars),
+                %cycDebugFmt(PrologGoal:ToplevelVars),
                 invokePrologCommandRDF(Session,In,Out,PrologGoal,ToplevelVars,Returns),
                 notKeepAlive(Out,Session),!.
 
@@ -3737,7 +3744,7 @@ throwCyc(Module,Type,Details):-
         current_prolog_flag(debug_on_error, DebugOnError),
         set_prolog_flag(debug_on_error, false),!,
         throw(cycException(Module,Type,Details,DebugOnError)),
-        ifInteractive(debugFmt('Post throwCyc')),!.
+        ifInteractive(cycDebugFmt('Post throwCyc')),!.
 
 ifInteractive(X):-X.
 
@@ -3754,7 +3761,7 @@ ifInteractive(X):-X.
 :-dynamic_transparent(xmlCurrentOpenTags/2).
 
 serviceSoapRequest(In,Out):-
-      debugFmt('SOAP Request'),
+      cycDebugFmt('SOAP Request'),
         catch(read_do_soap(stream(In),Out),E,
         writeFmt(Out,'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<error>~w</error>\n',[E])),
         flush_output_safe(Out).
@@ -3805,6 +3812,8 @@ xmlClearTags:-thread_self(Self),retractall(xmlCurrentOpenTags(Self,A)).
 xmlExitTags:-thread_self(Self),retract(xmlCurrentOpenTags(Self,A)),writeFmtServer('</~w>',[Name]),fail.
 xmlExitTags.
 
+
+getCleanCharsWhitespaceProper(X,Y):- toCodeList(X,M),trim(M,Y).
 
 % ===========================================================
 % Insert
@@ -3893,7 +3902,7 @@ cite_xml_buffered_answers:-
 /*
 cite_xml_buffered_answers:-
         final_answer(Logic:How),
-        debugFmt(final_answer(Logic:How)),
+        cycDebugFmt(final_answer(Logic:How)),
         inform_xml_agent(How, ['Summary'=Logic|_G14093],final_answer(Logic:How),final_answer(Logic:How) ).
 */
 cite_xml_buffered_answers:-!.
@@ -3939,7 +3948,7 @@ numberArgs(N,[A|Args]):-ignore(N=A),NN is N+1,numberArgs(NN,Args),!.
 cycPredCall([Pred, neg, Proc], Stuff, Stuff):-ground(Stuff),!,cycPredCall([Pred, pos, Proc], Stuff,R),!,R=[].
 cycPredCall([Pred, pos, proc], [P|Args],[[P|Args]]):-!,numberArgs(0,Args),!.
  
-cycPredCall(X,Y,[]):-attach_console,true,debugFmt(cycPredCall(X,Y)),!.
+cycPredCall(X,Y,[]):-attach_console,true,cycDebugFmt(cycPredCall(X,Y)),!.
 cycPredCall([Prolog,pos|_],[CycPred|CallArgs],Result):-is_list(CallArgs),Call=..[Prolog|CallArgs],!,findall([CycPred|CallArgs],failOnError(Call),Result).
 cycPredCall([Prolog,neg|_],[CycPred|CallArgs],[]):-!.
 cycPredCall(Predstring,Call,[Call]):-!.
@@ -4044,7 +4053,7 @@ prologSKSIConnect(DataSrc,Result):-
 % Send to debugger
 % ===========================================================
 inform_xml_agent(UResultsSoFar,Result,InExplaination,Status):-
-        debugFmt(inform_xml_agent(UResultsSoFar,Result,InExplaination,Status)),fail.
+        cycDebugFmt(inform_xml_agent(UResultsSoFar,Result,InExplaination,Status)),fail.
 
 % ===========================================================
 % Hide certain returns
@@ -4164,9 +4173,9 @@ write_e(C):-put_code(C),!.
 			  /*      				   
 :-module(cyc_generation,
 	 [ 
-	 debugFmt/1,
-	 debugFmt/2,
-	 debugFmtFast/1,
+	 cycDebugFmt/1,
+	 cycDebugFmt/2,
+	 cycDebugFmtFast/1,
 	 logOnFailureIgnore/1,
 	 setCycOptionExplicitWriteSettings/0,
 	 setCycOptionImplicitWriteSettings/0,
@@ -4193,11 +4202,11 @@ logOnFailureIgnore(X):-ignore(logOnFailure(X)),!.
 writeModePush(_Push):-!.
 writeModePop(_Pop):-!.
 
-%debugFmt([-1]).
-%debugFmt([[-1]]).
-%debugFmt(T):- isCycOption(opt_debug=off),!.
-debugFmt(Stuff):-!,debugFmt('% ~q~n',[Stuff]).
-debugFmt(T):-!,
+%cycDebugFmt([-1]).
+%cycDebugFmt([[-1]]).
+%cycDebugFmt(T):- isCycOption(opt_debug=off),!.
+cycDebugFmt(Stuff):-!,cycDebugFmt('% ~q~n',[Stuff]).
+cycDebugFmt(T):-!,
 	((
 	if_prolog(swi,
 		(prolog_current_frame(Frame),
@@ -4244,19 +4253,19 @@ fresh_line:-current_output(Strm),fresh_line(Strm),!.
 fresh_line(Strm):-stream_property(Strm,position('$stream_position'(_,_,POS,_))),ifThen(POS>0,nl(Strm)),!.
 fresh_line(Strm):-trace,nl(Strm),!.
 
-%debugFmt(C,T):- isCycOption(opt_debug=off),!.
-%debugFmt(_,F):-F==[-1];F==[[-1]].
+%cycDebugFmt(C,T):- isCycOption(opt_debug=off),!.
+%cycDebugFmt(_,F):-F==[-1];F==[[-1]].
 
-debugFmt(F,A):-
+cycDebugFmt(F,A):-
         fresh_line(user_error),
         writeFmtFlushed(user_error,F,A),
         fresh_line(user_error),
         flush_output_safe(user_error),!.
 
-debugFmt(C,T):-!,
+cycDebugFmt(C,T):-!,
 	((
 	writeFmt('<font size=+1 color=~w>',[C]),
-	debugFmt(T),
+	cycDebugFmt(T),
         writeFmt('</font>',[]))),!.
 
 dumpstack_argument(T):-isCycOption(opt_debug=off),!.  
@@ -4291,7 +4300,7 @@ sendNote(To,From,Subj,Message):-sendNote(To,From,Subj,Message,_).
 
 sendNote(To,From,Subj,Message,Vars):-
 	not(not((safe_numbervars((To,From,Subj,Message,Vars)),
-	%debugFmt(sendNote(To,From,Subj,Message,Vars)),
+	%cycDebugFmt(sendNote(To,From,Subj,Message,Vars)),
 	catch(sendNote_1(To,From,Subj,Message,Vars),E,
 	writeFmt('send note ~w ~w \n <HR>',[E,sendNote(To,From,Subj,Message,Vars)]))))).
 
@@ -4347,7 +4356,7 @@ sendNote_1(To,From,Subj,Message,Vars):- isCycOption(client=html),  !, %  In Html
             toMarkUp(cycl,From,Vars,SFrom),
             toMarkUp(cycl,nv(Subj),Vars,S),
             toMarkUp(html,nv(Message),Vars,A),
-            writeFmt('<hr><B>To=<font color=green>~w</font> From=<font color=green>~w</font> Subj=<font color=green>~w</font></B><BR>~w\n',[To,From,S,A]),!.
+            writeFmt('<hr><B>To=<font color=green>~w</font> From=<font color=green>~w</font> Subj=<font color=green>~w</font></B><BR>~w\n',[To,From,S,A]),!. %'
 
 sendNote_1(To,From,Subj,Message,Vars):- isCycOption(client=console),!, % In CYC
             toMarkUp(cycl,To,Vars,STo),
@@ -4365,7 +4374,7 @@ sendNote_1(To,From,Subj,Message,Vars):-  % In CYC
 
 sendNote(To,From,Subj,Message,Vars):-!.
                                                                        */
-debugFmtFast(X):-writeq(X),nl.
+cycDebugFmtFast(X):-writeq(X),nl.
 
 logOnFailure(assert(X,Y)):- catch(assert(X,Y),_,Y=0),!.
 logOnFailure(assert(X)):- catchIO(assert(X)),!.
@@ -4466,9 +4475,9 @@ write_val(Any,Vars):- isCycOption(client=html)
       
 write_val_xml(Any,Vars):-
       toMarkUp(leml,Any,Vars,Chars),write(Chars),nl.
-                                        /*
+                                        
 
-:-dynamic_transparent(telling_file).               
+:-dynamic_transparent(telling_file).              
 
 writeCycEvent(_,_,_):-isCycOption(disp_hide_all=true),!.
 writeCycEvent(_,_,_):-telling_file,!.
@@ -4648,9 +4657,9 @@ cleanOldProcesses:-!.
 
 handleProcessStatus(Id,running):-!. %Normal
 handleProcessStatus(Id,exited(complete)):-!,thread_join(Id,_),!.
-handleProcessStatus(Id,true):-!, debugFmt('% Process ~w complete.\n',[Id]),!,thread_join(Id,_),!.
-handleProcessStatus(Id,exception(Error)):-!, debugFmt('% Process ~w exited with exceptions: ~q \n',[Id,Error]),!. %,thread_join(Id,_),!.
-handleProcessStatus(Id,O):-!, debugFmt('% Process ~w exited "~q". \n',[Id,O]),!,thread_join(Id,_),!.
+handleProcessStatus(Id,true):-!, cycDebugFmt('% Process ~w complete.\n',[Id]),!,thread_join(Id,_),!.
+handleProcessStatus(Id,exception(Error)):-!, cycDebugFmt('% Process ~w exited with exceptions: ~q \n',[Id,Error]),!. %,thread_join(Id,_),!.
+handleProcessStatus(Id,O):-!, cycDebugFmt('% Process ~w exited "~q". \n',[Id,O]),!,thread_join(Id,_),!.
 
 mutex_call(Goal,Id):-
                         mutex_create(Id),

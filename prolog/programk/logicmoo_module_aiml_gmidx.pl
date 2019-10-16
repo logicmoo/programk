@@ -112,7 +112,6 @@ replaceArgsVar(Ctx,[E=Replacement|L],CateSig):-
 :-dynamic(argNumsTracked/3).
 :-dynamic(argNFound/4).
 :-multifile(argNFound/4).
-:-index(argNFound(1,1,1,1)).
 
 
 argTypeIndexable(textInput).
@@ -538,7 +537,7 @@ predify(AH,A0,AN,H):-AH=..[A0,idxl,AN|H].
 %%%%%%%%%%%%%%%%%%5
 %%withArgIndexing(CateSig,DoWhat):-prolog_must(withArgIndexing(CateSig,DoWhat,_Indexable)).
 
-withArgIndexing(CateSig,_DoWhat,Indexable):-not(useIndexPatternsForCateSearch),!,duplicate_term(CateSig,Indexable).
+withArgIndexing(CateSig,_DoWhat,Indexable):- \+ useIndexPatternsForCateSearch,!,duplicate_term(CateSig,Indexable).
 withArgIndexing(CateSig,DoWhat,Indexable):-
   functor(CateSig,F,A),
   prolog_must(var(Indexable)),
@@ -549,7 +548,9 @@ withArgIndexing(CateSig,DoWhat,Indexable):-
 withArgIndexing4(CateSig,Functor,DoWhat,Indexable):- argNumsTracked(Functor,ArgName,ArgNumber),
   argNumsIndexedRepr(Functor,ArgName,ArgNumber,ArgType),
   once((arg(ArgNumber,CateSig,Arg),
-         once((call(DoWhat,CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType),
+         once((
+          % call/9 is missing?  call(DoWhat,CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType),
+          apply(DoWhat,[CateSig,Indexable,Functor,ArgName,ArgNumber,Arg,IndexableArg,ArgType]),
               nb_setarg(ArgNumber,Indexable,IndexableArg))))),fail.
 
 withArgIndexing4(_CateSig,_F,_DoWhat,_Indexable).
@@ -631,7 +632,7 @@ peekCateElements(Ctx,Cate):- cateMemberTags(CATETAGS), peekAttributes(Ctx,CATETA
 popCateElements(Ctx,Cate):- cateMemberTags(CATETAGS), peekAttributes(Ctx,CATETAGS,category,Cate),!.
 popCateElements(Ctx,CateO):- popCateElements1(Ctx,Cate1),popCateElements2(Ctx,Cate2),append(Cate1,Cate2,Cate),!,CateO=Cate.
 popCateElements1(Ctx,CateO):- findall(Tag=DCG,cateNodes1(Ctx,category,Tag,DCG),Cate),!,CateO=Cate.
-popCateElements2(Ctx,CateO):- findall(Tag=DCG,cateNodes2(Ctx,category,Tag,DCG),Cate),!,CateO=Cate.
+popCateElements2(Ctx,CateO):- findall(Tag=DCG,cateNodes2(Ctx,Tag,DCG),Cate),!,CateO=Cate.
 
 
 cateNodes1(Ctx,Scope,Tag,DCGO):-member(Tag,[pattern,template]),once(cateNodes1a(Ctx,Scope,Tag,TEMPLATE)),once(convert_template(Ctx,TEMPLATE,DCG)),!,DCG=DCGO.
@@ -641,7 +642,9 @@ cateNodes1a(Ctx,Scope,Tag,DCGO):-listing(dict),aiml_error(peekNameValue(Ctx,Scop
 cateNodes1a(Ctx,Scope,Tag,DCGO):-peekNameValue(Ctx,Other,Tag,DCG,'$error'),Other\==Scope,!,DCG=DCGO.
 
 
-cateNodes2(Scope,Tag,DCGO):-member(Tag,[that,guard,topic]),once(cateNodes2a(Scope,Tag,TEMPLATE)),once(convert_template(_Ctx,TEMPLATE,DCG)),!,DCG=DCGO.
+cateNodes2(Scope,Tag,DCGO):-
+ member(Tag,
+    [that,guard,topic]),once(cateNodes2a(Scope,Tag,TEMPLATE)),once(convert_template(_Ctx,TEMPLATE,DCG)),!,DCG=DCGO.
 
 cateNodes2a(Scope,Tag,DCGO):-peekNameValue(_Ctx,Other,Tag,DCG,'$failure'),Other\==Scope,!,DCG=DCGO.
 cateNodes2a(Scope,Tag,DCGO):-aiml_error(peekNameValue(_Ctx,Scope,Tag,DCG)),!,DCG=DCGO.

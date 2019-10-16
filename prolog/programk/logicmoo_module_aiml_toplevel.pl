@@ -1,5 +1,5 @@
 % ===================================================================
-% File 'logicmoo_module_aiml.pl'
+% File 'logicmoo_module_aiml_toplevel.pl'
 % Purpose: An Implementation in SWI-Prolog of AIML
 % Maintainer: Douglas Miles
 % Contact: $Author: dmiles $@users.sourceforge.net ;
@@ -12,11 +12,12 @@
 %:-include('logicmoo_utils_header.pl'). %<?
 %:- style_check(-singleton).
 %%:- style_check(-discontiguous).
-:- if((current_prolog_flag(version,MMmmPP),MMmmPP<70000)).
-:- style_check(-atom).
+:- if( (current_prolog_flag(version,MMmmPP), MMmmPP<70000) ).
+%:- style_check(-atom).
 :- style_check(-string).
 :- endif.
-:-catch(guitracer,E,writeq(E)),nl.
+
+% :-catch(guitracer,E,writeq(E)),nl.
 
 :-multifile(what/3).
 :-multifile(response/2).
@@ -36,10 +37,7 @@ asserta_if_new_hlper1(C):-asserta(C),!.
    writeq(logicmoo_module_aiml:asserta(library_directory(ParentDir))),
    asserta_if_new_hlper1(library_directory(ParentDir)).
 
-:-ensure_loaded(library('cyc_pl/cyc.pl')).
-
 :-ensure_loaded(library('programk/logicmoo_module_aiml_shared.pl')).
-
 :-ensure_loaded(library('programk/logicmoo_module_aiml_graphmaster.pl')).
 :-ensure_loaded(library('programk/logicmoo_module_aiml_memory.pl')).
 :-ensure_loaded(library('programk/logicmoo_module_aiml_natlang.pl')).
@@ -78,16 +76,18 @@ test_call(G):-writeln(G),ignore(once(error_catch(G,E,writeln(E)))).
 
 
 main_loop1(Atom):- current_input(In),!,
-            read_line_to_codes(In,Codes),!,
-            atom_codes(Atom,Codes),!,
-            alicebot(Atom),!.
+            read_line_to_codes(In,Codes),!,            
+            atom_codes_or_eof(Atom,Codes),!,
+            ignore(once(alicebot(Atom))),!.
 
+atom_codes_or_eof(end_of_file,end_of_file):-!.
+atom_codes_or_eof(Atom,Codes):- atom_codes(Atom,Codes).
 
 ping_default_files:-exists_file('temp/aimlCore3.pl'),ensure_loaded('temp/aimlCore3.pl'),!.
 ping_default_files:-exists_file('temp/aimlCore.pl'),ensure_loaded('temp/aimlCore.pl'),!.
 ping_default_files.
 
-main_loop:- ping_default_files,repeat,main_loop1(_),fail.
+main_loop:- ping_default_files,repeat,main_loop1(EOF),EOF==end_of_file.
 
 :-dynamic(default_channel/1).
 :-dynamic(default_user/1).
@@ -139,8 +139,9 @@ alicebot(In,Res):- !,ignore(Res='-no response-'(In)).
 
 alicebotCTX(_Ctx,[],[]):-!.
 alicebotCTX(Ctx,Input,Resp):-
+      context_module(M),
       debugOnError(tokenizeInput(Input,Tokens)),
-      time(debugOnError(alicebotCTX4(Ctx,Input,Tokens,Resp))),!.
+      prolog_statistics:time(M:debugOnError(alicebotCTX4(Ctx,Input,Tokens,Resp))),!.
 
 
 % ===============================================================================================
@@ -1063,6 +1064,5 @@ substituteFromDict_l(Ctx,DictName,[V|Hidden],[V|Output]):-substituteFromDict_l(C
 %%:- cateFallback(ATTRIBS), pushAttributes(_Ctx,cateFallback,ATTRIBS).
 
 % run main loop if this was the toplevel file
-do_main_if_load:-current_prolog_flag(associated_file,File),file_base_name(File, 'logicmoo_module_aiml.pl')->main_loop;true.
+do_main_if_load:- current_prolog_flag(associated_file,File),file_base_name(File, 'logicmoo_module_aiml.pl')->main_loop;true.
 
-:-initialization(do_main_if_load,after_load).

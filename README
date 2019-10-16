@@ -1,15 +1,11 @@
 
-Checkout with:
-  git clone -b master -v "https://DouglasRMiles@github.com/logicmoo/jellyfish.git" jellyfish
-
 NotAIML: 
- cd jellyfish/notaiml/
+ cd prolog/notaiml/
  cat README
 
 ProgramK:
- cd jellyfish/programk/
+ cd prolog/programk/
  cat README
 
-After making changes:
 
 

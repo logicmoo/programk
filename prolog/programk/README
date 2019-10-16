@@ -2,12 +2,22 @@
 ProgramK:
  here in prolog/programk
 
- swipl -f logicmoo_module_aiml.pl
- halt
+Usages:
+
+# Using ChomskyAIML Set
+swipl aiml_2_0 load ../../test/chomskyAIML
+
+# Running ProgramD tests
+swipl aiml_2_0 load ../../test/ProgramD
+
+# Running ProgramQ tests
+swipl aiml_3_0 load ../../test/ProgramQ
+
+# Running AIML-LF tests
+swipl aiml_3_0_lf load ../../test/chomskyAIML
 
 
-Usage:
-swipl aiml_2_0 
+
 ... bunch of gibberish...
 when you get the
 |:  

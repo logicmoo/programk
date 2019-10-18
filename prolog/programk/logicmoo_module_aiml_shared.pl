@@ -382,7 +382,7 @@ multi_transparent(F/A):-!,multi_transparent(user:F/A).
 multi_transparent(X):-functor(X,F,A),multi_transparent(F/A),!.
 */
 
-:- module_transparent(library_directory/1).
+:- module_transparent(user:library_directory/1).
 
 /*
 throw_safe(Exc):-atrace,throw(Exc).
@@ -424,7 +424,7 @@ maplist_safe(Pred,LISTIN, LIST):-!, findall(EE, ((member(E,LISTIN),prolog_must(a
 
 hasLibraryBuggerySupport :- absolute_file_name(library('logicmoo/logicmoo_util_library.pl'),File),exists_file(File).
 
-throwNoLibBugger:- atrace,absolute_file_name('.',Here), buggerFile(BuggerFile), listing(library_directory), throw(error(existence_error(url, BuggerFile), context(_, status(404, [BuggerFile, from( Here) ])))).
+throwNoLibBugger:- atrace,absolute_file_name('.',Here), buggerFile(BuggerFile), listing(user:library_directory/1), throw(error(existence_error(url, BuggerFile), context(_, status(404, [BuggerFile, from( Here) ])))).
 
 addLibraryDir :- buggerDir(Here),atom_concat(Here,'/..',UpOne), absolute_file_name(UpOne,AUpOne),asserta(user:library_directory(AUpOne)).
 

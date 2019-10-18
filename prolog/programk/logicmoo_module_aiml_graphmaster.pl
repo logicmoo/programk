@@ -10,7 +10,7 @@
 
 :-ensure_loaded(library('programk/logicmoo_module_aiml_gmidx.pl')).
 :-ensure_loaded(library('programk/logicmoo_module_aiml_convertor.pl')).
-:-ensure_loaded(library('programk/logicmoo_module_aiml_xpath.pl')).
+:-ensure_loaded(library('programk/logicmoo_module_aiml_cxt_path.pl')).
 
 % ===============================================================================================
 % Callable input

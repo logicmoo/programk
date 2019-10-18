@@ -8,13 +8,13 @@ This comes with two Chatbot impls:
 The first ever Prolog Impl of the complete 2.0 Spec  - 
 
 Using ChomskyAIML Set
-````swipl aiml_2_0 load ../../test/chomskyAIML```
+````swipl aiml_2_0 load chomskyAIML```
 
 Running ProgramD tests
-````swipl aiml_2_0 load ../../test/ProgramD```
+````swipl aiml_2_0 load test_suite/ProgramD```
 
 Running ProgramQ tests
-````swipl aiml_2_0 load ../../test/ProgramQ````
+````swipl aiml_2_0 load test_suite/ProgramQ````
 
 # AIML-LF
 A Deep Structure Logical Form (Caveman Language!)
@@ -23,13 +23,13 @@ This used a non-English/Logic based Chatbot.
 It reads AIML file but reengineers them to no longer use natural language (it to use  Deep Structure Logical Form instead!)
 
 Using ChomskyAIML Set
-````swipl aiml_lf load ../../test/chomskyAIML```
+````swipl aiml_lf load chomskyAIML```
 
 Running ProgramD tests
-````swipl aiml_lf load ../../test/ProgramD```
+````swipl aiml_lf load test_suite/ProgramD```
 
 # Running AIML-LF tests
-````swipl aiml_lf load ../../test/srlAIML```
+````swipl aiml_lf load test_suite/srlAIML```
 
 
 ... bunch of gibberish...

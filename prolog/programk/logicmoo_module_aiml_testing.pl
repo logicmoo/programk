@@ -49,7 +49,7 @@ addSupportHere:-
   absolute_file_name('.',Here),
   asserta(library_directory(Here))));true).
 
-:-not(hasLibrarySupport)->addSupportHere;true.
+%:-not(hasLibrarySupport)->addSupportHere;true.
 
 %:-hasLibrarySupport->true;throwNoLib.
 

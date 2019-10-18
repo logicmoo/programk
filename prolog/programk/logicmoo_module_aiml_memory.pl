@@ -1,9 +1,9 @@
 % ===================================================================
-% File 'logicmoo_module_aiml_xpath.pl'
+% File 'logicmoo_module_aiml_cxt_path.pl'
 % Purpose: An Implementation in SWI-Prolog of AIML
 % Maintainer: Douglas Miles
 % Contact: $Author: dmiles $@users.sourceforge.net ;
-% Version: 'logicmoo_module_aiml_xpath.pl' 1.0.0
+% Version: 'logicmoo_module_aiml_cxt_path.pl' 1.0.0
 % Revision:  $Revision: 1.7 $
 % Revised At:   $Date: 2002/07/11 21:57:28 $
 % ===================================================================

@@ -23,7 +23,7 @@
 
 :-ensure_loaded(library('programk/logicmoo_module_aiml_graphmaster.pl')).
 :-ensure_loaded(library('programk/logicmoo_module_aiml_convertor.pl')).
-:-ensure_loaded(library('programk/logicmoo_module_aiml_xpath.pl')).
+:-ensure_loaded(library('programk/logicmoo_module_aiml_cxt_path.pl')).
 
 % =================================================================================
 % Entity Loading

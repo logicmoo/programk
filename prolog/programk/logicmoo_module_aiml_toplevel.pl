@@ -34,32 +34,40 @@
 asserta_if_new_hlper1(C):-catch(C,_,fail),!.
 asserta_if_new_hlper1(C):-asserta(C),!.
 
-:-source_location(File,_Line),file_directory_name(File, Directory),
+:-dynamic(local_directory_search/1).
+:-multifile(local_directory_search/1).
+:-module_transparent(local_directory_search/1).
+
+addPaths:- source_location(File,_Line),file_directory_name(File, Directory),
    context_module(M),
-   file_directory_name(Directory,ParentDir),% cd(ParentDir),
-   writeq(M:asserta(user:library_directory(ParentDir))),nl,
-   asserta_if_new_hlper1(user:library_directory(ParentDir)).
+   file_directory_name(Directory,ParentDir),% cd(ParentDir),   
+   asserta_if_new_hlper1(user:library_directory(ParentDir)),
+   !,% writeq(M:asserta(user:library_directory(ParentDir))),nl,
+   file_directory_name(ParentDir,ProgramK),
+   asserta_if_new_hlper1(user:file_search_path(programk,ProgramK)),
+   asserta_if_new_hlper1(local_directory_search(ProgramK)),
+   absolute_file_name('aiml',[relative_to(ProgramK)],AIMLDir),
+   asserta_if_new_hlper1(user:file_search_path(aiml,AIMLDir)),!.
+
+
+:- addPaths.
 
 :-ensure_loaded(library('programk/logicmoo_module_aiml_shared.pl')).
 :-ensure_loaded(library('programk/logicmoo_module_aiml_graphmaster.pl')).
 :-ensure_loaded(library('programk/logicmoo_module_aiml_memory.pl')).
 :-ensure_loaded(library('programk/logicmoo_module_aiml_natlang.pl')).
-:-ensure_loaded(library('programk/logicmoo_module_aiml_xpath.pl')).
+:-ensure_loaded(library('programk/logicmoo_module_aiml_cxt_path.pl')).
 :-ensure_loaded(library('programk/logicmoo_module_aiml_loader.pl')).
 :-ensure_loaded(library('programk/logicmoo_module_aiml_convertor.pl')).
 :-ensure_loaded(library('programk/logicmoo_module_aiml_eval.pl')).
 %%:-ensure_loaded(library('notaiml/tokenize.pl')).
-:-dynamic(local_directory_search/1).
-:-multifile(local_directory_search/1).
-:-module_transparent(local_directory_search/1).
 
 local_directory_search('cynd').
 local_directory_search('cynd/programk').
 local_directory_search('programk').
-local_directory_search('../test').
-local_directory_search('../../test').
 local_directory_search('../aiml').
 local_directory_search('aiml').
+local_directory_search('aiml/test_suite').
 local_directory_search('special').
 local_directory_search('..').
 local_directory_search('../..').
@@ -120,7 +128,7 @@ alicebotCTX(Ctx):-
         repeat,
         current_input(In),
 	read_line_to_codes(In,Codes),
-        string_to_list(Atom,Codes),
+        tokenizeInput(Atom,Codes),
         %%atom_codes(Atom,Codes),
         once(alicebotCTX(Ctx,Atom)),fail.
 

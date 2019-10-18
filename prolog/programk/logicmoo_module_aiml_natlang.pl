@@ -26,6 +26,7 @@ tokenizeInput(String,Tokens):-tokenizeInput0(String,Tokens),!.
 
 tokenizeInput0(Input,Tokens):-var(Input),!,Input=Tokens.
 tokenizeInput0([],[]):-!.
+tokenizeInput0([C0,C1|Odes],Tokens):- integer(C0),integer(C1),name(Input,[C0,C1|Odes]),!,tokenizeInput0(Input,Tokens).
 tokenizeInput0(Input,Tokens):- string(Input),string_to_atom(Input,Atom),!,tokenizeInput1(Atom,Tokens).
 tokenizeInput0([A|B],Out):- tokenizeInput0(A,AA),tokenizeInput_l(B,BB),!,flatten([AA,BB],Out).
 tokenizeInput0(Input,Tokens):- atom(Input),tokenizeInput1(Input,Tokens),!.

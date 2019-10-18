@@ -13,11 +13,12 @@
 %:-include('logicmoo_utils_header.pl'). %<?
 %:- style_check(-singleton).
 %%:- style_check(-discontiguous).
+/*
 :- if((current_prolog_flag(version,MMmmPP),MMmmPP<70000)).
 :- style_check(-atom).
 :- style_check(-string).
 :- endif.
-
+*/
 
 :-ensure_loaded(library('programk/logicmoo_module_aiml_graphmaster.pl')).
 :-ensure_loaded(library('programk/logicmoo_module_aiml_convertor.pl')).
@@ -34,7 +35,7 @@
 :-pp_listing(dict(_,_,_)).
 
 
-useNewCateSigSearch_broken_now:-false.
+useNewCateSigSearch_broken_now:-fail.
 useIndexPatternsForCateSearch:-true.
 useCateID:-true.
 dontAssertIndex:-fail.  % true adds 5 test failures! saves 7mb
@@ -377,7 +378,7 @@ confirm_1arg_indexed(F,ArgName,Value):-fromIndexableSArg(Value,SList),debugFmt(n
 
 %%%
 ffffffff.
-noTrickyIndexing:-false.
+noTrickyIndexing:-fail.
 
 toNonIndexable(FAKE,FAKE):-noTrickyIndexing,!.
 toNonIndexable(OF,INDEXABLE):-OF=..[F|ARGS],functor(OF,F,A),toNonIndexable0(A,F,ARGS,NEWARGS),!,INDEXABLE=..[F|NEWARGS].
@@ -700,7 +701,8 @@ cateFallback([
        call = 'true',
        guard = '*',
        userdict = 'user',
-       template = '[]',
+       % template = [],  ['Nothing'] ?
+       template= [gensym(template)],
        srcinfo=missinginfo,
        srcfile=missingfile,
        withCategory=[writeqnl,assert_cate_in_load]]).

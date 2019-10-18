@@ -43,10 +43,12 @@ file_newer(File1,File2):-
 %:-include('logicmoo_utils_header.pl'). %<?
 %:- style_check(-singleton).
 %%:- style_check(-discontiguous).
+/*
 :- if((current_prolog_flag(version,MMmmPP),MMmmPP<70000)).
 :- style_check(-atom).
 :- style_check(-string).
 :- endif.
+*/
 
 :-discontiguous(convert_ele/3).
 

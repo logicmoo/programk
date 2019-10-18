@@ -12,11 +12,12 @@
 %:-include('logicmoo_utils_header.pl'). %<?
 %:- style_check(-singleton).
 %%:- style_check(-discontiguous).
+/*
 :- if((current_prolog_flag(version,MMmmPP),MMmmPP<70000)).
 :- style_check(-atom).
 :- style_check(-string).
 :- endif.
-
+*/
 
 :-discontiguous(convert_ele/3).
 
@@ -177,10 +178,8 @@ string_to_structure0(String,PARSER_DEFAULTS0,XMLSTRUCTURESIN):-
        (free_sgml_parser(Parser),close(In))),!,prolog_must(XMLSTRUCTURESIN=XMLSTRUCTURES).
 
 string_parse_structure(Len,Parser, M:Options, Document, In) :-
-	notrace((
-	%sgml:set_parser_options(Parser, Options, Options1),
-	sgml:set_parser_options(Options, Parser, In, Options1),
-	sgml:parser_meta_options(Options1, M, Options2))),
+	notrace((catch(call(string_parse_structure_opts_547(Parser),In,M,Options,Options2),_,string_parse_structure_opts(Parser,In,M,Options,Options2)))),
+        % notrace((string_parse_structure_opts(Parser,In,M,Options,Options2))),
 	sgml:sgml_parse(Parser,
 		   [ document(Document),
 		     source(In),
@@ -188,6 +187,16 @@ string_parse_structure(Len,Parser, M:Options, Document, In) :-
                      content_length(Len)
 		   | Options2
 		   ]).
+
+/*
+string_parse_structure_opts_547(Parser, _In, _M, Options,Options2):-
+	sgml:set_parser_options(Parser, Options, Options1),
+	Options2=Options1.
+*/
+
+string_parse_structure_opts(Parser,In,M,Options,Options2):-
+	sgml:set_parser_options(Options, Parser, In, Options1),
+        sgml:parser_meta_options(Options1, M, Options2).
 
 
 
@@ -668,8 +677,22 @@ pushCateElement(Ctx,INATTRIBS,element(Tag,ATTRIBS,INNER_XML)):- member(Tag,[oute
 % error
 pushCateElement(Ctx,ATTRIBS,M):-debugFmt('FAILURE'(pushCateElement(Ctx,ATTRIBS,M))),atrace.
 
-unify_partition(Mask, List, Included, Excluded):- partition(\=(Mask), List, Excluded , Included),!.
+unify_partition(Mask, List, Included, Excluded):- my_partition(\=(Mask), List, Excluded , Included),!.
 %%unify_partition(Mask, +List, ?Included, ?Excluded)
+
+:- meta_predicate(my_partition(1,+,-,-)).
+my_partition(Pred, List, Included, Excluded) :-
+    my_partition_(List, Pred, Included, Excluded).
+my_partition_([], _, [], []).
+my_partition_([H|T], Pred, Incl, Excl) :-
+    (   call(Pred, H)
+    ->  Incl=[H|I],
+        my_partition_(T, Pred, I, Excl)
+    ;   Excl=[H|E],
+        my_partition_(T, Pred, Incl, E)
+    ).
+
+
 
 each_pattern(Ctx,ATTRIBS,TAGS,element(TAG,ALIST,PATTERN)):- innerTagLikeThat(That), member(element(That,WA,WP), PATTERN),!,
    prolog_must((
@@ -702,7 +725,7 @@ loader_verb(Ctx,DumpListHere,Verbs):-atrace,prolog_must((peekNameValue(Ctx,DumpL
 
 gatherEach(Ctx,NEWATTRIBS,NOPATTERNS,RESULTS):-
    gatherEach0(Ctx,NEWATTRIBS,NOPATTERNS,RESULTS),
-   debugFmt(gatherEach0(Ctx,NEWATTRIBS,NOPATTERNS,RESULTS)),!.
+   nop(debugFmt(gatherEach0(Ctx,NEWATTRIBS,NOPATTERNS,RESULTS))),!.
 
 
 removeAlwaysFromTag(that,pattern).

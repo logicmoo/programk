@@ -12,18 +12,50 @@
 %:-include('logicmoo_utils_header.pl'). %<?
 %:- style_check(-singleton).
 %%:- style_check(-discontiguous).
+/*
 :- if((current_prolog_flag(version,MMmmPP),MMmmPP<70000)).
 :- style_check(-atom).
 :- style_check(-string).
 :- endif.
+*/
 
 
-:-ensure_loaded(library('programk/logicmoo_module_aiml_memory.pl')).
+:- nop(module(xpath_ctx,
+ [addCtxValue/3,
+ addScopeParent/2,
+ attributeValue/5,
+ checkNameValue/6,
+ current_value/3,
+ currentContext/2,
+          pushAttributes/3,
+
+         /*get_ctx_frame_holder/4,
+         get_ctx_holder/2,
+         get_o_value/4,
+                  */
+ getCtxValueND/3,
+ get_ctx_frame_holder/4,
+ isValid/1,
+ makeAllParams/4,
+ 
+ peekAttributes/4,
+ peekNameValue/5,
+ popNameValue/4,
+ replaceAttribute/5,
+ setCtxValue/3,
+ valuePresent/1,
+ valuesMatch/3,
+ withAttributes/3,
+ withCurrentContext/1,
+ withNamedContext/2])).
+
+% :-ensure_loaded(library('programk/logicmoo_module_aiml_memory.pl')).
 
 % ===============================================================================================
 %    Context values API
 % ===============================================================================================
 pushAttributes(Ctx,Scope,List):-prolog_mustEach((prolog_mostly_ground(List),pushCtxFrame(Ctx,Scope,List),pushAttributes1(Ctx,Scope,List))),!.
+
 pushAttributes1(Ctx,Scope,[N=V|L]):-pushNameValue(Ctx,Scope,N,V),!,pushAttributes1(Ctx,Scope,L).
 pushAttributes1(_Ctx,_Scope,[]).
 pushAttributes1(_Ctx,_Scope,_AnyPushed):-!.
@@ -38,7 +70,7 @@ current_value(Ctx,Name,Value):-current_value(Ctx,Name,Value,'$global_value').
 current_value(Ctx,Name,Value,ElseVar):-peekNameValue(Ctx,_Scope,Name,Value,ElseVar).
 
 checkNameValue(Pred,Ctx,Scope,[Name],Value,Else):- nonvar(Name),!,checkNameValue(Pred,Ctx,Scope,Name,Value,Else).
-checkNameValue(Pred,Ctx,Scope,Name,Value,Else):-hotrace(( call(Pred,Ctx,Scope,Name,ValueVar,Else),!,checkValue(ValueVar),valuesMatch(Ctx,ValueVar,Value))),!. %%,atrace.
+checkNameValue(Pred,Ctx,Scope,Name,Value,Else):-notrace(( call(Pred,Ctx,Scope,Name,ValueVar,Else),!,checkValue(ValueVar),valuesMatch(Ctx,ValueVar,Value))),!. %%,atrace.
 
 peekNameValue(Ctx,Scope,Name,Value,Else):-nonvar(Value),!,checkNameValue(peekNameValue,Ctx,Scope,Name,Value,Else).
 peekNameValue(Ctx,Scope,Name,Value,ElseVar):- locateNameValue(Ctx,Scope,Name,Value,'$first'(['$local_value','$global_value','$attribute_value',ElseVar])),!.
@@ -52,8 +84,8 @@ peekNameValue0(CtxI,Scope,Name,Value):-dictNameKey(Scope,Name,Key),getCtxValueND
 peekNameValue0(Ctx,Scope,Name,Value):-peekGlobalMem(Ctx,Scope,Name,Value).
 peekNameValue0(CtxI,Scope,Name,Value):-var(Scope),!,peekAnyNameValue(CtxI,Scope,Name,Value).
 peekNameValue0(CtxI,Scope,Name,Value):-getCtxValueND(CtxI,Scope:Name,Value).
-peekNameValue0(Ctx,ATTRIBS,NameS,ValueO):- hotrace((findAttributeValue(Ctx,ATTRIBS,NameS,ValueO,'$failure'))).
-peekNameValue0(Ctx,XML,NameS,ValueO):- hotrace((findTagValue(Ctx,XML,NameS,ValueO,'$failure'))).
+peekNameValue0(Ctx,ATTRIBS,NameS,ValueO):- notrace((findAttributeValue(Ctx,ATTRIBS,NameS,ValueO,'$failure'))).
+peekNameValue0(Ctx,XML,NameS,ValueO):- notrace((findTagValue(Ctx,XML,NameS,ValueO,'$failure'))).
 peekNameValue0(_Ctx,CtxI,Name,Value):- getCtxValueND(CtxI,Name,Value).
 peekNameValue0(Ctx,Scope,Name,Value):-lotrace((getIndexedValue(Ctx,Scope,Name,[],Value),checkAttribute(Scope,Name,Value))).
 peekNameValue0(Ctx,Scope,Name,Value):-getInheritedStoredValue(Ctx,Scope,Name,Value),checkAttribute(Scope,Name,Value),atrace.
@@ -100,7 +132,7 @@ valuesMatch(_Ctx,V,V):-!.
 valuesMatch(Ctx,V,A):-convertToMatchableCS(A,AA),convertToMatchableCS(V,VV),valuesMatch10(Ctx,VV,AA).
 
 
-valuesMatch10(Ctx,V,A):-hotrace(valuesMatch11(Ctx,V,A)),!.
+valuesMatch10(Ctx,V,A):-notrace(valuesMatch11(Ctx,V,A)),!.
 valuesMatch10(Ctx,V,A):-ignorecase_literal(A,AA),ignorecase_literal(V,VV),!,valuesMatch11(Ctx,VV,AA),!.
 
 valuesMatch1(_Ctx,V,V).
@@ -158,17 +190,17 @@ withAttributes(CtxIn,ATTRIBS,Call):- fail,
   makeContextBase(Scope,NewCtx),
   subst(Call,CtxIn,Ctx,ReCall),!,
   Ctx = l2r(NewCtx,CtxIn),
-  hotrace((
+  notrace((
    ensureScope(NewCtx,ATTRIBS,Scope),
    checkAttributes(Scope,ATTRIBS))),
    call_cleanup((
-    once(hotrace(pushAttributes(NewCtx,Scope,ATTRIBS))),
+    once(notrace(pushAttributes(NewCtx,Scope,ATTRIBS))),
     prolog_must(ReCall)),
-    once((hotrace(popAttributes(NewCtx,Scope,ATTRIBS))))).
+    once((notrace(popAttributes(NewCtx,Scope,ATTRIBS))))).
 
 withAttributes(CtxIn,ATTRIBS,Call):-
  duplicate_term(CtxIn,Ctx),!,
-  hotrace((
+  notrace((
    ensureScope(Ctx,ATTRIBS,Scope),
    checkAttributes(Scope,ATTRIBS),
    pushAttributes(Ctx,Scope,ATTRIBS))),!,
@@ -176,13 +208,13 @@ withAttributes(CtxIn,ATTRIBS,Call):-
   call(ReCall).
 
 withAttributes(Ctx,ATTRIBS,Call):-
-  hotrace((
+  notrace((
    ensureScope(Ctx,ATTRIBS,Scope),
    checkAttributes(Scope,ATTRIBS))),
    call_cleanup((
-    once(hotrace(pushAttributes(Ctx,Scope,ATTRIBS))),
+    once(notrace(pushAttributes(Ctx,Scope,ATTRIBS))),
       Call),
-    once(hotrace(popAttributes(Ctx,Scope,ATTRIBS)))).
+    once(notrace(popAttributes(Ctx,Scope,ATTRIBS)))).
     
 addScopeParent(Child,Parent):-addInherit(Child,Parent).
 
@@ -243,7 +275,7 @@ makeSingleTag(Ctx,NameS,ATTRIBS,Default,Tag,ValueO):-makeAimlSingleParam0(Ctx,Na
       transformTagData(Ctx,Tag,Default,ValueI,ValueO),!.
 
 makeAimlSingleParam0(_Ctx,[N|NameS],ATTRIBS,_D,N,Value):-member(O,[N|NameS]),lastMember(OI=Value,ATTRIBS),atomsSameCI(O,OI),!,prolog_must(N\==Value).
-makeAimlSingleParam0(Ctx,[N|NameS],ATTRIBS,ElseVar,N,Value):- hotrace((locateNameValue(Ctx,ATTRIBS,[N|NameS],Value,
+makeAimlSingleParam0(Ctx,[N|NameS],ATTRIBS,ElseVar,N,Value):- notrace((locateNameValue(Ctx,ATTRIBS,[N|NameS],Value,
           '$first'(['$local_value','$call_name'(prolog_must(cateFallback(N,Value)),N),
                     '$global_value','$call_name'(prolog_must(defaultPredicates(N,Value)),N),
                        ElseVar,'$error'])))),!,
@@ -341,7 +373,7 @@ makeContextBase__only_ForTesting(Gensym_Key, [frame(Gensym_Key,ndestruct,[assoc(
 % ===================================================================
 pushCtxFrame(Ctx,Name,NewValues):-prolog_mustEach((checkCtx(pushCtxFrame,Ctx),get_ctx_holderFreeSpot(Ctx,Holder,GuestDest),!,Holder=frame(Name,GuestDest,NewValues))).
 
-popCtxFrame(Ctx,Name,PrevValuesIn):- hotrace(prolog_mustEach(((
+popCtxFrame(Ctx,Name,PrevValuesIn):- notrace(prolog_mustEach(((
       checkCtx(popCtxFrame,Ctx),
       get_ctx_frame_holder(Ctx,Name,Frame,_Held),
       %%prolog_must(atom(Name)),prolog_must(compound(Frame)),
@@ -408,22 +440,22 @@ unwrapValue1(Compound,Compound).
 bestSetterFn(v(_,Setter,_),_OuterSetter,Setter):-!.
 bestSetterFn(_Value,OuterSetter,OuterSetter).
 
-getCtxValueND(CtxIn,Name,Value):-checkCtx(getCtxValueND,CtxIn), hotrace(( get_ctx_holder(CtxIn,Ctx),get_o_value(Name,Ctx,HValue,_Setter),unwrapValue(HValue,Value))).
-getCtxValueND(CtxI,Name,Value):-checkCtx(getCtxValueND,CtxI),lastMember(Ctx,CtxI),hotrace(( get_ctx_holder(Ctx,CtxH),get_o_value(Name,CtxH,HValue,_Setter), unwrapValue(HValue,Value))),atrace.
+getCtxValueND(CtxIn,Name,Value):-checkCtx(getCtxValueND,CtxIn), notrace(( get_ctx_holder(CtxIn,Ctx),get_o_value(Name,Ctx,HValue,_Setter),unwrapValue(HValue,Value))).
+getCtxValueND(CtxI,Name,Value):-checkCtx(getCtxValueND,CtxI),lastMember(Ctx,CtxI),notrace(( get_ctx_holder(Ctx,CtxH),get_o_value(Name,CtxH,HValue,_Setter), unwrapValue(HValue,Value))),atrace.
 
 /*
 getCtxValueND(CtxIn,Dict:Name,Value):-var(Dict),!,getCtxValueND(CtxIn,Name,Value).
 getCtxValueND(CtxIn,Name,Value):-prolog_must(nonvar(Name)),getCtxValueND0(CtxIn,Name,Value).
 getCtxValueND(CtxIn,Dict:Name,Value):-getNamedCtxValue(CtxIn,Dict,Name,Value).
 
-getCtxValueND0(CtxIn,Name,Value):-checkCtx(getCtxValueND,CtxIn), hotrace(( get_ctx_holder(CtxIn,Ctx),get_o_value(Name,Ctx,HValue,_Setter),unwrapValue(HValue,Value))).
-getCtxValueND0(CtxI,Name,Value):-checkCtx(getCtxValueND,CtxI),lastMember(Ctx,CtxI),hotrace(( get_ctx_holder(Ctx,CtxH),get_o_value(Name,CtxH,HValue,_Setter), unwrapValue(HValue,Value))),atrace.
+getCtxValueND0(CtxIn,Name,Value):-checkCtx(getCtxValueND,CtxIn), notrace(( get_ctx_holder(CtxIn,Ctx),get_o_value(Name,Ctx,HValue,_Setter),unwrapValue(HValue,Value))).
+getCtxValueND0(CtxI,Name,Value):-checkCtx(getCtxValueND,CtxI),lastMember(Ctx,CtxI),notrace(( get_ctx_holder(Ctx,CtxH),get_o_value(Name,CtxH,HValue,_Setter), unwrapValue(HValue,Value))),atrace.
 */
 
 getCtxValue_nd(Ctx,Key,Value):- getNamedCtxValue(Ctx,Dict,Name,Value),dictNameKey(Dict,Name,Key).
 
 getNamedCtxValue(CtxIn,Dict,Name,Value):-get_ctx_frame_holder(CtxIn,Dict,_Frame,Held),atrace,get_c_value_wrapped(Held,Name,Value).
-getNamedCtxValue(CtxIn,Dict,Name,Value):-lastMember(Ctx,CtxIn),hotrace((get_ctx_holder(Ctx,CtxHolder),ctxDict(CtxHolder,Dict,Held),get_c_value_wrapped(Held,Name,Value) )).
+getNamedCtxValue(CtxIn,Dict,Name,Value):-lastMember(Ctx,CtxIn),notrace((get_ctx_holder(Ctx,CtxHolder),ctxDict(CtxHolder,Dict,Held),get_c_value_wrapped(Held,Name,Value) )).
 getNamedCtxValue(CtxIn,Dict,Name,'$deleted'(CtxIn,Dict,Name)):-ignore(Dict=nodict),ignore(Name=noname).
 
 ctxDict(Ctx,Dict,[]):-var(Ctx),!,Dict=noctx.
@@ -499,7 +531,7 @@ get_ctx_holderFreeSpot2(_,[_|Try2],NamedValue,Destruct):-get_ctx_holderFreeSpot0
 get_ctx_value(Name,Ctx,Value,Setter):-nonvar(Name),var(Value),get_o_value(Name,Ctx,Value,OuterSetter),bestSetterFn(Value,OuterSetter,Setter).
 
 get_o_value00(Name,Ctx,Value,Setter):-get_o_value0(Name,Ctx,Value,HIDE_Setter),((no_cyclic_terms,cyclic_term(HIDE_Setter))-> Setter=no_setter(cyclicOn(Name)) ; Setter =HIDE_Setter).
-get_o_value(Name,Ctx,Value,Setter):-hotrace(get_o_value00(Name,Ctx,Value,Setter)).
+get_o_value(Name,Ctx,Value,Setter):- notrace(get_o_value00(Name,Ctx,Value,Setter)).
 
 get_o_value0(Name,Ctx,Value,Setter):-compound(Ctx),get_o_value1(Name,Ctx,Value,Setter).
 get_o_value1(Name,[H|T],Value,Setter):- !,(get_o_value0(Name,T,Value,Setter);get_o_value1(Name,H,Value,Setter)).
@@ -524,7 +556,7 @@ attributeValue(Ctx,Scope,Name,Value,_ElseVar):-peekNameValue0(Ctx,Scope,Name,Val
 attributeValue(Ctx,_Scope,Name,Value,ElseVar):-makeParamFallback(Ctx,Name,Value,ElseVar),!.
 */
 attributeValue(Ctx,ATTRIBS,NameS,ValueO,_Else):- ((findAttributeValue(Ctx,ATTRIBS,NameS,ValueO,'$failure'))),!.
-attributeValue(Ctx,XML,NameS,ValueO,_Else):- hotrace((findTagValue(Ctx,XML,NameS,ValueO,'$failure'))),!.
+attributeValue(Ctx,XML,NameS,ValueO,_Else):- notrace((findTagValue(Ctx,XML,NameS,ValueO,'$failure'))),!.
 attributeValue(Ctx,ATTRIBS,NameS,ValueO,_Else):-compound(ATTRIBS),ATTRIBS=..[_|LIST],member(E,LIST),
    attributeValue(Ctx,E,NameS,ValueO,'$failure'),!.
 attributeValue(Ctx,Scope,NameS,ValueO,ElseVar):-ElseVar\=='$failure',makeParamFallback(Ctx,Scope,NameS,ValueO,ElseVar),!.
@@ -568,4 +600,75 @@ findTagValue0_of_xml_element(Ctx,element(NameE,ATTRIBS,ValueI),Name,ValueO,_Else
 
 aiml_select_unit(Ctx,NameA,element(NameA,[],ValueI),ValueO):-aiml_eval_to_unit(Ctx,ValueI,ValueO),!.
 aiml_select_unit(Ctx,_NameA,ValueI,ValueO):-aiml_eval_to_unit(Ctx,ValueI,ValueO),!.
+
+
+
+
+
+end_of_file.
+
+
+Warning: addCtxValue/3, which is referenced by
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_memory.pl:402:56: 1-st clause of addNewContextValue/5
+Warning: attributeValue/5, which is referenced by
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_eval.pl:47:73: 5-th clause of aiml_call/2
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_eval.pl:291:32: 6-th clause of tag_eval/3
+Warning: canTrace/0, which is referenced by
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_shared.pl:427:57: 2-nd clause of willTrace/0
+Warning: checkNameValue/6, which is referenced by
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_toplevel.pl:516:59: 33-th clause of computeElement/7
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_toplevel.pl:523:37: 34-th clause of computeElement/7
+Warning: currentContext/2, which is referenced by
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_toplevel.pl:107:1: 1-st clause of say/1
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_memory.pl:327:121: 1-st clause of setAliceMem/3
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_loader.pl:98:110: 1-st clause of translate_aiml_files/1
+Warning: current_value/3, which is referenced by
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_graphmaster.pl:170:9: 1-st clause of computeSRAI222/9
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_loader.pl:63:5: 2-nd clause of getCurrentFile/3
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_convertor.pl:367:20: 5-th clause of transformTagData0/5
+Warning: getCtxValueND/3, which is referenced by
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_memory.pl:373:7: 1-st clause of currentContextValue/4
+Warning: get_ctx_frame_holder/4, which is referenced by
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_eval.pl:258:85: 1-st clause of showCtx/1
+Warning: isValid/1, which is referenced by
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_toplevel.pl:443:114: 2-nd clause of computeElement_condition/6
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_toplevel.pl:721:130: 1-st clause of lastKVMember/5
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_toplevel.pl:723:106: 2-nd clause of lastKVMember/5
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_toplevel.pl:726:8: 3-th clause of lastKVMember/5
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_loader.pl:707:39: 3-th clause of loader_verb/3
+Warning: makeAllParams/4, which is referenced by
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_gmidx.pl:597:0: 1-st clause of makeAimlCate/3
+Warning: peekAttributes/4, which is referenced by
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_gmidx.pl:620:16: 1-st clause of peekCateElements/2
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_gmidx.pl:622:36: 1-st clause of popCateElements/2
+Warning: peekNameValue/5, which is referenced by
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_gmidx.pl:631:79: 1-st clause of cateNodes1a/4
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_eval.pl:269:34: 3-th clause of systemCall_Load/3
+Warning: popNameValue/4, which is referenced by
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_gmidx.pl:633:19: 1-st clause of cateNodes1a/4
+Warning: replaceAttribute/5, which is referenced by
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_loader.pl:616:37: 3-th clause of each_category/4
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_loader.pl:650:24: 3-th clause of pushCateElement/3
+Warning: setCtxValue/3, which is referenced by
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_graphmaster.pl:95:8: 2-nd clause of computeSRAIStars/9
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_graphmaster.pl:119:55: 1-st clause of getConversationThread/4
+Warning: string_parse_structure_opts_547/5, which is referenced by
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_loader.pl:177:10: 1-st clause of string_parse_structure/5
+Warning: valuePresent/1, which is referenced by
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_toplevel.pl:716:151: 1-st clause of dictFromAttribs/4
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_memory.pl:354:43: 2-nd clause of dictValue/1
+Warning: valuesMatch/3, which is referenced by
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_toplevel.pl:956:0: 1-st clause of answerOutput/2
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_toplevel.pl:417:1: 3-th clause of precondsTrue0/2
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_toplevel.pl:417:94: 3-th clause of precondsTrue0/2
+Warning: withAttributes/3, which is referenced by
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_eval.pl:322:73: 1-st clause of testIt/8
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_convertor.pl:130:1: 1-st clause of translate_single_aiml_file0/4
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_toplevel.pl:343:90: 1-st clause of unused_computeElement/7
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_convertor.pl:79:90: 1-st clause of withNamedValue/3
+Warning: withCurrentContext/1, which is referenced by
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_convertor.pl:87:29: 1-st clause of do_pending_loads/0
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_loader.pl:82:20: 1-st clause of reloadAimlFiles/0
+Warning: withNamedContext/2, which is referenced by
+Warning:        /opt/logicmoo_workspace/packs_sys/small_adventure_games/prolog/programk/prolog/programk/logicmoo_module_aiml_testing.pl:126:1: 1-st clause of annie/0
 

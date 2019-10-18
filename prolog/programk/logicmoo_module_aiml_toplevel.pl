@@ -12,10 +12,12 @@
 %:-include('logicmoo_utils_header.pl'). %<?
 %:- style_check(-singleton).
 %%:- style_check(-discontiguous).
+/*
 :- if( (current_prolog_flag(version,MMmmPP), MMmmPP<70000) ).
 %:- style_check(-atom).
 :- style_check(-string).
 :- endif.
+*/
 
 % :-catch(guitracer,E,writeq(E)),nl.
 
@@ -33,9 +35,10 @@ asserta_if_new_hlper1(C):-catch(C,_,fail),!.
 asserta_if_new_hlper1(C):-asserta(C),!.
 
 :-source_location(File,_Line),file_directory_name(File, Directory),
-   file_directory_name(Directory,ParentDir),cd(ParentDir),
-   writeq(logicmoo_module_aiml:asserta(library_directory(ParentDir))),
-   asserta_if_new_hlper1(library_directory(ParentDir)).
+   context_module(M),
+   file_directory_name(Directory,ParentDir),% cd(ParentDir),
+   writeq(M:asserta(user:library_directory(ParentDir))),nl,
+   asserta_if_new_hlper1(user:library_directory(ParentDir)).
 
 :-ensure_loaded(library('programk/logicmoo_module_aiml_shared.pl')).
 :-ensure_loaded(library('programk/logicmoo_module_aiml_graphmaster.pl')).
@@ -53,11 +56,13 @@ asserta_if_new_hlper1(C):-asserta(C),!.
 local_directory_search('cynd').
 local_directory_search('cynd/programk').
 local_directory_search('programk').
-local_directory_search('programk/test_suite').
+local_directory_search('../test').
+local_directory_search('../../test').
 local_directory_search('../aiml').
 local_directory_search('aiml').
 local_directory_search('special').
 local_directory_search('..').
+local_directory_search('../..').
 
 local_directory_search_combined2(PL):-local_directory_search(A),local_directory_search(B),join_path(A,B,PL),exists_directory_safe(PL).
 
@@ -83,8 +88,8 @@ main_loop1(Atom):- current_input(In),!,
 atom_codes_or_eof(end_of_file,end_of_file):-!.
 atom_codes_or_eof(Atom,Codes):- atom_codes(Atom,Codes).
 
-ping_default_files:-exists_file('temp/aimlCore3.pl'),ensure_loaded('temp/aimlCore3.pl'),!.
-ping_default_files:-exists_file('temp/aimlCore.pl'),ensure_loaded('temp/aimlCore.pl'),!.
+ping_default_files:-exists_file('temp/aimlCore3.pl'),trace,ensure_loaded('temp/aimlCore3.pl'),!.
+ping_default_files:-exists_file('temp/aimlCore.pl'),trace,ensure_loaded('temp/aimlCore.pl'),!.
 ping_default_files.
 
 main_loop:- ping_default_files,repeat,main_loop1(EOF),EOF==end_of_file.

@@ -9,7 +9,8 @@
 % ===================================================================
 
 
-:- use_module(library(programk/cyc_pl/cyc),[is_string/1,atom_to_number/2,balanceBinding/2,writeFmtFlushed/2,writeFmtFlushed/3,toCycApiExpression/3]).
+%:- use_module(library(programk/cyc_pl/cyc),
+%  [is_string/1,atom_to_number/2,balanceBinding/2,writeFmtFlushed/2,writeFmtFlushed/3,toCycApiExpression/3]).
 
 
 

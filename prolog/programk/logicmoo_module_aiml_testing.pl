@@ -8,7 +8,9 @@
 % Revised At:   $Date: 2002/07/11 21:57:28 $
 % ===================================================================
 
-:-dynamic(recordedTime/2).
+:-ensure_loaded(logicmoo_module_aiml_toplevel).
+
+:-dynamic(recordedTime/2).           
 timeRecorded(Call):-timeRecorded(Call,Time),asserta(recordedTime(Time,Call)),listing(recordedTime/2),!.
 timeRecorded(Call,Time):- statistics(cputime,Start),context_module(M),prolog_statistics:time(M:Call),statistics(cputime,End),Time is End - Start.
 % :-catch(guitracer,E,writeq(E)),nl.
@@ -22,38 +24,38 @@ save:-tell(aimlCate),
    predicate_property(dict(_,_,_),number_of_clauses(ND)),
    debugFmt([aimlCate=N,dict=ND]),!.
 
-dt:- withAttributes(Ctx,[graph='ChomskyAIML'],load_aiml_files(Ctx,'aiml/chomskyAIML/*.aiml')).
+dt:- withAttributes(Ctx,[graph='ChomskyAIML'],load_aiml_files(Ctx,'chomskyAIML/*.aiml')).
 
 do:-load_aiml_files,alicebot.
 
 
-hasLibrarySupport :- absolute_file_name(library('programk/logicmoo_module_aiml.pl'),File),exists_file(File).
+hasLibrarySupport :- absolute_file_name(library('programk/logicmoo_module_aiml_toplevel.pl'),File),exists_file(File).
 throwNoLib:-  absolute_file_name('.',Here),throw(error(existence_error(url, Here), context(_, status(404, Here)))).
 
 % up one if we are in same directory
-up_one_if :- absolute_file_name('logicmoo_module_aiml.pl',File),(exists_file(File)->cd('../');true).
+ up_one_if :- absolute_file_name('./logicmoo_module_aiml_toplevel.pl',File),(exists_file(File)->cd('../');true).
 
 %:- leash(-all).
 
 %:- trace.
 
-:- up_one_if.
+%:- up_one_if.
 
 
 % if not has library suport, add this directory as a library directory
 addSupportHere:-
-  absolute_file_name('programk/logicmoo_module_aiml.pl',File),
+  absolute_file_name('logicmoo_module_aiml_toplevel.pl',File),
   (exists_file(File)-> ((
   absolute_file_name('.',Here),
   asserta(library_directory(Here))));true).
 
 :-not(hasLibrarySupport)->addSupportHere;true.
 
-:-hasLibrarySupport->true;throwNoLib.
+%:-hasLibrarySupport->true;throwNoLib.
 
 % goal is to remove this next line and have it work!
 %%:-ensure_loaded(library('autolog/autolog.pl')).
-:-ensure_loaded(library('programk/logicmoo_module_aiml.pl')).
+%:-ensure_loaded(library('programk/logicmoo_module_aiml_toplevel.pl')).
 
 
 %:-ensure_loaded('bootstrap.aiml.pl').
@@ -80,8 +82,20 @@ dttt:-timeRecorded(consult(aimlCate_checkpoint)),alicebot.
 %:-main_loop.
 % :-'trace'(findall/3,[-all]).
 
-stdCatchAll:-assert_cate_in_load(aimlCate(*,*,*,*,*,*,*,*,*,*,[element(srai,[],['STDCATCHALL',star(pattern,[],[])])],element(category,[],[element(pattern,[],[*]),element(template,[],[element(srai,[],['STDCATCHALL',element(star,[],[])])])]),'c:/development/opensim4opencog/bin/cynd/programk/test_suite/customtagtest.aiml':737-20056,aruleStd2)),
-  assert_cate_in_load(aimlCate(*,*,*,*,*,['STDCATCHALL',*],*,*,*,*,['ERROR',understanding,:,star(pattern,[],[])],element(category,[],[element(pattern,[],['STDCATCHALL *']),element(template,[],['ERROR understanding:',element(star,[],[])])]),'c:/development/opensim4opencog/bin/cynd/programk/test_suite/customtagtest.aiml':44-3205,aruleStd3)).
+stdCatchAll:-
+ % Catch all
+   assert_cate_in_load(aimlCate(*,*,*,*,*,*,*,*,*,*,
+      [element(srai,[],['STDCATCHALL',star(pattern,[],[])])],
+       element(category,[],[element(pattern,[],[*]),
+        element(template,[],[element(srai,[],['STDCATCHALL',element(star,[],[])])])]),
+    'c:/development/opensim4opencog/bin/cynd/programk/test_suite/customtagtest.aiml':737-20056,aruleStd2)),
+ % Complain
+  assert_cate_in_load(aimlCate(*,*,*,*,*,['STDCATCHALL',*],*,*,*,*,
+    ['ERROR',understanding,:,star(pattern,[],[])],
+     element(category,[],[element(pattern,[],['STDCATCHALL *']),
+      element(template,[],['ERROR understanding:',element(star,[],[])])]),
+   'c:/development/opensim4opencog/bin/cynd/programk/test_suite/customtagtest.aiml':44-3205,aruleStd3)).
+
 unusedCates:-assert_cate_in_load(aimlCate(*,*,*,*,*,[34],*,*,*,*,element(template,[],[element(srai,[],[1])]),foo3,'c:/development/opensim4opencog/bin/cynd/programk/test_suite/customtagtest.aiml':44-3205)),
  assert_cate_in_load(aimlCate(*,*,*,*,*,['34'],*,*,*,*,element(template,[],[element(srai,[],[2])]),foo3,'c:/development/opensim4opencog/bin/cynd/programk/test_suite/customtagtest.aiml':44-3205)),
  assert_cate_in_load(aimlCate(*,*,*,*,*,[35],*,*,*,*,element(template,[],[element(srai,[],[3])]),foo3,'c:/development/opensim4opencog/bin/cynd/programk/test_suite/customtagtest.aiml':44-3205)),
@@ -94,11 +108,11 @@ unusedCates:-assert_cate_in_load(aimlCate(*,*,*,*,*,[34],*,*,*,*,element(templat
 %%chomskyAIML:-catch(consult(chomskyAIML),_,fail),!.
 chomskyAIML:-once(load_aiml_files(library('../aiml/chomskyAIML/*.aiml'))).
 
-test_suite_files:-once(load_aiml_files(library('../aiml/test_suite/*.aiml'))).
+test_suite_files:-once(load_aiml_files(library('../test/*.aiml'))).
 
-loadBasicDictionaries:-once(load_aiml_files(library('../aiml/test_suite/ProgramD/predicates.xml'))),fail.
-loadBasicDictionaries:-once(load_aiml_files(library('../aiml/test_suite/ProgramD/properties.xml'))),fail.
-loadBasicDictionaries:-once(load_aiml_files(library('../aiml/test_suite/ProgramD/substitutions.xml'))),fail.
+loadBasicDictionaries:-once(load_aiml_files(library('../test/ProgramD/predicates.xml'))),fail.
+loadBasicDictionaries:-once(load_aiml_files(library('../test/ProgramD/properties.xml'))),fail.
+loadBasicDictionaries:-once(load_aiml_files(library('../test/ProgramD/substitutions.xml'))),fail.
 loadBasicDictionaries.
 
 run_chat_tests_here(Ctx):-     

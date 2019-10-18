@@ -8,12 +8,50 @@
 % Revised At:   $Date: 2002/07/11 21:57:28 $
 % ===================================================================
 
-% :-ensure_loaded(('cyc_pl/cyc.pl')).
-:- use_module(library(programk/cyc_pl/cyc),[is_string/1,atom_to_number/2,balanceBinding/2,writeFmtFlushed/2,writeFmtFlushed/3,toCycApiExpression/3]).
-:- context_module(M),hidden_away:module(hidden_away),module(M).
-:- hidden_away:use_module(library(debuggery/dmsg),[dmsg/1,dmsg/2]).
 % :- use_module(library(logicmoo/util_strings)).
 % is_string
+
+%:-module()
+%:-include('logicmoo_utils_header.pl'). %<?
+%:- style_check(-singleton).
+%%:- style_check(-discontiguous).
+%:- if((current_prolog_flag(version,MMmmPP),MMmmPP<70000)).
+%:- style_check(-atom).
+%:- style_check(-string).
+%:- endif.
+
+:- current_prolog_flag(version,MMmmPP),
+   (MMmmPP<70000 -> 
+      consult(logicmoo_module_aiml_include_547); 
+      consult(logicmoo_module_aiml_include_700)).
+
+debugFmt(Stuff):- debugFmt('~N~n% ~q',[Stuff]),!.
+debugFmt(F,A):- hide_complex_ctx(A,AA),!, once(lmdebugFmt(F,AA)).
+debugFmt(F,A):- once(lmdebugFmt(F,A)).
+
+hide_complex_ctx(I,O):- \+ compound(I),!,O=I.
+hide_complex_ctx(I,O):- is_list(I),!,maplist(hide_complex_ctx,I,O).
+hide_complex_ctx(I,'$..$'(A1)):- functor(I,F,_),F==frame,!,arg(1,I,A0),functor(A0,A1,_).
+hide_complex_ctx(I,O):- I=..M,hide_complex_ctx(M,N),!,O=..N.
+
+:- dynamic(noConsoleDebug/0).
+noConsoleDebug:- fail.
+
+lmdebugFmt(Stuff):- noConsoleDebug,Stuff \= say(_),!.
+lmdebugFmt(Stuff):- notrace((fresh_line,debugFmtS(Stuff),fresh_line)),!.
+
+lmdebugFmt(_,_):- noConsoleDebug,!.
+lmdebugFmt(F,A):- 
+        fresh_line(user_error),
+        writeFmtFlushed(user_error,F,A),
+        fresh_line(user_error),
+        flush_output_safe(user_error),!.
+
+debugFmtS(XXX):- XXX == [], !.
+debugFmtS([A|L]):-!,debugFmt('% ~q',[[A|L]]).
+debugFmtS(Comp):-toReadableObject(Comp,Comp2),!,debugFmt('% ~q',[Comp2]).
+debugFmtS(Stuff):-!,debugFmt('% ~q',[Stuff]).
+
 
 %================================================================
 :-multifile(expire1Cache/0).
@@ -32,12 +70,10 @@ devmode:-fail.
 
 atrace:- not(devmode),!.
 atrace:- cyc:ctrace.
+unused:atrace:-prolog_is_vetted_safe->notrace;(willTrace->trace;notrace).
 
-:- if( \+ predicate_property(fmt(_,_,_),defined)).
 
-fmt(A,B,C):-'format'(A,B,C).
-
-:- endif.
+f0rmt(A,B,C):-'format'(A,B,C).
 
 %%% Modified version of <http://pastebin.com/GvmVQ1f1>
 
@@ -57,7 +93,7 @@ prolog_trace_interception_pce(A, B, C, E) :- true,
 
 define_self_trace :-
     (   \+ clause(prolog_trace_interception(_, _, _, _),pce_prolog_tracer:_)
-    ->  fmt(user_error, '~N % already defineSelfTrace~n',[]) % done already?
+    ->  f0rmt(user_error, '~N % already defineSelfTrace~n',[]) % done already?
     ;   abolish(prolog_trace_interception,4),
         asserta(( prolog_trace_interception(A, B, C, E) :-
                       prolog_trace_interception_pce(A, B, C, E) ))
@@ -86,7 +122,7 @@ print_stack_trace(Stream,Options,Depth):-
 %% <http://pastebin.com/Tq7eQqDT>,<http://pastebin.com/fk5agLgE>
 % print_stack_trace(Stream,Options,Depth,frame(Frame) :-
 %     (   Depth = 0
-%     ->  fmt(Stream,'~N<toodeep/>~n',[])
+%     ->  f0rmt(Stream,'~N<toodeep/>~n',[])
 %     ;   print_stack_trace1(Stream,Options,Depth,frame(Frame)),
 %         parent_frame_of(Frame,Parent),Depth2 is Depth -1,
 %         print_stack_trace(Stream,Options,Depth2,Parent)
@@ -94,9 +130,9 @@ print_stack_trace(Stream,Options,Depth):-
 %
 % :- index(print_stack_trace1(0,0,0,1)).
 % print_stack_trace1(Stream,Options,Depth,top         ) :-
-%     fmt(Stream,'~N<top/>~n',[]).
+%     f0rmt(Stream,'~N<top/>~n',[]).
 % print_stack_trace1(Stream,Options,Depth,frame(Frame)) :-
-%     fmt(Stream,'~N<frame id="~w">~n',[Frame]),
+%     f0rmt(Stream,'~N<frame id="~w">~n',[Frame]),
 %     (   prolog_frame_attribute(Frame,hidden,true),
 %         \+ memberchk(show_hidden,Options)
 %     ->  parent_frame_of(Frame,Parent),
@@ -104,22 +140,22 @@ print_stack_trace(Stream,Options,Depth):-
 %     ;   (   member(Opt,Options),
 %             \+ memberchk(Opt,[show_hidden,other_fake_properties]),
 %         =>  prolog_frame_attribute(Frame,Opt,Value),
-%             fmt(Stream,' ~w = ~q',[Opt,Value])
+%             f0rmt(Stream,' ~w = ~q',[Opt,Value])
 %         )
 %     ),
-%     fmt(Stream,'~N</frame>~n',[]).
+%     f0rmt(Stream,'~N</frame>~n',[]).
 
 print_stack_trace(Stream,Options,Depth,PFrame,PD) :-
     (   Depth = 0
-    ->  pd(Stream,PD),fmt(Stream,'<toodeep/>~n',[])
+    ->  pd(Stream,PD),f0rmt(Stream,'<toodeep/>~n',[])
     ;   print_stack_trace_aux(Stream,Options,Depth,PFrame,PD)
     ).
 
-:- if((current_prolog_flag(version,MMmmPP),MMmmPP<70000)).
-:- index(print_stack_trace_aux(0,0,0,1,0)).
-:- endif.
+%:- if((current_prolog_flag(version,MMmmPP),MMmmPP<70000)).
+%:- index(print_stack_trace_aux(0,0,0,1,0)).
+%:- endif.
 print_stack_trace_aux(Stream,_Options, _Depth,top         ,PD) :-
-    pd(Stream,PD),fmt(Stream,'<top/>~n',[]).
+    pd(Stream,PD),f0rmt(Stream,'<top/>~n',[]).
 print_stack_trace_aux(Stream,Options,Depth,frame(Frame),PD) :-
     (   (   prolog_frame_attribute(Frame,predicate_indicator,MFA),
             pred_mf(MFA,MF),
@@ -146,24 +182,24 @@ pred_mf( M:(F /_A),M   :F) :- !.
 pred_mf(    F/ _A ,user:F).
 
 print_stack_frame(Stream,Options,Frame,PD) :-
-    pd(Stream,PD),fmt(Stream,'<frame id="~w">~n',[Frame]),
+    pd(Stream,PD),f0rmt(Stream,'<frame id="~w">~n',[Frame]),
     (   member(Opt,Options), 
         \+ memberchk(Opt
                     ,[show_hidden,alternative,other_fake_properties,hide(_)])
     =>  prolog_frame_attribute(Frame,Opt,Value),
-        pd(Stream,PD),fmt(Stream,' ~w = ~q',[Opt,Value])
+        pd(Stream,PD),f0rmt(Stream,' ~w = ~q',[Opt,Value])
     ),
     (   memberchk(alternative,Options)
     =>  delete(Options,alternative,Options2),
         prolog_frame_attribute(Frame,alternative,Alt),
         PD1 is PD + 1,PD3 is PD + 3,
-        pd(Stream,PD1),fmt(Stream,'<alt>~n',[]),
+        pd(Stream,PD1),f0rmt(Stream,'<alt>~n',[]),
             print_stack_frame(Stream,Options2,Alt,PD3),
-        pd(Stream,PD1),fmt(Stream,'</alt>~n',[])
+        pd(Stream,PD1),f0rmt(Stream,'</alt>~n',[])
     ),
-    pd(Stream,PD),fmt(Stream,'</frame>~n',[]).
+    pd(Stream,PD),f0rmt(Stream,'</frame>~n',[]).
 
-pd(Stream,PD) :- fmt(Stream,'~N',[]),tab(Stream,PD + 1).
+pd(Stream,PD) :- f0rmt(Stream,'~N',[]),tab(Stream,PD + 1).
 
 %================================================================
 %% printStackTrace(+Stream,[+Options..,goal,level,context_module,has_alternatives,show_hidden],+Depth). 
@@ -175,8 +211,8 @@ printStackTrace(Stream):-printStackTrace(Stream,[goal,show_hidden,level,has_alte
 
 printStackTrace(Stream,Options,Depth):-prolog_current_frame(Frame),printStackTrace(Stream,Options,Depth,Frame,1).
 
-printStackTrace(Stream,_Options,_Depth,top,PD):-!,sindent(Stream,PD),fmt(Stream,'<top/>~n',[]).
-printStackTrace(Stream,_Options,Depth,_Frame,PD):- 0 is Depth,!,sindent(Stream,PD),fmt(Stream,'<toodeep/>~n',[]).
+printStackTrace(Stream,_Options,_Depth,top,PD):-!,sindent(Stream,PD),f0rmt(Stream,'<top/>~n',[]).
+printStackTrace(Stream,_Options,Depth,_Frame,PD):- 0 is Depth,!,sindent(Stream,PD),f0rmt(Stream,'<toodeep/>~n',[]).
 printStackTrace(Stream,Options,Depth,Frame,PD):- 
     ( (prolog_frame_attribute(Frame,predicate_indicator,MFA),pred_mf(MFA,MF),memberchk(hide(MF),Options)) ;   %% hidden module:pred
       (prolog_frame_attribute(Frame,hidden,true), \+ memberchk(show_hidden,Options))),!, %% hidden frame
@@ -189,22 +225,23 @@ printStackTrace(Stream,Options,Depth,Frame,PD):-
 parentFrameOf(Frame,Parent):-prolog_frame_attribute(Frame,parent,Parent),!.
 parentFrameOf(_,top).
 
-printStackFrame(Stream,_Options,Frame,PD):-sindent(Stream,PD),fmt(Stream,'<frame id="~w">~n',[Frame]),fail.
+printStackFrame(Stream,_Options,Frame,PD):-sindent(Stream,PD),f0rmt(Stream,'<frame id="~w">~n',[Frame]),fail.
 printStackFrame(Stream,Options,Frame,PD):-member(Opt,Options), 
      \+ memberchk(Opt,[show_hidden,alternative,other_fake_properties,hide(_)]), 
-     prolog_frame_attribute(Frame,Opt,Value),sindent(Stream,PD),fmt(Stream,' ~w = ~q',[Opt,Value]),fail.
+     prolog_frame_attribute(Frame,Opt,Value),sindent(Stream,PD),f0rmt(Stream,' ~w = ~q',[Opt,Value]),fail.
 printStackFrame(Stream,Options,Frame,PD):-memberchk(alternative,Options),delete(Options,alternative,Options2),
      prolog_frame_attribute(Frame,alternative,Alt),
      sindent(Stream,PD+1),
-     fmt(Stream,'<alt>~n',[]),
+     f0rmt(Stream,'<alt>~n',[]),
      printStackFrame(Stream,Options2,Alt,PD+3),
      sindent(Stream,PD+1),
-     fmt(Stream,'</alt>~n',[]),
-     fail.
-printStackFrame(Stream,_Options,_Frame,PD):-sindent(Stream,PD),fmt(Stream,'</frame>~n',[]).
 
-sindent(Stream,PD):-fmt(Stream,'~N',[]),sindent(Stream,PD,' ').
-sindent(Stream,PD,Txt):-PD2 is PD,forall(between(0,PD2,_),fmt(Stream,Txt,[])).
+     f0rmt(Stream,'</alt>~n',[]),
+     fail.
+printStackFrame(Stream,_Options,_Frame,PD):-sindent(Stream,PD),f0rmt(Stream,'</frame>~n',[]).
+
+sindent(Stream,PD):-f0rmt(Stream,'~N',[]),sindent(Stream,PD,' ').
+sindent(Stream,PD,Txt):-PD2 is PD,forall(between(0,PD2,_),f0rmt(Stream,Txt,[])).
 
 
 
@@ -212,10 +249,10 @@ sindent(Stream,PD,Txt):-PD2 is PD,forall(between(0,PD2,_),fmt(Stream,Txt,[])).
 :-dynamic(prolog_is_vetted_safe).
 %================================================================
 %% True means the program skips many many runtime safety checks (runs faster)
-prolog_is_vetted_safe:-false.
+prolog_is_vetted_safe:-fail.
 
-tryHide(_MFA):-!.
-tryHide(MFA):- asserta(remember_tryHide(MFA)).
+% tryHide(_MFA):-!.
+tryHide(MFA):- ignore(catch(module_transparent(MFA),_,fail)),asserta(remember_tryHide(MFA)).
 
 :-tryHide(tryCatchIgnore/1).
 tryCatchIgnore(MFA):- error_catch(MFA,_E,true). %%debugFmt(tryCatchIgnoreError(MFA:E))),!.
@@ -230,8 +267,10 @@ prolog_may(Call):-notrace((prolog_is_vetted_safe)),!,Call.
 prolog_may(Call):-debugOnError(Call).
 
 :-tryHide(prolog_mustEach/1).
+:- meta_predicate prolog_mustEach(0).
 prolog_mustEach(Call):-notrace((prolog_is_vetted_safe)),!,Call.
 prolog_mustEach(Call):-prolog_Each(prolog_must,Call).
+
 
 prolog_Each(Pred,(A,B)):- !,prolog_Each(Pred,A),prolog_Each(Pred,B).
 prolog_Each(Pred,notrace(A)):-!, hotrace(prolog_Each(Pred,A)).
@@ -239,6 +278,7 @@ prolog_Each(Pred,hotrace(A)):-!, hotrace(prolog_Each(Pred,A)).
 prolog_Each(Pred,Call):- prolog_call(Pred,Call).
 
 :-tryHide(prolog_must/1).
+:- meta_predicate prolog_must(0).
 prolog_must(Call):-tracing,!,debugOnError(Call).
 %%prolog_must(Call):- prolog_is_vetted_safe,!,debugOnError(Call).
 prolog_must(OneA):- !, (OneA *-> true ; (atrace,OneA)).
@@ -389,7 +429,7 @@ throwNoLibBugger:- atrace,absolute_file_name('.',Here), buggerFile(BuggerFile), 
 addLibraryDir :- buggerDir(Here),atom_concat(Here,'/..',UpOne), absolute_file_name(UpOne,AUpOne),asserta(user:library_directory(AUpOne)).
 
 % if not has library suport, add this direcotry as a library directory
-:-not(hasLibraryBuggerySupport) -> addLibraryDir ; true .
+% :-not(hasLibraryBuggerySupport) -> addLibraryDir ; true .
 
 %:-hasLibraryBuggerySupport->true;throwNoLibBugger.
 
@@ -402,10 +442,10 @@ addLibraryDir :- buggerDir(Here),atom_concat(Here,'/..',UpOne), absolute_file_na
 %  can/will Tracer.
 % ==========================================================
 
-:- if( \+ predicate_property(canTrace(),defined)).
-:- dynamic(canTrace/0).
-canTrace.
-:- endif.
+%:- if( \+ predicate_property(canTrace,defined)).
+%:- dynamic(canTrace/0).
+%canTrace.
+%:- endif.
 
 %isConsole :- telling(user).
 unused:isConsole :- current_output(X),!,stream_property(X,alias(user_output)).
@@ -491,11 +531,9 @@ hideTraceMFAT(M,F,A,T):-doHideTrace(M,F,A,T),!.
 
 doHideTrace(_M,_F,_A,[]):-!.
 doHideTrace(M,F,A,[hide|T]):- tryHide(M:F/A),!,doHideTrace(M,F,A,T),!.
-doHideTrace(M,F,A,ATTRIB):- tryHide(M:F/A),!, 
-   tryCatchIgnore(trace(M:F/A,ATTRIB)),!.
+doHideTrace(M,F,A,ATTRIB):- tryHide(M:F/A),!, tryCatchIgnore(trace(M:F/A,ATTRIB)),!.
 
 
-unused:atrace:-prolog_is_vetted_safe->notrace;(willTrace->trace;notrace).
 
 bugger:-hideTrace,traceAll,error_catch(guitracer,_,true),debug,list_undefined.
 
@@ -515,50 +553,6 @@ toReadableObject(I,I):-!.
 
 exists_file_safe(File):-prolog_must(atomic(File)),exists_file(File).
 exists_directory_safe(File):-prolog_must(atomic(File)),exists_directory(File).
-%:-module()
-%:-include('logicmoo_utils_header.pl'). %<?
-%:- style_check(-singleton).
-%%:- style_check(-discontiguous).
-:- if((current_prolog_flag(version,MMmmPP),MMmmPP<70000)).
-:- style_check(-atom).
-:- style_check(-string).
-:- endif.
-
-
-:- dynamic(noConsoleDebug/0).
-noConsoleDebug.
-lmdebugFmt(Stuff):- noConsoleDebug,Stuff \= say(_),!.
-lmdebugFmt(Stuff):- notrace((fresh_line,debugFmtS(Stuff),fresh_line)),!.
-
-lmdebugFmt(_,_):- noConsoleDebug,!.
-lmdebugFmt(F,A):- 
-        fresh_line(user_error),
-        writeFmtFlushed(user_error,F,A),
-        fresh_line(user_error),
-        flush_output_safe(user_error),!.
-
-:- if( predicate_property(cyc:debugFmt(_), defined)).
-:- abolish(cyc:debugFmt/1).
-cyc:debugFmt(Stuff):-once(lmdebugFmt(Stuff)).
-:- endif.
-
-:- if( predicate_property(cyc:debugFmt(_,_), defined)).
-:- abolish(cyc:debugFmt/2).
-cyc:debugFmt(F,A):-once(lmdebugFmt(F,A)).
-:- else.
-debugFmt(F,A):-once(wdmsg(F,A)).
-:- endif.
-
-
-debugFmtS([]):-!.
-debugFmtS([A|L]):-!,debugFmt('% ~q',[[A|L]]).
-debugFmtS(Comp):-toReadableObject(Comp,Comp2),!,debugFmt('% ~q',[Comp2]).
-debugFmtS(Stuff):-!,debugFmt('% ~q',[Stuff]).
-
-
-:- if(\+ predicate_property(nop(_),defined)).
-nop(_).
-:- endif.
 
 % ===============================================================================================
 % listify/ unlistify / unresultify
@@ -720,7 +714,7 @@ atLeastN0(AtLeast,N,OneA,Else):- flag(AtLeast,X,X),!,X<N,debugFmt(atLeastN(OneA,
 
 
 
-randomVars(Term):- random(R), Start is round('*'(R,1000000)), !,
+randomVars(Term):- R is random(10000)/10000, Start is round('*'(R,1000000)), !,
   numbervars(Term, Start, _End, [attvar(skip),functor_name('$VAR')]).
 
 prolog_must_not(Call):-Call,!,atrace,!,aiml_error(prolog_must_not(Call)).
@@ -926,9 +920,6 @@ canonical_pathname(Absolute,AbsoluteB):-prolog_to_os_filename(AbsoluteA,Absolute
 canonical_pathname0(AbsoluteA,AbsoluteB):-error_catch(expand_file_name(AbsoluteA,[AbsoluteB]),E,(debugFmt(E:AbsoluteA),fail)),!.
 canonical_pathname0(AbsoluteA,AbsoluteA).
 
-:- if(\+ predicate_property(alldiscontiguous(),defined)).
-alldiscontiguous:-!.
-:- endif.
 
 
 % =================================================================================
@@ -1026,10 +1017,6 @@ list_replace(List,Char,Replace,NewList):-
 	append(NewLeft,NewRight,NewList),!.
 list_replace(List,_Char,_Replace,List):-!.
 
-:- if( \+ predicate_property(term_to_string(_,_),defined)).
-term_to_string(I,IS):- error_catch(string_to_atom(IS,I),_,fail),!.
-term_to_string(I,IS):- term_to_atom(I,A),string_to_atom(IS,A),!.
-:- endif.
 
 %================================================================
 % maplist/[2,3]

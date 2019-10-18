@@ -12,11 +12,12 @@
 %:-include('logicmoo_utils_header.pl'). %<?
 %:- style_check(-singleton).
 %%:- style_check(-discontiguous).
+/*
 :- if((current_prolog_flag(version,MMmmPP),MMmmPP<70000)).
 :- style_check(-atom).
 :- style_check(-string).
 :- endif.
-
+*/
 
 % ===============================================================================================
 % get / set  Coversational Variables
@@ -50,7 +51,7 @@ getAliceMem(Ctx,IDict,NameI,ValueO):-
      getAliceMem(Ctx,Dict,Name,ValueO).
 getAliceMem(Ctx,Dict,Name,ValueO):- var(ValueO), !, getAliceMemElse(Ctx,Dict,Name,ValueO),!.
 
-getAliceMem(Ctx,Dict,Name,'OM'):- !,not((getAliceMemComplete(Ctx,Dict,Name,ValueO),ValueO\=='OM')).
+getAliceMem(Ctx,Dict,Name,'OM'):- !, \+((getAliceMemComplete(Ctx,Dict,Name,ValueO),ValueO\=='OM')).
 %%getAliceMem(Ctx,Dict,Name,ValueI):- %%unresultifyC(ValueI,ValueM),!,getAliceMem(Ctx,Dict,Name,ValueO),!,sameBinding(ValueI,ValueO).%%prolog_must(nonvar(ValueI)),!.
 getAliceMem(Ctx,Dict,Name,ValueI):- getAliceMemComplete(Ctx,Dict,Name,ValueO),!,sameBinding(ValueI,ValueO).
 
@@ -93,14 +94,17 @@ addInherit( SYM0,SYMPREV0):-ifChanged(convert_dictname(_Ctx),[SYM0,SYMPREV0],[SY
 
 addInherit(_SYM,SYMPREV):-autoInheritDict(SYMPREV),!.
 addInherit( SYM,SYMPREV):-dict(SYM,inheritdict,SYMPREV),!.
-addInherit( SYM,SYMPREV):-asserta(dict(SYM,inheritdict,SYMPREV)).
+addInherit( SYM,SYMPREV):- asserta_dict(SYM,inheritdict,SYMPREV).
+
+% asserta_dict(catefallback, template, ['[]']):- !,trace.
+asserta_dict(Ctx,N,V):-  asserta(dict(Ctx,N,V)).
 
 ifChanged(Pred,List,ListO):-maplist_safe(Pred,List,ListMid),ListMid\=List,prolog_must(ListMid=ListO),!.
 
 remInherit(_SYM,SYMPREV):-autoInheritDict(SYMPREV),!.
 remInherit( SYM,SYMPREV):-retractall(dict(SYM,inheritdict,SYMPREV)),!.
 
-inheritedDictsOrdered(Scope,InHerit):-inheritedFrom2(Scope,InHerit),not(Scope=InHerit).
+inheritedDictsOrdered(Scope,InHerit):-inheritedFrom2(Scope,InHerit), \+(Scope=InHerit).
 
 inheritedFrom2(Scope,InHerit):-inheritedFrom(Scope,InHerit).
 inheritedFrom2(Scope,InHerit):-inheritedFrom(Scope,InHeritMid),inheritedFrom(InHeritMid,InHerit).
@@ -109,9 +113,9 @@ inheritedFrom([],_):-!,fail.
 inheritedFrom([Scope],To):-!,inheritedFrom(Scope,To).
 inheritedFrom([D|LIST],To):-!,member(Scope,[D|LIST]),inheritedFrom(Scope,To).
 %inheritedFrom(Compound,_):-compound(Compound),!,fail.
-inheritedFrom(Scope,Dict):-dict(Scope,inheritdict,Dict),not(autoInheritDict(Dict)).
+inheritedFrom(Scope,Dict):-dict(Scope,inheritdict,Dict), \+(autoInheritDict(Dict)).
 inheritedFrom(Auto,_):-autoInheritDict(Auto),!,fail.
-inheritedFrom(Atom,_):-not(atom(Atom)),!,fail.
+inheritedFrom(Atom,_):- \+(atom(Atom)),!,fail.
 inheritedFrom(Scope,defaultValue(Scope)).
 inheritedFrom(_Scope,Dict):-autoInheritDict(Dict).
 
@@ -227,7 +231,7 @@ numberFyList([A|MajorMinor],[B|MajorMinorM]):-
   numberFyList(MajorMinor,MajorMinorM),!.
 numberFyList([A|MajorMinor],[A|MajorMinorM]):-numberFyList(MajorMinor,MajorMinorM).
 
-isStarValue(Value):-ground(Value),not([_,_|_]=Value),member(Value,[[ValueM],ValueM]),!,member(ValueM,['*','_']),!.
+isStarValue(Value):-ground(Value), \+([_,_|_]=Value),member(Value,[[ValueM],ValueM]),!,member(ValueM,['*','_']),!.
 isEmptyValue([]):-atrace.
 
 xformOutput(Value,ValueO):-isStarValue(Value),!,atrace,Value=ValueO.
@@ -239,12 +243,12 @@ subscriptZeroOrOne(Major):-nonvar(Major),member(Major,[0,1,'0','1']).
 
 
 %% getMinorSubscript(Items,Minor,Value).
-getMinorSubscript(ItemsO,Index,Value):- not(is_list(ItemsO)),answerOutput(ItemsO,Items),prolog_must(is_list(Items)),getMinorSubscript(Items,Index,Value),!.
-getMinorSubscript(Items,'*',Value):-!,prolog_must(flatten(Items,Value)),!.
+getMinorSubscript(ItemsO,Index,Value):-  \+(is_list(ItemsO)),answerOutput(ItemsO,Items),prolog_must(is_list(Items)),getMinorSubscript(Items,Index,Value),!.
+getMinorSubscript(Items,'*',Value):- !,prolog_must(flatten(Items,Value)),!.
 getMinorSubscript(Items,',',Value):- throw_safe(getMinorSubscript(Items,',',Value)), !,prolog_must(=(Items,Value)),!.
 getMinorSubscript(Items,[A|B],Value):-!,getMinorSubscript(Items,A,ValueS),!,getMinorSubscript(ValueS,B,Value),!.
 getMinorSubscript(Items,[],Value):-!,xformOutput(Items,Value),!.
-getMinorSubscript(Items,ANum,Value):-not(number(ANum)),!,prolog_must(atom_to_number(ANum,Num)),!,getMinorSubscript(Items,Num,Value).
+getMinorSubscript(Items,ANum,Value):- \+ number(ANum),!,prolog_must(atom_to_number(ANum,Num)),!,getMinorSubscript(Items,Num,Value).
 %%%
 getMinorSubscript(Items,Num,Value):- prolog_must(is_list(Items)),length(Items,Len),Index is Len-Num,nth0(Index,Items,Value),is_list(Value),!.
 getMinorSubscript([],1,[]):-!.
@@ -304,20 +308,23 @@ ensureValue(ValueO,['$value'(ValueO)]).
 % ===============================================================================================
 withValueAdd(Ctx,Pred,IDict,NameI,Value):- dictNameDictNameC(Ctx,IDict,NameI,Dict,Name),!,withValueAdd(Ctx,Pred,Dict,Name,Value),!.
 withValueAdd(Ctx,Pred,IDict,Name,Value):-is_list(IDict),!,trace,foreach(member(Dict,IDict),withValueAdd(Ctx,Pred,Dict,Name,Value)),!.
-withValueAdd(Ctx,_Pred:Print,Dict,Name,Var):-neverActuallyAdd(Ctx,Print,Dict,Name,Var),!.
+withValueAdd(Ctx,_Pred:Print,Dict,Name,Var):- neverActuallyAdd(Ctx,Print,Dict,Name,Var),!.
+
 withValueAdd(Ctx,Pred,Dict,Name,Var):-var(Var),!,withValueAdd(Ctx,Pred,Dict,Name,['$var'(Var)]).
 withValueAdd(Ctx,Pred,Dict,Name,Atomic):-atomic(Atomic),Atomic\==[],!,withValueAdd(Ctx,Pred,Dict,Name,[Atomic]).
+
 withValueAdd(_Ctx,_Pred:_Print,Dict,Name,Value):-uselessNameValue(Dict,Name,Value),!.
 withValueAdd(Ctx,_Pred:Print,Dict,Name,Value):-immediateCall(Ctx,call(Print,Ctx,Dict,Name,Value)),fail.
-withValueAdd(Ctx,Pred,Dict,Name,Value):-isStarValue(Value),!,debugFmt(withValueAdd(Ctx,Pred,Dict,Name,Value)),traceIf(nonStarDict(Dict)).
+
+withValueAdd(Ctx,Pred,Dict,Name,Value):-isStarValue(Value),!,nop(debugFmt(withValueAdd(Ctx,Pred,Dict,Name,Value))),traceIf(nonStarDict(Dict)).
 %%withValueAdd(Ctx,Pred,Dict,default(Name),DefaultValue):-getAliceMem(Ctx,Pred,Dict,Name,'OM')->setAliceMem(Ctx,Dict,Name,DefaultValue);true.
-withValueAdd(Ctx,Pred,Dict,Name,NonList):-(not(is_list(NonList))),!,withValueAdd(Ctx,Pred,Dict,Name,[NonList]).
+withValueAdd(Ctx,Pred,Dict,Name,NonList):-( \+(is_list(NonList))),!,withValueAdd(Ctx,Pred,Dict,Name,[NonList]).
 withValueAdd(Ctx,Pred:_Print,Dict,Name,Value):-checkDictIn(Value,ValueO),call(Pred,Ctx,Dict,Name,ValueO).
 
 nonStarDict(catefallback):-!,fail.
 neverActuallyAdd(Ctx,Pred,Dict,Name,Var):-var(Var),debugFmt(neverActuallyAdd(Ctx,Pred,Dict,Name,Var)),!.
 neverActuallyAdd(Ctx,Pred,Dict,topic,[TooGeneral]):-member(TooGeneral,[general]),debugFmt(neverActuallyAdd(Ctx,Pred,Dict,topic,TooGeneral)),!.
-neverActuallyAdd(Ctx,Pred,Dict,Name,Var):-not(ground(var(Var))),debugFmt(maybeNeverActuallyAdd(Ctx,Pred,Dict,Name,Var)),!.
+neverActuallyAdd(Ctx,Pred,Dict,Name,Var):- \+(ground(var(Var))),debugFmt(maybeNeverActuallyAdd(Ctx,Pred,Dict,Name,Var)),!.
 
 
 uselessNameValue(_Dict,srcfile,_):-!.
@@ -332,13 +339,13 @@ setAliceMem(Dict,X,E):-currentContext(setAliceMem(Dict,X,E),Ctx), prolog_must(se
 
 setAliceMem(Ctx,IDict,Name,Value):-withValueAdd(Ctx,setAliceMem0:setAliceMem,IDict,Name,Value).
 setAliceMem(Ctx,Dict,default(Name),DefaultValue):-getAliceMem(Ctx,Dict,Name,'OM')->setAliceMem(Ctx,Dict,Name,DefaultValue);true.
-setAliceMem0(Ctx,Dict,Name,Value):-notrace((resetAliceMem0(Ctx,Dict,Name,Value))),!.
+setAliceMem0(Ctx,Dict,Name,Value):- prolog_must((resetAliceMem0(Ctx,Dict,Name,Value))),!.
 
 % ===============================================================================================
 % Inserting globals
 % ===============================================================================================
 insert1StValue(Ctx,IDict,Name,Value):-withValueAdd(Ctx,insert1StValue0:insert1StValue,IDict,Name,Value).
-insert1StValue0(_Ctx,Dict,Name,Value):-asserta(dict(Dict,Name,Value)),!.
+insert1StValue0(_Ctx,Dict,Name,Value):- asserta_dict(Dict,Name,Value),!.
 
 % ===============================================================================================
 %    AIML Runtime Database
@@ -350,7 +357,7 @@ checkDictValue(Value):-prolog_must(dictValue(Value)),!.
 checkDictIn(Value,Value):-var(Value),!.
 checkDictIn(Value,Value):-prolog_must(ground(Value)),(Value=['ERROR'|_];Value=[['ERROR'|_]|_]),!.
 
-checkDictIn(Value,Value):-warnIf(not(checkDictValue(Value))).
+checkDictIn(Value,Value):-warnIf( \+(checkDictValue(Value))).
 
 dictValue(V):-ground(V),dictValue0k(V),!.
 dictValue(Value):-valuePresent(Value).
@@ -400,8 +407,8 @@ addNewContextValue(Ctx,Dict,Name,Value):-
 addNewContextValue(Ctx,Dict,Key,Name,ValueIn):- 
    checkDictIn(ValueIn,Value),
    ifThen(nonvar(Key),addCtxValue(Ctx,Key,Value)),   
-   ifThen(nonvar(Dict),ifThen(nonvar(Value),asserta(dict(Dict,Name,Value)))),
-   ifThen(not(ground(Value)),debugFmt(addCtxValue(Ctx,Key,Value))).
+   ifThen(nonvar(Dict),ifThen(nonvar(Value),asserta_dict(Dict,Name,Value))),
+   ifThen( \+(ground(Value)),debugFmt(addCtxValue(Ctx,Key,Value))).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%% pushInto1DAnd2DArray(Ctx,Tall,Wide,Ten,MultiSent,ConvThread)

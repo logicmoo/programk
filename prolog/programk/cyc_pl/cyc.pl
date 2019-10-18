@@ -229,9 +229,11 @@ hideTrace:-
 
 ctrace:-willTrace->trace;notrace.
 
+/*
 :- if((current_prolog_flag(version,MMmmPP),MMmmPP<70000)).
 :-hideTrace.
 :- endif.
+*/
 
 withoutCyc(_,[]):-fail.
 
@@ -260,10 +262,10 @@ withoutCyc(_,[]):-fail.
 
 :- style_check(-singleton).
 :- style_check(-discontiguous).
-:- if((current_prolog_flag(version,MMmmPP),MMmmPP<70000)).
+%:- if((current_prolog_flag(version,MMmmPP),MMmmPP<70000)).
 :- style_check(-atom).
-:- style_check(-string).
-:- endif.
+%:- style_check(-string).
+%:- endif.
 
 dynamic_transparent([]):-!.
 dynamic_transparent([X]):-dynamic_transparent(X),!.
@@ -3334,9 +3336,9 @@ createProcessedGoal((
 
 
 :- dynamic cycAssertionCache/6.
-:- if((current_prolog_flag(version,MMmmPP),MMmmPP<70000)).
-:- index(cycAssertionCache(0,1,1,1,1,0)).
-:- endif.
+%:- if((current_prolog_flag(version,MMmmPP),MMmmPP<70000)).
+%:- index(cycAssertionCache(0,1,1,1,1,0)).
+%:- endif.
 cacheAssertionById(Id):-cycAssertionCache(Id,Assertion,Mt,Strength,Direction,Vars),!.
 cacheAssertionById(Id):-getAssertionById(Id,Assertion,Mt,Strength,Direction,Vars),
       asserta(cycAssertionCache(Id,Assertion,Mt,Strength,Direction,Vars)).
@@ -3543,7 +3545,7 @@ user:processRequestHook(ARGS):- member(file='subl.moo',ARGS),!,
 	<p><textarea rows="9" name="formula" cols="40">~w</textarea><br>
 	<input type="submit" value="Call" name="submit">&nbsp;<input type="reset" value="Reset" name="resetButton"></p>
       </form>',[W]),
-      call(call,cyc:writeHTMLStdFooter()),!.
+      call(call,cyc:writeHTMLStdFooter),!.
 	
         
 processRequest(X):-

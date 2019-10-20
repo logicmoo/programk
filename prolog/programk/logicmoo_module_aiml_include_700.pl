@@ -22,5 +22,8 @@
 :- use_module(library(debuggery/ucatch),[catchv/3]).
 :- use_module(library(programk/cyc_pl/cyc),[is_string/1,isConsole/0,atom_to_number/2,balanceBinding/2,writeFmtFlushed/2,writeFmtFlushed/3,toCycApiExpression/3]).
 
+:- multifile(dumpst_hook:simple_rewrite/2).
+:- dynamic(dumpst_hook:simple_rewrite/2).
 
+dumpst_hook:simple_rewrite(I,O):- hide_complex_ctx(I,O).
 

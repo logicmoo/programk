@@ -33,6 +33,6 @@ string_parse_structure_opts_547(Parser, _In, _M, Options,Options2):-
 :- module_transparent(setup_call_cleanup/3).
 
 setup_call_cleanup(X,Y,Z):- X,!,call_cleanup(Y,Z).
-atomic_list_concat(X,Y,Z):- concat_atom(X,Y,Z).
-                
+% atomic_list_concat_aiml(X,Y,Z):- atomic_list_concat_aiml(X,Y,Z).
+
 

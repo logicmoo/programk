@@ -447,5 +447,5 @@ previousVars(That,[That],1):-!.
 previousVars(That,[Item|Prevs],N):-indexOntoKey(That,N,Item), NN is N-1,previousVars(That,Prevs,NN).
 
 indexOntoKey(That,N,That):-subscriptZeroOrOne(N),!.
-indexOntoKey(That,N,Item):-prolog_must(atomic(That)),atomic_list_concat([That,'(',N,')'],Item).
+indexOntoKey(That,N,Item):-prolog_must(atomic(That)),atomic_list_concat_aiml([That,'(',N,')'],Item).
 

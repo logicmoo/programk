@@ -39,7 +39,7 @@ asserta_if_new_hlper1(C):-asserta(C),!.
 :-module_transparent(local_directory_search/1).
 
 addPaths:- source_location(File,_Line),file_directory_name(File, Directory),
-   context_module(M),
+   %context_module(M),
    file_directory_name(Directory,ParentDir),% cd(ParentDir),   
    asserta_if_new_hlper1(user:library_directory(ParentDir)),
    !,% writeq(M:asserta(user:library_directory(ParentDir))),nl,
@@ -492,7 +492,7 @@ computeElement(Ctx,Votes,think,_Attribs,Input,proof([],think=Hidden),VotesO):-!,
 % <formatter type="prologcall">
 computeElement(Ctx,Votes,formatter,Attribs,Input,Result,VotesO):-
       computeInnerTemplate(Ctx,Votes,Input,Mid,VotesO),
-      lastMember(type=ProcI,Attribs,_NEW),listify(ProcI,[Proc|More]),atom(Proc),atomic_list_concat(['format_',Proc|More],Pred),
+      lastMember(type=ProcI,Attribs,_NEW),listify(ProcI,[Proc|More]),atom(Proc),atomic_list_concat_aiml(['format_',Proc|More],Pred),
       functor(Callable,Pred,3),predicate_property(Callable,_),!,
       computeCall(Ctx,Pred,Mid,Result,'$error'),Result\=='$error'.
 
@@ -677,7 +677,7 @@ computeStar1(Ctx,Votes,Star,Major,ATTRIBS,InnerXml,Proof,VotesO):-atomic(Major),
     computeStar1(Ctx,Votes,Star,[Major],ATTRIBS,InnerXml,Proof,VotesO),!.
 
 computeStar1(Ctx,Votes,Star,Index,ATTRIBS,_InnerXml,proof(ValueO,StarVar=ValueI),VotesO):- is_list(Index),
-      CALL=concat_atom([Star|Index],StarVar),
+      CALL=atomic_list_concat_aiml([Star|Index],StarVar),
       prolog_must(error_catch(CALL,E,(debugFmt(CALL->E),fail))),
    getDictFromAttributes(Ctx,'evalsrai',ATTRIBS,Dict),
    computeStar2(Ctx,Votes,Dict,ATTRIBS,StarVar,ValueI,ValueO,VotesM),!,
@@ -1017,7 +1017,7 @@ convert_substs(A,D):-A=D.
 
 simplify_atom0(A,A):-A==[],!.
 simplify_atom0(A0,DD):- is_list(A0),joinAtoms(A0,' ',A),!,simplify_atom0(A,D),!,atomWSplit(D,DD),!.
-simplify_atom0(A,D):- atom(A),!,literal_atom(A,B),atomic_list_concat(L0,'\\b',B),delete(L0,'',L),joinAtoms(L,' ',C),!,atomWSplit(C,D),!.
+simplify_atom0(A,D):- atom(A),!,literal_atom(A,B),atomic_list_concat_aiml(L0,'\\b',B),delete(L0,'',L),joinAtoms(L,' ',C),!,atomWSplit(C,D),!.
 
 
 sameWordsDict([String|A],[Pattern|B]):-!,sameWordsDict0(String,Pattern),!,sameWordsDict_l(A,B),!.

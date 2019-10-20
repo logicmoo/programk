@@ -39,7 +39,7 @@ tokenizeInput0(A,A).
 tokenizeInput_l(A,A):-atomic(A),!.
 tokenizeInput_l([A|B],[AA|BB]):- tokenizeInput0(A,AA),tokenizeInput_l(B,BB),!.
 
-tokenizeInput1(Input,Tokens):-  error_catch(((atom_to_term(Input,Tokens,Vars),ground(Vars))),_,fail),!.
+tokenizeInput1(Input,Tokens):-  notrace(error_catch(((atom_to_term(Input,Tokens,Vars),ground(Vars))),_,fail)),!.
 tokenizeInput1(Input,Tokens):-  (atom_contains(Input,'<');atom_contains(Input,'&')),
      error_catch((string_to_structure(Input,Tokens0),(Tokens0\==[Input]->tokenizeInput0(Tokens0,Tokens);Tokens0=Tokens)),_,fail),!.
 tokenizeInput1(Input,Tokens):- atomWSplit(Input,Tokens0), (Tokens0\==[Input]->tokenizeInput0(Tokens0,Tokens);Tokens0=Tokens),!.
@@ -72,7 +72,7 @@ joinAtoms1([A],_,AA):-atomify(A,AA).
 joinAtoms1([A,'\b',B|List],Sep,Result):-!,atomify(B,BB),atom_concat(A,BB,C),!,joinAtoms0([C|List],Sep,Result).
 joinAtoms1([A,B|List],'',Result):-!,atom_concat(A,B,C),!,joinAtoms1([C|List],'',Result).
 joinAtoms1([A,B|List],Sep,Result):-atom_concat(A,Sep,C),joinAtoms1([B|List],Sep,ResultR),atom_concat(C,ResultR,Result).
-joinAtoms1(List,Sep,Result):- debugOnError(atomic_list_concat(List,Sep,Result)),!.
+joinAtoms1(List,Sep,Result):- debugOnError(atomic_list_concat_aiml(List,Sep,Result)),!.
 
 % ===============================================================================================
 % Split input into many sentences

@@ -7,7 +7,9 @@
 
 
 <category><pattern>
-about *</pattern><template><sr/></template></category><category><pattern>after *</pattern><template><sr/></template></category><category><pattern>
+about *</pattern><template><sr/></template></category>
+
+<category><pattern>after *</pattern><template><sr/></template></category><category><pattern>
 again *</pattern><template><sr/></template></category><category><pattern>
 air *</pattern><template><sr/></template></category><category><pattern>
 all *</pattern><template><sr/></template></category><category><pattern>

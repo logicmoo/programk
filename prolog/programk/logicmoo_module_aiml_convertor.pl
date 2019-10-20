@@ -292,8 +292,8 @@ convert_ele(_Ctx,element(a, [Target, Link], Name),A):-sformat(S,'<a ~q ~q>~w</a>
 convert_ele(_Ctx,element(a, [Link], Name),A):-sformat(S,'<a ~q>~w</a>',[Link, Name]),string_to_atom(S,A).
 
 %DELAY convert_ele(Ctx,element(get, [name=Var], []),get(Var)):-!.
-convert_ele(_Ctx,element(learn, [N=File]),load_any_file(File)):-pathAttrib(N),!.
-convert_ele(_Ctx,element(load, [N=File]),load_any_file(File)):-pathAttrib(N),!.
+convert_ele(_Ctx,element(learn,Attrs,MORE),element(learn,NewAttrs,MORE)):- Become = srcfile, append(Left,[N=V|Right],Attrs),pathAttrib(N),N\=Become,append(Left,[Become=V|Right],NewAttrs),!.
+convert_ele(_Ctx,element(load, Attrs,MORE),element(load ,NewAttrs,MORE)):- Become = srcfile, append(Left,[N=V|Right],Attrs),pathAttrib(N),N\=Become,append(Left,[Become=V|Right],NewAttrs),!.
 convert_ele(_Ctx,element(sr,ALIST,MORE),element(srai,ALIST,[element(star,ALIST,MORE)])):-!.
 convert_ele(_Ctx,element(star,ALIST,MORE),star(pattern,XLAT2,MORE2)):-!,starIndex(star,pattern,ALIST,MORE,XLAT2,MORE2).
   starIndex(_Tag,_Star,ALIST,MORE,XLAT2,MORE2):-convert_attributes(Ctx,ALIST,XLAT2),convert_template(Ctx,MORE,MORE2),!.
@@ -343,7 +343,7 @@ convert_name(A,AAA):-convert_name0(A,AA), (A==AA -> AAA=AA ; convert_name(AA,AAA
 
 convert_name0(A,AA):-literal_atom_safe(A,AA).
 convert_name0(var,name).
-convert_name0(Attrib,uri):-pathAttrib(Attrib),!.
+convert_name0(Attrib,srcfile):-pathAttrib(Attrib),!.
 
 % ===================================================================
 % ===================================================================

@@ -263,7 +263,7 @@ withoutCyc(_,[]):-fail.
 :- style_check(-singleton).
 :- style_check(-discontiguous).
 %:- if((current_prolog_flag(version,MMmmPP),MMmmPP<70000)).
-:- style_check(-atom).
+%:- style_check(-atom).
 %:- style_check(-string).
 %:- endif.
 
@@ -1312,7 +1312,7 @@ stringToList(X,Y):-atom(X),atom_codes(X,Codes),!,stringToList(Codes,Y),!.
 stringToList(X,Y):-string(X),string_to_atom(X,M),!,stringToList(M,Y).
 stringToList(X,Y):-string(X),!,string_to_list(X,Y).
 stringToList(X,Y):-is_string(X),!,string_to_list(X,Y).
-stringToList([X|XX],Y):-concat_atom([X|XX],' ',XXX),!,string_to_list(XXX,Y).
+stringToList([X|XX],Y):-atomic_list_concat_aiml([X|XX],' ',XXX),!,string_to_list(XXX,Y).
 %prologPredToCyc(Predicate):-arity(PredicateHead)
 
 stringToCodelist(S,CL):-stringToCodelist2(S,SL),!,escapeString(SL,CS),!,stringToList(CL,CS),!.
@@ -1600,7 +1600,7 @@ sublTransaction(SubL,Result):-
 sublTransaction(Server,SubL,Result):-
    once(getCycConnection(Server,SocketId,OutStream,InStream)),
    streamClear(InStream),
-   once((gensym('pqsym',PQSYM1),ignore(concat_atom(['*',PQSYM1,'*'],PQSYM)))),
+   once((gensym('pqsym',PQSYM1),ignore(atomic_list_concat_aiml(['*',PQSYM1,'*'],PQSYM)))),
    writel(OutStream,progn(defvar(PQSYM,'NIL'),csetq(PQSYM,'REMOVE-DUPLICATES'(SubL,'#\'TREE-EQUAL')),length(PQSYM))),
    get_code(InStream,G),
    get_code(InStream,E),
@@ -1762,7 +1762,7 @@ termCyclify(c(Before),Before).
 termCyclify(':-'(A,B),CA):-B==true,termCyclify(A,CA).
 termCyclify(':-'(A,B),['#$sentenceImplies',CB,CA]):-termCyclify(A,CA),termCyclify(B,CB),!.
 %termCyclify([C],Term):-compound(C),!,termCyclify(C,Term).
-termCyclify(P:C,Term):-ground(P:C),concat_atom([P,':',C],A),!,termCyclify(A,Term),!.
+termCyclify(P:C,Term):-ground(P:C),atomic_list_concat_aiml([P,':',C],A),!,termCyclify(A,Term),!.
 termCyclify(Before,After):-atom(Before),!,termCyclifyAtom(Before,After),!.
 termCyclify([B|BL],[A|AL]):-!,termCyclify(B,A),termCyclify(BL,AL),!.
 termCyclify(Before,After):- compound(Before),!, Before=..[B|BL],termCyclify(B,CB),termCyclify(BL,CBL),!,After=[CB|CBL].
@@ -1787,13 +1787,13 @@ termCyclifyAtom3(_,Before,After):-atom_to_number(Before,After),!.
 termCyclifyAtom3(_,Before,After):-badConstant(Before),quoteAtomString(Before,After).
 termCyclifyAtom3(_,Before,After):-atom_concat('#$',Before,After),makeConstant(Before).      
 
-badConstant(Atom):-member(Char,['/','*','"','.',',',' ','!','?','#','%']),concat_atom([S,T|UFF],Char,Atom),!.
+badConstant(Atom):-member(Char,['/','*','"','.',',',' ','!','?','#','%']),atomic_list_concat_aiml([S,T|UFF],Char,Atom),!.
 quoteAtomString([34|T],Out):-name(Out,[34|T]),!.
 quoteAtomString([H|T],Out):-!,append([34,H|T],[34],Quote),name(Out,Quote).
-quoteAtomString(QU,QU):-concat_atom(['"'|_],QU),!.
-quoteAtomString(UQ,QU):-concat_atom(['"',UQ,'"'],QU),!.
+quoteAtomString(QU,QU):-atomic_list_concat_aiml(['"'|_],QU),!.
+quoteAtomString(UQ,QU):-atomic_list_concat_aiml(['"',UQ,'"'],QU),!.
 
-unquoteAtom(Atom,New):-concat_atom(LIST,'"',Atom),concat_atom(LIST,'',New),!.
+unquoteAtom(Atom,New):-atomic_list_concat_aiml(LIST,'"',Atom),atomic_list_concat_aiml(LIST,'',New),!.
 
 % ============================================
 % Make new CycConstant
@@ -2322,14 +2322,14 @@ checkValidConstAtoms(UQ,R):-not(member(UQ,['(',')','<','>','?','.','#'])),
                                                 %preconditionFor-Props
 constant(Constant) -->  ['#$'],{!},symname(C1) , { atom_concat('#$',C1,Constant)}.
 constant(Constant) -->  [':'],{!},symname(C1) , { atom_concat(':',C1,Constant)}.
-constant(Constant) -->  [':|'],{!},symname(C1),['|'] , { concat_atom([':|','|'],C1,Constant)}.
-constant(Constant) -->  [':|','|'],{!},symname(C1),['|','|'] , { concat_atom([':||','||'],C1,Constant)}.
-constant(Constant) -->  ['*'],symname(C1),['*'] , { concat_atom(['*',C1,'*'],Constant) } .
+constant(Constant) -->  [':|'],{!},symname(C1),['|'] , { atomic_list_concat_aiml([':|','|'],C1,Constant)}.
+constant(Constant) -->  [':|','|'],{!},symname(C1),['|','|'] , { atomic_list_concat_aiml([':||','||'],C1,Constant)}.
+constant(Constant) -->  ['*'],symname(C1),['*'] , { atomic_list_concat_aiml(['*',C1,'*'],Constant) } .
 
 string(AA) -->  [[U|Q]] , { stringToList(AA,[U|Q]),! } .
 string(UQ) -->  [UQ] , { (string(UQ);is_string(UQ)),! } .
 
-symname(Sym) -->  [Head,':',UQ] , { checkValidConstAtoms(Head,C1),checkValidConstAtoms(UQ,C2),!,concat_atom([C1,':',C2],Sym) } .
+symname(Sym) -->  [Head,':',UQ] , { checkValidConstAtoms(Head,C1),checkValidConstAtoms(UQ,C2),!,atomic_list_concat_aiml([C1,':',C2],Sym) } .
 symname(Sym) -->  [UQ] , { checkValidConstAtoms(UQ,Sym),! } .
 
 % Makes up sequencial Variable names for anonymous cycl getPrologVars
@@ -2610,14 +2610,14 @@ atomSplit(Atom,WordsO):- atomSplit(Atom,WordsO,[' ','\t','\n','\v','\f','\r',' '
    
 %%atomSplit(Atom,WordsO):- atomSplit(Atom,WordsO,[' ','\'',';',(','),'"',('`'),':','?','!','.','\n','\t','\r',('\\'),'*','%','(',')','#']),!.
 
-atomSplit(Atom,WordsO,List):- notrace((atom(Atom), atomic_list_concat(Words1,' ',Atom),!, atomSplit2(Words1,Words,List),!,Words=WordsO)).
-atomSplit(Atom,Words,[Space|List]):-notrace((var(Atom),ground(Words),!,atomic_list_concat(Words,Space,AtomO),!,Atom=AtomO)).
+atomSplit(Atom,WordsO,List):- notrace((atom(Atom), atomic_list_concat_aiml(Words1,' ',Atom),!, atomSplit2(Words1,Words,List),!,Words=WordsO)).
+atomSplit(Atom,Words,[Space|List]):-notrace((var(Atom),ground(Words),!,atomic_list_concat_aiml(Words,Space,AtomO),!,Atom=AtomO)).
 
 atomSplit2([],[],_List):-!.
 atomSplit2([Mark|S],[Mark|Words],List):- member(Mark,List),!,atomSplit2(S,Words,List),!.
 atomSplit2([W|S],[A,Mark|Words],List):- member(Mark,List),atom_concat(A,Mark,W),!,atomSplit2(S,Words,List),!.
 atomSplit2([W|S],[Mark,A|Words],List):- member(Mark,List),atom_concat(Mark,A,W),!,atomSplit2(S,Words,List),!.
-atomSplit2([Word|S],Words,List):- member(Space,List),Atoms=[_,_|_],atomic_list_concat(Atoms,Space,Word),!,
+atomSplit2([Word|S],Words,List):- member(Space,List),Atoms=[_,_|_],atomic_list_concat_aiml(Atoms,Space,Word),!,
                   interleave(Atoms,Space,Left),
                   atomSplit2(S,Right,List),append(Left,Right,WordsM),!,atomSplit2(WordsM,Words,List),!.
 atomSplit2([W|S],[W|Words],List):-atomSplit2(S,Words,List),!.
@@ -3202,7 +3202,7 @@ toConstant(Len,Const):-integer(Len),sformat(S,'(find-constant-by-internal-id ~w)
 toConstant(guid(Guid),Const):-!,toConstant(Guid,Const).
 toConstant(Guid,Const):-is_string(Guid),!,string_to_atom(Guid,Atom),toConstant(Atom,Const).
 toConstant(Guid,Const):-constantGuid(Const,Guid),!.
-toConstant(Len,Const):-concat_atom([A,B|C],'-',Len),sformat(S,'(find-constant-by-external-id (string-to-guid "~w"))',[Len]),evalSubL(S,X,_),balanceBinding(X,BB),
+toConstant(Len,Const):-atomic_list_concat_aiml([A,B|C],'-',Len),sformat(S,'(find-constant-by-external-id (string-to-guid "~w"))',[Len]),evalSubL(S,X,_),balanceBinding(X,BB),
          unhashConstant(BB,Const),
          asserta(constantGuid(Const,Len)),!.
 toConstant(C,CU):-unhashConstant(C,CU).
@@ -3266,7 +3266,7 @@ encodeRNumber(N,R,NNN,RRR):-NN is N*2,RR is R-1,encodeRNumber(NN,RR,NNN,RRR).
 
    
 %callCycApi(Out,[string("prologProcForCycPred-pos-proc"), ['#$prologCycPred2', 1, _G5354]], [var0=_G5354|_G5514], _G5523).
-callCycApi(Out,[string(Predstring), Call],ToplevelVars):- string_to_atom(Predstring,Atom),concat_atom([H|T],'-',Atom),!,
+callCycApi(Out,[string(Predstring), Call],ToplevelVars):- string_to_atom(Predstring,Atom),atomic_list_concat_aiml([H|T],'-',Atom),!,
       cycPredCall([H|T],Call,Result),!,
       writel(Out,Result,ToplevelVars),!.
          
@@ -3428,7 +3428,7 @@ toLowercase(A,A).
 toPropercase(VAR,VAR):-var(VAR),!.
 toPropercase([],[]):-!.
 toPropercase([CX|Y],[D3|YY]):-!,toPropercase(CX,D3),toPropercase(Y,YY).
-toPropercase(D3,DD3):-atom(D3),member(V,[' ','-','_',':','mt','doom','Mt','Doom']),concat_atom([L,I|ST],V,D3),toPropercase([L,I|ST],LIST2),toPropercase(V,VV),concat_atom(LIST2,VV,DD3).
+toPropercase(D3,DD3):-atom(D3),member(V,[' ','-','_',':','mt','doom','Mt','Doom']),atomic_list_concat_aiml([L,I|ST],V,D3),toPropercase([L,I|ST],LIST2),toPropercase(V,VV),atomic_list_concat_aiml(LIST2,VV,DD3).
 toPropercase(CX,Y):-atom(CX),name(CX,[S|SS]),char_type(S,to_lower(NA)),name(NA,[N]),name(Y,[N|SS]),!.
 toPropercase(MiXed,UPPER):-compound(MiXed),MiXed=..MList,toPropercase(MList,UList),!,UPPER=..UList.
 toPropercase(A,A).
@@ -3437,7 +3437,7 @@ toPropercase(A,A).
 toCamelcase(VAR,VAR):-var(VAR),!.
 toCamelcase([],[]):-!.
 toCamelcase([CX|Y],[D3|YY]):-!,toCamelcase(CX,D3),toCamelcase(Y,YY).
-toCamelcase(D3,DD3):-atom(D3),member(V,[' ','-','_',':','mt','doom','Mt','Doom']),concat_atom([L,I|ST],V,D3),toCamelcase([L,I|ST],LIST2),toCamelcase(V,VV),concat_atom(LIST2,VV,DD3).
+toCamelcase(D3,DD3):-atom(D3),member(V,[' ','-','_',':','mt','doom','Mt','Doom']),atomic_list_concat_aiml([L,I|ST],V,D3),toCamelcase([L,I|ST],LIST2),toCamelcase(V,VV),atomic_list_concat_aiml(LIST2,VV,DD3).
 toCamelcase(CX,Y):-atom(CX),name(CX,[S|SS]),char_type(S,to_upper(NA)),name(NA,[N]),name(Y,[N|SS]),!.
 toCamelcase(MiXed,UPPER):-compound(MiXed),MiXed=..MList,toCamelcase(MList,UList),!,UPPER=..UList.
 toCamelcase(A,A).
@@ -3601,18 +3601,18 @@ read_line_with_nl(C, Fd, [C|T], Tail) :-
 
 decodeRequest(RequestEncoded,[file=FileT]):-
       www_form_encode(RequestDecoded,RequestEncoded),
-      concat_atom([File],'?',RequestDecoded),!,
+      atomic_list_concat_aiml([File],'?',RequestDecoded),!,
       decodeRequestAtom(File,FileT).
 decodeRequest(RequestEncoded,[file=FileT|ENCARGS]):-
-      concat_atom([File|_],'?',RequestEncoded),
+      atomic_list_concat_aiml([File|_],'?',RequestEncoded),
       atom_concat(File,'?',FilePart),
       atom_concat(FilePart,ARGS,RequestEncoded),
-      concat_atom(ArgList,'&',ARGS),
+      atomic_list_concat_aiml(ArgList,'&',ARGS),
       decodeRequestAtom(File,FileT),!,
       decodeRequestArguments(ArgList,ENCARGS),!.
 
 decodeRequestArguments([],[]):-!.
-decodeRequestArguments([ctx=Value|List],[ctx=CValue,theory=KValue|ARGS]):- concat_atom([KValue,CValue],':',Value),!,
+decodeRequestArguments([ctx=Value|List],[ctx=CValue,theory=KValue|ARGS]):- atomic_list_concat_aiml([KValue,CValue],':',Value),!,
           decodeRequestArguments(List,ARGS).
 decodeRequestArguments([Arg|List],[DDName=DDValue|ARGS]):-
           split_nv(Arg,Name,Value),
@@ -3638,7 +3638,7 @@ unatom(B,B).
 %ctx=PrologMOO%3ASTRUCTURAL-ONTOLOGY&amp;
 
 split_nv(Name=Value,Name,Value):-!.
-split_nv(Arg,Name,Value):-concat_atom([Name,Value],'=',Arg),!.
+split_nv(Arg,Name,Value):-atomic_list_concat_aiml([Name,Value],'=',Arg),!.
 split_nv(Arg,Arg,Arg).
                         
 
@@ -3687,7 +3687,7 @@ goodbye:-thread_self(Me),retractall(isKeepAlive(Me)),writeFmt('<bye/>\n',[]).
 invokePrologCommandRDF(Session,In,Out,PrologGoal,ToplevelVars,Returns):-var(PrologGoal),!.
 
 invokePrologCommandRDF(Session,In,Out,PrologGoal,ToplevelVars,Returns):-
-        term_to_atom(Session,Atom),concat_atom(['$answers_for_session',Atom],AnswersFlag),
+        term_to_atom(Session,Atom),atomic_list_concat_aiml(['$answers_for_session',Atom],AnswersFlag),
         writeFmt(Out,'<cycml:solutions goal="~q">\n',[PrologGoal]),
         flag(AnswersFlag,_,0),
         set_output(Out),set_input(In),!,
@@ -4686,32 +4686,34 @@ writeHTMLStdHeader(Title):-
    <html>
    <head>
    <meta http-equiv="Content-Language" content="en-us">
-   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-   <meta name="Keywords" content="PROLOG Artificial Intelligence Ontology AI MOO DARPA Douglas Miles">
+   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">',[]),
+   writeFmtFlushed('<meta name="Keywords" content="PROLOG Artificial Intelligence Ontology AI MOO DARPA Douglas Miles">
    <meta name="Description" content="PROLOG Artificial Intelligence Ontology AI DARPA MOO">
    <title>MOO Engine - ~w</title>
    </head>
-   <body>
+   <body>',[Title]),
+   writeFmtFlushed('
           <a href="browse.moo">Browse</a> 
 	    <a href="english.moo">English</a>
 	    <a href="cycl.moo">CycL</a>
 	    <a href="subl.moo">SubLisp</a>
 	    <a href="daml.moo">Daml</a>
-	    <a href="wn.moo">WordNet</a>
-	    <a href="cycml.moo">CycML</a>
+	    <a href="wn.moo">WordNet</a>',[]),
+   writeFmtFlushed('<a href="cycml.moo">CycML</a>
 	    <a href="prolog.moo">Prolog</a>
 	    <a href="settings.moo">Settings</a>
 	    <a href="system.moo">System</a>
-	    <a href="help.moo">Help</a>
+	    <a href="help.moo">Help</a>',[]),
+   writeFmtFlushed('
 	  <br><font size=+1>Create/Edit</font>
 	   <a href="predicate.moo">Predicate</a>
 	   <a href="function.moo">Function</a>
 	   <a href="collection.moo">Collection</a>
-	   <a href="microtheory.moo">Microtheory</a>
-	  <font size=+1>Tests</font>
+	   <a href="microtheory.moo">Microtheory</a>',[]),
+writeFmtFlushed(' <font size=+1>Tests</font>
 	   <a href="inference_tests.moo">Inference</a><br>
        <br><font size=+1 color=green><b>~w</b></font><br>
-   ',[Title,Title]).
+   ',[Title]).
 
 writeHTMLStdFooter:-
    writeFmtFlushed('

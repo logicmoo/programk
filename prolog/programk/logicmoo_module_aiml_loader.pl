@@ -34,7 +34,7 @@ graph_or_file(Ctx,ATTRIBS, [Filename], XML):-atomic(Filename),!,graph_or_file(Ct
 
 graph_or_file(Ctx,ATTRIBS,Filename,XML):-graph_or_file_or_dir(Ctx,ATTRIBS,Filename,XML),!.
 graph_or_file(Ctx,ATTRIBS, Filename, XML):- atom(Filename),member(Quote-Pair,['\''-'\'','"'-'"','<'-'>','('-')']),
-     concat_atom([Quote,Mid,Pair],'',Filename),!,atrace,graph_or_file(Ctx,ATTRIBS, Mid, XML).
+     atomic_list_concat_aiml([Quote,Mid,Pair],Filename),!,atrace,graph_or_file(Ctx,ATTRIBS, Mid, XML).
 graph_or_file(Ctx,ATTRIBS, Filename, XML):- 
      getCurrentFileDir(Ctx, ATTRIBS, CurrentDir),join_path(CurrentDir,Filename,Name),os_to_prolog_filename(Name,NameO),atrace,
      prolog_must(graph_or_file_or_dir(Ctx,[currentDir=CurrentDir|ATTRIBS],NameO,XML)),!.
@@ -359,8 +359,9 @@ addGenltMT(X,Y):-debugFmt(addGenltMT(X,Y)).
 load_aiml_structure(_Ctx,end_of_file):-!.
 
 %load termFileContents
-load_aiml_structure(Ctx,termFileContents(File)):- !,inThreadJoin((
- setup_call_cleanup((open(File, read, In, [])), 
+load_aiml_structure(Ctx,termFileContents(File)):- !,
+ inThreadJoin((
+  setup_call_cleanup((open(File, read, In, [])), 
      ((repeat,
        read(In,Elem),
          once(load_aiml_structure(Ctx,Elem)),Elem==end_of_file)),

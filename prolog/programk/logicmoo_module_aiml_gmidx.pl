@@ -709,6 +709,6 @@ cateFallback([
        %%|MORE]):-findall(N=V,defaultPredicates(N,V),MORE).
 
 pathAttrib(S):-pathAttribS(SS),member(S,SS).
-pathAttribS([uri,loc,filename,url,path,dir,file,pathname,src,location]).
+pathAttribS([filename,uri,loc,url,path,dir,file,pathname,src,srcfile,location]).
 
 

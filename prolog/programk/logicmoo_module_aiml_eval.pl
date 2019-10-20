@@ -42,7 +42,7 @@ aiml_call(Ctx,element('testsuite',ATTRIBS,LIST)):-
      withAttributes(Ctx,ATTRIBS,maplist_safe(aiml_call(Ctx),LIST)),
      unify_listing(unitTestResult(unit_passed,PRINTRESULT),Passed),
      unify_listing(unitTestResult(unit_failed,PRINTRESULT),Failed),
-     debugFmt(testsuite_passed_failed(Passed,Failed)),!.
+     dmsg(testsuite_passed_failed(Passed,Failed)),!.
 
 aiml_call(Ctx,Current):- Current=element(TC,ATTRIBS,_LIST), member(TC,['testcase','TestCase']),!,
   prolog_must((
@@ -131,7 +131,7 @@ immediateCall1(_Ctx,_Call):- noConsoleDebug,isConsole,!.
 immediateCall1(_Ctx,Call):- fresh_line,(format('~q.',[Call])),fresh_line. %%,debugFmt(Call),!.
 
 %aiml_eval0(Ctx,[ValueI],ValueO):-atom(ValueI),!,aiml_eval(Ctx,ValueI,ValueO),!.
-%aiml_eval0(Ctx,[Value|I],ValueO):-atom(Value),concat_atom([Value|I],' ',ValueI),!,aiml_eval(Ctx,ValueI,ValueO),!.
+%aiml_eval0(Ctx,[Value|I],ValueO):-atom(Value),atomic_list_concat_aiml([Value|I],' ',ValueI),!,aiml_eval(Ctx,ValueI,ValueO),!.
 %aiml_eval0(Ctx,ValueI,ValueO):- !,ValueI=ValueO,!.
 
 aiml_eval0(Ctx,I,R):- nonvar(R),throw_safe(var(R=aiml_eval0(Ctx,I,R))),!.
@@ -291,13 +291,15 @@ systemCall_Find(_Ctx,REST,proof(CateSig,REST)):-
 % ===================================================================
 
 % 0.9 version
-tag_eval(Ctx,element(Learn, ATTRIBS, EXTRA),[loaded,Filename,via,Learn,into,Graph]/*NEW*/):- member(Learn,[load,learn]),
+tag_eval(Ctx,element(Learn, ATTRIBS, EXTRA),[loaded,Filename,via,Learn,into,Graph]/*NEW*/):- 
+  member(Learn,[load,learn]),
  prolog_must((
      attributeValue(Ctx,ATTRIBS,[graph],Graph,'$current_value'),
      pathAttribS(PathAttribS),
      attributeValue(Ctx,ATTRIBS,PathAttribS,Filename,EXTRA),
       gather_aiml_graph(Ctx,ATTRIBS,Graph,Filename,MOREXML),
-      append(EXTRA,MOREXML,NEWXML), 
+      append(EXTRA,MOREXML,NEWXML),
+      trace,
       ATTRIBSNEW=[srcfile=Filename,graph=Graph|ATTRIBS],
        NEW = element(aiml,ATTRIBSNEW,NEWXML),  
         withAttributes(Ctx,ATTRIBSNEW,

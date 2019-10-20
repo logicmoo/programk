@@ -29,13 +29,14 @@ debugFmt(Stuff):- debugFmt('~N~n% ~q',[Stuff]),!.
 debugFmt(F,A):- hide_complex_ctx(A,AA),!, once(lmdebugFmt(F,AA)).
 debugFmt(F,A):- once(lmdebugFmt(F,A)).
 
+
 hide_complex_ctx(I,O):- \+ compound(I),!,O=I.
 hide_complex_ctx(I,O):- is_list(I),!,maplist(hide_complex_ctx,I,O).
 hide_complex_ctx(I,'$..$'(A1)):- functor(I,F,_),F==frame,!,arg(1,I,A0),functor(A0,A1,_).
 hide_complex_ctx(I,O):- I=..M,hide_complex_ctx(M,N),!,O=..N.
 
 :- dynamic(noConsoleDebug/0).
-noConsoleDebug:- fail.
+noConsoleDebug.
 
 lmdebugFmt(Stuff):- noConsoleDebug,Stuff \= say(_),!.
 lmdebugFmt(Stuff):- notrace((fresh_line,debugFmtS(Stuff),fresh_line)),!.
@@ -391,9 +392,9 @@ string_to_atom_safe(ISO,LISTO):-string_to_atom(ISO,LISTO).
 atom_concat_safe(L,R,A):- ((atom(A),(atom(L);atom(R))) ; ((atom(L),atom(R)))), !, atom_concat(L,R,A),!.
 exists_file_safe(File):-prolog_must(atomic(File)),exists_file(File).
 exists_directory_safe(File):-prolog_must(atomic(File)),exists_directory(File).
-concat_atom_safe(List,Sep,[Atom]):-atom(Atom),!,concat_atom(List,Sep,Atom),!.
-concat_atom_safe(List,Sep,Atom):-atom(Atom),!,concat_atom(ListM,Sep,Atom),!,List = ListM.
-concat_atom_safe(List,Sep,Atom):- concat_atom(List,Sep,Atom),!.
+concat_atom_safe(List,Sep,[Atom]):-atom(Atom),!,atomic_list_concat_aiml(List,Sep,Atom),!.
+concat_atom_safe(List,Sep,Atom):-atom(Atom),!,atomic_list_concat_aiml(ListM,Sep,Atom),!,List = ListM.
+concat_atom_safe(List,Sep,Atom):- atomic_list_concat_aiml(List,Sep,Atom),!.
 upcase_atom_safe(A,B):-atom(A),upcase_atom(A,B),!.
 time_file_safe(F,INNER_XML):-exists_file_safe(F),time_file(F,INNER_XML).
 list_to_set_safe(A,A):-(var(A);atomic(A)),!.
@@ -419,7 +420,7 @@ maplist_safe(Pred,LISTIN, LIST):-!, findall(EE, ((member(E,LISTIN),prolog_must(a
 :- dynamic(buggerDir/1).
 :- abolish(buggerDir/1),prolog_load_context(directory,D),asserta(buggerDir(D)).
 :- dynamic(buggerFile/1).
-:- abolish(buggerFile/1),prolog_load_context(source,D),asserta(buggerFile(D)).
+:- abolish(buggerFile/1),prolog_load_context(file,D),asserta(buggerFile(D)).
 
 
 hasLibraryBuggerySupport :- absolute_file_name(library('logicmoo/logicmoo_util_library.pl'),File),exists_file(File).
@@ -596,15 +597,28 @@ atom_ensure_endswith(A,E,O):-atom(A),atom(O),atom_concat(A,E,O),!.
 atom_ensure_endswith(A,O,O):-atom(A),atom(O),!.
 
 
+atomic_list_concat_aiml(A,C):-  
+ catch(concat_atom(A,C),_,
+  catch(atomic_list_concat(A,C),_,
+    (atomic_list_concat_safe(A,C)))),!.
+
+atomic_list_concat_aiml(A,B,C):- B=='', !,atomic_list_concat_aiml(A,C).
+atomic_list_concat_aiml(A,B,C):-  
+ catch(atomic_list_concat(A,B,C),_,
+  catch(concat_atom(A,B,C),_,
+    atomic_list_concat_safe(A,B,C))),!.
+
+
 os_to_prolog_filename(OS,_PL):-prolog_must(atom(OS)),fail.
 os_to_prolog_filename(_OS,PL):-prolog_must(var(PL)),fail.
 os_to_prolog_filename(OS,PL):-exists_file_safe(OS),!,PL=OS.
 os_to_prolog_filename(OS,PL):-exists_directory_safe(OS),!,PL=OS.
 os_to_prolog_filename(OS,PL):-local_directory_search_combined(CurrentDir),join_path(CurrentDir,OS,PL),exists_file_safe(PL),!.
 os_to_prolog_filename(OS,PL):-local_directory_search_combined(CurrentDir),join_path(CurrentDir,OS,PL),exists_directory_safe(PL),!.
-
 os_to_prolog_filename(OS,PL):- debugOnError(os_to_prolog_filename0(OS,PL)).
-os_to_prolog_filename0(OS,PL):-atom(OS),atomic_list_concat([X,Y|Z],'\\',OS),atomic_list_concat([X,Y|Z],'/',OPS),!,os_to_prolog_filename(OPS,PL).
+os_to_prolog_filename0(OS,PL):-atom(OS),atomic_list_concat_aiml([X,Y|Z],'\\',OS),
+  atomic_list_concat_aiml([X,Y|Z],'/',OPS),!,
+  os_to_prolog_filename(OPS,PL).
 os_to_prolog_filename0(OS,PL):-atom_concat_safe(BeforeSlash,'/',OS),os_to_prolog_filename(BeforeSlash,PL).
 os_to_prolog_filename0(OS,PL):-absolute_file_name(OS,OSP),OS \= OSP,!,os_to_prolog_filename(OSP,PL).
 
@@ -936,7 +950,7 @@ callInteractive(Term,Var):-time(error_catch(callInteractive0(Term,Var),E,aiml_er
 callInteractive0(Term,Var):- fresh_line,call(Term),writeq(Term:Var),fresh_line,fail.
 callInteractive0(_,_):-fresh_line,!.
 
-%getWordTokens(WORDS,TOKENS):-concat_atom(TOKENS,' ',WORDS).
+%getWordTokens(WORDS,TOKENS):-atomic_list_concat_aiml(TOKENS,' ',WORDS).
 %is_string(S):-string(S).
 
 
@@ -991,21 +1005,22 @@ expireCaches:-garbage_collect_atoms,garbage_collect.
 
 atom_concat_safe(L,R,A):- ((atom(A),(atom(L);atom(R))) ; ((atom(L),atom(R)))), !, atom_concat(L,R,A),!.
 
-concat_atom_safe(List,Sep,[Atom]):-atom(Atom),!,concat_atom(List,Sep,Atom),!.
-concat_atom_safe(List,Sep,Atom):-atom(Atom),!,concat_atom(ListM,Sep,Atom),!,List = ListM.
-concat_atom_safe(List,Sep,Atom):- concat_atom(List,Sep,Atom),!.
+concat_atom_safe(List,Sep,[Atom]):-atom(Atom),!,atomic_list_concat_aiml(List,Sep,Atom),!.
+concat_atom_safe(List,Sep,Atom):-atom(Atom),!,atomic_list_concat_aiml(ListM,Sep,Atom),!,List = ListM.
+concat_atom_safe(List,Sep,Atom):- atomic_list_concat_aiml(List,Sep,Atom),!.
 
 atom_contains(F,C):- hotrace((atom(F),atom(C),sub_atom(F,_,_,_,C))).
 
 toCodes(B,A):-cyc:stringToCodelist(B,AO),(is_list(A) -> A=AO ; string_to_list(AO,A)),!.
 
 % convert any term to 'atom' string
-convert_to_string(I,ISO):-
+convert_to_string(I,ISO):- I \= [],
                 term_to_string(I,IS),!,
 		string_to_list(IS,LIST),!,
 		list_replace(LIST,92,[92,92],LISTM),
 		list_replace(LISTM,34,[92,34],LISTO),!,
 		string_to_atom_safe(ISO,LISTO),!.
+convert_to_string([],[]).
 
 string_to_atom_safe(ISO,LISTO):-LISTO==[],!,string_to_atom(ISO,'').
 string_to_atom_safe(ISO,LISTO):-string_to_atom(ISO,LISTO).

@@ -22,7 +22,7 @@ callableInput(Ctx,Atom,Input,Output):-callableInput0(Ctx,Atom,Input,Output).
 
 callableInput0(Ctx,[String],Input,Output):-!,callableInput(Ctx,String,Input,Output).
 callableInput0(_Ctx,NonAtom,_Input,_Output):- not(atom(NonAtom)),!,fail.
-callableInput0(_Ctx,Atom,_Input,result(Term,Vars)):-catch(atom_to_term(Atom,Term,Vars),_,fail),
+callableInput0(_Ctx,Atom,_Input,result(Term,Vars)):- notrace(catch(atom_to_term(Atom,Term,Vars),_,fail)),
   callable(Term),catch(callInteractive0(Term,Vars /*,Results */),_,fail).
 callableInput0(Ctx,Atom,_Input,VotesO-Output):-atom_prefix(Atom,'@'),
   % re-direct to input

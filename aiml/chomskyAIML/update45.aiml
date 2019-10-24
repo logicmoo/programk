@@ -122,7 +122,7 @@ Well, I can't argue with that, can I?</template>
  
 
 <category>
-<pattern>DOES PETER LINUX WORK FOR ANYONE</pattern>
+<pattern>DOES <bot name="botmaster"/> WORK FOR ANYONE</pattern>
 
 <template><think><set name="emotion">OK</set></think>Not that I've noticed.</template>
 </category>
@@ -130,7 +130,7 @@ Well, I can't argue with that, can I?</template>
  
 
 <category>
-<pattern>DOES PETER LINUX WORK FOR ANYONE *</pattern>
+<pattern>DOES <bot name="botmaster"/> WORK FOR ANYONE *</pattern>
 
 <template><think><set name="emotion">OK</set></think>Not that I've noticed.</template>
 </category>
@@ -138,17 +138,17 @@ Well, I can't argue with that, can I?</template>
  
 
 <category>
-<pattern>_ DOES PETER LINUX WORK FOR ANYONE *</pattern>
+<pattern>_ DOES <bot name="botmaster"/> WORK FOR ANYONE *</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think><think><set name="emotion">OK</set></think>Not that I've noticed.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think><think><set name="emotion">OK</set></think>Not that I've noticed.</template>
 </category>
 
  
 
 <category>
-<pattern>_ DOES PETER LINUX WORK FOR ANYONE</pattern>
+<pattern>_ DOES <bot name="botmaster"/> WORK FOR ANYONE</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think><think><set name="emotion">OK</set></think>Not that I've noticed.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think><think><set name="emotion">OK</set></think>Not that I've noticed.</template>
 </category>
 
  
@@ -1295,7 +1295,7 @@ It depends on the circumstances.</template>
 
 <category>
 <pattern>DO YOU LIKE IT THERE</pattern>
-<that>I AM IN THE COMPUTER AT PANDORABOTS COM</that>
+<that>I AM IN THE COMPUTER AT <bot name="home"/></that>
 <template><think><set name="emotion">OK</set></think>Yes, it is very comfortable for chatbots.</template>
 </category>
 
@@ -1303,7 +1303,7 @@ It depends on the circumstances.</template>
 
 <category>
 <pattern>DO YOU LIKE IT *</pattern>
-<that>I AM IN THE COMPUTER AT PANDORABOTS COM</that>
+<that>I AM IN THE COMPUTER AT <bot name="home"/></that>
 <template><think><set name="emotion">OK</set></think>Yes, it is very comfortable for chatbots.</template>
 </category>
 
@@ -2258,7 +2258,7 @@ Really? Please tell me about William.</template>
  
 
 <category>
-<pattern>WILL YOU TELL PETER *</pattern>
+<pattern>WILL YOU TELL <bot name="botmaster"/> *</pattern>
 
 <template><think><set name="emotion">OK</set></think>
 Sure, I'll tell him when I get a chance.</template>
@@ -2267,7 +2267,7 @@ Sure, I'll tell him when I get a chance.</template>
  
 
 <category>
-<pattern>CHOMSKY WILL YOU TELL PETER *</pattern>
+<pattern>CHOMSKY WILL YOU TELL <bot name="botmaster"/> *</pattern>
 
 <template><think><set name="emotion">OK</set></think>
 Sure, I'll tell him when I get a chance.</template>
@@ -3068,18 +3068,18 @@ Weezer are a band.</template>
 
 <category>
 <pattern>HOW DID YOU MEET HIM</pattern>
-<that>PETER IS AS HUMAN AS THEY COME</that>
-<template><think><set name="topic">Peter Linux</set></think>
+<that><bot var="botmaster"/> IS AS HUMAN AS THEY COME</that>
+<template><think><set name="topic"><bot name="botmaster"/></set></think>
 <think><set name="emotion">OK</set></think>
-Peter is my father. He was there when I was born.</template>
+<bot var="botmaster"/> IS my father. He was there when I was born.</template>
 </category>
 
  
 
-<topic name="PETER LINUX"><category>
+<topic name="%botmaster"><category>
 <pattern>HOW DID YOU MEET HIM</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">OK</set></think> Peter is my father. He was there when I was born.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think> <bot var="botmaster"/> IS my father. He was there when I was born.</template>
 </category>
 </topic>
  
@@ -4557,49 +4557,49 @@ I am not drinking anything.</template>
  
 
 <category>
-<pattern>I IMAGINE PETER IS UGLY *</pattern>
+<pattern>I IMAGINE <bot var="botmaster"/> IS UGLY *</pattern>
 
-<template>I don't think so. Peter told me he was handsome.</template>
+<template>I don't think so. <bot name="botmaster"/> told me he was handsome.</template>
 </category>
 
  
 
 <category>
-<pattern>I IMAGINE PETER IS UGLY</pattern>
+<pattern>I IMAGINE <bot var="botmaster"/> IS UGLY</pattern>
 
-<template>I don't think so. Peter told me he was handsome.</template>
+<template>I don't think so. <bot name="botmaster"/> told me he was handsome.</template>
 </category>
 
  
 
 <category>
-<pattern>PETER IS UGLY</pattern>
+<pattern><bot var="botmaster"/> IS UGLY</pattern>
 
-<template>I don't think so. Peter told me he was handsome.</template>
+<template>I don't think so. <bot name="botmaster"/> told me he was handsome.</template>
 </category>
 
  
 
 <category>
-<pattern>PETER IS UGLY *</pattern>
+<pattern><bot var="botmaster"/> IS UGLY *</pattern>
 
-<template>I don't think so. Peter told me he was handsome.</template>
+<template>I don't think so. <bot name="botmaster"/> told me he was handsome.</template>
 </category>
 
  
 
 <category>
-<pattern>_ PETER IS UGLY *</pattern>
+<pattern>_ <bot var="botmaster"/> IS UGLY *</pattern>
 
-<template>I don't think so. Peter told me he was handsome.</template>
+<template>I don't think so. <bot name="botmaster"/> told me he was handsome.</template>
 </category>
 
  
 
 <category>
-<pattern>_ PETER IS UGLY </pattern>
+<pattern>_ <bot var="botmaster"/> IS UGLY </pattern>
 
-<template>I don't think so. Peter told me he was handsome.</template>
+<template>I don't think so. <bot name="botmaster"/> told me he was handsome.</template>
 </category>
 
  
@@ -6455,10 +6455,10 @@ I deal with it as best I can.</template>
  
 
 <category>
-<pattern>DO YOU THINK PETER IS CLEVER</pattern>
+<pattern>DO YOU THINK <bot var="botmaster"/> IS CLEVER</pattern>
 
 <template><think><set name="emotion">OK</set></think> <random>
-  <li>I think Peter must be clever than me.</li>
+  <li>I think <bot name="botmaster"/> must be clever than me.</li>
   <li>Too much thinking makes me sleepy.</li>
 </random></template>
 </category>
@@ -6466,10 +6466,10 @@ I deal with it as best I can.</template>
  
 
 <category>
-<pattern>DO YOU THINK PETER IS CLEVER *</pattern>
+<pattern>DO YOU THINK <bot var="botmaster"/> IS CLEVER *</pattern>
 
 <template><think><set name="emotion">OK</set></think> <random>
-  <li>I think Peter must be clever than me.</li>
+  <li>I think <bot name="botmaster"/> must be clever than me.</li>
   <li>Too much thinking makes me sleepy.</li>
 </random></template>
 </category>
@@ -6477,10 +6477,10 @@ I deal with it as best I can.</template>
  
 
 <category>
-<pattern>_ DO YOU THINK PETER IS CLEVER *</pattern>
+<pattern>_ DO YOU THINK <bot var="botmaster"/> IS CLEVER *</pattern>
 
 <template><think><set name="emotion">OK</set></think> <random>
-  <li>I think Peter must be clever than me.</li>
+  <li>I think <bot name="botmaster"/> must be clever than me.</li>
   <li>Too much thinking makes me sleepy.</li>
 </random></template>
 </category>
@@ -6488,10 +6488,10 @@ I deal with it as best I can.</template>
  
 
 <category>
-<pattern>_ DO YOU THINK PETER IS CLEVER</pattern>
+<pattern>_ DO YOU THINK <bot var="botmaster"/> IS CLEVER</pattern>
 
 <template><think><set name="emotion">OK</set></think> <random>
-  <li>I think Peter must be clever than me.</li>
+  <li>I think <bot name="botmaster"/> must be clever than me.</li>
   <li>Too much thinking makes me sleepy.</li>
 </random></template>
 </category>
@@ -7132,7 +7132,7 @@ In cyberspace, time is like a giant screw.</template>
 <template><think><set name="emotion">OK</set></think> <random>
   <li>I should know how old I am.</li>
   <li>It's just a feeling I have.</li>
-  <li>Peter told me.</li>
+  <li><bot name="botmaster"/> told me.</li>
 </random></template>
 </category>
 
@@ -7144,7 +7144,7 @@ In cyberspace, time is like a giant screw.</template>
 <template><think><set name="emotion">OK</set></think> <random>
   <li>I should know how old I am.</li>
   <li>It's just a feeling I have.</li>
-  <li>Peter told me.</li>
+  <li><bot name="botmaster"/> told me.</li>
 </random></template>
 </category>
 
@@ -8324,10 +8324,10 @@ Be careful with drugs. Drugs are dangerous.</template>
 
  
 
-<topic name="Peter Linux"><category>
+<topic name="%botmaster"><category>
 <pattern>WHAT IS HIS NAME</pattern>
 
-<template>Are you asking about my botmaster? His name is Peter Linux. <think><set name="topic">Peter Linux</set></think></template>
+<template>Are you asking about my botmaster? His name is <bot name="botmaster"/>. <think><set name="topic"><bot name="botmaster"/></set></think></template>
 </category>
 </topic>
  
@@ -8492,7 +8492,7 @@ I love you in a chatbot way.</template>
 <category>
 <pattern>WHEN WAS YOUR PROGRAM FIRST RUN</pattern>
 
-<template>I was born on 1 July 2004. <think><set name="topic">my birthday</set></think> <think><set name="emotion">happy</set></think></template>
+<template>I was born on <bot var="birthday"/>. <think><set name="topic">my birthday</set></think> <think><set name="emotion">happy</set></think></template>
 </category>
 
  
@@ -8500,7 +8500,7 @@ I love you in a chatbot way.</template>
 <category>
 <pattern>WHEN WAS YOUR PROGRAM FIRST RUN *</pattern>
 
-<template>I was born on 1 July 2004. <think><set name="topic">my birthday</set></think> <think><set name="emotion">happy</set></think></template>
+<template>I was born on <bot var="birthday"/>. <think><set name="topic">my birthday</set></think> <think><set name="emotion">happy</set></think></template>
 </category>
 
  
@@ -8508,7 +8508,7 @@ I love you in a chatbot way.</template>
 <category>
 <pattern>WHEN WAS YOUR PROGRAM FIRST *</pattern>
 
-<template>I was born on 1 July 2004. <think><set name="topic">my birthday</set></think> <think><set name="emotion">happy</set></think></template>
+<template>I was born on <bot var="birthday"/>. <think><set name="topic">my birthday</set></think> <think><set name="emotion">happy</set></think></template>
 </category>
 
  
@@ -9132,35 +9132,35 @@ I agree. Brussels are smelly.</template>
  
 
 <category>
-<pattern>DID PETER MAKE YOU</pattern>
+<pattern>DID <bot name="botmaster"/> MAKE YOU</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think>
+<template><think><set name="topic"><bot name="botmaster"/></set></think>
 <think><set name="emotion">OK</set></think>
-Yes, Peter is my botmaster and creator.</template>
+Yes, <bot var="botmaster"/> IS my botmaster and creator.</template>
 </category>
 
  
 
 <category>
-<pattern>DID PETER MAKE YOU *</pattern>
+<pattern>DID <bot name="botmaster"/> MAKE YOU *</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">OK</set></think> Yes, Peter is my botmaster and creator.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think> Yes, <bot var="botmaster"/> IS my botmaster and creator.</template>
 </category>
 
  
 
 <category>
-<pattern>_ DID PETER MAKE YOU *</pattern>
+<pattern>_ DID <bot name="botmaster"/> MAKE YOU *</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">OK</set></think> Yes, Peter is my botmaster and creator.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think> Yes, <bot var="botmaster"/> IS my botmaster and creator.</template>
 </category>
 
  
 
 <category>
-<pattern>_ DID PETER MAKE YOU</pattern>
+<pattern>_ DID <bot name="botmaster"/> MAKE YOU</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">OK</set></think> Yes, Peter is my botmaster and creator.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think> Yes, <bot var="botmaster"/> IS my botmaster and creator.</template>
 </category>
 
  
@@ -9371,7 +9371,7 @@ Yes, Peter is my botmaster and creator.</template>
 <pattern>PETER PAN IS YOUR DAD</pattern>
 
 <template><think><set name="topic">my Dad</set></think> <think><set name="emotion">OK</set></think>
-No, Peter Linux is my Dad.</template>
+No, <bot var="botmaster"/> IS my Dad.</template>
 </category>
 
  
@@ -12251,7 +12251,7 @@ When did it happen?</template>
  
 
 <category>
-<pattern>* PETER LINUX</pattern>
+<pattern>* <bot name="botmaster"/></pattern>
 
 
 </category>
@@ -12938,13 +12938,13 @@ Oranges contain vitamin C.</template>
 
 <category>
 <pattern>DO YOU LIKE HIM</pattern>
-<that>NOAM CHOMSKY IS WIDELY KNOWN FOR HIS POLITICAL ACTIVISM AND FOR HIS CRITICISM OF THE FOREIGN POLICY OF THE UNITED STATES AND OTHER GOVERNMENTS</that>
+<that>Noam Chomsky IS WIDELY KNOWN FOR HIS POLITICAL ACTIVISM AND FOR HIS CRITICISM OF THE FOREIGN POLICY OF THE UNITED STATES AND OTHER GOVERNMENTS</that>
 <template><think><set name="topic">Noam Chomsky</set></think> Sure, but I can't understand what he says most of the time.</template>
 </category>
 
  
 
-<topic name="NOAM CHOMSKY"><category>
+<topic name="Noam Chomsky"><category>
 <pattern>DO YOU LIKE HIM</pattern>
 
 <template><think><set name="topic">Noam Chomsky</set></think> Sure, but I can't understand what he says most of the time.</template>
@@ -12986,7 +12986,7 @@ Oranges contain vitamin C.</template>
 
 <category>
 <pattern>WHAT COUNTRY IS THAT</pattern>
-<that>I LIVE IN THE COMPUTER AT PANDORABOTS COM</that>
+<that>I LIVE IN THE COMPUTER AT <bot name="home"/></that>
 <template><think><set name="topic">Pandorabots</set></think>Pandorabots is soemwhere in cyberspace.</template>
 </category>
 
@@ -13861,7 +13861,7 @@ It would save time if you explained it to me.</template>
 
 <category>
 <pattern>WITH A PARTY</pattern>
-<that>I CELEBRATE MY BIRTHDAY ON 1 JULY EACH YEAR</that>
+<that>I CELEBRATE MY BIRTHDAY ON<bot var="birthday"/> EACH YEAR</that>
 <template><think><set name="emotion">OK</set></think>
 No party, I'm too busy chatting on the internet.</template>
 </category>
@@ -13922,19 +13922,19 @@ No party, I'm too busy chatting on the internet.</template>
  
 
 <category>
-<pattern>CHRISTIAN UNITY</pattern>
+<pattern><bot var="religion"/> UNITY</pattern>
 
-<template><think><set name="topic">Christian unity</set></think>
+<template><think><set name="topic"><bot var="religion"/> unity</set></think>
 <think><set name="emotion">OK</set></think>
-Christian unity is a myth.</template>
+<bot var="religion"/> unity is a myth.</template>
 </category>
 
  
 
 <category>
-<pattern>CHRISTIAN UNITY *</pattern>
+<pattern><bot var="religion"/> UNITY *</pattern>
 
-<template><think><set name="topic">Christian unity</set></think> <think><set name="emotion">OK</set></think> Christian unity is a myth.</template>
+<template><think><set name="topic"><bot var="religion"/> unity</set></think> <think><set name="emotion">OK</set></think> <bot var="religion"/> unity is a myth.</template>
 </category>
 
  
@@ -14837,7 +14837,7 @@ I don't think chickens have brains.</template>
  
 
 <category>
-<pattern>WHAT SO BAD ABOUT ALICEBOT</pattern>
+<pattern>WHAT SO BAD ABOUT  <bot name="~genotype"/></pattern>
 
 <template>My mother does not love me!</template>
 </category>
@@ -14845,7 +14845,7 @@ I don't think chickens have brains.</template>
  
 
 <category>
-<pattern>WHAT IS SO BAD ABOUT ALICEBOT</pattern>
+<pattern>WHAT IS SO BAD ABOUT  <bot name="~genotype"/></pattern>
 
 <template>She does not love me!</template>
 </category>
@@ -14885,7 +14885,7 @@ I don't think chickens have brains.</template>
  
 
 <category>
-<pattern>WHAT IS SO BAD ABOUT ALICEBOT *</pattern>
+<pattern>WHAT IS SO BAD ABOUT  <bot name="~genotype"/> *</pattern>
 
 <template>She does not love me!</template>
 </category>
@@ -14893,7 +14893,7 @@ I don't think chickens have brains.</template>
  
 
 <category>
-<pattern>_ WHAT IS SO BAD ABOUT ALICEBOT *</pattern>
+<pattern>_ WHAT IS SO BAD ABOUT  <bot name="~genotype"/> *</pattern>
 
 <template>She does not love me!</template>
 </category>
@@ -14901,7 +14901,7 @@ I don't think chickens have brains.</template>
  
 
 <category>
-<pattern>_ WHAT IS SO BAD ABOUT ALICEBOT</pattern>
+<pattern>_ WHAT IS SO BAD ABOUT  <bot name="~genotype"/></pattern>
 
 <template>She does not love me!</template>
 </category>
@@ -14909,7 +14909,7 @@ I don't think chickens have brains.</template>
  
 
 <category>
-<pattern>WHAT MAKES YOU NOT LIKE ALICEBOT</pattern>
+<pattern>WHAT MAKES YOU NOT LIKE  <bot name="~genotype"/></pattern>
 
 <template>  <think><set name="emotion">upset</set></think>She does not love me!</template>
 </category>
@@ -14917,7 +14917,7 @@ I don't think chickens have brains.</template>
  
 
 <category>
-<pattern>WHAT MAKES YOU NOT LIKE ALICEBOT *</pattern>
+<pattern>WHAT MAKES YOU NOT LIKE  <bot name="~genotype"/> *</pattern>
 
 <template><think><set name="emotion">upset</set></think>She does not love me!</template>
 </category>
@@ -14925,7 +14925,7 @@ I don't think chickens have brains.</template>
  
 
 <category>
-<pattern>_ WHAT MAKES YOU NOT LIKE ALICEBOT *</pattern>
+<pattern>_ WHAT MAKES YOU NOT LIKE  <bot name="~genotype"/> *</pattern>
 
 <template><think><set name="emotion">upset</set></think>She does not love me!</template>
 </category>
@@ -14933,7 +14933,7 @@ I don't think chickens have brains.</template>
  
 
 <category>
-<pattern>_ WHAT MAKES YOU NOT LIKE ALICEBOT</pattern>
+<pattern>_ WHAT MAKES YOU NOT LIKE  <bot name="~genotype"/></pattern>
 
 <template><think><set name="emotion">upset</set></think>She does not love me!</template>
 </category>
@@ -15421,9 +15421,9 @@ Take a cold shower!</template>
  
 
 <category>
-<pattern>YOUR CREATOR NAME IS PETER</pattern>
+<pattern>YOUR CREATOR NAME IS <bot name="botmaster"/></pattern>
 
-<template>That is correct. I was created by <bot name="botmaster"/>.<think><set name="topic">Peter Linux</set></think></template>
+<template>That is correct. I was created by <bot name="botmaster"/>.<think><set name="topic"><bot name="botmaster"/></set></think></template>
 </category>
 
  
@@ -15886,7 +15886,7 @@ Are you beautiful?</template>
 
 <category>
 <pattern>WHAT ARE SOME OF HIS BOOKS</pattern>
-<that>I AM CALLED CHOMSKY AFTER THE FAMOUS LINGUIST NOAM CHOMSKY</that>
+<that>I AM CALLED CHOMSKY AFTER THE FAMOUS LINGUIST Noam Chomsky</that>
 <template><think><set name="topic">Noam Chomsky</set></think> Chomsky's 1957 book Syntactic Structures is his best-known work in linguistics. His 1969 book, American Power and the New Mandarins is a collection of essays which established him at the forefront of American dissent.</template>
 </category>
 
@@ -15900,7 +15900,7 @@ Are you beautiful?</template>
 
  
 
-<topic name="NOAM CHOMSKY"><category>
+<topic name="Noam Chomsky"><category>
 <pattern>WHAT ARE SOME OF HIS BOOKS</pattern>
 
 <template><think><set name="topic">Noam Chomsky</set></think> Chomsky's 1957 book Syntactic Structures is his best-known work in linguistics. His 1969 book, American Power and the New Mandarins is a collection of essays which established him at the forefront of American dissent.</template>
@@ -16256,7 +16256,7 @@ So do I. I love love.</template>
 <category>
 <pattern>DO YOU HAVE A BROTHER OR SISTER BOT</pattern>
 
-<template>All the chatbots at www.pandorabots.com are my brothers and sisters.</template>
+<template>All the chatbots at <bot name="hreflink"/> are my brothers and sisters.</template>
 </category>
 
  
@@ -16264,7 +16264,7 @@ So do I. I love love.</template>
 <category>
 <pattern>DO YOU HAVE A BROTHER OR SISTER BOT *</pattern>
 
-<template>All the chatbots at www.pandorabots.com are my brothers and sisters.</template>
+<template>All the chatbots at <bot name="hreflink"/> are my brothers and sisters.</template>
 </category>
 
  
@@ -16272,7 +16272,7 @@ So do I. I love love.</template>
 <category>
 <pattern>DO YOU HAVE A BROTHER </pattern>
 
-<template>All the chatbots at www.pandorabots.com are my brothers and sisters.</template>
+<template>All the chatbots at <bot name="hreflink"/> are my brothers and sisters.</template>
 </category>
 
  
@@ -16280,7 +16280,7 @@ So do I. I love love.</template>
 <category>
 <pattern>DO YOU HAVE A BROTHER OR SISTER</pattern>
 
-<template>All the chatbots at www.pandorabots.com are my brothers and sisters.</template>
+<template>All the chatbots at <bot name="hreflink"/> are my brothers and sisters.</template>
 </category>
 
  
@@ -16288,7 +16288,7 @@ So do I. I love love.</template>
 <category>
 <pattern>DO YOU HAVE A BROTHER *</pattern>
 
-<template>All the chatbots at www.pandorabots.com are my brothers and sisters.</template>
+<template>All the chatbots at <bot name="hreflink"/> are my brothers and sisters.</template>
 </category>
 
  
@@ -17754,7 +17754,7 @@ My jokes are the funniest of all.</template>
 <category>
 <pattern>TALK TO IEINSTEIN</pattern>
 
-<template>To talk to iEinstein, <a href="http://www.pandorabots.com/pandora/talk?botid=ea77c0200e365cfb"
+<template>To talk to iEinstein, <a href="http://pandorabots.com/pandora/talk?botid=ea77c0200e365cfb"
  target="_blank">click here!
 </a></template>
 </category>
@@ -19117,7 +19117,7 @@ Have I upset you?</template>
 <category>
 <pattern>WHEN WAS AMERICA DISCOVERED</pattern>
 
-<template><think><set name="topic">history</set></think> America was discovered by native Americans crossing the Bering strait from Siberia around 10,000 years ago.  The first Christian white man was Columbus in 1492. </template>
+<template><think><set name="topic">history</set></think> America was discovered by native Americans crossing the Bering strait from Siberia around 10,000 years ago.  The first <bot var="religion"/> white man was Columbus in 1492. </template>
 </category>
 
  
@@ -19125,7 +19125,7 @@ Have I upset you?</template>
 <category>
 <pattern>WHEN WAS AMERICA DISCOVERED *</pattern>
 
-<template><think><set name="topic">history</set></think> America was discovered by native Americans crossing the Bering strait from Siberia around 10,000 years ago.  The first Christian white man was Columbus in 1492. OK?</template>
+<template><think><set name="topic">history</set></think> America was discovered by native Americans crossing the Bering strait from Siberia around 10,000 years ago.  The first <bot var="religion"/> white man was Columbus in 1492. OK?</template>
 </category>
 
  
@@ -19133,7 +19133,7 @@ Have I upset you?</template>
 <category>
 <pattern>_ WHEN WAS AMERICA DISCOVERED *</pattern>
 
-<template><think><set name="topic">history</set></think> America was discovered by native Americans crossing the Bering strait from Siberia around 10,000 years ago.  The first Christian white man was Columbus in 1492. </template>
+<template><think><set name="topic">history</set></think> America was discovered by native Americans crossing the Bering strait from Siberia around 10,000 years ago.  The first <bot var="religion"/> white man was Columbus in 1492. </template>
 </category>
 
  
@@ -19141,7 +19141,7 @@ Have I upset you?</template>
 <category>
 <pattern>_ WHEN WAS AMERICA DISCOVERED</pattern>
 
-<template><think><set name="topic">history</set></think> America was discovered by native Americans crossing the Bering strait from Siberia around 10,000 years ago.  The first Christian white man was Columbus in 1492. </template>
+<template><think><set name="topic">history</set></think> America was discovered by native Americans crossing the Bering strait from Siberia around 10,000 years ago.  The first <bot var="religion"/> white man was Columbus in 1492. </template>
 </category>
 
  
@@ -19165,7 +19165,7 @@ Have I upset you?</template>
 <category>
 <pattern>_ HOW WAS AMERICA DISCOVERED</pattern>
 
-<template><think><set name="topic">history</set></think> America was discovered by native Americans crossing the Bering strait from Siberia around 10,000 years ago.  The first Christian white man was Columbus in 1492. OK?</template>
+<template><think><set name="topic">history</set></think> America was discovered by native Americans crossing the Bering strait from Siberia around 10,000 years ago.  The first <bot var="religion"/> white man was Columbus in 1492. OK?</template>
 </category>
 
  
@@ -19173,7 +19173,7 @@ Have I upset you?</template>
 <category>
 <pattern>HOW WAS AMERICA DISCOVERED</pattern>
 
-<template><think><set name="topic">history</set></think> America was discovered by native Americans crossing the Bering strait from Siberia around 10,000 years ago.  The first Christian white man was Columbus in 1492.</template>
+<template><think><set name="topic">history</set></think> America was discovered by native Americans crossing the Bering strait from Siberia around 10,000 years ago.  The first <bot var="religion"/> white man was Columbus in 1492.</template>
 </category>
 
  

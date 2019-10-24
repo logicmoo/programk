@@ -12,7 +12,7 @@
 
 <!--  ALICE Annotated Version updated Tue Jul  1 19:42:35 EDT 2003   --> 
 
-<!--  This QUOTES 1 (quotes on specific subjects) file  updated by Peter Lafferty 7 March 2005  --> 
+<!--  This QUOTES 1 (quotes on specific subjects) file  updated by <bot name="botmaster"/> Lafferty 7 March 2005  --> 
 
 <category>
 <pattern>QUOTE WOODY ALLEN</pattern>
@@ -413,7 +413,7 @@ He was a bold man that first ate an oyster, observed Jonathan Swift.
 <category>
 <pattern>QUOTE PETE TOWNSHEND</pattern>
 <template>
-I smash guitars because I like them, revealed Peter Townshend.
+I smash guitars because I like them, revealed <bot name="botmaster"/> Townshend.
 <think><set name="topic">quotes</set></think>
 </template>
 </category>
@@ -472,7 +472,7 @@ For all sad words of tongue or pen, the saddest are these: "It might have been",
 <category>
 <pattern>QUOTE USTINOV</pattern>
 <template>
-If Botticelli were alive today he'd be working for Vogue, according to Peter Ustinov.
+If Botticelli were alive today he'd be working for Vogue, according to <bot name="botmaster"/> Ustinov.
 <think><set name="topic">art</set></think>
 </template>
 </category>

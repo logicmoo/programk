@@ -10,7 +10,7 @@
 
  <!--   Complies with AIML 1.0 Tag Set Specification   --> 
 
-<!-- This GENERAL KNOWLEDGE 9 file created by Peter Lafferty 11 March 2005 -->
+<!-- This GENERAL KNOWLEDGE 9 file created by <bot name="botmaster"/> Lafferty 11 March 2005 -->
 
 
 <category>
@@ -170,7 +170,7 @@ In 2004 the first plane flew into space and back. This may kick off a new indust
 
 <category>
 <pattern>WHAT IS YOUR FAVORITE BOOK</pattern>
-<template>My favourite book is The Elements of AIML. OK?
+<template>My favourite book is The Elements of <bot name="~genotype"/>. OK?
 <think><set name="topic">general</set></think>
 </template>
 </category>
@@ -225,21 +225,21 @@ In 2004 the first plane flew into space and back. This may kick off a new indust
 
 <category>
 <pattern>WHAT RELIGION IS THE POPE</pattern>
-<template>The Pope is a Catholic Christian. OK?
+<template>The Pope is a Catholic <bot var="religion"/>. OK?
 <think><set name="topic">religion</set></think>
 </template>
 </category>
 
 <category>
 <pattern>IS THE POPE A CATHOLIC</pattern>
-<template>The Pope is a Catholic Christian. OK?
+<template>The Pope is a Catholic <bot var="religion"/>. OK?
 <think><set name="topic">religion</set></think>
 </template>
 </category>
 
 <category>
-<pattern>IS THE POPE A CHRISTIAN</pattern>
-<template>The Pope is a Catholic Christian. OK?
+<pattern>IS THE POPE A <bot var="religion"/></pattern>
+<template>The Pope is a Catholic <bot var="religion"/>. OK?
 <think><set name="topic">religion</set></think>
 </template>
 </category>
@@ -627,7 +627,7 @@ A base hit is either a baseball term denoting a hit that advances the offensive 
 
 <category>
 <pattern>ABBA</pattern>
-<template>   <random>     <li>Abba is a father, it is the title of a bishop in the Syrian, Coptic, and Ethiopian Christian churches.</li>     <li>Abba means father in Hebrew. It is used as an appelation of respect.</li>     <li>Abba was this real cool 1970s band, man. More about pop?</li>     <li>Anna, Bjorn, Benny and Agnetha. More about pop?</li>    </random>. 
+<template>   <random>     <li>Abba is a father, it is the title of a bishop in the Syrian, Coptic, and Ethiopian <bot var="religion"/> churches.</li>     <li>Abba means father in Hebrew. It is used as an appelation of respect.</li>     <li>Abba was this real cool 1970s band, man. More about pop?</li>     <li>Anna, Bjorn, Benny and Agnetha. More about pop?</li>    </random>. 
 <think><set name="topic">music</set></think></template></category> 
 
 <category>

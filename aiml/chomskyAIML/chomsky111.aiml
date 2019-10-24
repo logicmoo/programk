@@ -6,7 +6,7 @@
 <!-- as adopted by the ALICE A.I. Foundation. --> 
 <!-- Derived from Badanswer - a demo of Pandorabots learning --> 
 <!-- Extended to include further categories using LEARN --> 
-<!-- Last modified by Peter Lafferty Jan 2008 --> 
+<!-- Last modified by <bot name="botmaster"/> Lafferty Jan 2008 --> 
 
 
 <!-- BADANSWER -->
@@ -653,7 +653,7 @@ Please input the answer to the new question.
 
 <!-- These LEARNING IN CONTEXT categories created August 2008 -->
 
-<!-- by Peter Lafferty (plafferty@supanet.com)  (aka Peter Linux) -->
+<!-- by <bot name="botmaster"/> Lafferty (plafferty@supanet.com)  (aka <bot name="botmaster"/>) -->
 
 <!-- and are derived from the Chomsky chatbot (http://tinyurl.com/ydxlef) -->
 

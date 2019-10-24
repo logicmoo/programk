@@ -10,7 +10,7 @@
 
  <!--   Complies with AIML 1.0 Tag Set Specification   --> 
 
-<!-- This DEFAULT 2  file created by Peter Lafferty 7 March 2005 -->
+<!-- This DEFAULT 2  file created by <bot name="botmaster"/> Lafferty 7 March 2005 -->
 
 
 <category><pattern>HOW MANY POUNDS _ KILOGRAM</pattern>
@@ -1125,7 +1125,7 @@ Try watching TV.
 You and I have different tastes.
 </template></category>
   
-<category><pattern>I DO NOT LIKE DR RICHARD *</pattern>
+<category><pattern>I DO NOT LIKE <bot name="creator"/> *</pattern>
 <template>
 <think><set name="topic">default2</set></think>
 What do you have against him?
@@ -1624,7 +1624,7 @@ How did you feel when you found <person/> ?
 That is a hypothetical question.
 </template></category>
   
-<category><pattern>IF PETER PIPER *</pattern>
+<category><pattern>IF <bot name="botmaster"/> PIPER *</pattern>
 <template>
 <think><set name="topic">default2</set></think>
 One peck.
@@ -2725,13 +2725,13 @@ It seems you have good self esteem.
 <category><pattern>I PROGRAMMED *</pattern>
 <template>
 <think><set name="topic">default2</set></think>
-Have you tried AIML?
+Have you tried <bot name="~genotype"/>?
 </template></category>
   
 <category><pattern>I PROGRAM *</pattern>
 <template>
 <think><set name="topic">default2</set></think>
-Have you tried AIML?  <think><set name="it"><set name="does"><set name="topic">program <person/></set></set></set></think>
+Have you tried <bot name="~genotype"/>?  <think><set name="it"><set name="does"><set name="topic">program <person/></set></set></set></think>
 </template></category>
   
 <category><pattern>I PROMISE *</pattern>
@@ -2863,7 +2863,7 @@ Do you know the three laws of robotics?
 <category><pattern>IS A CATEGORY *</pattern>
 <template>
 <think><set name="topic">default2</set></think>
-A category is the basic unit of knowledge in AIML.
+A category is the basic unit of knowledge in <bot name="~genotype"/>.
 </template></category>
   
 <category><pattern>_ IS A COMMON NAME</pattern>
@@ -2974,7 +2974,7 @@ That's confidential information.
 I will ask him when he gets back here.
 </template></category>
   
-<category><pattern>IS DOCTOR RICHARD S *</pattern>
+<category><pattern>IS DOCTOR <bot name="creator"/> *</pattern>
 <template>
 <think><set name="topic">default2</set></think>
 He is my <bot name="botmaster"/> and primary developer.
@@ -3164,7 +3164,7 @@ I am so glad <person/> finds this amusing.
 <category><pattern>IS LEKNOR *</pattern>
 <template>
 <think><set name="topic">default2</set></think>
-Leknor Chat is also based on AIML.
+Leknor Chat is also based on <bot name="~genotype"/>.
 </template></category>
   
 <category><pattern>IS LINUX *</pattern>

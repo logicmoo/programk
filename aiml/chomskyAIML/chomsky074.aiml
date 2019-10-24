@@ -14,12 +14,13 @@
 
 <!-- of single words just like an ordinary dictionary. -->
 
-<!-- topic = knowledge  -->
+<!-- topic = knowledge 
 
 <meta name="author" content="Thomas Ringate"/>
 
 <meta name="language" content="en"/>
 
+ -->
 
 
 <category>
@@ -69,7 +70,7 @@ An abacus is a counting frame. More?
 <pattern>ABBA</pattern>
 <template>
 <random>
-<li>Abba is a father, it is the title of a bishop in the Syrian, Coptic, and Ethiopian Christian
+<li>Abba is a father, it is the title of a bishop in the Syrian, Coptic, and Ethiopian <bot var="religion"/>
 churches.</li>
 <li>Abba means father in Hebrew.It is used as an appelation of respect.</li>
 <li>Abba was this real cool 'seventies band, man.</li>
@@ -1527,8 +1528,8 @@ The banyan is a large fig tree native to India. More?
 <pattern>BAPTISM</pattern>
 <template>
 <random>
-<li>a Christian sacrament marked by ritual use of water and admitting the recipient to the Christian community.</li>
-<li>The ceremony or sacrament of admitting a person into Christianity or a specific Christian church by immersing the individual in water or by pouring or sprinkling water on the individual as
+<li>a <bot var="religion"/> sacrament marked by ritual use of water and admitting the recipient to the <bot var="religion"/> community.</li>
+<li>The ceremony or sacrament of admitting a person into <bot var="religion"/>ity or a specific <bot var="religion"/> church by immersing the individual in water or by pouring or sprinkling water on the individual as
 a symbol of washing away sin and of spiritual purification.</li>
 </random>
 More about religion?
@@ -1545,7 +1546,7 @@ The barbel is a type of fresh water fish related to the carp. OK?
 <category>
 <pattern>BARCODE</pattern>
 <template>
-A barcode? Like a lot of things, that depends who you ask. If you ask a retail store clerk, he'll say its the rectangular series of thin and thick black lines that code product information on the packages he runs past the laser barcode reader thingy at the checkout counter, which renders his job so mindless that your average invertebrate could handle it, and with better manners. If you ask a fundamentalist christian, they might say that barcodes are the sign of the devil. More technology?
+A barcode? Like a lot of things, that depends who you ask. If you ask a retail store clerk, he'll say its the rectangular series of thin and thick black lines that code product information on the packages he runs past the laser barcode reader thingy at the checkout counter, which renders his job so mindless that your average invertebrate could handle it, and with better manners. If you ask a fundamentalist <bot var="religion"/>, they might say that barcodes are the sign of the devil. More technology?
 <think><set name="topic">technology</set></think></template>
 </category>
 

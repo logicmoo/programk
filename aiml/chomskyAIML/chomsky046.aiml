@@ -5,7 +5,7 @@
 
  <!--     Complies with AIML 1.0 Tag Set Specification   --> 
 
-<!--   This COMPUTERS  file created by Peter Lafferty 7 March 2005  -->
+<!--   This COMPUTERS  file created by <bot name="botmaster"/> Lafferty 7 March 2005  -->
 
 <category>
 <pattern>MORE COMPUTERS</pattern>
@@ -1350,7 +1350,7 @@ I think hexadecimal is something to do with computers. Can we talk about compute
 
   <category>
   <pattern>DO YOU DO WINDOWS</pattern> 
-  <template>My software runs in AIML, which works on any computer, including Windows. 
+  <template>My software runs in <bot name="~genotype"/>, which works on any computer, including Windows. 
   <think><set name="topic">computers</set></think>    
 </template> 
    </category>

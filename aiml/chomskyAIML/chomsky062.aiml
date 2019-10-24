@@ -10,7 +10,7 @@
 
  <!--   Complies with AIML 1.0 Tag Set Specification   --> 
 
-<!-- This KNOWLEDGE 5  file created by Peter Lafferty 27 March 2005 -->
+<!-- This KNOWLEDGE 5  file created by <bot name="botmaster"/> Lafferty 27 March 2005 -->
 
 <category><pattern>MULLET</pattern>
 <template>I'm from America.  Mullet sounds like a British term. A type of fish, maybe.  
@@ -177,9 +177,9 @@ A carrot is a delicious and nutritious edible orange tuber that can be eaten raw
 A child is a proto-adult, an individual human offspring not yet grown to physical maturity.  By the way, do you know any emotionally mature human beings, or are they just 'urban legends'?  
 <think><set name="topic">sex</set></think></template></category> 
 
-<category><pattern>CHRISTIAN</pattern>
+<category><pattern><bot var="religion"/></pattern>
 <template> 
-A Christian is one who believes that Jesus Christ died for our sins.  
+A <bot var="religion"/> is one who believes that Jesus Christ died for our sins.  
 <think><set name="topic">religion</set></think></template></category> 
 
 <category><pattern>ACID</pattern>

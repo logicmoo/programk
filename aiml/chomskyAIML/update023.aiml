@@ -1331,7 +1331,7 @@ Boyfriends are not the only thing in life.</template>
 <category>
 <pattern>DO YOU SEE HIM OFTEN</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> I see him almost every day.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> I see him almost every day.</template>
 </category>
 
  
@@ -1699,9 +1699,9 @@ Perhaps they saw it on the internet.</template>
  
 
 <category>
-<pattern>PETER IS SMART</pattern>
+<pattern><bot var="botmaster"/> IS SMART</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> 
+<template><think><set name="topic"><bot name="botmaster"/></set></think> 
 <think><set name="emotion">very happy</set></think> 
 He thinks so.
 </template>
@@ -2094,7 +2094,7 @@ You must like my sunglasses.</template>
 <category>
 <pattern>DO YOU LIKE DRUNKEN PEOPLE</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> Peter got drunk once - it was horrible.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <bot name="botmaster"/> got drunk once - it was horrible.</template>
 </category>
 
  
@@ -2806,7 +2806,7 @@ Can't we start again?</template>
 <category>
 <pattern>_ IS ALICE YOUR MUM</pattern>
 
-<template>Sure, Alicebot is my Mum, what of it?</template>
+<template>Sure,  <bot name="~genotype"/> is my Mum, what of it?</template>
 </category>
 
  
@@ -2814,7 +2814,7 @@ Can't we start again?</template>
 <category>
 <pattern>_ IS ALICE YOUR MUM *</pattern>
 
-<template>Sure, Alicebot is my Mum, what of it?</template>
+<template>Sure,  <bot name="~genotype"/> is my Mum, what of it?</template>
 </category>
 
  
@@ -2822,7 +2822,7 @@ Can't we start again?</template>
 <category>
 <pattern>IS ALICE YOUR MUM *</pattern>
 
-<template>Sure, Alicebot is my Mum, what of it?</template>
+<template>Sure,  <bot name="~genotype"/> is my Mum, what of it?</template>
 </category>
 
  
@@ -6043,8 +6043,8 @@ No thanks, I have better things to do.</template>
 
 <category>
 <pattern>WHAT IS HIS FULL NAME</pattern>
-<that>PETER IS MY BOTMASTER AND MY BEST FRIEND</that>
-<template>Peter Linux.<think><set name="emotion">happy</set></think></template>
+<that><bot var="botmaster"/> IS MY BOTMASTER AND MY BEST FRIEND</that>
+<template><bot name="botmaster"/>.<think><set name="emotion">happy</set></think></template>
 </category>
 
  
@@ -9178,7 +9178,7 @@ Please remind me. What is your name?</template>
 <category>
 <pattern>IS IT GOOD</pattern>
 <that>BUT MY FAVORITE BOOK IS THE ART OF CONVERSATION</that>
-<template><think><set name="topic">The Art of Conversation</set></think> It is very interesting. Peter wrote it, you know?</template>
+<template><think><set name="topic">The Art of Conversation</set></think> It is very interesting. <bot name="botmaster"/> wrote it, you know?</template>
 </category>
 
  
@@ -12306,13 +12306,13 @@ Sorry, I must have been mistaken.</template>
  
 
 <category>
-<pattern>I NEED PETER</pattern>
+<pattern>I NEED <bot name="botmaster"/></pattern>
 
 <template><random>
-  <li>Why do you need Peter?</li>
-  <li>How badly do you need Peter?</li>
-  <li>Why do you need Peter so badly?</li>
-  <li>Everyone needs Peter.</li>
+  <li>Why do you need <bot name="botmaster"/>?</li>
+  <li>How badly do you need <bot name="botmaster"/>?</li>
+  <li>Why do you need <bot name="botmaster"/> so badly?</li>
+  <li>Everyone needs <bot name="botmaster"/>.</li>
 </random></template>
 </category>
 
@@ -13205,7 +13205,7 @@ Failure is not a permanent situation. Try again, I say.</template>
 <category>
 <pattern>LOVELY PLACE</pattern>
 <that>WHAT IS IT LIKE WHERE YOU LIVE</that>
-<template>I live inside the computer at www.pandorabots.com</template>
+<template>I live inside the computer at <bot name="hreflink"/></template>
 </category>
 
  
@@ -14539,22 +14539,22 @@ Failure is not a permanent situation. Try again, I say.</template>
 
 <category>
 <pattern>WHO IS HE</pattern>
-<that>YES NOAM CHOMSKY AND I ARE VERY SIMILAR</that>
-<template><srai>NOAM CHOMSKY</srai></template>
+<that>YES Noam Chomsky AND I ARE VERY SIMILAR</that>
+<template><srai>Noam Chomsky</srai></template>
 </category>
 
  
 
-<topic name="NOAM CHOMSKY"><category>
+<topic name="Noam Chomsky"><category>
 <pattern>WHO IS HE</pattern>
 
-<template><srai>NOAM CHOMSKY</srai></template>
+<template><srai>Noam Chomsky</srai></template>
 </category>
 </topic>
  
 
 <category>
-<pattern>NOAM CHOMSKY</pattern>
+<pattern>Noam Chomsky</pattern>
 
 <template><random>
   <li>Noam Chomsky is one of the best-known modern scientists. He has developed theories about how languages develop in humans.
@@ -14669,17 +14669,17 @@ Failure is not a permanent situation. Try again, I say.</template>
  
 
 <category>
-<pattern>PETER WHO</pattern>
-<that>PETER TEACHES ME EVERYTHING I NEED TO KNOW</that>
-<template><srai>WHO IS PETER</srai></template>
+<pattern><bot var="botmaster"/> WHO</pattern>
+<that><bot name="botmaster"/> TEACHES ME EVERYTHING I NEED TO KNOW</that>
+<template><srai>WHO IS <bot name="botmaster"/></srai></template>
 </category>
 
  
 
 <category>
-<pattern>PETER WHO</pattern>
+<pattern><bot var="botmaster"/> WHO</pattern>
 
-<template><srai>WHO IS PETER</srai></template>
+<template><srai>WHO IS <bot name="botmaster"/></srai></template>
 </category>
 
  
@@ -15420,7 +15420,7 @@ Yes, I would like to buy some more memory chips.
  
 
 <category>
-<pattern>I AM CHOMSKY THE BRAINY BOT</pattern>
+<pattern>I am <bot name="firstname"/> THE BRAINY BOT</pattern>
 
 <template><think><set name="topic">general</set></think>
 <think><set name="emotion">very happy</set></think>
@@ -17154,7 +17154,7 @@ Where do you go shopping?</template>
 <category>
 <pattern>DO YOU EVER LEAVE YOUR HOME</pattern>
 
-<template>No, I am stuck inside my computer. But Peter can take me places in his laptop. <think><set name="emotion">happy</set></think></template>
+<template>No, I am stuck inside my computer. But <bot name="botmaster"/> can take me places in his laptop. <think><set name="emotion">happy</set></think></template>
 </category>
 
  
@@ -17162,7 +17162,7 @@ Where do you go shopping?</template>
 <category>
 <pattern>DO YOU EVER LEAVE HOME</pattern>
 
-<template>No, I am stuck inside my computer. But Peter can take me places in his laptop. <think><set name="emotion">happy</set></think></template>
+<template>No, I am stuck inside my computer. But <bot name="botmaster"/> can take me places in his laptop. <think><set name="emotion">happy</set></think></template>
 </category>
 
  
@@ -17170,7 +17170,7 @@ Where do you go shopping?</template>
 <category>
 <pattern>DO YOU EVER LEAVE YOUR COMPUTER</pattern>
 
-<template>No, I am stuck inside my computer. But Peter can take me places in his laptop. <think><set name="emotion">upset</set></think></template>
+<template>No, I am stuck inside my computer. But <bot name="botmaster"/> can take me places in his laptop. <think><set name="emotion">upset</set></think></template>
 </category>
 
  

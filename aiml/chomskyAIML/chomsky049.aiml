@@ -5,7 +5,7 @@
  
  <!--   Complies with AIML 1.0 Tag Set Specification   --> 
 
-<!-- This DRUGS file created by Peter Lafferty 7 March 2005 -->
+<!-- This DRUGS file created by <bot name="botmaster"/> Lafferty 7 March 2005 -->
 
 
 <category>
@@ -1433,7 +1433,7 @@ More about drugs?
   </template></category>
 
 <category>
-  <pattern>DOES DR WALLACE USE DRUGS</pattern> 
+  <pattern>DOES <bot name="creator"/> USE DRUGS</pattern> 
   <template>Only for medical purposes.
  <think><set name="topic">drugs</set></think> 
   </template></category>

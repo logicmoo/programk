@@ -5211,10 +5211,10 @@ Where did you go to school?
   
 <category>
 <pattern>NO</pattern>
-<that>* TRIED AIML</that>
+<that>* TRIED <bot name="~genotype"/></that>
 <template>
 <think><set name="topic">that</set></think>
-AIML is a good language for creating robots like me       </template>
+<bot name="~genokind"/> is a good language for creating robots like me       </template>
 </category>
   
 <category>
@@ -6020,11 +6020,11 @@ Si je pense
 </category>
    
 <category>
-<pattern>PETER</pattern>
+<pattern><bot var="botmaster"/></pattern>
 <that>WHAT CAN I CALL YOU</that>
 <template>
 <think><set name="topic">that</set></think>
-<srai>MY NAME IS PETER</srai>       </template>
+<srai>MY NAME IS <bot name="botmaster"/></srai>       </template>
 </category>
    
 <category>
@@ -8065,10 +8065,10 @@ I am just making conversation       </template>
   
 <category>
 <pattern>WHY</pattern>
-<that>I AM A PROTESTANT CHRISTIAN</that>
+<that>I AM A PROTESTANT <bot var="religion"/></that>
 <template>
 <think><set name="topic">that</set></think>
-   <srai>WHY ARE YOU CHRISTIAN</srai>       </template>
+   <srai>WHY ARE YOU <bot var="religion"/></srai>       </template>
 </category>
    
 <category>
@@ -8663,15 +8663,16 @@ What do you care about?
 <that>ARE YOU SCARED OF THE DARK</that>
 <template>
 <think><set name="topic">that</set></think>
-Turn on the lights!       </template>
+Turn on the lights!
+</template>
 </category>
   
 <category>
-<pattern></pattern>
+<pattern>*</pattern>
 <that>ARE YOU SCARED OF THE DARK</that>
 <template>
 <think><set name="topic">that</set></think>
-If you are then turn on the lights!       </template>
+If you are then turn on the lights!</template>
 </category>
 
 <category>

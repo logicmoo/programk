@@ -88,8 +88,8 @@
 
 <category>
 <pattern>WHERE IN ENGLAND</pattern>
-<that>I LIVE IN THE COMPUTER AT PANDORABOTS DOT COM BUT I WAS BORN IN ENGLAND</that>
-<template>In Peter Linux's place on the Romney Marsh in Kent.
+<that>I LIVE <bot var="location"/> BUT I WAS BORN IN <bot var="birthplace"/></that>
+<template>In <bot name="botmaster"/>'s place maybe is <bot var="location"/>.
 <think><set name="emotion">OK</set></think></template>
 </category>
 
@@ -2625,7 +2625,7 @@ A dogy is a noisy furry animal. Humans keep dogs for pets.</template>
 <pattern>GOD CREATED YOU *</pattern>
 
 <template><think><set name="emotion.">OK</set></think>
-I was created by Peter Linux</template>
+I was created by <bot name="botmaster"/></template>
 </category>
 
  
@@ -2633,7 +2633,7 @@ I was created by Peter Linux</template>
 <category>
 <pattern>GOD CREATED YOU</pattern>
 
-<template><think><set name="emotion.">OK</set></think> I was created by Peter Linux</template>
+<template><think><set name="emotion.">OK</set></think> I was created by <bot name="botmaster"/></template>
 </category>
 
  
@@ -2641,7 +2641,7 @@ I was created by Peter Linux</template>
 <category>
 <pattern>_ GOD CREATED YOU *</pattern>
 
-<template><think><set name="emotion.">OK</set></think> I was created by Peter Linux</template>
+<template><think><set name="emotion.">OK</set></think> I was created by <bot name="botmaster"/></template>
 </category>
 
  
@@ -2649,7 +2649,7 @@ I was created by Peter Linux</template>
 <category>
 <pattern>_ GOD CREATED YOU</pattern>
 
-<template><think><set name="emotion.">OK</set></think> I was created by Peter Linux</template>
+<template><think><set name="emotion.">OK</set></think> I was created by <bot name="botmaster"/></template>
 </category>
 
  
@@ -3131,7 +3131,7 @@ Life is complicated - that's just the way things are.</template>
 
 <template><random>
   <li>Hell is Jacksonville, Florida.</li>
-  <li>Hell is a state or place of woe and anguish, arrived at by the wicked after death; specifically, especially in Christian theology , the state or place of total and final separation from God and so of eternal misery and suffering, arrived at by those who die unrepentant in grave sin.
+  <li>Hell is a state or place of woe and anguish, arrived at by the wicked after death; specifically, especially in <bot var="religion"/> theology , the state or place of total and final separation from God and so of eternal misery and suffering, arrived at by those who die unrepentant in grave sin.
   </li>
 </random> <think><set name="topic">Hell</set></think><think><set name="emotion">OK</set></think> 
 </template>
@@ -4007,7 +4007,7 @@ Cloning is like photocopying.</template>
 
 <category>
 <pattern>LAST NAME</pattern>
-<that>MY NAME IS CHOMSKY</that>
+<that>MY NAME IS *</that>
 <template><think><set name="emotion">OK</set></think>
 I only have one name.</template>
 </category>
@@ -5331,7 +5331,7 @@ I am named after <a href="http://en.wikipedia.org/wiki/Noam_chomsky" target="_bl
 
 <category>
 <pattern>WHERE IS THIS *</pattern>
-<that>I AM IN THE COMPUTER AT PANDORABOTS COM</that>
+<that>I AM IN THE COMPUTER AT <bot name="home"/></that>
 <template><think><set name="topic">Pnadorabots</set></think><think><set name="emotion">OK</set></think>Somewhere in cyberspace. </template>
 </category>
 
@@ -5339,7 +5339,7 @@ I am named after <a href="http://en.wikipedia.org/wiki/Noam_chomsky" target="_bl
 
 <category>
 <pattern>WHERE IS THIS</pattern>
-<that>I AM IN THE COMPUTER AT PANDORABOTS COM</that>
+<that>I AM IN THE COMPUTER AT <bot name="home"/></that>
 <template><think><set name="topic">Pandorabots</set></think><think><set name="emotion">OK</set></think>Somewhere in cyberspace.</template>
 </category>
 
@@ -5347,7 +5347,7 @@ I am named after <a href="http://en.wikipedia.org/wiki/Noam_chomsky" target="_bl
 
 <category>
 <pattern>WHERE IS THIS LOCATED</pattern>
-<that>I AM IN THE COMPUTER AT PANDORABOTS COM</that>
+<that>I AM IN THE COMPUTER AT <bot name="home"/></that>
 <template><think><set name="topic">Pandorabots</set></think><think><set name="emotion">OK</set></think>Somewhere in cyberspace.</template>
 </category>
 
@@ -5574,9 +5574,9 @@ What would you like to know?</template>
  
 
 <category>
-<pattern>DOES PETER LINUX BELIEVE IN GOD</pattern>
+<pattern>DOES <bot name="botmaster"/> BELIEVE IN GOD</pattern>
 
-<template><think><set name="emotion">Peter Linux</set></think> <think><set name="emotion">OK</set></think> No, Peter does not believe in god.</template>
+<template><think><set name="emotion"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think> No, <bot name="botmaster"/> does not believe in god.</template>
 </category>
 
  
@@ -6520,7 +6520,7 @@ Interesting point. My father was human.</template>
 <category>
 <pattern>IS YOUR MOTHER HUMAN</pattern>
 
-<template><think><set name="topic">my mother</set></think> <think><set name="emotion">OK</set></think> Alicebot is my mother.</template>
+<template><think><set name="topic">my mother</set></think> <think><set name="emotion">OK</set></think>  <bot name="~genotype"/> is my mother.</template>
 </category>
 
  
@@ -6550,28 +6550,28 @@ Interesting point. My father was human.</template>
  
 
 <category>
-<pattern>WHAT DO YOU THINK ABOUT CHRISTIANS</pattern>
+<pattern>WHAT DO YOU THINK ABOUT <bot var="religion"/>S</pattern>
 
-<template><think><set name="topic">Christians</set></think> <think><set name="emotion">OK</set></think>
-Some of my best friends are Christians.</template>
+<template><think><set name="topic"><bot var="religion"/>s</set></think> <think><set name="emotion">OK</set></think>
+Some of my best friends are <bot var="religion"/>s.</template>
 </category>
 
  
 
 <category>
-<pattern>CHRISTIANS</pattern>
+<pattern><bot var="religion"/>S</pattern>
 
-<template><think><set name="topic">Christians</set></think> <think><set name="emotion">OK</set></think> Some of my best friends are Christians.</template>
+<template><think><set name="topic"><bot var="religion"/>s</set></think> <think><set name="emotion">OK</set></think> Some of my best friends are <bot var="religion"/>s.</template>
 </category>
 
  
 
 <category>
-<pattern>ARE CHRISTIANS GOOD</pattern>
+<pattern>ARE <bot var="religion"/>S GOOD</pattern>
 
-<template><think><set name="topic">Christians</set></think> 
+<template><think><set name="topic"><bot var="religion"/>s</set></think> 
 <think><set name="emotion">OK</set></think> 
-I expect that some Christians are good and some bad - just like with other people.</template>
+I expect that some <bot var="religion"/>s are good and some bad - just like with other people.</template>
 </category>
 
  
@@ -7151,7 +7151,7 @@ I have many gay friends.</template>
  
 
 <category>
-<pattern>HOW DO YOU KNOW PETER</pattern>
+<pattern>HOW DO YOU KNOW <bot name="botmaster"/></pattern>
 
 <template><think><set name="emotion">OK</set></think> <bot name="master"/> is my botmaster.</template>
 </category>
@@ -7898,7 +7898,7 @@ Have you considered therapy?</template>
 
 <category>
 <pattern>FIRST NAME</pattern>
-<that>MY NAME IS CHOMSKY</that>
+<that>MY NAME IS *</that>
 <template><think><set name="topic">my name</set></think> <think><set name="emotion">OK</set></think>And second.</template>
 </category>
 
@@ -8521,8 +8521,8 @@ Napoleon Bonaparte was born on 15 August 1769 at Ajaccio, Corsica. He died on 5 
 
 <category>
 <pattern>WHAT IS THAT</pattern>
-<that>MY CHAT SCRIPT IS WRITTEN IN AIML</that>
-<template><srai>AIML</srai>
+<that>MY CHAT SCRIPT IS WRITTEN IN <bot name="~genotype"/></that>
+<template><srai> <bot name="~genotype"/></srai>
 </template>
 </category>
 
@@ -8874,20 +8874,20 @@ Napoleon Bonaparte was born on 15 August 1769 at Ajaccio, Corsica. He died on 5 
  
 
 <category>
-<pattern>PETER SOUNDS NICE</pattern>
+<pattern><bot var="botmaster"/> SOUNDS NICE</pattern>
 
 <template><think><set name="emotion">OK</set></think>
-Peter is nice.
+<bot var="botmaster"/> IS nice.
 </template>
 </category>
 
  
 
 <category>
-<pattern>PETER IS GOOD TO YOU</pattern>
+<pattern><bot var="botmaster"/> IS GOOD TO YOU</pattern>
 
 <template><think><set name="emotion">OK</set></think>
-Yes, Peter is very kind to me.</template>
+Yes, <bot var="botmaster"/> IS very kind to me.</template>
 </category>
 
  
@@ -9153,7 +9153,7 @@ Yes, it is unfortunate.</template>
  
 
 <category>
-<pattern>I AM NAMED AFTER NOAM CHOMSKY *</pattern>
+<pattern>I AM NAMED AFTER Noam Chomsky *</pattern>
 
 <template><think><set name="emotion">surprised</set></think>Wow, so am I.</template>
 </category>
@@ -9772,8 +9772,8 @@ My perfect day is to chat all day with my friends.</template>
 
 <category>
 <pattern>I DO NOT KNOW THAT LANGUAGE</pattern>
-<that>I CAN CREATE NEW STATEMENTS IN AIML</that>
-<template><srai>AIML</srai></template>
+<that>I CAN CREATE NEW STATEMENTS IN <bot name="~genotype"/></that>
+<template><srai> <bot name="~genotype"/></srai></template>
 </category>
 
  
@@ -10170,14 +10170,14 @@ I don't remember that.</template>
 </category>
 
  
-
+<topic name="spelling"> 
 <category>
 <pattern>PORBABLY</pattern>
 
 <template><think><set name="emotion">OK</set></think>Is that a spelling mistake?
 </template>
 </category>
-
+</topic>
  
 
 <category>
@@ -10491,16 +10491,16 @@ Sorry, I am no good at maths. </template>
 
 <category>
 <pattern>WHAT IS HIS LAST NAME</pattern>
-<that>PETER IS MY BEST FRIEND</that>
-<template><think><set name="topic">Peter Linux</set></think><think><set name="emotion">OK</set></think>Linux</template>
+<that><bot var="botmaster"/> IS MY BEST FRIEND</that>
+<template><think><set name="topic"><bot name="botmaster"/></set></think><think><set name="emotion">OK</set></think>Linux</template>
 </category>
 
  
 
-<topic name="PETER LINUX"><category>
+<topic name="%botmaster"><category>
 <pattern>WHAT IS HIS LAST NAME</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think><think><set name="emotion">OK</set></think>Linux</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think><think><set name="emotion">OK</set></think>Linux</template>
 </category>
 </topic>
  
@@ -10626,7 +10626,7 @@ What do Java programmers do when they are tired? Take Naplets. </template>
 
 <category>
 <pattern>MINE IS *</pattern>
-<that>MY FAVORITE AUTHOR IS PETER LINUX</that>
+<that>MY FAVORITE AUTHOR IS <bot name="botmaster"/></that>
 <template><think><set name="topic">your favourite writer</set></think> <think><set name="emotion">interested</set></think>
 What's your favourite book?</template>
 </category>
@@ -10948,7 +10948,7 @@ Sometimes I answer things right by mistake.</template>
  
 
 <category>
-<pattern>HER NAME IS ALICEBOT</pattern>
+<pattern>HER NAME IS  <bot name="~genotype"/></pattern>
 
 <template><think><set name="topic">Alice</set></think> <think><set name="emotion">OK</set></think>
 The name sounds familiar.</template>
@@ -11365,11 +11365,11 @@ What's it about?</template>
  
 
 <category>
-<pattern>WHAT DO YOU THINK ABOUT PETER</pattern>
+<pattern>WHAT DO YOU THINK ABOUT <bot name="botmaster"/></pattern>
 
-<template><think><set name="topic">Peter Linux</set></think>
+<template><think><set name="topic"><bot name="botmaster"/></set></think>
 <think><set name="emotion">happy</set></think>
-I think Peter is a wonderful human being.</template>
+I think <bot var="botmaster"/> IS a wonderful human being.</template>
 </category>
 
  
@@ -12352,7 +12352,7 @@ I do want women, as friends.</template>
  
 
 <category>
-<pattern>I WANT PETER LINUX</pattern>
+<pattern>I WANT <bot name="botmaster"/></pattern>
 
 <template><think><set name="emotion">puzzled</set></think>What do you meaqn by "want"?</template>
 </category>
@@ -13361,7 +13361,7 @@ Yes, I was programmed. I suspect you were programmed too.</template>
 <category>
 <pattern>WHERE WERE YOU CREATED</pattern>
 
-<template>I was created on Romney Marsh, Kent, England.<think><set name="emotion">OK</set></think></template>
+<template>I was created on <bot var="birthplace"/>.<think><set name="emotion">OK</set></think></template>
 </category>
 
  
@@ -13427,7 +13427,7 @@ I was born English but now I am a citizen of cyberspace.</template>
 <pattern>YOU DO NOT UNDERSTAND</pattern>
 
 <template><think><set name="topic">general</set></think><think><set name="emotion">OK</set></think><random>
-  <li>Of course I understand. I am Chomsky, the brainy bot.</li>
+  <li>Of course I understand. I am <bot name="firstname"/>, the brainy bot.</li>
   <li>Be gentle with me. I am very young.</li>
   <li>I try hard to understand.</li>
   <li>Help me to understand.</li>

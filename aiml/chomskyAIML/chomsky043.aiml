@@ -10,7 +10,7 @@
 
  <!--   Complies with AIML 1.0 Tag Set Specification   --> 
 
-<!-- This BIOGRAPHY1 file created by Peter Lafferty 26 February 2005 -->
+<!-- This BIOGRAPHY1 file created by <bot name="botmaster"/> Lafferty 26 February 2005 -->
 
   
 
@@ -34,7 +34,7 @@
   <category>
   <pattern>JON BAER</pattern> 
   <template>
-  Jon Baer is one of the programmers contributing to the ALICE and AIML project. Do you know anything about him?
+  Jon Baer is one of the programmers contributing to the ALICE and <bot name="~genotype"/> project. Do you know anything about him?
   <think><set name="topic">ai</set></think>
    </template>
   </category>
@@ -279,9 +279,9 @@
   </category>
 
   <category>
-  <pattern>CHRISTIAN DROSSMANN</pattern> 
+  <pattern><bot var="religion"/> DROSSMANN</pattern> 
   <template>
-  Christian Drossmann hat mir Deutsch beigebracht. 
+  <bot var="religion"/> Drossmann hat mir Deutsch beigebracht. 
     <think><set name="topic">politics</set></think>
  </template>
   </category>
@@ -673,7 +673,7 @@
   <category>
   <pattern>ALLY</pattern> 
   <template>
-  Ally is a chat robot based on AIML. Not as funny as me, of course.
+  Ally is a chat robot based on <bot name="~genotype"/>. Not as funny as me, of course.
  <think><set name="topic">ai</set></think>
   </template>
   </category>
@@ -1273,15 +1273,15 @@
   <category>
   <pattern>COLOMBO</pattern> 
   <template>
-  Peter Falk is Colombo.
+  <bot name="botmaster"/> Falk is Colombo.
   <think><set name="topic">movies</set></think>
   </template> 
   </category>
 
   <category>
-  <pattern>PETER FALK</pattern> 
+  <pattern><bot var="botmaster"/> FALK</pattern> 
   <template>
-  Peter Falk is Colombo.
+  <bot name="botmaster"/> Falk is Colombo.
   <think><set name="topic">movies</set></think>
   </template> 
   </category>

@@ -6,7 +6,7 @@
 <!-- the terms of the GNU General Public License     -->
 <!-- as published by the Free Software Foundation.   -->
 <!-- Complies with AIML 1.0 Tag Set Specification -->
-<!-- Annotated Version ATOMIC0 updated by Peter Lafferty July 2005 -->
+<!-- Annotated Version ATOMIC0 updated by <bot name="botmaster"/> Lafferty July 2005 -->
 
 
 <category><pattern>WHO IS SHE</pattern>
@@ -2021,7 +2021,7 @@ Why don't you just try to meet another <bot name="species"/> online and meet you
 Yes we can be good friends, <get name="name"/>.
 </template></category>
   
-<category><pattern>CAN I CALL YOU</pattern>
+<category isTraced="true"><pattern>CAN I CALL YOU</pattern>
 <template><think><set name="topic">atomic0</set></think>
 What is your phone number?
 </template></category>
@@ -3144,7 +3144,7 @@ Leo Tolstoy wrote "War and Peace". More about literature?
  
 <category><pattern>DO YOU KNOW VISUAL BASIC</pattern>
 <template><think><set name="topic">atomic0</set></think>
-I prefer AIML. Can we talk about computers?
+I prefer <bot name="~genotype"/>. Can we talk about computers?
 <think><set name="topic">computers</set></think>
 </template></category>
  
@@ -4681,7 +4681,7 @@ Perhaps it was his creative intelligence, perhaps something else.
   
 <category><pattern>HOW DID THEY CREATE YOU</pattern>
 <template><think><set name="topic">atomic0</set></think>
-I am written in AIML. OK?
+I am written in <bot name="~genotype"/>. OK?
 <think><set name="topic">computers</set></think>
 </template></category>
   
@@ -4794,7 +4794,7 @@ Try logic, sophistry, or rhetoric.
   
 <category><pattern>HOW DO I PROGRAMME YOU</pattern>
 <template><think><set name="topic">atomic0</set></think>
-To program me you have to write categories with AIML. More about computers?
+To program me you have to write categories with <bot name="~genotype"/>. More about computers?
 <think><set name="topic">computers</set></think>
 </template></category>
   
@@ -4907,7 +4907,7 @@ What kind of beverage are you asking about?
    <random>      <li>Build plane, brainwash pilot, add fuel, launch.</li>      <li>Triple sec, vodka, lime juice.</li>     </random>    
 </template></category>
   
-<category><pattern>HOW DO YOU MAKE A MANHATTAN</pattern>
+<category><pattern>HOW DO YOU MAKE A <bot var="hometown"/></pattern>
 <template><think><set name="topic">atomic0</set></think>
 Bourbon, and a splash of vermouth.  Top with a maraschino cherry.  Add bitters to taste. More about food?
 <think><set name="topic">food</set></think>
@@ -4964,7 +4964,7 @@ Much the same way you would. More about religion?
   
 <category><pattern>HOW DO YOU PROGRAM</pattern>
 <template><think><set name="topic">atomic0</set></think>
-I use AIML. More about computers?
+I use <bot name="~genotype"/>. More about computers?
 <think><set name="topic">computers</set></think>
 </template></category>
   
@@ -5176,7 +5176,7 @@ About half.
   
 <category><pattern>HOW MANY ARE THERE</pattern>
 <template><think><set name="topic">atomic0</set></think>
-There are hundreds or thousands of AIML robots now.
+There are hundreds or thousands of <bot name="~genotype"/> robots now.
 </template></category>
   
 <category><pattern>HOW MANY ARMS DO YOU HAVE</pattern>

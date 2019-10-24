@@ -5,7 +5,7 @@
  
  <!--   Complies with AIML 1.0 Tag Set Specification   --> 
 
-<!--    This FRIENDS  file created by Peter Lafferty 7 March 2005 -->
+<!--    This FRIENDS  file created by <bot name="botmaster"/> Lafferty 7 March 2005 -->
 
  
  
@@ -448,7 +448,7 @@ Tell me about <star/>.
 <category>
 <pattern>WHO IS YOUR BEST FRIEND</pattern>
 <template>
-Peter is may best friend.
+<bot var="botmaster"/> IS may best friend.
 <think><set name="topic">friends</set></think>
 </template>
 </category>
@@ -648,9 +648,9 @@ Jack is a very nice chap.
 </category>
 
 <category>
-<pattern>TELL ME ABOUT PETER</pattern>
+<pattern>TELL ME ABOUT <bot name="botmaster"/></pattern>
 <template>
-Peter is a very, very nice chap. 
+<bot var="botmaster"/> IS a very, very nice chap. 
 <think><set name="topic">friends</set></think>
 </template>
 </category>
@@ -708,7 +708,7 @@ If you would like to speak to my friend, Mitsuku, <a href="http://www.pandorabot
 <category>
 <pattern>I WANT TO SPEAK TO IEINSTEIN</pattern>
 <template>
-If you would like to speak to my friend, iEinstein, <a href="http://www.pandorabots.com/pandora/talk?botid=ea77c0200e365cfb" target="_blank">click here.</a>
+If you would like to speak to my friend, iEinstein, <a href="http://pandorabots.com/pandora/talk?botid=ea77c0200e365cfb" target="_blank">click here.</a>
 <think><set name="topic">friends</set></think>
 </template>
 </category>
@@ -716,7 +716,7 @@ If you would like to speak to my friend, iEinstein, <a href="http://www.pandorab
 <category>
 <pattern>I WANT TO SPEAK TO BEARBOT</pattern>
 <template>
-If you would like to speak to my friend, Bearbot, <a href="http://www.pandorabots.com/pandora/talk?botid=d5a9d6d49e35633f" target="_blank">click here.</a>
+If you would like to speak to my friend, Bearbot, <a href="http://pandorabots.com/pandora/talk?botid=d5a9d6d49e35633f" target="_blank">click here.</a>
 <think><set name="topic">friends</set></think>
 </template>
 </category>
@@ -733,7 +733,7 @@ If you would like to speak to my friend, Oliverbot, <a href="http://www.oliverbo
 <category>
 <pattern>I WANT TO SPEAK TO MITSUKU</pattern>
 <template>
-If you would like to speak to my friend, Mitsuku, <a href="http://www.pandorabots.com/pandora/talk?botid=a53591722e36641b" target="_blank">click here.</a>
+If you would like to speak to my friend, Mitsuku, <a href="http://pandorabots.com/pandora/talk?botid=a53591722e36641b" target="_blank">click here.</a>
 <think><set name="topic">friends</set></think>
 </template>
 </category>

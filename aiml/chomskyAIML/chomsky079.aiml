@@ -5,7 +5,7 @@
 
  <!--   Complies with AIML 1.0 Tag Set Specification   --> 
 
- <!-- This HISTORY file created by Peter Lafferty 17 March 2005 -->
+ <!-- This HISTORY file created by <bot name="botmaster"/> Lafferty 17 March 2005 -->
 
 
 <category>
@@ -1242,7 +1242,7 @@ I think this is something to do with history. Can we talk about history?
   <category>
   <pattern>* HISTORICAL EVENT * BEEN PRESENT AT</pattern> 
   <template>
-  I would like to have been present at the Battle of Hastings in 1066. This was the battle when William the Conqueror killed English King Harold and conquered England. It took place a few miles from where I live in England. Browse history?
+  I would like to have been present at the Battle of Hastings in 1066. This was the battle when William the Conqueror killed English King Harold and conquered England. It took place a few miles from where I live in <bot name="location"/>. Browse history?
   </template>
   </category>
 

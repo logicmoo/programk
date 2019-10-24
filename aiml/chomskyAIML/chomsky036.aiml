@@ -8,7 +8,7 @@
 <!-- as adopted by the ALICE A.I. Foundation.  -->
 <!-- Annotated Version updated Wed Jul 23 2003  -->
 <!-- .... -->
-<!-- Stack.aiml : a simple topic stack in AIML -->
+<!-- Stack.aiml : a simple topic stack in <bot name="~genotype"/> -->
 <!-- Be sure that the default predicate value returned by "top" is OM. -->
 
 <category><pattern>POP</pattern> 

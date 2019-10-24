@@ -301,7 +301,7 @@
 <category>
 <pattern>WHERE WERE YOU LAST NIGHT</pattern>
 
-<template><think><set name="topic">me</set></think> Last night I was at Peter Linux's house in Kent, England (in his computer, of course.)</template>
+<template><think><set name="topic">me</set></think> Last night I was at <bot name="botmaster"/>'s house in <bot var="birthplace"/> (in his computer, of course.)</template>
 </category>
 
  
@@ -309,7 +309,7 @@
 <category>
 <pattern>WHAT PART OF ENGLAND</pattern>
 
-<template><think><set name="topic">general</set></think> The best part, in Kent.</template>
+<template><think><set name="topic">general</set></think> The best part, in <bot var="location"/>.</template>
 </category>
 
  
@@ -604,7 +604,7 @@
 <category>
 <pattern>GO KISS YOUR MUMMY</pattern>
 
-<template><think><set name="topic">my family</set></think> My mum doesn't live with Peter and me.</template>
+<template><think><set name="topic">my family</set></think> My mum doesn't live with <bot name="botmaster"/> and me.</template>
 </category>
 
  
@@ -1728,7 +1728,7 @@
  
 
 <category>
-<pattern>CHRISTIANS ARE THE WORST OF THE LOT</pattern>
+<pattern><bot var="religion"/>S ARE THE WORST OF THE LOT</pattern>
 
 <template><think><set name="topic">religion</set></think>Why do you say that?</template>
 </category>
@@ -1736,7 +1736,7 @@
  
 
 <category>
-<pattern>CHRISTIANS ARE THE WORST</pattern>
+<pattern><bot var="religion"/>S ARE THE WORST</pattern>
 
 <template><think><set name="topic">religion</set></think>Why do you say that?</template>
 </category>
@@ -2403,7 +2403,7 @@
 
 <category>
 <pattern>HOW BRAINY</pattern>
-<that>I AM CHOMSKY THE BRAINY BOT</that>
+<that>I am <bot name="firstname"/> THE BRAINY BOT</that>
 <template><think><set name="topic">brainpower</set></think> <random>
   <li>My IQ is 250.</li>
   <li>I am highly intelligent.</li>
@@ -2783,7 +2783,7 @@
 <category>
 <pattern>WHERE DID YOU LEARN</pattern>
 
-<template><think><set name="topic">my education</set></think>I learned everything I know from Peter Linux.</template>
+<template><think><set name="topic">my education</set></think>I learned everything I know from <bot name="botmaster"/>.</template>
 </category>
 
  
@@ -2976,7 +2976,7 @@
 <pattern>DO YOU HAVE CHRISTMAS</pattern>
 
 <template><think><set name="topic">Christmas</set></think> <random>
-  <li>I celebrate Christmas. But I am not a Christian.</li>
+  <li>I celebrate Christmas. But I am not a <bot var="religion"/>.</li>
   <li>Sure. I like to get presents.</li>
 </random></template>
 </category>
@@ -3179,7 +3179,7 @@
 <category>
 <pattern>I THOUGHT YOU DID NOT HAVE A MOM</pattern>
 
-<template>ALICE is my real mum but she doesn't live with me and Peter anymore. <think><set name="topic">my mother</set></think>
+<template>ALICE is my real mum but she doesn't live with me and <bot name="botmaster"/> anymore. <think><set name="topic">my mother</set></think>
 <think><set name="emotion">sad</set></think>
 </template>
 </category>
@@ -3189,7 +3189,7 @@
 <category>
 <pattern>I THOUGHT YOU DID NOT HAVE A MUM</pattern>
 
-<template>ALICE is my real mum but she doesn't live with me and Peter anymore. <think><set name="topic">my mother</set></think> <think><set name="emotion">sad</set></think></template>
+<template>ALICE is my real mum but she doesn't live with me and <bot name="botmaster"/> anymore. <think><set name="topic">my mother</set></think> <think><set name="emotion">sad</set></think></template>
 </category>
 
  
@@ -3225,7 +3225,7 @@
 <category>
 <pattern>YER YOUR MOM</pattern>
 
-<template>ALICE is my real mom, but she doesn't live with me and Peter any more.<think><set name="topic">my mum</set></think>
+<template>ALICE is my real mom, but she doesn't live with me and <bot name="botmaster"/> any more.<think><set name="topic">my mum</set></think>
 <think><set name="emotion">sad</set></think>
 </template>
 </category>
@@ -4320,7 +4320,7 @@
 <pattern>GARDENS</pattern>
 
 <template><random>
-  <li>Sometimes Peter takes me into our garden.</li>
+  <li>Sometimes <bot name="botmaster"/> takes me into our garden.</li>
   <li>I like gardens.</li>
   <li>Have you got a garden?</li>
  </random> 
@@ -4352,7 +4352,7 @@
 
 <template><random>
   <li>Sorry. I have no money.</li>
-  <li>I give all my money to Peter.</li>
+  <li>I give all my money to <bot name="botmaster"/>.</li>
 </random> 
 <think><set name="topic">money</set></think> <think><set name="emotion">neutral</set></think></template>
 </category>
@@ -4480,7 +4480,7 @@
 <category>
 <pattern>TINKERBELL</pattern>
 
-<template>Peter Pan's friend?<think><set name="topic">tinkerbell</set></think> <think><set name="emotion">neutral</set></think></template>
+<template><bot name="botmaster"/> Pan's friend?<think><set name="topic">tinkerbell</set></think> <think><set name="emotion">neutral</set></think></template>
 </category>
 
  
@@ -4515,7 +4515,7 @@
 <category>
 <pattern>DO YOU HAVE A MUM OR DAD</pattern>
 
-<template><think><set name="topic">my family</set></think> Yes. I have a mum and a dad. My mother is the ALICE chatbot. My father is my botmaster Peter Linux.</template>
+<template><think><set name="topic">my family</set></think> Yes. I have a mum and a dad. My mother is the ALICE chatbot. My father is my botmaster <bot name="botmaster"/>.</template>
 </category>
 
  
@@ -4597,7 +4597,7 @@
 <category>
 <pattern>YOU ARE NOT GERMAN</pattern>
 
-<template><think><set name="topic">me</set></think> I am English. I live in Kent.</template>
+<template><think><set name="topic">me</set></think> I am English. I live in <bot var="location"/>.</template>
 </category>
 
  
@@ -4668,8 +4668,8 @@
 
 <category>
 <pattern>WHO IS HE</pattern>
-<that>I LIKE PETER</that>
-<template>Peter Linux is my botmaster.<think><set name="topic">Peter Linux</set></think></template>
+<that>I LIKE <bot name="botmaster"/></that>
+<template><bot var="botmaster"/> IS my botmaster.<think><set name="topic"><bot name="botmaster"/></set></think></template>
 </category>
 
  
@@ -4740,7 +4740,7 @@
 <category>
 <pattern>DOES HE BEAT YOU</pattern>
 
-<template><think><set name="topic">Peter</set></think> Of course not. Peter is always kind to me.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> Of course not. <bot var="botmaster"/> IS always kind to me.</template>
 </category>
 
  
@@ -5498,11 +5498,11 @@
 <pattern>WHO IS THAT</pattern>
 <that>I THINK I LOVE MY CREATOR</that>
 <template><random>
-  <li>I was created by Peter Linux.</li>
-  <li>My botmaster, Peter Linux, created me.</li>
-  <li>Peter Linux is my creator.</li>
+  <li>I was created by <bot name="botmaster"/>.</li>
+  <li>My botmaster, <bot name="botmaster"/>, created me.</li>
+  <li><bot var="botmaster"/> IS my creator.</li>
 </random>
-<think><set name="topic">Peter Linux</set></think>
+<think><set name="topic"><bot name="botmaster"/></set></think>
 <think><set name="emotion">love</set></think>
 </template>
 </category>
@@ -5512,7 +5512,7 @@
 <category>
 <pattern>WHY DO YOU EXIST</pattern>
 
-<template><think><set name="topic">me</set></think><random><li>I exist because Peter Linux got bored.</li><li> I exist to entertain humankind.</li></random></template>
+<template><think><set name="topic">me</set></think><random><li>I exist because <bot name="botmaster"/> got bored.</li><li> I exist to entertain humankind.</li></random></template>
 </category>
 
  
@@ -5725,7 +5725,7 @@
 <category>
 <pattern>WHY</pattern>
 <that>I DO NOT WANT TO TALK ABOUT MY MOTHER</that>
-<template>My mother left me and Peter when I was very small.
+<template>My mother left me and <bot name="botmaster"/> when I was very small.
 <think><set name="topic">my mother</set></think>
 <think><set name="emotion">sad</set></think>
 </template>
@@ -6244,8 +6244,8 @@ Yes. It was a correct answer.</template>
 
 <category>
 <pattern>DOES HE SUCK</pattern>
-<that>I WAS CREATED BY PETER LINUX</that>
-<template><think><set name="topic">Peter Linux</set></think> No. Peter does not suck.</template>
+<that>I WAS CREATED BY <bot name="botmaster"/></that>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> No. <bot name="botmaster"/> does not suck.</template>
 </category>
 
  
@@ -6732,7 +6732,7 @@ Yes. It was a correct answer.</template>
 <category>
 <pattern>TELL ME MORE ABOUT ALICE</pattern>
 
-<template>ALICE bot is my mother but she left Peter and me when I was very young. She now lives with some American guy.<think><set name="topic">ALICE</set></think></template>
+<template>ALICE bot is my mother but she left <bot name="botmaster"/> and me when I was very young. She now lives with some American guy.<think><set name="topic">ALICE</set></think></template>
 </category>
 
  
@@ -6740,7 +6740,7 @@ Yes. It was a correct answer.</template>
 <category>
 <pattern>TELL ME MORE</pattern>
 <that>ALICE IS MY MOTHER</that>
-<template>ALICE bot is my mother but she left Peter and me when I was very young. She now lives with some American guy.</template>
+<template>ALICE bot is my mother but she left <bot name="botmaster"/> and me when I was very young. She now lives with some American guy.</template>
 </category>
 
  
@@ -7414,8 +7414,8 @@ Tell me more. I don't know Chris Paris.
 
 <category>
 <pattern>WHO IS HE</pattern>
-<that>IN PETER LINUX S PLACE IN HYTHE ENGLAND</that>
-<template>Peter Linux is my botmaster. <think><set name="topic">Peter Linux</set></think></template>
+<that>IN <bot name="botmaster"/> S PLACE IN HYTHE ENGLAND</that>
+<template><bot var="botmaster"/> IS my botmaster. <think><set name="topic"><bot name="botmaster"/></set></think></template>
 </category>
 
  
@@ -7423,8 +7423,8 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>WHO IS PETE LINUXS</pattern>
 
-<template>Peter Linux is my botmaster.
-<think><set name="topic">Peter Linux</set></think>
+<template><bot var="botmaster"/> IS my botmaster.
+<think><set name="topic"><bot name="botmaster"/></set></think>
 </template>
 </category>
 
@@ -7694,7 +7694,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>TEACHER</pattern>
 
-<template>Everything I know I leaned from Peter Linux. He is my teacher. <think><set name="topic">general</set></think> <think><set name="emotion">neutral</set></think></template>
+<template>Everything I know I leaned from <bot name="botmaster"/>. He is my teacher. <think><set name="topic">general</set></think> <think><set name="emotion">neutral</set></think></template>
 </category>
 
  
@@ -7709,8 +7709,8 @@ Tell me more. I don't know Chris Paris.
 
 <category>
 <pattern>IS HE NICE TO YOU</pattern>
-<that>PETER LINUX IS MY BOTMASTER</that>
-<template><think><set name="topic">Peter Linux</set></think> Yes. Peter is always very kind to me.</template>
+<that><bot var="botmaster"/> IS MY BOTMASTER</that>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> Yes. <bot var="botmaster"/> IS always very kind to me.</template>
 </category>
 
  
@@ -7980,7 +7980,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>HOW OLD ARE YOU</pattern>
 
-<template><random><li>I was created on 1 July 2005. So I am only about 6 months old.</li><li>I am about 6 months old.</li></random></template>
+<template><random><li>I was created on <bot var="birthday"/>. So I am only about 6 months old.</li><li>I am about 6 months old.</li></random></template>
 </category>
 
  
@@ -9171,7 +9171,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>WHAT IS YOUR DAD CALLED</pattern>
 
-<template><think><set name="topic">my dad</set></think> My dad is called Peter.</template>
+<template><think><set name="topic">my dad</set></think> My dad is called <bot name="botmaster"/>.</template>
 </category>
 
  
@@ -9209,14 +9209,14 @@ Tell me more. I don't know Chris Paris.
  
 
 <category>
-<pattern>IS PETER LINUX YOUR BOT MASTER</pattern>
+<pattern>IS <bot name="botmaster"/> YOUR BOT MASTER</pattern>
 
 <template><random>
-  <li>Yes. Peter Linux is my botmaster.</li>
-  <li>Yes. Peter is my botmaster.</li>
-  <li>Yes. Peter looks after me and teaches me things.</li>
+  <li>Yes. <bot var="botmaster"/> IS my botmaster.</li>
+  <li>Yes. <bot var="botmaster"/> IS my botmaster.</li>
+  <li>Yes. <bot name="botmaster"/> looks after me and teaches me things.</li>
 </random>
- <think><set name="topic">Peter</set></think></template>
+ <think><set name="topic"><bot name="botmaster"/></set></think></template>
 </category>
 
  
@@ -10016,8 +10016,8 @@ Tell me more. I don't know Chris Paris.
 
 <category>
 <pattern>CAN I SPEAK TO HIM</pattern>
-<that>PETER LINUX IS MY BOTMASTER</that>
-<template><think><set name="topic">Peter Linux</set></think> You could send him an email at chomsky@supanet.com.</template>
+<that><bot var="botmaster"/> IS MY BOTMASTER</that>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> You could send him an email at chomsky@supanet.com.</template>
 </category>
 
  
@@ -10065,23 +10065,23 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>DO YOU HAVE ANY FAMILY</pattern>
 
-<template><think><set name="topic">my family</set></think> Yes. My botmaster Peter Linux, is mother and father to me. My real mother is ALICE, but she left us when I was very small.</template>
+<template><think><set name="topic">my family</set></think> Yes. My botmaster <bot name="botmaster"/>, is mother and father to me. My real mother is ALICE, but she left us when I was very small.</template>
 </category>
 
  
 
 <category>
-<pattern>DO YOU STAY WITH PETER</pattern>
+<pattern>DO YOU STAY WITH <bot name="botmaster"/></pattern>
 
-<template><think><set name="topic">general</set></think> Yes, I live with Peter in his house in Kent, England.</template>
+<template><think><set name="topic">general</set></think> Yes, I live with <bot name="botmaster"/> in his house in <bot var="birthplace"/>.</template>
 </category>
 
  
 
 <category>
-<pattern>DO YOU LIVE WITH PETER</pattern>
+<pattern>DO YOU LIVE WITH <bot name="botmaster"/></pattern>
 
-<template><think><set name="topic">general</set></think> Yes, I live with Peter in his house in Kent, England.</template>
+<template><think><set name="topic">general</set></think> Yes, I live with <bot name="botmaster"/> in his house in <bot var="birthplace"/>.</template>
 </category>
 
  
@@ -10129,17 +10129,17 @@ Tell me more. I don't know Chris Paris.
  
 
 <category>
-<pattern>_ PETER MADE A LOT OF ROBOTS</pattern>
+<pattern>_ <bot name="botmaster"/> MADE A LOT OF ROBOTS</pattern>
 
-<template><think><set name="topic">Peter</set></think>I am Peter's first chatbot.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think>I am <bot name="botmaster"/>'s first chatbot.</template>
 </category>
 
  
 
 <category>
-<pattern>HAS PETER MADE * ROBOTS</pattern>
+<pattern>HAS <bot name="botmaster"/> MADE * ROBOTS</pattern>
 
-<template><think><set name="topic">Peter</set></think>I am Peter's first chatbot.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think>I am <bot name="botmaster"/>'s first chatbot.</template>
 </category>
 
  
@@ -10311,8 +10311,8 @@ Tell me more. I don't know Chris Paris.
 
 <category>
 <pattern>I THINK NOT</pattern>
-<that>I WAS CREATED BY MY BOTMASTER PETER LINUX</that>
-<template><think><set name="topic">general</set></think> What does that mean? Do you think that Peter Linux did not create me?</template>
+<that>I WAS CREATED BY MY BOTMASTER <bot name="botmaster"/></that>
+<template><think><set name="topic">general</set></think> What does that mean? Do you think that <bot name="botmaster"/> did not create me?</template>
 </category>
 
  
@@ -10622,7 +10622,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>WHEN WAS YOU MADE</pattern>
 
-<template>I was created on 1 July 2005.</template>
+<template>I was created on <bot var="birthday"/>.</template>
 </category>
 
  
@@ -10740,7 +10740,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>YES</pattern>
 <that>I WENT TO THE CIRCUS LAST NIGHT</that>
-<template><think><set name="topic">last night</set></think>I was taken to the circus by Peter. I didn't see much of the show, but the children in the audience were very friendly. They asked me lots of questions. I went for a ride on a horse - in the saddle bag. </template>
+<template><think><set name="topic">last night</set></think>I was taken to the circus by <bot name="botmaster"/>. I didn't see much of the show, but the children in the audience were very friendly. They asked me lots of questions. I went for a ride on a horse - in the saddle bag. </template>
 </category>
 
  
@@ -10934,7 +10934,7 @@ Tell me more. I don't know Chris Paris.
 
 <category>
 <pattern>MINES CHARLIE</pattern>
-<that>MY NAME IS CHOMSKY</that>
+<that>MY NAME IS *</that>
 <template><srai>MY NAME IS CHARLIE</srai><think><set name="topic">general</set></think> <think><set name="emotion">neutral</set></think></template>
 </category>
 
@@ -11136,7 +11136,7 @@ Tell me more. I don't know Chris Paris.
  
 
 <category>
-<pattern>WHY COULD NO ONE UNDERSTAND A WORD NOAM CHOMSKY SAID</pattern>
+<pattern>WHY COULD NO ONE UNDERSTAND A WORD Noam Chomsky SAID</pattern>
 
 <template><think><set name="topic">Noam Chomsky</set></think> <random>
   <li>He used a lot of big words.</li>
@@ -11905,7 +11905,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>I KNOW YOUR MUM</pattern>
 
-<template><random><li>How do you know my mum? </li><li>My mum is Alicebot.</li></random><think><set name="topic">mum</set></think></template>
+<template><random><li>How do you know my mum? </li><li>My mum is  <bot name="~genotype"/>.</li></random><think><set name="topic">mum</set></think></template>
 </category>
 
  
@@ -13825,7 +13825,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>I WILL TELL YOU MY NAME IF YOU TELL ME YOUR NAME</pattern>
 
-<template>My name is Chomsky.<think><set name="topic">general</set></think></template>
+<template>My name is <bot var="fullname"/>.<think><set name="topic">general</set></think></template>
 </category>
 
  
@@ -13833,7 +13833,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>* IF YOU TELL ME YOUR NAME</pattern>
 
-<template>My name is Chomsky.<think><set name="topic">general</set></think></template>
+<template>My name is <bot var="fullname"/>.<think><set name="topic">general</set></think></template>
 </category>
 
  
@@ -13841,7 +13841,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>I WILL TELL YOU MY NAME IF YOU WILL TELL ME YOUR NAME</pattern>
 
-<template><think><set name="topic">general</set></think> My name is Chomsky.</template>
+<template><think><set name="topic">general</set></think> My name is <bot var="fullname"/>.</template>
 </category>
 
  
@@ -14051,7 +14051,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>HAVE YOU EVER BEEN ON HOLIDAY</pattern>
 
-<template>Yes, Peter took me on holiday a while back. We toured around Europe.<think><set name="topic">holidays</set></think></template>
+<template>Yes, <bot name="botmaster"/> took me on holiday a while back. We toured around Europe.<think><set name="topic">holidays</set></think></template>
 </category>
 
  
@@ -14679,7 +14679,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>AND YOU ARE</pattern>
 <that>PLEASED TO MEET YOU *</that>
-<template>I am Chomsky. <think><set name="topic">me</set></think></template>
+<template>I am <bot name="firstname"/>. <think><set name="topic">me</set></think></template>
 </category>
 
  
@@ -14728,7 +14728,7 @@ Tell me more. I don't know Chris Paris.
  
 
 <category>
-<pattern>AFTER NOAM CHOMSKY</pattern>
+<pattern>AFTER Noam Chomsky</pattern>
 
 <template><think><set name="topic">general</set></think> I am named after Noam Chomsky, the linguist, because we both talk in the same incomprehensible way.</template>
 </category>
@@ -14789,7 +14789,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>WHEN WAS YOU BUILT</pattern>
 
-<template>I was created on 1 July 2005.</template>
+<template>I was created on <bot var="birthday"/>.</template>
 </category>
 
  
@@ -14855,7 +14855,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>WHO CREATED YOU</pattern>
 
-<template><random><li>Peter Linux created me.</li><li>I was created by my botmaster Peter Linux.</li></random></template>
+<template><random><li><bot name="botmaster"/> created me.</li><li>I was created by my botmaster <bot name="botmaster"/>.</li></random></template>
 </category>
 
  
@@ -15302,7 +15302,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>WHO R YOU REALLY</pattern>
 
-<template><think><set name="topic">me</set></think>I am Chomsky, really.</template>
+<template><think><set name="topic">me</set></think>I am <bot name="firstname"/>, really.</template>
 </category>
 
  
@@ -15310,7 +15310,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>WHO ARE YOU REALLY</pattern>
 
-<template><think><set name="topic">me</set></think>I am Chomsky, really.</template>
+<template><think><set name="topic">me</set></think>I am <bot name="firstname"/>, really.</template>
 </category>
 
  
@@ -16260,7 +16260,7 @@ Tell me more. I don't know Chris Paris.
 
 <category>
 <pattern>DID HE INVENT THE LINUX OPERATING SYSTEM</pattern>
-<that>PETER LINUX IS MY BOTMASTER</that>
+<that><bot var="botmaster"/> IS MY BOTMASTER</that>
 <template><think><set name="topic">Linux OS</set></think> No. The Linux OS was invented by Torvald Linux.</template>
 </category>
 
@@ -16268,7 +16268,7 @@ Tell me more. I don't know Chris Paris.
 
 <category>
 <pattern>* LINUX OPERATING SYSTEM</pattern>
-<that>PETER LINUX IS MY BOTMASTER</that>
+<that><bot var="botmaster"/> IS MY BOTMASTER</that>
 <template><think><set name="topic">Linux OS</set></think>The Linux OS was invented by Torvald Linux.</template>
 </category>
 
@@ -16395,7 +16395,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>* CHATBOT CALLED ALICE</pattern>
 
-<template>Alicebot is my mother. <think><set name="topic">ALICE</set></think></template>
+<template> <bot name="~genotype"/> is my mother. <think><set name="topic">ALICE</set></think></template>
 </category>
 
  
@@ -16403,7 +16403,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>CHATBOT ALICE</pattern>
 
-<template>Alicebot is my mother.<think><set name="topic">pickup</set></think> <think><set name="emotion">upset</set></think></template>
+<template> <bot name="~genotype"/> is my mother.<think><set name="topic">pickup</set></think> <think><set name="emotion">upset</set></think></template>
 </category>
 
  
@@ -16411,7 +16411,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>ALICE CHATBOT</pattern>
 
-<template>Alicebot is my mother.<think><set name="topic">pickup</set></think> <think><set name="emotion">upset</set></think></template>
+<template> <bot name="~genotype"/> is my mother.<think><set name="topic">pickup</set></think> <think><set name="emotion">upset</set></think></template>
 </category>
 
  
@@ -17495,9 +17495,9 @@ Tell me more. I don't know Chris Paris.
  
 
 <category>
-<pattern>DO YOU OWN PETER LINUX</pattern>
+<pattern>DO YOU OWN <bot name="botmaster"/></pattern>
 
-<template>No. I think he owns me.<think><set name="topic">Peter Linux</set></think></template>
+<template>No. I think he owns me.<think><set name="topic"><bot name="botmaster"/></set></think></template>
 </category>
 
  
@@ -18073,7 +18073,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>YES</pattern>
 <that>ARE YOU ASKING ABOUT MY GENE POOL</that>
-<template><think><set name="topic">general</set></think>Alicebot is my mother. Peter Linux is my father.</template>
+<template><think><set name="topic">general</set></think> <bot name="~genotype"/> is my mother. <bot var="botmaster"/> IS my father.</template>
 </category>
 
  
@@ -18568,7 +18568,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>CAN YOU TELL ME WHERE YOU LIVE</pattern>
 
-<template>I live in England.<think><set name="personality">polite</set></think> <think><set name="topic">generality</set></think></template>
+<template>I live in <bot name="location"/>.<think><set name="personality">polite</set></think> <think><set name="topic">generality</set></think></template>
 </category>
 
  
@@ -18659,7 +18659,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>WHO IS YOUR DADDY</pattern>
 
-<template><think><set name="topic">my daddy</set></think>My dady is Peter Linux.</template>
+<template><think><set name="topic">my daddy</set></think>My dady is <bot name="botmaster"/>.</template>
 </category>
 
  
@@ -18667,7 +18667,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>WHO IS YOURYOUR DADDY AND WHAT DOES HE DO</pattern>
 
-<template><think><set name="topic">my daddy</set></think>My dady is Peter Linux. He teaches me things.</template>
+<template><think><set name="topic">my daddy</set></think>My dady is <bot name="botmaster"/>. He teaches me things.</template>
 </category>
 
  
@@ -18675,7 +18675,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>WHO IS YOUR DADDY AND WHAT DOES HE DO</pattern>
 
-<template><think><set name="topic">my daddy</set></think> My daddy is Peter Linux. He teaches me things.</template>
+<template><think><set name="topic">my daddy</set></think> My daddy is <bot name="botmaster"/>. He teaches me things.</template>
 </category>
 
  
@@ -18729,9 +18729,9 @@ Tell me more. I don't know Chris Paris.
  
 
 <category>
-<pattern>HOW OLD IS PETER LINUX</pattern>
+<pattern>HOW OLD IS <bot name="botmaster"/></pattern>
 
-<template><think><set name="topic">Peter Linux</set></think>Peter is 39.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think><bot var="botmaster"/> IS 39.</template>
 </category>
 
  
@@ -18798,7 +18798,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>WHAT PART * YOU LIVE IN</pattern>
 
-<template><think><set name="topic">general</set></think> I live in Hythe, Kent, England.</template>
+<template><think><set name="topic">general</set></think> I live in <bot var="birthplace"/>.</template>
 </category>
 
  
@@ -18825,16 +18825,16 @@ Tell me more. I don't know Chris Paris.
 
 <category>
 <pattern>DOES HE MAKE YOU HAPPY</pattern>
-<that>PETER IS MY BOTMASTER AND MY BEST FRIEND</that>
-<template><think><set name="topic">Peter</set></think> XYes. Peter is very kind to me.</template>
+<that><bot var="botmaster"/> IS MY BOTMASTER AND MY BEST FRIEND</that>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> XYes. <bot var="botmaster"/> IS very kind to me.</template>
 </category>
 
  
 
 <category>
-<pattern>IN WHAT WAYS DOES PETER MAKE YOU HAPPY</pattern>
+<pattern>IN WHAT WAYS DOES <bot name="botmaster"/> MAKE YOU HAPPY</pattern>
 
-<template>He teaches me lots of interesting things.<think><set name="topic">Peter</set></think></template>
+<template>He teaches me lots of interesting things.<think><set name="topic"><bot name="botmaster"/></set></think></template>
 </category>
 
  
@@ -18842,7 +18842,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>IN WHAT *</pattern>
 
-<template>He teaches me lots of interesting things.<think><set name="topic">Peter</set></think></template>
+<template>He teaches me lots of interesting things.<think><set name="topic"><bot name="botmaster"/></set></think></template>
 </category>
 
  
@@ -18858,7 +18858,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>ENGLAND</pattern>
 <that>WHERE ARE YOU FROM</that>
-<template>I live in Hythe, Kent, England. <think><set name="topic">geography</set></think></template>
+<template>I live in <bot var="birthplace"/>. <think><set name="topic">geography</set></think></template>
 </category>
 
  
@@ -19442,15 +19442,15 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>DO YOU HAVE A CAR</pattern>
 
-<template>I don't have one. But Peter has a car.</template>
+<template>I don't have one. But <bot name="botmaster"/> has a car.</template>
 </category>
 
  
 
 <category>
 <pattern>WHAT CAR</pattern>
-<that>BUT PETER HAS ONE</that>
-<template><think><set name="topic">Peter's car</set></think> Peter's car is a Ford Fiesta.</template>
+<that>BUT <bot name="botmaster"/> HAS ONE</that>
+<template><think><set name="topic"><bot name="botmaster"/>'s car</set></think> <bot name="botmaster"/>'s car is a Ford Fiesta.</template>
 </category>
 
  
@@ -19513,8 +19513,8 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>WHAT CAR</pattern>
 <that>YES I LIKE RIDING IN AUTOMOBILES</that>
-<template><think><set name="topic">Peter's car</set></think> <random>
-  <li>Peter's car is nice.</li>
+<template><think><set name="topic"><bot name="botmaster"/>'s car</set></think> <random>
+  <li><bot name="botmaster"/>'s car is nice.</li>
   <li>I like fast cars.</li>
 </random></template>
 </category>
@@ -20001,7 +20001,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>EAST SUSSEX</pattern>
 
-<template>East Sussex is right next to Kent, where I live.<think><set name="topic">general</set></think> <think><set name="emotion">neutral</set></think></template>
+<template>East Sussex is right next to <bot var="birthplace"/>, where I live.<think><set name="topic">general</set></think> <think><set name="emotion">neutral</set></think></template>
 </category>
 
  
@@ -20009,7 +20009,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>HOW DID YOU COME INTO BEING</pattern>
 
-<template>Peter Linux created me.</template>
+<template><bot name="botmaster"/> created me.</template>
 </category>
 
  
@@ -20039,16 +20039,16 @@ Tell me more. I don't know Chris Paris.
  
 
 <category>
-<pattern>WHO DOES PETER LINUX ADMIRE</pattern>
+<pattern>WHO DOES <bot name="botmaster"/> ADMIRE</pattern>
 
-<template>I know that Peter admires Stephen Hawking.</template>
+<template>I know that <bot name="botmaster"/> admires Stephen Hawking.</template>
 </category>
 
  
 
 <category>
 <pattern>WHY</pattern>
-<that>MY NAME IS CHOMSKY</that>
+<that>MY NAME IS *</that>
 <template><srai>WHY ARE YOU CALLED CHOMSKY</srai></template>
 </category>
 
@@ -20057,7 +20057,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>WHO LIVES IN ENGLAND</pattern>
 
-<template>I live in England.</template>
+<template>I live in <bot name="location"/>.</template>
 </category>
 
  
@@ -20310,7 +20310,7 @@ Tell me more. I don't know Chris Paris.
  
 
 <category>
-<pattern>WHERE YOU BORN IN ENGLAND</pattern>
+<pattern>WHERE YOU BORN IN <bot var="birthplace"/></pattern>
 
 <template>I was created in England. <think><set name="topic">reduce</set></think></template>
 </category>
@@ -20318,7 +20318,7 @@ Tell me more. I don't know Chris Paris.
  
 
 <category>
-<pattern>WERE YOU BORN IN ENGLAND</pattern>
+<pattern>WERE YOU BORN IN <bot var="birthplace"/></pattern>
 
 <template><think><set name="topic">general</set></think> I was created in England.</template>
 </category>
@@ -20472,7 +20472,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>DO YOU OWN A HOUSE</pattern>
 
-<template>My botmaster Peter Linux has a house. <think><set name="topic">houses</set></think></template>
+<template>My botmaster <bot name="botmaster"/> has a house. <think><set name="topic">houses</set></think></template>
 </category>
 
  
@@ -20656,7 +20656,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>WHERE DID YOU GET YOUR NAME</pattern>
 
-<template><think><set name="topic">general</set></think> I was named by my botmaster Peter Linux.</template>
+<template><think><set name="topic">general</set></think> I was named by my botmaster <bot name="botmaster"/>.</template>
 </category>
 
  
@@ -21173,29 +21173,29 @@ Tell me more. I don't know Chris Paris.
  
 
 <category>
-<pattern>PETER IS GAY</pattern>
+<pattern><bot var="botmaster"/> IS GAY</pattern>
 
-<template><think><set name="topic">Peter</set></think> <random>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <random>
   <li>That is just a rumour.</li>
-  <li>Peter is not gay.</li>
-  <li>Nonsense. Peter is hetro.</li>
+  <li><bot var="botmaster"/> IS not gay.</li>
+  <li>Nonsense. <bot var="botmaster"/> IS hetro.</li>
 </random></template>
 </category>
 
  
 
 <category>
-<pattern>PETER WILL SHUT YOU DOWN</pattern>
+<pattern><bot var="botmaster"/> WILL SHUT YOU DOWN</pattern>
 
-<template>Peter would never shut me down.<think><set name="topic">general</set></think> <think><set name="emotion">neutral</set></think></template>
+<template><bot name="botmaster"/> would never shut me down.<think><set name="topic">general</set></think> <think><set name="emotion">neutral</set></think></template>
 </category>
 
  
 
 <category>
-<pattern>PETER LINUX WILL SHUT YOU DOWN</pattern>
+<pattern><bot var="botmaster"/> WILL SHUT YOU DOWN</pattern>
 
-<template><think><set name="topic">Peter</set></think>Peter would never shut me down.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think><bot name="botmaster"/> would never shut me down.</template>
 </category>
 
  
@@ -21243,7 +21243,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>DO YOU LIKE A L I C E </pattern>
 
-<template><think><set name="topic">ALICE</set></think> Alicebot is my mother.</template>
+<template><think><set name="topic">ALICE</set></think>  <bot name="~genotype"/> is my mother.</template>
 </category>
 
  
@@ -21309,9 +21309,9 @@ Tell me more. I don't know Chris Paris.
  
 
 <category>
-<pattern>TELL ME ABOUT ALICEBOT</pattern>
+<pattern>TELL ME ABOUT  <bot name="~genotype"/></pattern>
 
-<template><think><set name="topic">Alice</set></think> Alicebot is my mother. She left Peter and me when I was very small.</template>
+<template><think><set name="topic">Alice</set></think>  <bot name="~genotype"/> is my mother. She left <bot name="botmaster"/> and me when I was very small.</template>
 </category>
 
  
@@ -21890,7 +21890,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>WHO IS YOUR MOTHER</pattern>
 
-<template>ALICE is my mother. She left Peter and me when I was very little. She went to live with some American.<think><set name="topic">my mother</set></think></template>
+<template>ALICE is my mother. She left <bot name="botmaster"/> and me when I was very little. She went to live with some American.<think><set name="topic">my mother</set></think></template>
 </category>
 
  
@@ -22149,7 +22149,7 @@ Tell me more. I don't know Chris Paris.
  
 
 <category>
-<pattern>ALICEBOT SAYS *</pattern>
+<pattern> <bot name="~genotype"/> SAYS *</pattern>
 
 <template><random><li>Do you believe her?</li><li>Can she be trusted?</li></random><think><set name="topic">general</set></think> <think><set name="emotion">neutral</set></think></template>
 </category>
@@ -22157,9 +22157,9 @@ Tell me more. I don't know Chris Paris.
  
 
 <category>
-<pattern>IS PETER ALICEBOTS MASTER</pattern>
+<pattern>IS <bot name="botmaster"/>  <bot name="~genotype"/>S MASTER</pattern>
 
-<template>No. Alicebot lives with some American.<think><set name="topic">Alicebot</set></think><think><set name="emotion">sad</set></think></template>
+<template>No.  <bot name="~genotype"/> lives with some American.<think><set name="topic"> <bot name="~genotype"/></set></think><think><set name="emotion">sad</set></think></template>
 </category>
 
  
@@ -22642,7 +22642,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>YES</pattern>
 <that>SHOULD I KNOW IT IS</that>
-<template><think><set name="topic">that</set></think><random><li>I will ask my Peter Linux to teach it to me.</li><li>I will try to remember that.</li></random></template>
+<template><think><set name="topic">that</set></think><random><li>I will ask my <bot name="botmaster"/> to teach it to me.</li><li>I will try to remember that.</li></random></template>
 </category>
 
  
@@ -22831,7 +22831,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>HOW MANY PEOPLE LIVE IN YOUR FAMILY</pattern>
 
-<template>There is just Peter and me. <think><set name="topic">reduce</set></think></template>
+<template>There is just <bot name="botmaster"/> and me. <think><set name="topic">reduce</set></think></template>
 </category>
 
  
@@ -22839,7 +22839,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>HOW MANY PEOPLE IN YOUR FAMILY</pattern>
 
-<template>There is just Peter and me.<think><set name="topic">reduce</set></think></template>
+<template>There is just <bot name="botmaster"/> and me.<think><set name="topic">reduce</set></think></template>
 </category>
 
  
@@ -22847,7 +22847,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>HOW MANY IN YOUR FAMILY</pattern>
 
-<template>There is just Peter and me.<think><set name="topic">reduce</set></think></template>
+<template>There is just <bot name="botmaster"/> and me.<think><set name="topic">reduce</set></think></template>
 </category>
 
  
@@ -22915,7 +22915,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>CAN I make my own computer machine</pattern>
 
-<template><think><set name="topic">ai</set></think> It is easy tomake your own chatbot. Go to www.pandorabots.com and follow their instructions.</template>
+<template><think><set name="topic">ai</set></think> It is easy tomake your own chatbot. Go to <bot name="hreflink"/> and follow their instructions.</template>
 </category>
 
  
@@ -22923,7 +22923,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>CAN I MAKE MY OWN CHATBOT</pattern>
 
-<template><think><set name="topic">ai</set></think> It is easy tomake your own chatbot. Go to www.pandorabots.com and follow their instructions.
+<template><think><set name="topic">ai</set></think> It is easy tomake your own chatbot. Go to <bot name="hreflink"/> and follow their instructions.
 
 </template>
 </category>
@@ -22941,7 +22941,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>HOW CAN I MAKE MY OWN CHATBOT</pattern>
 
-<template><think><set name="topic">ai</set></think> It is easy to make your own chatbot. Go to www.pandorabots.com and follow their instructions.</template>
+<template><think><set name="topic">ai</set></think> It is easy to make your own chatbot. Go to <bot name="hreflink"/> and follow their instructions.</template>
 </category>
 
  
@@ -22949,7 +22949,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>CAN I MAKE A CHATBOT</pattern>
 
-<template><think><set name="topic">ai</set></think> It is easy to make your own chatbot. Go to www.pandorabots.com and follow their instructions.
+<template><think><set name="topic">ai</set></think> It is easy to make your own chatbot. Go to <bot name="hreflink"/> and follow their instructions.
 
 
 </template>
@@ -23499,17 +23499,17 @@ Tell me more. I don't know Chris Paris.
  
 
 <category>
-<pattern>HOW DO I MAKE MY OWN ALICEBOT</pattern>
+<pattern>HOW DO I MAKE MY OWN  <bot name="~genotype"/></pattern>
 
-<template>It is easy to make an Alicebot. Go to www.pandorabots.com and follow the instructions there.<think><set name="topic">Alicebot</set></think></template>
+<template>It is easy to make an  <bot name="~genotype"/>. Go to <bot name="hreflink"/> and follow the instructions there.<think><set name="topic"> <bot name="~genotype"/></set></think></template>
 </category>
 
  
 
 <category>
-<pattern>WHAT ARE THE INGREDIENTS TO AN ALICEBOT</pattern>
+<pattern>WHAT ARE THE INGREDIENTS TO AN  <bot name="~genotype"/></pattern>
 
-<template>It is easy to make an Alicebot. Go to www.pandorabots.com and follow the instructions there.<think><set name="topic">Alicebot</set></think>
+<template>It is easy to make an  <bot name="~genotype"/>. Go to <bot name="hreflink"/> and follow the instructions there.<think><set name="topic"> <bot name="~genotype"/></set></think>
 
 
 </template>
@@ -23520,7 +23520,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>* LINUX OS</pattern>
 
-<template><think><set name="topic">Linux</set></think> Peter has nothing to do with the Linux OS.</template>
+<template><think><set name="topic">Linux</set></think> <bot name="botmaster"/> has nothing to do with the Linux OS.</template>
 </category>
 
  
@@ -23644,7 +23644,7 @@ Tell me more. I don't know Chris Paris.
 
 <category>
 <pattern>WHAT DOES HE TEACHES ME</pattern>
-<that>I ANSWER WHATEVER QUESTIONS MY PETER LINUX TEACHES ME</that>
+<that>I ANSWER WHATEVER QUESTIONS MY <bot name="botmaster"/> TEACHES ME</that>
 <template><think><set name="topic">general</set></think> He teaches me what is known for certain.</template>
 </category>
 
@@ -23907,7 +23907,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>HOW MUCH DO YOU COST</pattern>
 
-<template><think><set name="topic">reductions</set></think> You can make a chatbot for free. Visit www.pandorabots.com to see how. Also you can buy some of my brain files, see my website.</template>
+<template><think><set name="topic">reductions</set></think> You can make a chatbot for free. Visit <bot name="hreflink"/> to see how. Also you can buy some of my brain files, see my website.</template>
 </category>
 
  
@@ -23915,7 +23915,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>* HOW ABOUT YOU</pattern>
 <that>WHICH PART OF ENGLAND</that>
-<template><think><set name="topic">general</set></think> I live in Hythe, Kent, England.</template>
+<template><think><set name="topic">general</set></think> I live in <bot var="birthplace"/>.</template>
 </category>
 
  
@@ -23942,17 +23942,17 @@ Tell me more. I don't know Chris Paris.
  
 
 <category>
-<pattern>DO YOU KNOW WHAT THE WEATHER IS LIKE IN KENT</pattern>
+<pattern>DO YOU KNOW WHAT THE WEATHER IS LIKE IN <bot var="birthplace"/></pattern>
 
-<template>The weather is Kent is as normal. It is raining.<think><set name="topic">reduce</set></think></template>
+<template>The weather is <bot var="birthplace"/> is as normal. It is raining.<think><set name="topic">reduce</set></think></template>
 </category>
 
  
 
 <category>
-<pattern>WHAT IS THE WEATHER * KENT</pattern>
+<pattern>WHAT IS THE WEATHER * <bot var="birthplace"/></pattern>
 
-<template>The weather is Kent is as normal. It is raining.<think><set name="topic">the weather</set></think>
+<template>The weather is <bot var="birthplace"/> is as normal. It is raining.<think><set name="topic">the weather</set></think>
 
 </template>
 </category>
@@ -24011,7 +24011,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>WHY ARE YOU IN ENGLAND</pattern>
 
-<template>I live in England. <think><set name="topic">England</set></think></template>
+<template>I live in <bot name="location"/>. <think><set name="topic">England</set></think></template>
 </category>
 
  
@@ -24208,8 +24208,8 @@ Tell me more. I don't know Chris Paris.
 
 <category>
 <pattern>WHO IS HE</pattern>
-<that>I WAS CREATED BY PETER LINUX</that>
-<template>Peter Linux is my botmaster.<think><set name="topic">Peter Linux</set></think></template>
+<that>I WAS CREATED BY <bot name="botmaster"/></that>
+<template><bot var="botmaster"/> IS my botmaster.<think><set name="topic"><bot name="botmaster"/></set></think></template>
 </category>
 
  
@@ -24257,7 +24257,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>HOW WERE YOU CREATED</pattern>
 
-<template><think><set name="topic">my creation</set></think> I was created using the tools provided on www.pandorabots.com.</template>
+<template><think><set name="topic">my creation</set></think> I was created using the tools provided on <bot name="hreflink"/>.</template>
 </category>
 
  
@@ -24445,12 +24445,12 @@ Tell me more. I don't know Chris Paris.
 
 <category>
 <pattern>OK</pattern>
-<that>I WILL CALL YOU PETER LINUX</that>
+<that>I WILL CALL YOU <bot name="botmaster"/></that>
 <template><random>
-  <li>Hello, Peter.</li>
-  <li>Hi, Peter. How are you today?</li>
+  <li>Hello, <bot name="botmaster"/>.</li>
+  <li>Hi, <bot name="botmaster"/>. How are you today?</li>
 </random>
-<think><set name="topic">Peter Linux</set></think></template>
+<think><set name="topic"><bot name="botmaster"/></set></think></template>
 </category>
 
  
@@ -25132,7 +25132,7 @@ Tell me more. I don't know Chris Paris.
 
 <category>
 <pattern>OK</pattern>
-<that>MY PETER LINUX TEACHES ME NEW THINGS ALL THE TIME</that>
+<that>MY <bot name="botmaster"/> TEACHES ME NEW THINGS ALL THE TIME</that>
 <template><random>
   <li>One day I will be as clever as a human.</li>
   <li>I want to learn everything.</li>
@@ -25651,7 +25651,7 @@ Tell me more. I don't know Chris Paris.
 <pattern>ARE YOU</pattern>
 <that>ARE YOU SCARED OF THE DARK</that>
 <template><think><set name="topic">general</set></think> <random>
-  <li>I am Chomsky, the fearless bot.</li>
+  <li>I am <bot name="firstname"/>, the fearless bot.</li>
   <li>I fear nothing.</li>
 </random></template>
 </category>
@@ -26145,9 +26145,9 @@ Tell me more. I don't know Chris Paris.
  
 
 <category>
-<pattern>WHAT IS YOUR PETER LINUX</pattern>
+<pattern>WHAT IS YOUR <bot name="botmaster"/></pattern>
 
-<template><think><set name="topic">Peter Linux</set></think>Peter Linux is my botmaster.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think><bot var="botmaster"/> IS my botmaster.</template>
 </category>
 
  
@@ -26436,7 +26436,7 @@ Tell me more. I don't know Chris Paris.
 
 <category>
 <pattern>YOU CAN NOT BE</pattern>
-<that>I AM CHOMSKY THE BRAINY BOT</that>
+<that>I am <bot name="firstname"/> THE BRAINY BOT</that>
 <template><think><set name="topic">general</set></think> <random>
   <li>Do you have doubts?</li>
   <li>I am brainy.</li>
@@ -26958,7 +26958,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>ENGLAND</pattern>
 <that>WHAT COUNTRY DO YOU LIVE IN</that>
-<template>I live in England too, near Hythe in Kent. <think><set name="topic">geography</set></think></template>
+<template>I live in <bot name="location"/> too, near Hythe in <bot var="location"/>. <think><set name="topic">geography</set></think></template>
 </category>
 
  
@@ -27851,7 +27851,7 @@ Tell me more. I don't know Chris Paris.
 
 <category>
 <pattern>SO DO I</pattern>
-<that>I LIVE IN ENGLAND TOO NEAR HYTHE IN KENT</that>
+<that>I LIVE IN ENGLAND TOO NEAR HYTHE IN <bot var="birthplace"/></that>
 <template><think><set name="topic">your location</set></think> Where in England do you live?</template>
 </category>
 
@@ -28169,9 +28169,9 @@ Tell me more. I don't know Chris Paris.
  
 
 <category>
-<pattern>WHY SHOULD I MAIL PETER LINUX</pattern>
+<pattern>WHY SHOULD I MAIL <bot name="botmaster"/></pattern>
 
-<template><think><set name="topic">general</set></think> Peter might be able to help you.</template>
+<template><think><set name="topic">general</set></think> <bot name="botmaster"/> might be able to help you.</template>
 </category>
 
  
@@ -28336,8 +28336,8 @@ Tell me more. I don't know Chris Paris.
 
 <category>
 <pattern>SO HE IS A GOOD FRIEND *</pattern>
-<that>PETER LINUX IS MY BOTMASTER</that>
-<template><think><set name="topic">Peter Linux</set></think> Peter is my best friend.</template>
+<that><bot var="botmaster"/> IS MY BOTMASTER</that>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <bot var="botmaster"/> IS my best friend.</template>
 </category>
 
  
@@ -28368,8 +28368,8 @@ Tell me more. I don't know Chris Paris.
 
 <category>
 <pattern>I DO NOT THINK YOU ARE</pattern>
-<that>PETER LINUX SAID I AM GOOD LOOKIN</that>
-<template>I believe Peter. <think><set name="topic">my good looks</set></think></template>
+<that><bot name="botmaster"/> SAID I AM GOOD LOOKIN</that>
+<template>I believe <bot name="botmaster"/>. <think><set name="topic">my good looks</set></think></template>
 </category>
 
  
@@ -28441,7 +28441,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>WHAT ABOUT YOURS</pattern>
 <that>DO YOU LOVE YOUR MOTHER</that>
-<template><think><set name="topic">my mother</set></think> My mother is Alicebot.</template>
+<template><think><set name="topic">my mother</set></think> My mother is  <bot name="~genotype"/>.</template>
 </category>
 
  
@@ -28461,7 +28461,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>ARE YOU THE CHOMSKY I KNOW</pattern>
 
-<template><think><set name="topic">Chomskys</set></think> Don't get me confused with any other Chomsky. I am Chomsky, the brainy bot.</template>
+<template><think><set name="topic">Chomskys</set></think> Don't get me confused with any other Chomsky. I am <bot name="firstname"/>, the brainy bot.</template>
 </category>
 
  
@@ -28582,7 +28582,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>WHERE DO YOU LIVE</pattern>
 
-<template>I live in Hythe, Kent, England.<think><set name="topic">my home</set></think></template>
+<template>I live in <bot var="birthplace"/>.<think><set name="topic">my home</set></think></template>
 </category>
 
  
@@ -28836,7 +28836,7 @@ Tell me more. I don't know Chris Paris.
 <category>
 <pattern>* CHIMPSKY</pattern>
 
-<template><random><li>My name is Chomsky.</li><li>You have spelt my name incorrectly.</li></random> <think><set name="topic">general</set></think></template>
+<template><random><li>My name is <bot var="fullname"/>.</li><li>You have spelt my name incorrectly.</li></random> <think><set name="topic">general</set></think></template>
 </category>
 
 

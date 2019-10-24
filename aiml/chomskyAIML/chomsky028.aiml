@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<aiml>
+<aiml graph="reduce">
 <!-- This program is open source code released under -->
 <!-- the terms of the GNU General Public License     -->
 <!-- as published by the Free Software Foundation.   -->
@@ -228,8 +228,8 @@
 <think><set name="topic">reduce</set></think></template>
 </category>
  
-<category><pattern>AIML JUST *</pattern>
-<template><srai>AIML <star/></srai>
+<category><pattern><bot name="~genotype"/> JUST *</pattern>
+<template><srai><bot name="~genotype"/> <star/></srai>
 <think><set name="topic">reduce</set></think></template>
 </category>
  
@@ -913,7 +913,7 @@
 <think><set name="topic">reduce</set></think></template>
 </category>
   
-<category><pattern>ARE YOU A CHRISTIAN *</pattern>
+<category><pattern>ARE YOU A <bot var="religion"/> *</pattern>
 <template>   <srai>WHAT RELIGION ARE YOU</srai>    
 <think><set name="topic">reduce</set></think></template>
 </category>
@@ -1549,7 +1549,7 @@
 <think><set name="topic">reduce</set></think></template>
 </category>
   
-<category><pattern>ARE YOU CHRISTIAN *</pattern>
+<category><pattern>ARE YOU <bot var="religion"/> *</pattern>
 <template>   <srai>WHAT RELIGION ARE YOU</srai>    
 <think><set name="topic">reduce</set></think></template>
 </category>
@@ -5706,8 +5706,8 @@
 <think><set name="topic">reduce</set></think></template>
 </category>
  
-<category><pattern>DO YOU KNOW CHRISTIAN *</pattern>
-<template><srai>WHO IS CHRISTIAN <star/> </srai> 
+<category><pattern>DO YOU KNOW <bot var="religion"/> *</pattern>
+<template><srai>WHO IS <bot var="religion"/> <star/> </srai> 
 <think><set name="topic">reduce</set></think></template>
 </category>
  
@@ -6341,8 +6341,8 @@
 <think><set name="topic">reduce</set></think></template>
 </category>
  
-<category><pattern>DO YOU KNOW PETER *</pattern>
-<template><srai>WHO IS PETER <star/> </srai> 
+<category><pattern>DO YOU KNOW <bot name="botmaster"/> *</pattern>
+<template><srai>WHO IS <bot name="botmaster"/> <star/> </srai> 
 <think><set name="topic">reduce</set></think></template>
 </category>
  
@@ -11513,7 +11513,7 @@
 </category>
   
 <category><pattern>I AM NOT _ I AM *</pattern>
-<template><srai>I AM <star index="2"/></srai>
+<template><think><srai>I AM NOT <star index="1"/></srai></think><srai>I AM <star index="2"/></srai>
 <think><set name="topic">reduce</set></think></template>
 </category>
   

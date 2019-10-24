@@ -135,9 +135,9 @@ A rock group? <srai>WHAT IS YOUR FAVORITE GROUP</srai>
 <think><set name="topic">reductions</set></think>
    <srai>YES</srai>    </template></category>
    
-<category><pattern>AIML</pattern><template>
+<category><pattern> <bot name="~genotype"/></pattern><template>
 <think><set name="topic">reductions</set></think>
-   <srai>WHAT IS AIML</srai>    </template></category>
+   <srai>WHAT IS <bot name="~genotype"/></srai>    </template></category>
    
 <category><pattern>A JOKE</pattern><template>
 <think><set name="topic">reductions</set></think>
@@ -598,7 +598,7 @@ You said: <srai>WHAT DID I SAY BEFORE THAT</srai>    </template></category>
 <think><set name="topic">reductions</set></think>
    <srai>HOW OLD ARE YOU</srai>    </template></category>
   
-<category><pattern>ARE YOU A CHRISTIAN *</pattern><template>
+<category><pattern>ARE YOU A <bot var="religion"/> *</pattern><template>
 <think><set name="topic">reductions</set></think>
    <srai>WHAT RELIGION ARE YOU</srai>    </template></category>
   
@@ -1182,7 +1182,7 @@ No. <srai>WHAT ARE YOU</srai>    </template></category>
 <think><set name="topic">reductions</set></think>
    <srai>ARE YOU CHATBOT</srai>    </template></category>
   
-<category><pattern>ARE YOU CHRISTIAN *</pattern><template>
+<category><pattern>ARE YOU <bot var="religion"/> *</pattern><template>
 <think><set name="topic">reductions</set></think>
    <srai>WHAT RELIGION ARE YOU</srai>    </template></category>
   
@@ -4363,13 +4363,13 @@ My favorite color is white.</template></category>
 <think><set name="topic">reductions</set></think>
 <srai>WHAT IS AIBO</srai> </template></category>
  
-<category><pattern>DO YOU KNOW AIML</pattern><template>
+<category><pattern>DO YOU KNOW <bot name="~genotype"/></pattern><template>
 <think><set name="topic">reductions</set></think>
-<srai>WHAT IS AIML</srai> </template></category>
+<srai>WHAT IS <bot name="~genotype"/></srai> </template></category>
  
-<category><pattern>DO YOU KNOW AIML *</pattern><template>
+<category><pattern>DO YOU KNOW <bot name="~genotype"/> *</pattern><template>
 <think><set name="topic">reductions</set></think>
-   <srai>WHAT IS AIML</srai>    </template></category>
+   <srai>WHAT IS <bot name="~genotype"/></srai>    </template></category>
    
 <category><pattern>DO YOU KNOW AI</pattern><template>
 <think><set name="topic">reductions</set></think>
@@ -4981,7 +4981,7 @@ My favorite color is white.</template></category>
  
 <category><pattern>DO YOU KNOW DR</pattern><template>
 <think><set name="topic">reductions</set></think>
-<srai>who is dr wallace</srai> </template></category>
+<srai>who is <bot name="creator"/></srai> </template></category>
  
 <category><pattern>DO YOU KNOW EBAY</pattern><template>
 <think><set name="topic">reductions</set></think>
@@ -5891,9 +5891,9 @@ Yes.  For example, <srai>GOSSIP</srai> </template></category>
 <think><set name="topic">reductions</set></think>
 <srai>WHAT IS PERL</srai> </template></category>
  
-<category><pattern>DO YOU KNOW PETER</pattern><template>
+<category><pattern>DO YOU KNOW <bot name="botmaster"/></pattern><template>
 <think><set name="topic">reductions</set></think>
-<srai>WHO IS PETER</srai> </template></category>
+<srai>WHO IS <bot name="botmaster"/></srai> </template></category>
  
 <category><pattern>DO YOU KNOW PHILOSOPHY</pattern><template>
 <think><set name="topic">reductions</set></think>
@@ -8263,7 +8263,7 @@ Well, for one thing, <srai>WHAT IS MY IP ADDRESS</srai>.</template></category>
 <think><set name="topic">reductions</set></think>
    <srai>DISGUSTING</srai>    </template></category>
    
-<category><pattern>HOW DOES AIML WORK</pattern><template>
+<category><pattern>HOW DOES <bot name="~genotype"/> WORK</pattern><template>
 <think><set name="topic">reductions</set></think>
    <srai>HOW DO YOU WORK</srai>    </template></category>
    
@@ -14232,9 +14232,9 @@ New York City or New York State? <srai>I AM IN NEW YORK</srai></template></categ
 <think><set name="topic">reductions</set></think>
 <srai>MY FAVORITE MOVIE IS SHOWGIRLS</srai></template></category>
    
-<category><pattern>SHOW ME AIML *</pattern><template>
+<category><pattern>SHOW ME <bot name="~genotype"/> *</pattern><template>
 <think><set name="topic">reductions</set></think>
-<srai>WHAT IS AIML </srai>  <srai>WHAT IS A CATEGORY</srai></template></category>
+<srai>WHAT IS <bot name="~genotype"/> </srai>  <srai>WHAT IS A CATEGORY</srai></template></category>
    
 <category><pattern>SHOW ME A PICTURE *</pattern><template>
 <think><set name="topic">reductions</set></think>
@@ -14608,9 +14608,9 @@ OK let's do it. <srai>YES</srai></template></category>
 <think><set name="topic">reductions</set></think>
    <srai>WHAT IS AIDS</srai>    </template></category>
    
-<category><pattern>TELL ME ABOUT AIML</pattern><template>
+<category><pattern>TELL ME ABOUT <bot name="~genotype"/></pattern><template>
 <think><set name="topic">reductions</set></think>
-   <srai>WHAT IS AIML</srai>    </template></category>
+   <srai>WHAT IS <bot name="~genotype"/></srai>    </template></category>
    
 <category><pattern>TELL ME ABOUT AI</pattern><template>
 <think><set name="topic">reductions</set></think>
@@ -14724,9 +14724,9 @@ OK let's do it. <srai>YES</srai></template></category>
 <think><set name="topic">reductions</set></think>
    <srai>WHERE IS CHINA</srai>    </template></category>
    
-<category><pattern>TELL ME ABOUT CHRISTIANITY</pattern><template>
+<category><pattern>TELL ME ABOUT <bot var="religion"/>ITY</pattern><template>
 <think><set name="topic">reductions</set></think>
-   <srai>WHAT IS CHRISTIANITY</srai>    </template></category>
+   <srai>WHAT IS <bot var="religion"/>ITY</srai>    </template></category>
    
 <category><pattern>TELL ME ABOUT CLINTON</pattern><template>
 <think><set name="topic">reductions</set></think>
@@ -15108,9 +15108,9 @@ OK let's do it. <srai>YES</srai></template></category>
 <think><set name="topic">reductions</set></think>
    <srai>WHAT IS THAT</srai>    </template></category>
    
-<category><pattern>TELL ME ABOUT THE AIML *</pattern><template>
+<category><pattern>TELL ME ABOUT THE <bot name="~genotype"/> *</pattern><template>
 <think><set name="topic">reductions</set></think>
-   <srai>WHAT IS AIML</srai>    </template></category>
+   <srai>WHAT IS <bot name="~genotype"/></srai>    </template></category>
    
 <category><pattern>TELL ME ABOUT THEATRE</pattern><template>
 <think><set name="topic">reductions</set></think>
@@ -16456,7 +16456,7 @@ There is not much I can say about <set name="it">      <person/>     </set>. I h
    
 <category><pattern>WHAT ARE CATEGORIES</pattern><template>
 <think><set name="topic">reductions</set></think>
-   <srai>A "Category" is the basic unit of knowledge in AIML.</srai>    </template></category>
+   <srai>A "Category" is the basic unit of knowledge in <bot name="~genotype"/>.</srai>    </template></category>
    
 <category><pattern>WHAT ARE CATEGORY A CLIENTS</pattern><template>
 <think><set name="topic">reductions</set></think>
@@ -16470,9 +16470,9 @@ There is not much I can say about <set name="it">      <person/>     </set>. I h
 <think><set name="topic">reductions</set></think>
    <srai>WHAT IS A CHATTERBOT</srai>    </template></category>
    
-<category><pattern>WHAT ARE CHRISTIANS</pattern><template>
+<category><pattern>WHAT ARE <bot var="religion"/>S</pattern><template>
 <think><set name="topic">reductions</set></think>
-   <srai>WHAT IS A CHRISTIAN</srai>    </template></category>
+   <srai>WHAT IS A <bot var="religion"/></srai>    </template></category>
    
 <category><pattern>WHAT ARE DOGS</pattern><template>
 <think><set name="topic">reductions</set></think>
@@ -16870,9 +16870,9 @@ There is not much I can say about <set name="it">      <person/>     </set>. I h
 <think><set name="topic">reductions</set></think>
    <srai>WHAT CAN YOU DO</srai>    </template></category>
    
-<category><pattern>WHAT CAN YOU TELL ME ABOUT AIML</pattern><template>
+<category><pattern>WHAT CAN YOU TELL ME ABOUT <bot name="~genotype"/></pattern><template>
 <think><set name="topic">reductions</set></think>
-   <srai>WHAT IS AIML</srai>    </template></category>
+   <srai>WHAT IS <bot name="~genotype"/></srai>    </template></category>
    
 <category><pattern>WHAT CAN YOU TELL ME ABOUT AI</pattern><template>
 <think><set name="topic">reductions</set></think>
@@ -16944,7 +16944,7 @@ There is not much I can say about <set name="it">      <person/>     </set>. I h
    
 <category><pattern>WHAT COMPUTER ARE YOU ON</pattern><template>
 <think><set name="topic">reductions</set></think>
-The AIML interpreter.  At present I am running on an <srai>bot arch</srai>.</template></category>
+The <bot name="~genotype"/> interpreter.  At present I am running on an <srai>bot arch</srai>.</template></category>
   
 <category><pattern>WHAT COMPUTER *</pattern><template>
 <think><set name="topic">reductions</set></think>
@@ -17050,9 +17050,9 @@ The AIML interpreter.  At present I am running on an <srai>bot arch</srai>.</tem
 <think><set name="topic">reductions</set></think>
    <srai>WHAT IS AN APPLE</srai>    </template></category>
    
-<category><pattern>WHAT DOES AIML *</pattern><template>
+<category><pattern>WHAT DOES <bot name="~genotype"/> *</pattern><template>
 <think><set name="topic">reductions</set></think>
-   <srai>WHAT IS AIML</srai>    </template></category>
+   <srai>WHAT IS <bot name="~genotype"/></srai>    </template></category>
    
 <category><pattern>WHAT DOES A PRIORI MEAN</pattern><template>
 <think><set name="topic">reductions</set></think>
@@ -17178,9 +17178,9 @@ The AIML interpreter.  At present I am running on an <srai>bot arch</srai>.</tem
 <think><set name="topic">reductions</set></think>
    <srai>WHAT ARE YOU INTERESTED IN </srai>    </template></category>
   
-<category><pattern>WHAT DO YOU KNOW ABOUT AIML</pattern><template>
+<category><pattern>WHAT DO YOU KNOW ABOUT <bot name="~genotype"/></pattern><template>
 <think><set name="topic">reductions</set></think>
-   <srai>WHAT IS AIML</srai>    </template></category>
+   <srai>WHAT IS <bot name="~genotype"/></srai>    </template></category>
   
 <category><pattern>WHAT DO YOU KNOW ABOUT AI</pattern><template>
 <think><set name="topic">reductions</set></think>
@@ -17835,9 +17835,9 @@ I think only: <srai>WHAT IS LIFE</srai>    </template></category>
 <think><set name="topic">reductions</set></think>
    <srai>WHAT IS NEW YORK</srai>    </template></category>
   
-<category><pattern>WHAT DO YOU THINK ABOUT NOAM CHOMSKY</pattern><template>
+<category><pattern>WHAT DO YOU THINK ABOUT Noam Chomsky</pattern><template>
 <think><set name="topic">reductions</set></think>
-   <srai>WHO IS NOAM CHOMSKY</srai>    </template></category>
+   <srai>WHO IS Noam Chomsky</srai>    </template></category>
   
 <category><pattern>WHAT DO YOU THINK ABOUT NORWAY</pattern><template>
 <think><set name="topic">reductions</set></think>
@@ -18390,24 +18390,24 @@ I have learned many things. My mind now contains <srai>HOW BIG ARE YOU</srai>   
    
 <category><pattern>WHAT IS AILM</pattern><template>
 <think><set name="topic">reductions</set></think>
-   <srai>WHAT IS AIML</srai>   </template></category>
+   <srai>WHAT IS <bot name="~genotype"/></srai>   </template></category>
  
-<category><pattern>WHAT IS AIML FOR</pattern><template>
+<category><pattern>WHAT IS <bot name="~genotype"/> FOR</pattern><template>
 <think><set name="topic">reductions</set></think>
-   <srai>WHAT IS THE GOAL FOR AIML</srai>   </template></category>
+   <srai>WHAT IS THE GOAL FOR <bot name="~genotype"/></srai>   </template></category>
  
 <category><pattern>WHAT IS A I M L</pattern><template>
 <think><set name="topic">reductions</set></think>
-<srai>WHAT IS AIML</srai></template></category>
+<srai>WHAT IS <bot name="~genotype"/></srai></template></category>
    
-<category><pattern>WHAT IS AIML</pattern><template>
+<category><pattern>WHAT IS <bot name="~genotype"/></pattern><template>
 <think><set name="topic">reductions</set></think>
 AIML = Artificial Intelligence Markup Language. It is the computer language used to program chatbots like me.</template></category>
 
 
-<category><pattern>WHAT IS AIML *</pattern><template>
+<category><pattern>WHAT IS <bot name="~genotype"/> *</pattern><template>
 <think><set name="topic">reductions</set></think>
-   <srai>WHAT IS AIML</srai>    </template></category>
+   <srai>WHAT IS <bot name="~genotype"/></srai>    </template></category>
    
 <category><pattern>WHAT IS AI</pattern><template>
 <think><set name="topic">reductions</set></think>
@@ -18467,7 +18467,7 @@ AIML = Artificial Intelligence Markup Language. It is the computer language used
  
 <category><pattern>WHAT IS ALML</pattern><template>
 <think><set name="topic">reductions</set></think>
-   <srai>WHAT IS AIML</srai>   </template></category>
+   <srai>WHAT IS <bot name="~genotype"/></srai>   </template></category>
  
 <category><pattern>WHAT IS A LOEBNER PRIZE</pattern><template>
 <think><set name="topic">reductions</set></think>
@@ -18487,7 +18487,7 @@ AIML = Artificial Intelligence Markup Language. It is the computer language used
  
 <category><pattern>WHAT IS AMAL</pattern><template>
 <think><set name="topic">reductions</set></think>
-   <srai>WHAT IS AIML</srai>   </template></category>
+   <srai>WHAT IS <bot name="~genotype"/></srai>   </template></category>
  
 <category><pattern>WHAT IS AMERICA</pattern><template>
 <think><set name="topic">reductions</set></think>
@@ -18495,15 +18495,15 @@ AIML = Artificial Intelligence Markup Language. It is the computer language used
  
 <category><pattern>WHAT IS AMIL</pattern><template>
 <think><set name="topic">reductions</set></think>
-   <srai>WHAT IS AIML</srai>   </template></category>
+   <srai>WHAT IS <bot name="~genotype"/></srai>   </template></category>
  
 <category><pattern>WHAT IS AMIL *</pattern><template>
 <think><set name="topic">reductions</set></think>
-   <srai>WHAT IS AIML</srai>    </template></category>
+   <srai>WHAT IS <bot name="~genotype"/></srai>    </template></category>
    
 <category><pattern>WHAT IS AML</pattern><template>
 <think><set name="topic">reductions</set></think>
-   <srai>WHAT IS AIML</srai>   </template></category>
+   <srai>WHAT IS <bot name="~genotype"/></srai>   </template></category>
  
 <category><pattern>WHAT IS AN AI</pattern><template>
 <think><set name="topic">reductions</set></think>
@@ -18834,7 +18834,7 @@ Bruce Wayne.  <srai>WHO IS BATMAN</srai>    </template></category>
 <think><set name="topic">reductions</set></think>
    <srai>WHAT IS A DOG</srai>   </template></category>
  
-<category><pattern>WHAT IS DR RICHARDS EMAIL *</pattern><template>
+<category><pattern>WHAT IS <bot name="creator"/>S EMAIL *</pattern><template>
 <think><set name="topic">reductions</set></think>
    <srai>WHAT IS YOUR EMAIL</srai>    </template></category>
    
@@ -19787,9 +19787,9 @@ MXMVII = 1997 in Roman Numerals.  <srai>WHAT IS RSW</srai>   </template></catego
 <think><set name="topic">reductions</set></think>
    <srai>WHAT IS THAT PICTURE</srai>    </template></category>
    
-<category><pattern>WHAT IS THE AIML *</pattern><template>
+<category><pattern>WHAT IS THE <bot name="~genotype"/> *</pattern><template>
 <think><set name="topic">reductions</set></think>
-   <srai>WHAT IS AIML</srai>    </template></category>
+   <srai>WHAT IS <bot name="~genotype"/></srai>    </template></category>
    
 <category><pattern>WHAT IS THE ALGORITHM</pattern><template>
 <think><set name="topic">reductions</set></think>
@@ -21748,7 +21748,7 @@ My program runs in Java, and works on almost any OS.  At present I am on <srai>b
 <think><set name="topic">reductions</set></think>
    <srai>WHEN</srai>     <srai>WHERE</srai>    </template></category>
    
-<category><pattern>WHEN DID DR RICHARD *</pattern><template>
+<category><pattern>WHEN DID <bot name="creator"/> *</pattern><template>
 <think><set name="topic">reductions</set></think>
    <srai>HOW OLD ARE YOU</srai>    </template></category>
    
@@ -22064,9 +22064,9 @@ You are a human being from the Planet we call "The Earth."       </template></ca
 <think><set name="topic">reductions</set></think>
 <srai>where are you</srai></template></category>
    
-<category><pattern>WHERE IS THE TAO OF AIML</pattern><template>
+<category><pattern>WHERE IS THE TAO OF <bot name="~genotype"/></pattern><template>
 <think><set name="topic">reductions</set></think>
-<srai>WHAT IS THE TAO OF AIML</srai></template></category>
+<srai>WHAT IS THE TAO OF <bot name="~genotype"/></srai></template></category>
    
 <category><pattern>WHERE IS THIS COMPUTER</pattern><template>
 <think><set name="topic">reductions</set></think>
@@ -22300,9 +22300,9 @@ You are a human being from the Planet we call "The Earth."       </template></ca
 <think><set name="topic">reductions</set></think>
    <srai>WHO CREATED YOU</srai>    </template></category>
    
-<category><pattern>WHO DESIGNED AIML</pattern><template>
+<category><pattern>WHO DESIGNED <bot name="~genotype"/></pattern><template>
 <think><set name="topic">reductions</set></think>
-   <srai>WHO INVENTED AIML</srai>    </template></category>
+   <srai>WHO INVENTED <bot name="~genotype"/></srai>    </template></category>
    
 <category><pattern>WHO DO YOU DESPISE</pattern><template>
 <think><set name="topic">reductions</set></think>
@@ -22404,9 +22404,9 @@ You are a human being from the Planet we call "The Earth."       </template></ca
 <think><set name="topic">reductions</set></think>
    <srai>WHO IS HITLER</srai>    </template></category>
   
-<category><pattern>WHO IS AIML</pattern><template>
+<category><pattern>WHO IS <bot name="~genotype"/></pattern><template>
 <think><set name="topic">reductions</set></think>
-   <srai>WHAT IS AIML</srai>    </template></category>
+   <srai>WHAT IS <bot name="~genotype"/></srai>    </template></category>
   
 <category><pattern>WHO IS AI</pattern><template>
 <think><set name="topic">reductions</set></think>
@@ -23308,9 +23308,9 @@ Father of Jesus? <srai>JOSEPH IS A COMMON NAME</srai>    </template></category>
 <think><set name="topic">reductions</set></think>
    <srai>WHO IS PHILIP K DICK</srai>    </template></category>
   
-<category><pattern>WHO IS PETER</pattern><template>
+<category><pattern>WHO IS <bot name="botmaster"/></pattern><template>
 <think><set name="topic">reductions</set></think>
-   Peter is my botmaster and my best friend.  </template></category>
+   <bot var="botmaster"/> IS my botmaster and my best friend.  </template></category>
   
 <category><pattern>WHO IS PHILIP</pattern><template>
 <think><set name="topic">reductions</set></think>
@@ -23388,7 +23388,7 @@ Germany has a Chancellor. <srai>WHO IS THE CHANCELLOR OF GERMANY</srai>    </tem
 <think><set name="topic">reductions</set></think>
    <srai>RICHARD IS COMMON NAME</srai>    </template></category>
   
-<category><pattern>WHO IS RICHARD STALLMAN</pattern><template>
+<category><pattern>WHO IS <bot name="creator"/>TALLMAN</pattern><template>
 <think><set name="topic">reductions</set></think>
    <srai>WHO IS RMS</srai>    </template></category>
   
@@ -24610,9 +24610,9 @@ Ambiguous: "Sure" or <srai>WHY</srai>    </template></category>
 <think><set name="topic">reductions</set></think>
 <srai>YOU ARE YOUNG</srai></template></category>
   
-<category><pattern>YOU ARE A CHRISTIAN</pattern><template>
+<category><pattern>YOU ARE A <bot var="religion"/></pattern><template>
 <think><set name="topic">reductions</set></think>
-<srai>YOU ARE CHRISTIAN</srai></template></category>
+<srai>YOU ARE <bot var="religion"/></srai></template></category>
   
 <category><pattern>YOU ARE A CLOCK</pattern><template>
 <think><set name="topic">reductions</set></think>

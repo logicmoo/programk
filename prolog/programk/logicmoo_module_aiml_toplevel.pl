@@ -19,7 +19,7 @@
 :- endif.
 */
 
-% :-catch(guitracer,E,writeq(E)),nl.
+% :-catch(noguitracer,E,writeq(E)),nl.
 
 :-multifile(what/3).
 :-multifile(response/2).
@@ -46,7 +46,7 @@ addPaths:- source_location(File,_Line),file_directory_name(File, Directory),
    file_directory_name(ParentDir,ProgramK),
    asserta_if_new_hlper1(user:file_search_path(programk,ProgramK)),
    asserta_if_new_hlper1(local_directory_search(ProgramK)),
-   absolute_file_name('aiml',[relative_to(ProgramK)],AIMLDir),
+   absolute_file_name('aiml/',[relative_to(ProgramK),file_type(directory)],AIMLDir),
    asserta_if_new_hlper1(user:file_search_path(aiml,AIMLDir)),!.
 
 
@@ -96,8 +96,9 @@ main_loop1(Atom):- current_input(In),!,
 atom_codes_or_eof(end_of_file,end_of_file):-!.
 atom_codes_or_eof(Atom,Codes):- atom_codes(Atom,Codes).
 
-ping_default_files:-exists_file('temp/aimlCore3.pl'),trace,ensure_loaded('temp/aimlCore3.pl'),!.
-ping_default_files:-exists_file('temp/aimlCore.pl'),trace,ensure_loaded('temp/aimlCore.pl'),!.
+
+ping_default_files:-exists_source(aiml('../temp/aimlCore3.pl')),trace,ensure_loaded(aiml('../temp/aimlCore3.pl')),!.
+ping_default_files:-exists_source(aiml('../temp/aimlCore.pl')),trace,ensure_loaded(aiml('../temp/aimlCore.pl')),!.
 ping_default_files.
 
 main_loop:- ping_default_files,repeat,main_loop1(EOF),EOF==end_of_file.
@@ -128,9 +129,11 @@ alicebotCTX(Ctx):-
         repeat,
         current_input(In),
 	read_line_to_codes(In,Codes),
-        tokenizeInput(Atom,Codes),
+        ( Codes==end_of_file -> true ;
+        (tokenizeInput(Atom,Codes),
         %%atom_codes(Atom,Codes),
-        once(alicebotCTX(Ctx,Atom)),fail.
+         ignore(once(alicebotCTX(Ctx,Atom))),
+         Atom\==end_of_file)).
 
 % ===============================================================================================
 % Main Alice Input

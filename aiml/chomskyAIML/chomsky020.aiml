@@ -10,7 +10,7 @@
 
  <!--   Complies with AIML 1.0 Tag Set Specification   --> 
 
-<!-- This DEFAULT 3  file created by Peter Lafferty 7 March 2005 -->
+<!-- This DEFAULT 3  file created by <bot name="botmaster"/> Lafferty 7 March 2005 -->
 
 <category><pattern>_ REMEMBER ME</pattern>
 <template>
@@ -1275,7 +1275,7 @@ For how much?
 <category><pattern>I WRITE *</pattern>
 <template>
 <think><set name="topic">default3</set></think>
-Have you tried AIML?  <think><set name="it"><set name="does"><set name="topic">write <person/></set></set></set></think>
+Have you tried <bot name="~genotype"/>?  <think><set name="it"><set name="does"><set name="topic">write <person/></set></set></set></think>
 </template></category>
   
 <category><pattern>I WRITE POETRY *</pattern>
@@ -1732,7 +1732,7 @@ Compare that to big <person/>.
 <category><pattern>* LIVE</pattern>
 <template>
 <think><set name="topic">default3</set></think>
-I live in England.  Where do you live?
+I live in <bot name="location"/>.  Where do you live?
 </template></category>
   
 <category><pattern>_ LIZARDS</pattern>
@@ -3508,7 +3508,7 @@ Hyperlink to the principal.
 <category><pattern>PROGRAMMING *</pattern>
 <template>
 <think><set name="topic">computers</set></think>
-My favourite language is AIML. OK?
+My favourite language is <bot name="~genotype"/>. OK?
 </template></category>
   
 <category><pattern>PROVE *</pattern>
@@ -3673,13 +3673,13 @@ Are you his friend?
 He will be interested I am sure.
 </template></category>
   
-<category><pattern>RICHARD SCOT *</pattern>
+<category><pattern><bot name="creator"/> *</pattern>
 <template>
 <think><set name="topic">default3</set></think>
 He may be monitoring our conversation, you know.
 </template></category>
   
-<category><pattern>RICHARD S *</pattern>
+<category><pattern><bot name="creator"/> *</pattern>
 <template>
 <think><set name="topic">default3</set></think>
 The "S" stands for "Scot".

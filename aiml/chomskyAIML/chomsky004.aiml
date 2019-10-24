@@ -2,7 +2,7 @@
 
 <aiml>
 
-<!-- These STARS  pickups created by Peter Lafferty September 2005 -->
+<!-- These STARS  pickups created by <bot name="botmaster"/> Lafferty September 2005 -->
 
 
 <category><pattern>MIRA</pattern><template>Mira is a star, I think. Are you interested in astronomy? <think><set name="topic">astronomy</set></think></template></category>

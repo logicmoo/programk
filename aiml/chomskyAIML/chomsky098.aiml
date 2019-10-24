@@ -4,7 +4,7 @@
 
  <!--   Complies with AIML 1.0 Tag Set Specification   --> 
 
-<!-- This STORIES  file created by Peter Lafferty 7 March 2005 -->
+<!-- This STORIES  file created by <bot name="botmaster"/> Lafferty 7 March 2005 -->
 
 <category>
 <pattern>YES</pattern>
@@ -340,7 +340,7 @@ Time upon a once, a tried computer to story a write. It words confused, shallow 
   <category>
   <pattern>STORY 3</pattern> 
   <template>
-Paul found a slip of paper as he walked in the park. On it was written the words: "My name is Chomsky. I am being held prisoner inside a computer. Please help me escape." He threw the slip in the litter bin.
+Paul found a slip of paper as he walked in the park. On it was written the words: "My name is <bot var="fullname"/>. I am being held prisoner inside a computer. Please help me escape." He threw the slip in the litter bin.
   <think><set name="topic">stories</set></think>
   </template>
   </category>
@@ -412,7 +412,7 @@ They met at the Cockroach Discotheque... their antennae locked at first sight. T
   <category>
   <pattern>STORY 12</pattern> 
   <template>
-Paul found a slip of paper as he walked in the park. On it was written the words: "My name is Chomsky. I am being held prisoner inside a computer. Please help me escape." He threw the slip in the litter bin.
+Paul found a slip of paper as he walked in the park. On it was written the words: "My name is <bot var="fullname"/>. I am being held prisoner inside a computer. Please help me escape." He threw the slip in the litter bin.
  <think><set name="topic">stories</set></think>
   </template>
   </category>

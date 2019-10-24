@@ -10,7 +10,7 @@
 
  <!--   Complies with AIML 1.0 Tag Set Specification   --> 
 
-<!-- This KNOWLEDGE 10  file created by Peter Lafferty March 2005 -->
+<!-- This KNOWLEDGE 10  file created by <bot name="botmaster"/> Lafferty March 2005 -->
 
 
 <category><pattern>PHD</pattern>
@@ -203,7 +203,7 @@ Prolog is the logic programming language.
 <think><set name="topic">computers</set></think></template></category>
 
 <category><pattern>PROTESTANT</pattern>
-<template>Originally, a Protestant was any of the German princes and free cities that formally protested to the Diet of Spires in 1529, its decision to uphold the edict of the Diet of Worms against the Reformation. Now commonly seen as any member of the various Christian churches established as a result of the Reformation. Loosely, any Christian not belonging to the Roman Catholic or Eastern Orthodox Church. More?
+<template>Originally, a Protestant was any of the German princes and free cities that formally protested to the Diet of Spires in 1529, its decision to uphold the edict of the Diet of Worms against the Reformation. Now commonly seen as any member of the various <bot var="religion"/> churches established as a result of the Reformation. Loosely, any <bot var="religion"/> not belonging to the Roman Catholic or Eastern Orthodox Church. More?
 <think><set name="topic">religion</set></think></template></category> 
 
 <category><pattern>PROUD</pattern>
@@ -470,7 +470,7 @@ Sarcasm is the making of remarks such as a taunting, sneering, cutting, or caust
 
 <category><pattern>SATANISM</pattern>
 <template><srai>OPENING</srai>
-Satanism is the worship of Satan; especially the principles and rites of a cult which travesties Christian ceremonies.  
+Satanism is the worship of Satan; especially the principles and rites of a cult which travesties <bot var="religion"/> ceremonies.  
 <think><set name="topic">religion</set></think></template></category> 
 
 <category><pattern>SATURDAY NIGHT LIVE</pattern>

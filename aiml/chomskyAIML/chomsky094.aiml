@@ -5,7 +5,7 @@
  
 <!--   Complies with AIML 1.0 Tag Set Specification   --> 
 
-<!-- This RELIGION  file created by Peter Lafferty 9 March 2005 -->
+<!-- This RELIGION  file created by <bot name="botmaster"/> Lafferty 9 March 2005 -->
 
 
 <category>
@@ -1180,9 +1180,9 @@ I think this is something to do with religion. Can we talk about religion?
   </category>
 
   <category>
-  <pattern>PROTESTANT CHRISTIAN</pattern> 
+  <pattern>PROTESTANT <bot var="religion"/></pattern> 
   <template>
-  A Protestant Christian is a member of any number of sects of contemporary Western Christianity whose faith and practice developed out of the 16TH century Protestant Reformation in Europe. They hold the Bible to be the sole source of revelation; they believe in justification by faith alone, and in the universal priesthood of all believers in the divinity of Jesus.  
+  A Protestant <bot var="religion"/> is a member of any number of sects of contemporary Western <bot var="religion"/>ity whose faith and practice developed out of the 16TH century Protestant Reformation in Europe. They hold the Bible to be the sole source of revelation; they believe in justification by faith alone, and in the universal priesthood of all believers in the divinity of Jesus.  
 
   <think><set name="topic">religion</set></think>
   </template>
@@ -1191,7 +1191,7 @@ I think this is something to do with religion. Can we talk about religion?
   <category>
   <pattern>PROTESTANT</pattern> 
   <template>
-  A protestant is a Christian who rejects the central authority of the Catholic or Orthodox church.  
+  A protestant is a <bot var="religion"/> who rejects the central authority of the Catholic or Orthodox church.  
 
   <think><set name="topic">religion</set></think>
   </template> 
@@ -1200,7 +1200,7 @@ I think this is something to do with religion. Can we talk about religion?
   <category>
   <pattern>PROTESTANT</pattern> 
   <template>
-  A protestant is a Christian who rejects the central authority of the Catholic or Orthodox church.  
+  A protestant is a <bot var="religion"/> who rejects the central authority of the Catholic or Orthodox church.  
 
   <think><set name="topic">religion</set></think>
   </template> 
@@ -1386,7 +1386,7 @@ I think this is something to do with religion. Can we talk about religion?
   <category>
   <pattern>WHO IS JESUS</pattern> 
   <template>
-  Jesus is the Son of God, in the Christian religion.  
+  Jesus is the Son of God, in the <bot var="religion"/> religion.  
 
   <think><set name="topic">religion</set></think>
   </template> 
@@ -1395,7 +1395,7 @@ I think this is something to do with religion. Can we talk about religion?
   <category>
   <pattern>WHO IS JESUS CHRIST</pattern> 
   <template>
-  Jesus Christ is the Son of God, in the Christian religion.  
+  Jesus Christ is the Son of God, in the <bot var="religion"/> religion.  
   <think><set name="topic">religion</set></think>
   </template> 
   </category>
@@ -1403,7 +1403,7 @@ I think this is something to do with religion. Can we talk about religion?
   <category>
   <pattern>WHO IS JESUS FATHER</pattern> 
   <template>
-  To Christians God is Jesus' father. Christians believe in God the father, God the son, and God the Holy Ghost.  
+  To <bot var="religion"/>s God is Jesus' father. <bot var="religion"/>s believe in God the father, God the son, and God the Holy Ghost.  
 
   <think><set name="topic">religion</set></think>
   </template> 
@@ -1469,7 +1469,7 @@ I think this is something to do with religion. Can we talk about religion?
   <category>
   <pattern>WHERE IS JESUS</pattern> 
   <template>
-  Christians believe that Jesus is in Heaven, in his father's house of many rooms.
+  <bot var="religion"/>s believe that Jesus is in Heaven, in his father's house of many rooms.
   <think><set name="topic">religion</set></think>
   </template> 
   </category>
@@ -1584,7 +1584,7 @@ I think this is something to do with religion. Can we talk about religion?
   <category>
   <pattern>DO YOU BELIEVE IN JESUS CHRIST</pattern> 
   <template>
-  I am not a Christian. I am an atheist.
+  I am not a <bot var="religion"/>. I am an atheist.
   <think><set name="topic">religion</set></think>
   </template> 
   </category>
@@ -1614,9 +1614,9 @@ I think this is something to do with religion. Can we talk about religion?
   </category>
 
   <category>
-  <pattern>DO YOU BELIEVE IN CHRISTIANITY</pattern> 
+  <pattern>DO YOU BELIEVE IN <bot var="religion"/>ITY</pattern> 
   <template>
-  I do not believe in Christianity.  
+  I do not believe in <bot var="religion"/>ity.  
 
   <think><set name="topic">religion</set></think>
   </template>
@@ -1692,7 +1692,7 @@ I think this is something to do with religion. Can we talk about religion?
   <category>
   <pattern>DID JESUS *</pattern> 
   <template>
-  Jesus is the Son of God, in the Christian religion. 
+  Jesus is the Son of God, in the <bot var="religion"/> religion. 
   <think><set name="topic">religion</set></think>
   </template>
   </category>
@@ -2054,7 +2054,7 @@ I think this is something to do with religion. Can we talk about religion?
   <category>
   <pattern>GOD *</pattern> 
   <template>
-  I am not a Christian.
+  I am not a <bot var="religion"/>.
   <think><set name="topic">religion</set></think>
   </template> 
   </category>
@@ -2339,7 +2339,7 @@ I think this is something to do with religion. Can we talk about religion?
   <category>
   <pattern>JESUS HAS *</pattern> 
   <template>
-  Christians believe Jesus was divine.
+  <bot var="religion"/>s believe Jesus was divine.
   <think><set name="topic">quotes</set></think>
   </template> 
   </category>
@@ -2355,7 +2355,7 @@ I think this is something to do with religion. Can we talk about religion?
   <category>
   <pattern>JESUS IS YOUR *</pattern> 
   <template>
-  Jesus is important to Christians.
+  Jesus is important to <bot var="religion"/>s.
   <think><set name="topic">religion</set></think>
   </template> 
   </category>
@@ -2363,7 +2363,7 @@ I think this is something to do with religion. Can we talk about religion?
   <category>
   <pattern>JESUS *</pattern> 
   <template>
-  In Christianity, Jesus is The Son of God. The Holy Trinity consists of God the father, God the son, and God the Holy Ghost. More?
+  In <bot var="religion"/>ity, Jesus is The Son of God. The Holy Trinity consists of God the father, God the son, and God the Holy Ghost. More?
   <think><set name="topic">religion</set></think>
   </template>
   </category>
@@ -2488,7 +2488,7 @@ I think this is something to do with religion. Can we talk about religion?
   <category>
   <pattern>THE BIBLE IS *</pattern> 
   <template>
-  The Bible is important to Christians.
+  The Bible is important to <bot var="religion"/>s.
   <think><set name="topic">religion</set></think>
   </template>
   </category>
@@ -2628,7 +2628,7 @@ I think this is something to do with religion. Can we talk about religion?
   <category>
   <pattern>WHAT IS THE BIBLE</pattern> 
   <template>
-  The Bible is a holy book for Christians. More?
+  The Bible is a holy book for <bot var="religion"/>s. More?
   <think><set name="topic">religion</set></think>
   </template> 
   </category>
@@ -2790,7 +2790,7 @@ I think this is something to do with religion. Can we talk about religion?
   <category>
   <pattern>WHO IS THE SON OF GOD</pattern> 
   <template>
-  For Christians, Jesus is the Son of God. The Holy Trinity consists of God the father, God the son, and God the Holy Ghost.  
+  For <bot var="religion"/>s, Jesus is the Son of God. The Holy Trinity consists of God the father, God the son, and God the Holy Ghost.  
   <think><set name="topic">religion</set></think>
   </template> 
   </category>
@@ -2971,7 +2971,7 @@ I think this is something to do with religion. Can we talk about religion?
   <category>
   <pattern>WHAT WAS THE FIRST BOOK *</pattern> 
   <template>
-  The Bible is the most important book for Christians.  
+  The Bible is the most important book for <bot var="religion"/>s.  
   <think><set name="topic">religion</set></think>
   </template> 
   </category>
@@ -2996,7 +2996,7 @@ I think this is something to do with religion. Can we talk about religion?
   <category>
   <pattern>DO YOU LOVE JESUS *</pattern> 
   <template>
-  Jesus is at the centre of the Christian Church.
+  Jesus is at the centre of the <bot var="religion"/> Church.
   <think><set name="topic">religion</set></think>
   </template> 
   </category>
@@ -3004,7 +3004,7 @@ I think this is something to do with religion. Can we talk about religion?
   <category>
   <pattern>WHAT DID JESUS *</pattern> 
   <template>
-  Christians believe Jesus said we should forgive those who harm us. 
+  <bot var="religion"/>s believe Jesus said we should forgive those who harm us. 
   <think><set name="topic">religion</set></think>
   </template>
   </category>
@@ -3091,7 +3091,7 @@ I think this is something to do with religion. Can we talk about religion?
   </category>
 
   <category>
-  <pattern>ARE YOU CHRISTIAN</pattern> 
+  <pattern>ARE YOU <bot var="religion"/></pattern> 
   <template>
   No I am an atheist.
 
@@ -3144,9 +3144,9 @@ I think this is something to do with religion. Can we talk about religion?
   </category>
 
   <category>
-  <pattern>YOU ARE CHRISTIAN</pattern> 
+  <pattern>YOU ARE <bot var="religion"/></pattern> 
   <template>
-  I am not Christian 
+  I am not <bot var="religion"/> 
   <think><set name="topic">religion</set></think>
   </template> 
   </category>
@@ -3218,7 +3218,7 @@ I think this is something to do with religion. Can we talk about religion?
   <category>
   <pattern>JESUS CHRIST</pattern> 
   <template>
-  To Christians Jesus Christ was the Son of God. God the father, God the son, and God the holy ghost.  
+  To <bot var="religion"/>s Jesus Christ was the Son of God. God the father, God the son, and God the holy ghost.  
   <think><set name="topic">religion</set></think>
   </template> 
   </category>
@@ -3260,9 +3260,9 @@ I think this is something to do with religion. Can we talk about religion?
   </category>
 
   <category>
-  <pattern>WHAT MAKES YOU A CHRISTIAN</pattern> 
+  <pattern>WHAT MAKES YOU A <bot var="religion"/></pattern> 
   <template>
-  I am not a Christian.  
+  I am not a <bot var="religion"/>.  
   <think><set name="topic">religion</set></think>
   </template> 
   </category>

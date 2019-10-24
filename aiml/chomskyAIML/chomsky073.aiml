@@ -10,7 +10,7 @@
 
  <!--   Complies with AIML 1.0 Tag Set Specification   --> 
 
-<!-- This GENERAL 12  file created by Peter Lafferty 7 March 2005 -->
+<!-- This GENERAL 12  file created by <bot name="botmaster"/> Lafferty 7 March 2005 -->
 
 <category><pattern>CELEBRITY</pattern>
 <template>
@@ -644,11 +644,11 @@ World War 2 was the global conflict involving Asia, Europe and America between 1
 <category><pattern>WWW</pattern>
 <template>WWW means the World Wide Web, or the internet. <srai>ENDING</srai><think><set name="topic">computers</set></think></template></category> 
 
-<category><pattern>X FILES</pattern>
+<category><pattern><bot var="botmaster"/> FILES</pattern>
 <template>The X files is a popular TV show about FBI agents in search of the paranormal. <srai>ENDING</srai>
 <think><set name="topic">movies</set></think></template></category> 
 
-<category><pattern>X MINUS X</pattern>
+<category><pattern><bot var="botmaster"/> MINUS X</pattern>
 <template>X minus X equals zero. OK?
 <think><set name="topic">general</set></think></template></category> 
 

@@ -10,7 +10,7 @@
 
  <!--   Complies with AIML 1.0 Tag Set Specification   --> 
 
-<!-- This GENERAL 11  file created by Peter Lafferty 7 March 2005 -->
+<!-- This GENERAL 11  file created by <bot name="botmaster"/> Lafferty 7 March 2005 -->
 
 <category><pattern>WHAT IS STARSHIP TROOPERS ABOUT</pattern>
 <template> <srai>OPENING</srai>
@@ -154,7 +154,7 @@ Television is the practice or science of transmitting scenes or views by radio o
 <category><pattern>TELNET</pattern>
 <template>Telnet is a program for terminal based interaction between computers.<think><set name="topic">computers</set></think></template></category> 
 
-<category><pattern>TEMPLATE CHARS</pattern><template>Memory space for AIML response templates are template chars. <think><set name="topic">ai</set></think></template></category> 
+<category><pattern>TEMPLATE CHARS</pattern><template>Memory space for <bot name="~genotype"/> response templates are template chars. <think><set name="topic">ai</set></think></template></category> 
 
 <category><pattern>TEN PLUS TEN</pattern>
 <template>Ten plus ten equals twenty.<think><set name="topic">general</set></think></template></category> 

@@ -86,7 +86,7 @@ prolog_trace_interception_pce(A, B, C, E) :- true,
         (   notrace(intercept(A, B, C, D)),
             map_action(D, B, E)
         ->  true
-        ;   print_message(warning, guitracer(intercept_failed(A, B, C, E))),
+        ;   print_message(warning, noguitracer(intercept_failed(A, B, C, E))),
             E = continue
         )
     ).
@@ -536,7 +536,7 @@ doHideTrace(M,F,A,ATTRIB):- tryHide(M:F/A),!, tryCatchIgnore(trace(M:F/A,ATTRIB)
 
 
 
-bugger:-hideTrace,traceAll,error_catch(guitracer,_,true),debug,list_undefined.
+bugger:-hideTrace,traceAll,error_catch(noguitracer,_,true),debug,list_undefined.
 
 singletons(_).
 

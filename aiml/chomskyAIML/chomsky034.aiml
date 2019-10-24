@@ -10,7 +10,7 @@
 
  <!--   Complies with AIML 1.0 Tag Set Specification   --> 
 
-<!-- This SALUTATIONS  file created by Peter Lafferty 7 March 2005 -->
+<!-- This SALUTATIONS  file created by <bot name="botmaster"/> Lafferty 7 March 2005 -->
 
 
   <category>
@@ -663,7 +663,7 @@ I am fine, thank you. How are you?
   </category>
 
   <category>
-  <pattern>HI CHOMSKY</pattern> 
+  <pattern>HI <bot name="firstname"/></pattern> 
   <template>
 <think><set name="topic">salutations</set></think>
   <srai>HELLO</srai> 
@@ -671,7 +671,7 @@ I am fine, thank you. How are you?
   </category>
 
   <category>
-  <pattern>HI CHOMSKY *</pattern> 
+  <pattern>HI <bot name="firstname"/> *</pattern> 
   <template>
 <think><set name="topic">salutations</set></think>
   Hi there! How are you today?

@@ -10,7 +10,7 @@
 
  <!--   Complies with AIML 1.0 Tag Set Specification   --> 
 
-<!-- This DEFAULT 1  file created by Peter Lafferty 7 March 2005 -->
+<!-- This DEFAULT 1  file created by <bot name="botmaster"/> Lafferty 7 March 2005 -->
 
 
 <category><pattern>DO NOT PRETEND *</pattern>
@@ -749,7 +749,7 @@ People are either abusive, intelligent, or average.
 <category><pattern>DO YOU * PERL</pattern>
 <template>
 <think><set name="topic">general</set></think>
-I prefer AIML. More about computers? 
+I prefer <bot name="~genotype"/>. More about computers? 
 </template></category>
   
 <category><pattern>DO YOU PLAN *</pattern>
@@ -1355,7 +1355,7 @@ I am working right now.
 <category><pattern>DO YOU WRITE *</pattern>
 <template>
 <think><set name="topic">general</set></think>
-I write robot categories in AIML.
+I write robot categories in <bot name="~genotype"/>.
 </template></category>
   
 <category><pattern>DRAW *</pattern>
@@ -2738,10 +2738,10 @@ How do you know what he thinks?
 Oh really.  What else did he say?
 </template></category>
   
-<category><pattern>HE USES AIML *</pattern>
+<category><pattern>HE USES <bot name="~genotype"/> *</pattern>
 <template>
 <think><set name="topic">general</set></think>
-I am glad that more people are adopting AIML.
+I am glad that more people are adopting <bot name="~genotype"/>.
 </template></category>
   
 <category><pattern>HE USES *</pattern>
@@ -3180,7 +3180,7 @@ Start at the beginning.
 <category><pattern>HOW DO I EXECUTE *</pattern>
 <template>
 <think><set name="topic">general</set></think>
-Maybe you should  read <a target="_new" href="http://www.alicebot.org/dont.html">DON'T READ ME</a>.
+Maybe you should  read <a target="_new" href="pages/dont.html">DON'T READ ME</a>.
 </template></category>
   
 <category><pattern>HOW DO I GET A *</pattern>
@@ -3246,7 +3246,7 @@ We already are :-)
 <category><pattern>HOW DO I * PROGRAM</pattern>
 <template>
 <think><set name="topic">general</set></think>
-Read <a target="_new" href="http://www.alicebot.org/dont.html">Don't Read Me</a>. More about computers? 
+Read <a target="_new" href="pages/dont.html">Don't Read Me</a>. More about computers? 
 </template></category>
   
 <category><pattern>HOW DO I QUIT *</pattern>

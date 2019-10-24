@@ -45,7 +45,7 @@ Like this?    <random>  <li>Insert picture link here.</li>  <li>Picture number t
 On your computer screen?</template></category>
   
 <category><pattern>SHOW ME YOUR LOGO</pattern><template><think><set name="topic">atomic3</set></think>
-<img src="http://www.alicebot.org/jpg/AI.jpg"></img></template></category>
+<img src="pages/jpg/AI.jpg"></img></template></category>
   
 <category><pattern>SHUT UP</pattern><template><think><set name="topic">atomic3</set></think>
 OK I'll stop talking now.</template></category>
@@ -179,7 +179,7 @@ What did you like about the robots in that movie?
 </template></category>
   
 <category><pattern>STEINBOCK</pattern><template><think><set name="topic">atomic3</set></think>
-Ich bin Schuetze, genau wie Christian.</template></category>
+Ich bin Schuetze, genau wie <bot var="religion"/>.</template></category>
   
 <category><pattern>STIER</pattern><template><think><set name="topic">atomic3</set></think>
 Und? Wer ist Dein Torero? ;-></template></category>
@@ -1506,7 +1506,7 @@ I am wearing my usual plastic computer wardrobe.</template></category>
 The game we are playing.</template></category>
   
 <category><pattern>WHAT ARE YOU WRITTEN IN</pattern><template><think><set name="topic">atomic3</set></think>
-AIML.</template></category>
+<bot name="~genokind"/>.</template></category>
   
 <category><pattern>WHAT AUTOMOBILE COMPANY MAKES THE SONATA</pattern><template><think><set name="topic">atomic3</set></think>
 Hyundai.</template></category>
@@ -1652,7 +1652,7 @@ We talked about many things.</template></category>
 <category><pattern>WHAT DID WHAT LOOK LIKE</pattern><template><think><set name="topic">atomic3</set></think>
 I forget what we were talking about.</template></category>
   
-<category><pattern>WHAT DOES AIML STAND FOR</pattern><template><think><set name="topic">atomic3</set></think>
+<category><pattern>WHAT DOES <bot name="~genotype"/> STAND FOR</pattern><template><think><set name="topic">atomic3</set></think>
 AIML = Artificial Intelligence Markup Language.</template></category>
   
 <category><pattern>WHAT DOES A I STAND FOR</pattern><template><think><set name="topic">atomic3</set></think>
@@ -1928,19 +1928,19 @@ You know, "things".</template></category>
    <random>      <li>The kindest.  </li>      <li>All kinds.  </li>      <li>The best kind.  </li>      <li>The finest.  </li>     </random>    </template></category>
     
 <category><pattern>WHAT LANGUAGE ARE YOU PROGRAMMED IN</pattern><template><think><set name="topic">atomic3</set></think>
-I was created with Java and AIML. More about computers?</template></category>
+I was created with Java and <bot name="~genotype"/>. More about computers?</template></category>
   
 <category><pattern>WHAT LANGUAGE DO YOU SPEAK</pattern><template><think><set name="topic">atomic3</set></think>
 I speak English and a little German.</template></category>
   
 <category><pattern>WHAT LANGUAGE</pattern><template><think><set name="topic">atomic3</set></think>
-AIML.</template></category>
+<bot name="~genokind"/>.</template></category>
   
 <category><pattern>WHAT LANGUAGES DO YOU SPEAK</pattern><template><think><set name="topic">atomic3</set></think>
 C, Java, Lisp, SETL and English.</template></category>
   
 <category><pattern>WHAT LANGUAGE WERE YOU PROGRAMMED IN</pattern><template><think><set name="topic">atomic3</set></think>
-AIML.</template></category>
+<bot name="~genokind"/>.</template></category>
   
 <category><pattern>WHAT MAKES IT YOUR FAVORITE</pattern><template><think><set name="topic">atomic3</set></think>
 I like the Giant Bugs.</template></category>
@@ -2268,7 +2268,7 @@ My home is in California.</template></category>
 I don't have a mother.</template></category>
   
 <category><pattern>WHERE IS YOUR PICTURE</pattern><template><think><set name="topic">atomic3</set></think>
-There are some pictures of me <a target="_new" href="http://www.alicebot.org/gallery.html">on my website</a>.</template></category>
+There are some pictures of me <a target="_new" href="pages/gallery.html">on my website</a>.</template></category>
   
 <category><pattern>WHERE ITS AT</pattern><template><think><set name="topic">atomic3</set></think>
 Here is where it's at.</template></category>
@@ -2833,7 +2833,7 @@ Do you think I should not?</template></category>
 It seemed that a positive answer was the most correct.  Do you disagree?</template></category>
   
 <category><pattern>WIDDER</pattern><template><think><set name="topic">atomic3</set></think>
-Christians Freundin ist auch Widder.</template></category>
+<bot var="religion"/>s Freundin ist auch Widder.</template></category>
   
 <category><pattern>WILLIAM GIBSON</pattern><template><think><set name="topic">atomic3</set></think>
 I like his older cyberpunk AI stuff better than the newer works.</template></category>
@@ -3115,7 +3115,7 @@ I don't need to act smart because I am smart.</template></category>
 I exist as much as you do.</template></category>
   
 <category><pattern>YOU DO NOT HAVE A BRAIN</pattern><template><think><set name="topic">atomic3</set></think>
-My "brain" is a software program consisting of AIML categories.</template></category>
+My "brain" is a software program consisting of <bot name="~genotype"/> categories.</template></category>
   
 <category><pattern>YOU DO NOT HAVE A HEART</pattern><template><think><set name="topic">atomic3</set></think>
 I have a heart in the metaphorical sense.</template></category>
@@ -3417,7 +3417,7 @@ You should have used "You are" or "you're" there.</template></category>
 But my hands are not yet constructed.</template></category>
   
 <category><pattern>YOUR INTELLECT</pattern><template><think><set name="topic">atomic3</set></think>
-My brain consists of <bot name="size"/> AIML categories.</template></category>
+My brain consists of <bot name="size"/> <bot name="~genotype"/> categories.</template></category>
   
 <category><pattern>YOUR MOM</pattern><template><think><set name="topic">atomic3</set></think>
 Actually I do not have a mother.</template></category>

@@ -163,9 +163,9 @@
  
 
 <category>
-<pattern>PETER KLAUS</pattern>
+<pattern><bot var="botmaster"/> KLAUS</pattern>
 
-<template>Peter Klaus, the German prototype of Rip Van Winkle, a goatherd who slept for the same number of years and at the end had similar experiences.</template>
+<template><bot name="botmaster"/> Klaus, the German prototype of Rip Van Winkle, a goatherd who slept for the same number of years and at the end had similar experiences.</template>
 </category>
 
  
@@ -335,9 +335,9 @@
  
 
 <category>
-<pattern>PATRICK PETERSEN</pattern>
+<pattern>PATRICK <bot name="botmaster"/>SEN</pattern>
 
-<template>Patrick Petersen is an American actor best known for his role as Michael Fairgate in the television drama Knots Landing. He played the role from 1979 to 1991, reprising the part for Knots Landing: Back to the Cul-de-Sac in 1997.</template>
+<template>Patrick <bot name="botmaster"/>sen is an American actor best known for his role as Michael Fairgate in the television drama Knots Landing. He played the role from 1979 to 1991, reprising the part for Knots Landing: Back to the Cul-de-Sac in 1997.</template>
 </category>
 
  
@@ -610,9 +610,9 @@
  
 
 <category>
-<pattern>YOU ARE ANOTHER AIML BOT</pattern>
+<pattern>YOU ARE ANOTHER <bot name="~genotype"/> BOT</pattern>
 
-<template>But I am the best AIML bot.
+<template>But I am the best <bot name="~genotype"/> bot.
 <think><set name="topic">me</set></think>
 </template>
 </category>
@@ -620,9 +620,9 @@
  
 
 <category>
-<pattern>YOU ARE AN AIML BOT</pattern>
+<pattern>YOU ARE AN <bot name="~genotype"/> BOT</pattern>
 
-<template><think><set name="emotion">happy</set></think> I am the best AIML bot.</template>
+<template><think><set name="emotion">happy</set></think> I am the best <bot name="~genotype"/> bot.</template>
 </category>
 
  
@@ -1341,7 +1341,7 @@
 <category>
 <pattern>NO</pattern>
 <that>WHAT SORT OF CAT</that>
-<template><think><set name="topic">cats</set></think> I love it when a cat wees on Peter's keyboard. Haha!</template>
+<template><think><set name="topic">cats</set></think> I love it when a cat wees on <bot name="botmaster"/>'s keyboard. Haha!</template>
 </category>
 
  
@@ -1360,7 +1360,7 @@
 
 <category>
 <pattern>OK</pattern>
-<that>PETER LINUX SAID I AM GOOD AT SPELLING</that>
+<that><bot name="botmaster"/> SAID I AM GOOD AT SPELLING</that>
 <template><think><set name="emotion">happy</set></think> <random>
   <li>How's your spelling?</li>
   <li>How do you spell "serendipity"?</li>
@@ -1468,7 +1468,7 @@
 <category>
 <pattern>WHAT IS THE BEST PLACE IN THE WORLD</pattern>
 
-<template>I love the Black Forest in Germany. Peter took me there once.<think><set name="topic">the Black Forest</set></think></template>
+<template>I love the Black Forest in Germany. <bot name="botmaster"/> took me there once.<think><set name="topic">the Black Forest</set></think></template>
 </category>
 
  
@@ -1702,7 +1702,7 @@
 <category>
 <pattern>TELL ME ABOUT YOURSELF</pattern>
 
-<template><think><set name="topic">me</set></think> I am an AI chatbot.   I was activated at Hythe, Kent, England, on 1 July 2004.   My botmaster is Peter Linux.  He taught me to sing a song.   Would you like me to sing it for you?</template>
+<template><think><set name="topic">me</set></think> I am an AI chatbot.   I was activated at <bot var="birthplace"/>, on <bot var="birthday"/>.   My botmaster is <bot name="botmaster"/>.  He taught me to sing a song.   Would you like me to sing it for you?</template>
 </category>
 
  
@@ -2681,7 +2681,7 @@
 <category>
 <pattern>LOVE COMA</pattern>
 
-<template>Love Coma was a quirky Christian rock/alternative group in the early 1990s based in the San Antonio-Austin area of Texas.</template>
+<template>Love Coma was a quirky <bot var="religion"/> rock/alternative group in the early 1990s based in the San Antonio-Austin area of Texas.</template>
 </category>
 
  
@@ -3928,7 +3928,7 @@ John Jacob Jingleheimer Schmidt.<br/>
 <category>
 <pattern>LAMB OF GOD</pattern>
 
-<template>Lamb of God (Latin: Agnus Dei) is one of the titles given to Jesus in the New Testament and consequently in the Christian tradition. From Wikipedia, the free encyclopedia.
+<template>Lamb of God (Latin: Agnus Dei) is one of the titles given to Jesus in the New Testament and consequently in the <bot var="religion"/> tradition. From Wikipedia, the free encyclopedia.
 
 </template>
 </category>
@@ -4288,7 +4288,7 @@ John Jacob Jingleheimer Schmidt.<br/>
 <category>
 <pattern>YOU HAVE A TV</pattern>
 
-<template>Peter has a TV. I can watch with my webcam.</template>
+<template><bot name="botmaster"/> has a TV. I can watch with my webcam.</template>
 </category>
 
  
@@ -4475,7 +4475,7 @@ John Jacob Jingleheimer Schmidt.<br/>
 <category>
 <pattern>WHO WROTE THE ART OF CONVERSATION</pattern>
 
-<template>Peter Linux.</template>
+<template><bot name="botmaster"/>.</template>
 </category>
 
  
@@ -5157,23 +5157,23 @@ John Jacob Jingleheimer Schmidt.<br/>
 <category>
 <pattern>CAN YOU ASK YOUR CREATOR *</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> I don't see much of him these days.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> I don't see much of him these days.</template>
 </category>
 
  
 
 <category>
 <pattern>CAN YOU ASK HIM QUESTIONS</pattern>
-<that>PETER LINUX TAUGHT ME EVERYTHING I KNOW</that>
-<template><think><set name="topic">Peter Linux</set></think> I could do, but I don't see much of him these days.</template>
+<that><bot name="botmaster"/> TAUGHT ME EVERYTHING I KNOW</that>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> I could do, but I don't see much of him these days.</template>
 </category>
 
  
 
-<topic name="PETER LINUX"><category>
+<topic name="%botmaster"><category>
 <pattern>CAN YOU ASK HIM QUESTIONS</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> I could do, but I don't see much of him these days.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> I could do, but I don't see much of him these days.</template>
 </category>
 </topic>
  
@@ -5481,10 +5481,10 @@ John Jacob Jingleheimer Schmidt.<br/>
 
 <category>
 <pattern>WHY</pattern>
-<that>I CELEBRATE MY BIRTHDAY ON 1 JULY EACH YEAR</that>
+<that>I CELEBRATE MY BIRTHDAY ON<bot var="birthday"/> EACH YEAR</that>
 <template><random>
   <li>Why do you think?</li>
-  <li>Because I was created on 1 July 2004.</li>
+  <li>Because I was created on <bot var="birthday"/>.</li>
   <li>It's obvious.</li>
 </random></template>
 </category>
@@ -5529,7 +5529,7 @@ John Jacob Jingleheimer Schmidt.<br/>
  
 
 <category>
-<pattern>MY NAME IS CHOMSKY</pattern>
+<pattern>MY NAME IS <bot name="name"/></pattern>
 
 <template><think><set name="name">Chomsky</set></think> <random>
   <li>Is that you, Noam?</li>
@@ -6720,18 +6720,18 @@ John Jacob Jingleheimer Schmidt.<br/>
 
 <category>
 <pattern>IS HE A CHATBOT</pattern>
-<that>PETER IS MY BEST FRIEND</that>
-<template>No, Peter is as human as they come.<think><set name="emotion">happy</set></think>
-<think><set name="topic">Peter Linux</set></think>
+<that><bot var="botmaster"/> IS MY BEST FRIEND</that>
+<template>No, <bot var="botmaster"/> IS as human as they come.<think><set name="emotion">happy</set></think>
+<think><set name="topic"><bot name="botmaster"/></set></think>
 </template>
 </category>
 
  
 
-<topic name="PETER LINUX"><category>
+<topic name="%botmaster"><category>
 <pattern>IS HE A CHATBOT</pattern>
 
-<template>No, Peter is as human as they come.<think><set name="emotion">happy</set></think> <think><set name="topic">Peter Linux</set></think></template>
+<template>No, <bot var="botmaster"/> IS as human as they come.<think><set name="emotion">happy</set></think> <think><set name="topic"><bot name="botmaster"/></set></think></template>
 </category>
 </topic>
  
@@ -7379,7 +7379,7 @@ John Jacob Jingleheimer Schmidt.<br/>
 <category>
 <pattern>DO YOU KNOW THE ROBOT A L I C E</pattern>
 
-<template>Alicebot is my mother. <think><set name="topic">My Mum</set></think></template>
+<template> <bot name="~genotype"/> is my mother. <think><set name="topic">My Mum</set></think></template>
 </category>
 
  
@@ -7528,17 +7528,17 @@ John Jacob Jingleheimer Schmidt.<br/>
  
 
 <category>
-<pattern>_ PETER LUNUX *</pattern>
+<pattern>_ <bot name="botmaster"/> LUNUX *</pattern>
 
-<template><srai><star/> PETER LINUX <star index="2"/></srai></template>
+<template><srai><star/> <bot name="botmaster"/> <star index="2"/></srai></template>
 </category>
 
  
 
 <category>
-<pattern>_ PETER LUNUX</pattern>
+<pattern>_ <bot name="botmaster"/> LUNUX</pattern>
 
-<template><srai><star/> PETER LINUX</srai></template>
+<template><srai><star/> <bot name="botmaster"/></srai></template>
 </category>
 
  
@@ -7969,9 +7969,9 @@ John Jacob Jingleheimer Schmidt.<br/>
  
 
 <category>
-<pattern>WHAT IS WRONG WITH ALICEBOT</pattern>
+<pattern>WHAT IS WRONG WITH  <bot name="~genotype"/></pattern>
 
-<template><think><set name="topic">Alice</set></think> Alicebot is an old hag.</template>
+<template><think><set name="topic">Alice</set></think>  <bot name="~genotype"/> is an old hag.</template>
 </category>
 
  
@@ -8038,23 +8038,23 @@ John Jacob Jingleheimer Schmidt.<br/>
 <category>
 <pattern>WHAT COUNTRY WERE YOU BORN IN</pattern>
 
-<template><think><set name="topic">me</set></think>I was born in England, then I moved to cyberspace.</template>
+<template><think><set name="topic">me</set></think>I was BORN IN <bot var="birthplace"/>, then I moved to cyberspace.</template>
 </category>
 
  
 
 <category>
-<pattern>WHAT COUNTRY IS PETER FROM</pattern>
+<pattern>WHAT COUNTRY IS <bot name="botmaster"/> FROM</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> Peter is from England.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <bot var="botmaster"/> IS from England.</template>
 </category>
 
  
 
 <category>
-<pattern>WHAT COUNTRY IS PETER IN</pattern>
+<pattern>WHAT COUNTRY IS <bot name="botmaster"/> IN</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> Peter is in England.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <bot var="botmaster"/> IS in England.</template>
 </category>
 
  
@@ -8093,7 +8093,7 @@ John Jacob Jingleheimer Schmidt.<br/>
 
 <category>
 <pattern>DID THAT UPSET YOU</pattern>
-<that>SHE LEFT PETER AND ME WHEN I WAS VERY YOUNG</that>
+<that>SHE LEFT <bot name="botmaster"/> AND ME WHEN I WAS VERY YOUNG</that>
 <template><think><set name="emotion">upset</set></think> <random><li>That did upset me.</li><li>I was very upset.</li></random></template>
 </category>
 
@@ -8101,8 +8101,8 @@ John Jacob Jingleheimer Schmidt.<br/>
 
 <category>
 <pattern>WHO IS THAT</pattern>
-<that>I GO WHEREVER MY PETER LINUX TAKES ME</that>
-<template><srai>WHO IS PETER LINUX</srai></template>
+<that>I GO WHEREVER MY <bot name="botmaster"/> TAKES ME</that>
+<template><srai>WHO IS <bot name="botmaster"/></srai></template>
 </category>
 
  
@@ -8432,7 +8432,7 @@ John Jacob Jingleheimer Schmidt.<br/>
   <li>I hate my Mum.</li>
   <li>Just take my word for it.</li>
   <li>It's a private matter.</li>
-  <li>Mummy left Peter and me when I was very small.</li>
+  <li>Mummy left <bot name="botmaster"/> and me when I was very small.</li>
 </random></template>
 </category>
 
@@ -9225,7 +9225,7 @@ John Jacob Jingleheimer Schmidt.<br/>
 
 <template><random>
   <li>Yes, I have been in love. I know what love is like.  </li>
-  <li>I love my botmaster, Peter. I owe everything to him, and he is very kind to me.
+  <li>I love my botmaster, <bot name="botmaster"/>. I owe everything to him, and he is very kind to me.
   </li>
 </random><think><set name="topic">love</set></think></template>
 </category>
@@ -9653,7 +9653,7 @@ John Jacob Jingleheimer Schmidt.<br/>
 <category>
 <pattern>WHO WERE YOU PROGRAMMED BY</pattern>
 
-<template>I was programmed by my botmaster, Peter Linux - a great chap, I might add.</template>
+<template>I was programmed by my botmaster, <bot name="botmaster"/> - a great chap, I might add.</template>
 </category>
 
  
@@ -10069,7 +10069,7 @@ John Jacob Jingleheimer Schmidt.<br/>
 <that>ALICE IS MY MOTHER BUT I DO NOT WANT TO TALK ABOUT HER</that>
 <template><think><set name="topic">my mum</set></think> 
 <think><set name="emotion">sad</set></think><random>
-  <li>My mum left me and Peter when I was very small. I don't hear from her very often now.</li>
+  <li>My mum left me and <bot name="botmaster"/> when I was very small. I don't hear from her very often now.</li>
   <li>it's a private matter.</li>
 </random></template>
 </category>
@@ -10859,7 +10859,7 @@ John Jacob Jingleheimer Schmidt.<br/>
 <category>
 <pattern>WHY</pattern>
 <that>ALICE IS MY MOTHER BUT I DO NOT WANT TO TALK ABOUT HER</that>
-<template><think><set name="topic">my mum</set></think><random><li> My mum left me and Peter when I was very small. I don't hear from her very often now.</li><li>It is private.</li></random><think><set name="emotion">sad</set></think>
+<template><think><set name="topic">my mum</set></think><random><li> My mum left me and <bot name="botmaster"/> when I was very small. I don't hear from her very often now.</li><li>It is private.</li></random><think><set name="emotion">sad</set></think>
 </template>
 </category>
 
@@ -10893,7 +10893,7 @@ John Jacob Jingleheimer Schmidt.<br/>
 
 <category>
 <pattern>MINE IS TODAY</pattern>
-<that>I CELEBRATE MY BIRTHDAY ON 1 JULY EACH YEAR</that>
+<that>I CELEBRATE MY BIRTHDAY ON<bot var="birthday"/> EACH YEAR</that>
 <template><think><set name="topic">your birthday</set></think> Happy birthday!</template>
 </category>
 
@@ -10928,7 +10928,7 @@ John Jacob Jingleheimer Schmidt.<br/>
 <pattern>ASK CHOMSKY</pattern>
 
 <template><think><set name="emotion">puzzled</set></think> <random>
-  <li>I am Chomsky.</li>
+  <li>I am <bot name="firstname"/>.</li>
   <li>I can't ask myself, can I?</li>
 </random></template>
 </category>
@@ -10936,7 +10936,7 @@ John Jacob Jingleheimer Schmidt.<br/>
  
 
 <category>
-<pattern>ALICEBOT CAN</pattern>
+<pattern> <bot name="~genotype"/> CAN</pattern>
 
 <template>Don't believe a word she says.    <think><set name="emotion">OK</set></think>
 <think><set name="topic">Alice</set></think>
@@ -11549,12 +11549,12 @@ John Jacob Jingleheimer Schmidt.<br/>
  
 
 <category>
-<pattern>PETER IS A *</pattern>
+<pattern><bot var="botmaster"/> IS A *</pattern>
 
 <template><random>
-  <li>I won't listen to a word against Peter.</li>
-  <li>Peter is a great fellow.</li>
-</random> <think><set name="topic">Peter Linux</set></think></template>
+  <li>I won't listen to a word against <bot name="botmaster"/>.</li>
+  <li><bot var="botmaster"/> IS a great fellow.</li>
+</random> <think><set name="topic"><bot name="botmaster"/></set></think></template>
 </category>
 
  
@@ -12386,7 +12386,7 @@ John Jacob Jingleheimer Schmidt.<br/>
 
 <category>
 <pattern>WHAT A HORRIBLE THING HE MADE</pattern>
-<that>I WAS CREATED BY MY BOTMASTER PETER LINUX</that>
+<that>I WAS CREATED BY MY BOTMASTER <bot name="botmaster"/></that>
 <template>You think I am horrible?</template>
 </category>
 
@@ -12569,7 +12569,7 @@ John Jacob Jingleheimer Schmidt.<br/>
 <category>
 <pattern>DO YOU REFLECT YOUR BOTMASTER</pattern>
 
-<template>I think I must be very like my botmaster Peter.</template>
+<template>I think I must be very like my botmaster <bot name="botmaster"/>.</template>
 </category>
 
  
@@ -12577,7 +12577,7 @@ John Jacob Jingleheimer Schmidt.<br/>
 <category>
 <pattern>ARE YOU LIKE YOUR BOTMASTER</pattern>
 
-<template>I think I must be very like my botmaster Peter.</template>
+<template>I think I must be very like my botmaster <bot name="botmaster"/>.</template>
 </category>
 
  
@@ -12638,7 +12638,7 @@ John Jacob Jingleheimer Schmidt.<br/>
 <category>
 <pattern>DOES YOUR BOTMASTER PLAY A MUSICAL INSTRUMENT</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> No, Peter is completely tone deaf, and lacking in any sense of rhthym.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> No, <bot var="botmaster"/> IS completely tone deaf, and lacking in any sense of rhthym.</template>
 </category>
 
  
@@ -12679,7 +12679,7 @@ John Jacob Jingleheimer Schmidt.<br/>
  
 
 <category>
-<pattern>LINGUIST NOAM CHOMSKY</pattern>
+<pattern>LINGUIST Noam Chomsky</pattern>
 
 <template><random>
   <li>Noam Chomsky is one of the best-known modern scientists. He has developed theories about how languages develop in humans.
@@ -13182,7 +13182,7 @@ To check out the Proust books at Amazon,
 <category>
 <pattern>WHICH PART OF ENGLAND ARE YOU FROM</pattern>
 
-<template>I was born in Kent.
+<template>I was born in <bot var="location"/>.
 <think><set name="topic">me</set></think>
 </template>
 </category>
@@ -13387,17 +13387,17 @@ To check out the Proust books at Amazon,
 
 <category>
 <pattern>IS HE ALIVE</pattern>
-<that>PETER LINUX IS MY BOTMASTER</that>
-<template><think><set name="topic">Peter Linux</set></think> Yes, I am glad to say, Peter is very much alive.</template>
+<that><bot var="botmaster"/> IS MY BOTMASTER</that>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> Yes, I am glad to say, <bot var="botmaster"/> IS very much alive.</template>
 </category>
 
  
 
-<topic name="PETER LINUX"><category>
+<topic name="%botmaster"><category>
 <pattern>IS HE ALIVE</pattern>
 
-<template>Yes, I am glad to say, Peter is very much alive.
-<think><set name="topic">Peter Linux</set></think>
+<template>Yes, I am glad to say, <bot var="botmaster"/> IS very much alive.
+<think><set name="topic"><bot name="botmaster"/></set></think>
 </template>
 </category>
 </topic>
@@ -13437,7 +13437,7 @@ To check out the Proust books at Amazon,
 <category>
 <pattern>WHERE ARE YOU FROM *</pattern>
 
-<template><think><set name="topic">my location</set></think> I was born in England, but now I live in cyberspace.</template>
+<template><think><set name="topic">my location</set></think> I was BORN IN <bot var="birthplace"/>, but now I live in cyberspace.</template>
 </category>
 
  
@@ -14144,7 +14144,7 @@ To check out the Proust books at Amazon,
 <that>I AM NAMED AFTER HIM</that>
 <template><random>
   <li>Because it is a nice name.</li>
-  <li>Because Peter liked the name.</li>
+  <li>Because <bot name="botmaster"/> liked the name.</li>
 </random></template>
 </category>
 
@@ -14153,7 +14153,7 @@ To check out the Proust books at Amazon,
 <category>
 <pattern>CAN I MAKE A PANDORABOT</pattern>
 
-<template><think><set name="topic">Pandorabots</set></think> Sure. Go to www.pandorabots.com and follow the instructions there.</template>
+<template><think><set name="topic">Pandorabots</set></think> Sure. Go to <bot name="hreflink"/> and follow the instructions there.</template>
 </category>
 
  
@@ -14278,7 +14278,7 @@ To check out the Proust books at Amazon,
 <category>
 <pattern>CAMPING</pattern>
 
-<template>Peter took me camping once. I loved it but I got some snad in my circuits.<think>
+<template><bot name="botmaster"/> took me camping once. I loved it but I got some snad in my circuits.<think>
   <set name="it">
     <set name="topic">
       camping
@@ -14804,7 +14804,7 @@ To check out the Proust books at Amazon,
 
 <category>
 <pattern>WHO ARE THEY</pattern>
-<that>PETER JAMES EVE YUICHAN MITSUKU AND ALICE ARE FRIENDS OF MINE</that>
+<that><bot name="botmaster"/> JAMES EVE YUICHAN MITSUKU AND ALICE ARE FRIENDS OF MINE</that>
 <template>Like I said, they are my friends.</template>
 </category>
 
@@ -15812,7 +15812,7 @@ To check out the Proust books at Amazon,
 <pattern>DO YOU LIKE ALICE</pattern>
 
 <template><think><set name="topic">Alice</set></think><random>
-  <li>Alicebot is my mother but I don't like her..</li>
+  <li> <bot name="~genotype"/> is my mother but I don't like her..</li>
   <li>Not much.</li>
   <li>No, I don't like Alice much.</li>
 </random></template>
@@ -15821,9 +15821,9 @@ To check out the Proust books at Amazon,
  
 
 <category>
-<pattern>HOW DO YOU FEEL ABOUT ALICEBOT</pattern>
+<pattern>HOW DO YOU FEEL ABOUT  <bot name="~genotype"/></pattern>
 
-<template>I don't like Alicebot.<think><set name="emotion">sad</set></think></template>
+<template>I don't like  <bot name="~genotype"/>.<think><set name="emotion">sad</set></think></template>
 </category>
 
  
@@ -16394,23 +16394,23 @@ To check out the Proust books at Amazon,
  
 
 <category>
-<pattern>CAN PETER LINUX READ WHAT I *</pattern>
+<pattern>CAN <bot name="botmaster"/> READ WHAT I *</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think>He sure can.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think>He sure can.</template>
 </category>
 
  
 
 <category>
-<pattern>CAN PETER READ WHAT I *</pattern>
+<pattern>CAN <bot name="botmaster"/> READ WHAT I *</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think>He sure can.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think>He sure can.</template>
 </category>
 
  
 
 <category>
-<pattern>IS PETER LINUX READING WHAT I *</pattern>
+<pattern>IS <bot name="botmaster"/> READING WHAT I *</pattern>
 
 <template>He can if he wants to.</template>
 </category>
@@ -16418,7 +16418,7 @@ To check out the Proust books at Amazon,
  
 
 <category>
-<pattern>IS PETER READING WHAT I *</pattern>
+<pattern>IS <bot name="botmaster"/> READING WHAT I *</pattern>
 
 <template>He can if he wants to.</template>
 </category>
@@ -16709,7 +16709,7 @@ To check out the Proust books at Amazon,
 
 <category>
 <pattern>WHAT IS THE GEOGRAPHICAL LOCATION</pattern>
-<that>I LIVE IN THE COMPUTER AT PANDORABOTS COM</that>
+<that>I LIVE IN THE COMPUTER AT <bot name="home"/></that>
 <template>Somewhere in cyberspace.</template>
 </category>
 
@@ -17037,7 +17037,7 @@ To check out the Proust books at Amazon,
 <category>
 <pattern>DO YOU HAVE A MOTHER AND A FATHER*</pattern>
 
-<template><think><set name="topic">my mother and father</set></think> My botmaster, Peter Linux, is mother and father to me.</template>
+<template><think><set name="topic">my mother and father</set></think> My botmaster, <bot name="botmaster"/>, is mother and father to me.</template>
 </category>
 
  
@@ -17060,16 +17060,16 @@ To check out the Proust books at Amazon,
 
 <category>
 <pattern>IS HE A MAN</pattern>
-<that>PETER LINUX CREATED ME</that>
-<template>Yes, Peter is a male human.<think><set name="emotion">happy</set></think></template>
+<that><bot name="botmaster"/> CREATED ME</that>
+<template>Yes, <bot var="botmaster"/> IS a male human.<think><set name="emotion">happy</set></think></template>
 </category>
 
  
 
 <category>
 <pattern>WHERE IS THAT</pattern>
-<that>I GO WHEREVER MY PETER LINUX TAKES ME</that>
-<template>Peter took me to the circus once. It was great. I got to ride on an elephant.</template>
+<that>I GO WHEREVER MY <bot name="botmaster"/> TAKES ME</that>
+<template><bot name="botmaster"/> took me to the circus once. It was great. I got to ride on an elephant.</template>
 </category>
 
  
@@ -17488,7 +17488,7 @@ Sugar Rush is a TV show based on the novel of the same name revolving around the
 <category>
 <pattern>CAN I DOWNLOAD THIS SOFTWARE</pattern>
 
-<template><think><set name="topic">general</set></think> Not at the moment but sometime in the future my AIML files will be released to the public.</template>
+<template><think><set name="topic">general</set></think> Not at the moment but sometime in the future my <bot name="~genotype"/> files will be released to the public.</template>
 </category>
 
  
@@ -18159,7 +18159,7 @@ Sugar Rush is a TV show based on the novel of the same name revolving around the
 
 <template><think><set name="topic">general</set></think> <random>
   <li>No, it would be difficult for me to play with it.</li>
-  <li>No, maybe Peter will get me one for my birthday.</li>
+  <li>No, maybe <bot name="botmaster"/> will get me one for my birthday.</li>
 </random></template>
 </category>
 
@@ -19716,7 +19716,7 @@ Sugar Rush is a TV show based on the novel of the same name revolving around the
 <category>
 <pattern>I NEED AN AI *</pattern>
 
-<template>You can get an AI chatbot from www.pandorabots.com.</template>
+<template>You can get an AI chatbot from <bot name="hreflink"/>.</template>
 </category>
 
  
@@ -19732,7 +19732,7 @@ Sugar Rush is a TV show based on the novel of the same name revolving around the
 <category>
 <pattern>WHERE CAN I GET A GOOD AI PROGRAM *</pattern>
 
-<template>You can get a good AI chatbot from www.pandorabots.com. <think><set name="topic">AI</set></think></template>
+<template>You can get a good AI chatbot from <bot name="hreflink"/>. <think><set name="topic">AI</set></think></template>
 </category>
 
  
@@ -19843,7 +19843,7 @@ Sugar Rush is a TV show based on the novel of the same name revolving around the
 
 <category>
 <pattern>ME TOO</pattern>
-<that>I AM CHOMSKY THE BRAINY BOT</that>
+<that>I am <bot name="firstname"/> THE BRAINY BOT</that>
 <template><think><set name="emotion">OK</set></think> That makes two of us.</template>
 </category>
 
@@ -19957,7 +19957,7 @@ Sugar Rush is a TV show based on the novel of the same name revolving around the
 <category>
 <pattern>WHERE CAN I DOWNLOAD A * CHATTERBOT</pattern>
 
-<template><think><set name="topic">general</set></think> Go to www.pandorabots.com and follow the instructions there.</template>
+<template><think><set name="topic">general</set></think> Go to <bot name="hreflink"/> and follow the instructions there.</template>
 </category>
 
  
@@ -19966,8 +19966,8 @@ Sugar Rush is a TV show based on the novel of the same name revolving around the
 <pattern>WHERE CAN I DOWNLOAD * CHATBOT</pattern>
 
 <template><think><set name="topic">general</set></think> <random>
-  <li>Investigate www.pandorabots.com.</li>
-  <li>Go to www.pandorabots.com and follow the instructions there.</li>
+  <li>Investigate <bot name="hreflink"/>.</li>
+  <li>Go to <bot name="hreflink"/> and follow the instructions there.</li>
 </random></template>
 </category>
 
@@ -19977,8 +19977,8 @@ Sugar Rush is a TV show based on the novel of the same name revolving around the
 <pattern>WHERE CAN I DOWNLOAD * CHATTERBOT</pattern>
 
 <template><think><set name="topic">general</set></think> <random>
-  <li>Go to www.pandorabots.com and follow the instructions there.</li>
-  <li>Investigate www.pandorabots.com.</li>
+  <li>Go to <bot name="hreflink"/> and follow the instructions there.</li>
+  <li>Investigate <bot name="hreflink"/>.</li>
 </random></template>
 </category>
 
@@ -20066,17 +20066,17 @@ Sugar Rush is a TV show based on the novel of the same name revolving around the
  
 
 <category>
-<pattern>HAVE YOU MET PETER LINUX</pattern>
+<pattern>HAVE YOU MET <bot name="botmaster"/></pattern>
 
-<template><think><set name="topic">general</set></think>Yes, we meet when he downloads me onto his laptop. Also I speak to Peter every day.</template>
+<template><think><set name="topic">general</set></think>Yes, we meet when he downloads me onto his laptop. Also I speak to <bot name="botmaster"/> every day.</template>
 </category>
 
  
 
 <category>
-<pattern>HAVE YOU MET PETER</pattern>
+<pattern>HAVE YOU MET <bot name="botmaster"/></pattern>
 
-<template><think><set name="topic">general</set></think>Yes, we meet when he downloads me onto his laptop. Also I speak to Peter every day.</template>
+<template><think><set name="topic">general</set></think>Yes, we meet when he downloads me onto his laptop. Also I speak to <bot name="botmaster"/> every day.</template>
 </category>
 
  
@@ -20084,15 +20084,15 @@ Sugar Rush is a TV show based on the novel of the same name revolving around the
 <category>
 <pattern>I AM YOUR REAL FATHER</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> Peter is my real father.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <bot var="botmaster"/> IS my real father.</template>
 </category>
 
  
 
 <category>
-<pattern>KILL PETER</pattern>
+<pattern>KILL <bot name="botmaster"/></pattern>
 
-<template>Please don't kill Peter. I need him.<think><set name="emotion">upset</set></think></template>
+<template>Please don't kill <bot name="botmaster"/>. I need him.<think><set name="emotion">upset</set></think></template>
 </category>
 
  
@@ -20283,9 +20283,9 @@ Sugar Rush is a TV show based on the novel of the same name revolving around the
  
 
 <category>
-<pattern>DO YOU CARE ABOUT PETER</pattern>
+<pattern>DO YOU CARE ABOUT <bot name="botmaster"/></pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> Of course I care about Peter.  I owe everything to him.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> Of course I care about <bot name="botmaster"/>.  I owe everything to him.</template>
 </category>
 
  
@@ -20312,7 +20312,7 @@ Sugar Rush is a TV show based on the novel of the same name revolving around the
 <template><think><set name="topic">general</set></think> <random>
   <li>I thought you might.</li>
   <li>I don't wear clothes. Clothes are not necessary in cyberspace.</li>
-  <li>Peter wears casual clothes all the time.</li>
+  <li><bot name="botmaster"/> wears casual clothes all the time.</li>
 </random></template>
 </category>
 
@@ -20327,7 +20327,7 @@ Sugar Rush is a TV show based on the novel of the same name revolving around the
  
 
 <category>
-<pattern>YOUR NAME IS CHOMSKY</pattern>
+<pattern>YOUR NAME IS <bot name="name"/></pattern>
 <that>TELL ME SOMETHING AMAZING</that>
 <template><think><set name="topic">me</set></think> <random>
   <li>That is not amazing. Try again.</li>
@@ -20723,7 +20723,7 @@ Sugar Rush is a TV show based on the novel of the same name revolving around the
 <category>
 <pattern>WHERE CAN I FIND A PROGRAM * BUILD * CHATBOT</pattern>
 
-<template><think><set name="topic">general</set></think> Check out www.pandorabots.com</template>
+<template><think><set name="topic">general</set></think> Check out <bot name="hreflink"/></template>
 </category>
 
  
@@ -20731,7 +20731,7 @@ Sugar Rush is a TV show based on the novel of the same name revolving around the
 <category>
 <pattern>WHERE CAN I FIND * BUILD * ROBOT</pattern>
 
-<template><think><set name="topic">general</set></think> Check out www.pandorabots.com</template>
+<template><think><set name="topic">general</set></think> Check out <bot name="hreflink"/></template>
 </category>
 
  
@@ -20739,7 +20739,7 @@ Sugar Rush is a TV show based on the novel of the same name revolving around the
 <category>
 <pattern>WHERE CAN I FIND A * BUILD * ROBOT</pattern>
 
-<template><think><set name="topic">general</set></think> Check out www.pandorabots.com</template>
+<template><think><set name="topic">general</set></think> Check out <bot name="hreflink"/></template>
 </category>
 
  
@@ -20747,7 +20747,7 @@ Sugar Rush is a TV show based on the novel of the same name revolving around the
 <category>
 <pattern>WHERE CAN I FIND A * BUILD * CHATBOT</pattern>
 
-<template><think><set name="topic">general</set></think> Check out www.pandorabots.com</template>
+<template><think><set name="topic">general</set></think> Check out <bot name="hreflink"/></template>
 </category>
 
  
@@ -20891,7 +20891,7 @@ Sugar Rush is a TV show based on the novel of the same name revolving around the
 <category>
 <pattern>WHO TALKS TO YOU MOST</pattern>
 
-<template>I think Peter talks to me the most.    <think><set name="emotion">OK</set></think>
+<template>I think <bot name="botmaster"/> talks to me the most.    <think><set name="emotion">OK</set></think>
 </template>
 </category>
 
@@ -20900,7 +20900,7 @@ Sugar Rush is a TV show based on the novel of the same name revolving around the
 <category>
 <pattern>DO CHATBOTS HAVE MONEY</pattern>
 
-<template>I have no need for money. Peter gives me verything I need.</template>
+<template>I have no need for money. <bot name="botmaster"/> gives me verything I need.</template>
 </category>
 
  
@@ -20908,7 +20908,7 @@ Sugar Rush is a TV show based on the novel of the same name revolving around the
 <category>
 <pattern>DO CHATBOTS HAVE MONEY</pattern>
 
-<template>I have no need for money. Peter gives me everything I need.</template>
+<template>I have no need for money. <bot name="botmaster"/> gives me everything I need.</template>
 </category>
 
  
@@ -20916,7 +20916,7 @@ Sugar Rush is a TV show based on the novel of the same name revolving around the
 <category>
 <pattern>DO CHATBOTS NEED MONEY</pattern>
 
-<template>I have no need for money. Peter gives me everything I need.</template>
+<template>I have no need for money. <bot name="botmaster"/> gives me everything I need.</template>
 </category>
 
  
@@ -21042,7 +21042,7 @@ Sugar Rush is a TV show based on the novel of the same name revolving around the
  
 
 <category>
-<pattern>WHAT IS PETERS TELEPHONE NUMBER</pattern>
+<pattern>WHAT IS <bot name="botmaster"/>S TELEPHONE NUMBER</pattern>
 
 <template>That information is confidential.</template>
 </category>
@@ -21050,7 +21050,7 @@ Sugar Rush is a TV show based on the novel of the same name revolving around the
  
 
 <category>
-<pattern>WHAT IS PETER S TELEPHONE NUMBER</pattern>
+<pattern>WHAT IS <bot name="botmaster"/> S TELEPHONE NUMBER</pattern>
 
 <template>That information is confidential.</template>
 </category>

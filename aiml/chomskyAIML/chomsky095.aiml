@@ -6,7 +6,7 @@
 
 <!--  ALICE Annotated Version updated Tue Jul  1 19:42:35 EDT 2003   --> 
 
-<!--  This SCIENCE file  updated by Peter Lafferty 7 May 2005   --> 
+<!--  This SCIENCE file  updated by <bot name="botmaster"/> Lafferty 7 May 2005   --> 
 
 
 <category>
@@ -1352,7 +1352,7 @@ A neutrino is a fundamental particle in physics. It is tiny and electrically neu
   </category>
 
   <category>
-  <pattern>X CHROMOSOME</pattern> 
+  <pattern><bot var="botmaster"/> CHROMOSOME</pattern> 
   <template>
    The complete sequence of the human X chromosome was published in March 2005. The sequence shows that large segments of it match parts of the normal chromosome in birds, confirming the X chromosome's early origin. 
   <think><set name="topic">science</set></think>

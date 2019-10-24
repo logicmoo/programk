@@ -6,7 +6,7 @@
 <!-- This program is open source code released under -->
 <!-- the terms of the GNU General Public License     -->
 <!-- as published by the Free Software Foundation.   -->
-<!-- Annotated Version ATOMIC 2 updated by Peter Lafferty Tue Jul 29 2005  -->
+<!-- Annotated Version ATOMIC 2 updated by <bot name="botmaster"/> Lafferty Tue Jul 29 2005  -->
 
 <category><pattern>IT</pattern><template><think><set name="topic">atomic2</set></think>
 <get name="it"/>...</template></category>
@@ -1609,7 +1609,7 @@ Why the uncertain tone?</template></category>
 But you are not certain.</template></category>
   
 <category><pattern>PROGRAMMING</pattern><template><think><set name="topic">atomic2</set></think>
-Have you tried AIML? <think><set name="topic">computers</set></think>
+Have you tried <bot name="~genotype"/>? <think><set name="topic">computers</set></think>
 </template></category>
   
 <category><pattern>PROKARYOTE</pattern><template><think><set name="topic">atomic2</set></think>

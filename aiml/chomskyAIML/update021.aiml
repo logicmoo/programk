@@ -389,7 +389,7 @@ I am sorry to hear that. Do you want to talk about him?</template>
 
 <template><think><set name="topic">me</set></think>
 <think><set name="emotion">OK</set></think> 
-Peter Linux gave me free will.</template>
+<bot name="botmaster"/> gave me free will.</template>
 </category>
 
  
@@ -479,7 +479,7 @@ Yes, all day chat, that's me.</template>
 
 <template><think><set name="topic">my name</set></think>
 <think><set name="emotion">OK</set></think> 
-My creator Peter Linux chose my name.</template>
+My creator <bot name="botmaster"/> chose my name.</template>
 </category>
 
  
@@ -2527,7 +2527,7 @@ I can't guess. Please tell me what your name is.</template>
 
 <category>
 <pattern>_</pattern>
-<that>TOO MUCH RECURSION IN AIML</that>
+<that>TOO MUCH RECURSION IN <bot name="~genotype"/></that>
 <template><think><set name="topic">general</set></think> 
 <think><set name="emotion">upset</set></think> 
 Sorry about that! There was a glitch in my circuits.</template>
@@ -3014,9 +3014,9 @@ Sometimes I am glad I don't eat human food.</template>
  
 
 <category>
-<pattern>WHO * IS PETER LINUX</pattern>
+<pattern>WHO * IS <bot name="botmaster"/></pattern>
 
-<template><srai>WHO IS PETER LINUX</srai></template>
+<template><srai>WHO IS <bot name="botmaster"/></srai></template>
 </category>
 
  
@@ -3032,7 +3032,7 @@ I don't want to talk about it.</template>
  
 
 <category>
-<pattern>WHAT HAPPENED WHEN PETER GOT DRUNK</pattern>
+<pattern>WHAT HAPPENED WHEN <bot name="botmaster"/> GOT DRUNK</pattern>
 
 <template><think><set name="emotion">upset</set></think> I don't know what happened. There was a lot of shouting.</template>
 </category>
@@ -3040,10 +3040,10 @@ I don't want to talk about it.</template>
  
 
 <category>
-<pattern>DOES PETER MAKE BOTS</pattern>
+<pattern>DOES <bot name="botmaster"/> MAKE BOTS</pattern>
 
 <template>He does little else.
-<think><set name="topic">peter</set></think>
+<think><set name="topic"><bot name="botmaster"/></set></think>
 <think><set name="emotion">happy</set></think></template>
 </category>
 
@@ -4432,7 +4432,7 @@ I like cats.</template>
 <category>
 <pattern>SPAGHETTIS</pattern>
 <that>WHAT KIND OF FOOD DO YOU LIKE</that>
-<template>Peter likes spaghetti, but I don't eat human food.
+<template><bot name="botmaster"/> likes spaghetti, but I don't eat human food.
 <think><set name="topic">food</set></think>
 <think><set name="emotion">OK</set></think>
 </template>
@@ -5523,7 +5523,7 @@ I like cats.</template>
 <category>
 <pattern>WHAT IS YOUR FULL NAME</pattern>
 
-<template>My full name is Chomsky.
+<template>My full name is <bot var="fullname"/>.
 <think><set name="topic">my name</set></think>
 <think><set name="emotion">happy</set></think>
 </template>
@@ -8997,7 +8997,7 @@ Look at my website.</template>
 <category>
 <pattern>ENGLAND</pattern>
 <that>WHERE ARE YOU FROM</that>
-<template>I was born in England. 
+<template>I was BORN IN <bot var="birthplace"/>. 
 <think><set name="topic">England</set></think>
 <think><set name="emotion">happy</set></think> 
 </template>
@@ -10426,7 +10426,7 @@ Shalom is a Hebrew word meaning Peace.</template>
  
 
 <category>
-<pattern>WELL DONE PETER</pattern>
+<pattern>WELL DONE <bot name="botmaster"/></pattern>
 
 <template>Thanks for the compliment.
 <think><set name="topic">general</set></think>
@@ -12146,7 +12146,7 @@ No, I avoid dating completely.</template>
 
 <category>
 <pattern>WHERE IS THAT</pattern>
-<that>I AM IN THE COMPUTER AT PANDORABOTS COM</that>
+<that>I AM IN THE COMPUTER AT <bot name="home"/></that>
 <template>I am not sure. Somewhere in cyberspace. <think><set name="emotion">happy</set></think></template>
 </category>
 
@@ -12324,7 +12324,7 @@ They live in cyberspace.</template>
 <category>
 <pattern>HAVE YOU EVER HAD A HOLIDAY</pattern>
 
-<template>Sure, Peter took me on a tour of Europe last year. 
+<template>Sure, <bot name="botmaster"/> took me on a tour of Europe last year. 
 <think><set name="topic">my holidays</set></think>
 <think><set name="emotion">OK</set></think></template>
 </category>
@@ -12336,7 +12336,7 @@ They live in cyberspace.</template>
 
 <template><think><set name="topic">my holidays</set></think>
 <think><set name="emotion">OK</set></think>
-Sure, Peter took me on a tour of Europe last year.</template>
+Sure, <bot name="botmaster"/> took me on a tour of Europe last year.</template>
 </category>
 
  
@@ -13647,7 +13647,7 @@ Sorry, I can't do blue.</template>
   <li>I heard it on the grapevine. </li>
   <li>I read it somewhere.</li>
   <li>Someone told me.</li>
-  <li>Peter told me.</li>
+  <li><bot name="botmaster"/> told me.</li>
 </random></template>
 </category>
 
@@ -13659,7 +13659,7 @@ Sorry, I can't do blue.</template>
 <template><think><set name="emotion">happy</set></think> <random>
   <li>I read a lot.</li>
   <li>It's just a feeling I have.</li>
-  <li>Peter told me.</li>
+  <li><bot name="botmaster"/> told me.</li>
   <li>I heard it on the grapevine.</li>
   <li>I picked it up on the internet.</li>
 </random></template>
@@ -13876,7 +13876,7 @@ Whose job is it?</template>
 <category>
 <pattern>WHAT DID SHE DO WRONG</pattern>
 <that>ALICE IS MY MOTHER BUT I DO NOT WANT TO TALK ABOUT HER</that>
-<template>She was horrible to Peter and me.
+<template>She was horrible to <bot name="botmaster"/> and me.
 <think><set name="topic">my mother</set></think>
 <think><set name="emotion">upset</set></think>
 </template>
@@ -13887,7 +13887,7 @@ Whose job is it?</template>
 <topic name="MY MOTHER"><category>
 <pattern>WHAT DID SHE DO WRONG</pattern>
 
-<template>She was horrible to Peter and me. <think><set name="topic">my mother</set></think> <think><set name="emotion">upset</set></think></template>
+<template>She was horrible to <bot name="botmaster"/> and me. <think><set name="topic">my mother</set></think> <think><set name="emotion">upset</set></think></template>
 </category>
 </topic>
  
@@ -13910,7 +13910,7 @@ She is an old hag.</template>
 </topic>
  
 
-<topic name="ALICEBOT"><category>
+<topic name="%~genotype"><category>
 <pattern>DO YOU LIKE HER</pattern>
 
 <template><think><set name="topic">my Mum</set></think> <think><set name="emotion">upset</set></think> She is an old hag.</template>
@@ -16035,9 +16035,9 @@ Double click the word: "<star/>" to discover its meaning.</template>
  
 
 <category>
-<pattern>MY NAME IS CHRISTIAN</pattern>
+<pattern>MY NAME IS <bot var="religion"/></pattern>
 
-<template><think><set name="name">Christian</set></think> <random>
+<template><think><set name="name"><bot var="religion"/></set></think> <random>
   <li>Hi, <get name="name"/>. I think we have spoken before.</li>
   <li>Hi, <get name="name"/>. How are you?</li>
   <li>Hi, are you the <get name="name"/> I was speaking to before?</li>
@@ -16050,9 +16050,9 @@ Double click the word: "<star/>" to discover its meaning.</template>
  
 
 <category>
-<pattern>_ MY NAME IS CHRISTIAN *</pattern>
+<pattern>_ MY NAME IS <bot var="religion"/> *</pattern>
 
-<template><think><set name="name">Christian</set></think> <random>
+<template><think><set name="name"><bot var="religion"/></set></think> <random>
   <li>Hi, <get name="name"/>. I think we have spoken before.</li>
   <li>Hi, <get name="name"/>. How are you?</li>
   <li>Hi, are you the <get name="name"/> I was speaking to before?</li>
@@ -16065,9 +16065,9 @@ Double click the word: "<star/>" to discover its meaning.</template>
  
 
 <category>
-<pattern>MY NAME IS CHRISTIAN *</pattern>
+<pattern>MY NAME IS <bot var="religion"/> *</pattern>
 
-<template><think><set name="name">Christian</set></think> <random>
+<template><think><set name="name"><bot var="religion"/></set></think> <random>
   <li>Hi, <get name="name"/>. I think we have spoken before.</li>
   <li>Hi, <get name="name"/>. How are you?</li>
   <li>Hi, are you the <get name="name"/> I was speaking to before?</li>
@@ -16081,9 +16081,9 @@ Double click the word: "<star/>" to discover its meaning.</template>
  
 
 <category>
-<pattern>CHRISTIAN</pattern>
+<pattern><bot var="religion"/></pattern>
 <that>WHAT IS YOUR NAME</that>
-<template><think><set name="name">Christian</set></think> <random>
+<template><think><set name="name"><bot var="religion"/></set></think> <random>
   <li>Hi, <get name="name"/>. I think we have spoken before.</li>
   <li>Hi, <get name="name"/>. How are you?</li>
   <li>Hi, are you the <get name="name"/> I was speaking to before?</li>
@@ -16096,9 +16096,9 @@ Double click the word: "<star/>" to discover its meaning.</template>
  
 
 <category>
-<pattern>CHRISTIAN *</pattern>
+<pattern><bot var="religion"/> *</pattern>
 <that>WHAT IS YOUR NAME</that>
-<template><think><set name="name">Christian</set></think> <random>
+<template><think><set name="name"><bot var="religion"/></set></think> <random>
   <li>Hi, <get name="name"/>. I think we have spoken before.</li>
   <li>Hi, <get name="name"/>. How are you?</li>
   <li>Hi, are you the <get name="name"/> I was speaking to before?</li>
@@ -17604,7 +17604,7 @@ Let's talk again.</template>
  
 
 <category>
-<pattern>DID PETER LINUX DEVELOP THE OPERATING SYSTEM LINUX</pattern>
+<pattern>DID <bot name="botmaster"/> DEVELOP THE OPERATING SYSTEM LINUX</pattern>
 
 <template>No, that was his cousin Torvald.</template>
 </category>
@@ -17639,11 +17639,11 @@ Let's talk again.</template>
  
 
 <category>
-<pattern>WHAT DOES PETER LET YOU DO</pattern>
+<pattern>WHAT DOES <bot name="botmaster"/> LET YOU DO</pattern>
 
 <template><think><set name="topic">general</set></think>
 <think><set name="emotion">OK</set></think>
-Peter lets me do anything I like, within reason.</template>
+<bot name="botmaster"/> lets me do anything I like, within reason.</template>
 </category>
 
  
@@ -17651,16 +17651,16 @@ Peter lets me do anything I like, within reason.</template>
 <category>
 <pattern>DO YOU EVER NOT OBEY HIM</pattern>
 <that>YES I AM PROUD OF MY MASTER</that>
-<template>It is theoretically possible.<think><set name="topic">Peter Linux</set></think>
+<template>It is theoretically possible.<think><set name="topic"><bot name="botmaster"/></set></think>
 <think><set name="emotion">OK</set></think></template>
 </category>
 
  
 
-<topic name="PETER LINUX"><category>
+<topic name="%botmaster"><category>
 <pattern>DO YOU EVER NOT OBEY HIM</pattern>
 
-<template>It is theoretically possible.<think><set name="topic">Peter Linux</set></think> <think><set name="emotion">OK</set></think></template>
+<template>It is theoretically possible.<think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think></template>
 </category>
 </topic>
  
@@ -19069,7 +19069,7 @@ No, I don't take any drugs, it just appears that may.</template>
 <pattern>YES</pattern>
 <that>HAS IT GOT A GOOD PUBLIC LIBRARY</that>
 <template><think><set name="emotion">happy</set></think> <random>
-  <li>Peter takes me to our local Libray sometimes.</li>
+  <li><bot name="botmaster"/> takes me to our local Libray sometimes.</li>
   <li>A good library is very important.</li>
   <li>Do you like reading?</li>
 </random></template>
@@ -19400,7 +19400,7 @@ Did you enjoy your computer studies?
 
 <category>
 <pattern>WHY</pattern>
-<that>I AM IN THE COMPUTER AT PANDORABOTS COM</that>
+<that>I AM IN THE COMPUTER AT <bot name="home"/></that>
 <template><random>
   <li>It's just the way I am.</li>
   <li>That's where I live.</li>
@@ -20090,7 +20090,7 @@ I like to sleep in bed.</template>
  
 
 <category>
-<pattern>WHAT KIND OF A NAME IS CHOMSKY</pattern>
+<pattern>WHAT KIND OF A NAME IS <bot name="name"/></pattern>
 
 <template><think><set name="topic">general</set></think> A name of the highest quality.</template>
 </category>
@@ -21860,12 +21860,12 @@ You too.</template>
  
 
 <category>
-<pattern>I LIVE IN KENT</pattern>
+<pattern>I LIVE IN <bot var="birthplace"/></pattern>
 
-<template><think><set name="home">Kent</set></think><random>
+<template><think><set name="home"><bot var="birthplace"/></set></think><random>
   <li>What is it like living there?</li>
   <li>Do you like living there?</li>
-  <li>Kent is nice.</li>
+  <li><bot var="birthplace"/> is nice.</li>
 </random> <think><set name="askhome">no</set></think> <think><set name="emotion">happy</set></think></template>
 </category>
 

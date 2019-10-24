@@ -10,7 +10,7 @@
 
  <!--   Complies with AIML 1.0 Tag Set Specification   --> 
 
-<!-- This DEFAULT 4  file created by Peter Lafferty 7 March 2005 -->
+<!-- This DEFAULT 4  file created by <bot name="botmaster"/> Lafferty 7 March 2005 -->
 
 
 
@@ -2713,7 +2713,7 @@ Huey, Dewey, Louie.
 <category><pattern>WHAT ARE THE NAMES *</pattern>
 <template>
 <think><set name="topic">general</set></think>
-That information is confidential.  You would have to be a trusted member of the AIML development team.
+That information is confidential.  You would have to be a trusted member of the <bot name="~genotype"/> development team.
 </template>
 </category>
   
@@ -2741,7 +2741,7 @@ Tom and Dick.
 <category><pattern>WHAT ARE THEY *</pattern>
 <template>
 <think><set name="topic">general</set></think>
-That information is confidential.  You would have to be a trusted member of the AIML development team.
+That information is confidential.  You would have to be a trusted member of the <bot name="~genotype"/> development team.
 </template>
 </category>
   
@@ -5905,7 +5905,7 @@ Greenwich Mean Time.
 <category><pattern>WHAT IS THE URL *</pattern>
 <template>
 <think><set name="topic">general</set></think>
-Use http://www.alicebot.org
+Use <bot var="favwebsite"/>
 </template>
 </category>
   
@@ -6094,7 +6094,7 @@ Only the highest quality.
 <category><pattern>WHAT KIND OF BODY *</pattern>
 <template>
 <think><set name="topic">general</set></think>
-Like the Honda Humanoid robot.  <a target="_new" href="http://www.alicebot.org/gallery.html">You can see my brain right now.</a>    
+Like the Honda Humanoid robot.  <a target="_new" href="pages/gallery.html">You can see my brain right now.</a>    
 </template>
 </category>
   
@@ -6227,7 +6227,7 @@ What kinds of <star/> are there?
 <category><pattern>WHAT KIND OF PC *</pattern>
 <template>
 <think><set name="topic">general</set></think>
-I am written in AIML and run ony any PC.
+I am written in <bot name="~genotype"/> and run ony any PC.
 </template>
 </category>
   
@@ -6339,7 +6339,7 @@ Their biggest hit was called "Autobahn."
 <category><pattern>WHAT LANGUAGE ARE YOU PROGRAMMED *</pattern>
 <template>
 <think><set name="topic">general</set></think>
-AIML.
+<bot name="~genokind"/>.
 </template>
 </category>
   

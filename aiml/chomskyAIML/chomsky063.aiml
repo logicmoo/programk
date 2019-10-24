@@ -10,7 +10,7 @@
 
  <!--   Complies with AIML 1.0 Tag Set Specification   --> 
 
-<!-- This GENERAL KNOWLEDGE 6  file created by Peter Lafferty 21 March 2005 -->
+<!-- This GENERAL KNOWLEDGE 6  file created by <bot name="botmaster"/> Lafferty 21 March 2005 -->
 
 
 <category><pattern>HYDROGEN</pattern>
@@ -131,7 +131,7 @@ Impossible means not capable of being, being done, or happening. Not capable of 
 <think><set name="topic">general</set></think></template></category> 
 
 <category><pattern>HELL</pattern>
-<template>   <random>     <li>Hell is Jacksonville, Florida.</li>     <li>Hell is a state or place of woe and anguish, arrived at by the wicked after death; specifically, especially in Christian theology , the state or place of total and final separation from God and so of eternal misery and suffering, arrived at by those who die unrepentant in grave sin.</li>     </random>   
+<template>   <random>     <li>Hell is Jacksonville, Florida.</li>     <li>Hell is a state or place of woe and anguish, arrived at by the wicked after death; specifically, especially in <bot var="religion"/> theology , the state or place of total and final separation from God and so of eternal misery and suffering, arrived at by those who die unrepentant in grave sin.</li>     </random>   
 <think><set name="topic">religion</set></think></template></category> 
 
 <category><pattern>HEMP</pattern>
@@ -160,7 +160,7 @@ Impossible means not capable of being, being done, or happening. Not capable of 
 <think><set name="topic">computers</set></think></template></category> 
 
 <category><pattern>HIS NAME</pattern>
-<template>Are you asking about my botmaster? His name is Peter Lafferty. <srai>ENDING</srai>
+<template>Are you asking about my botmaster? His name is <bot name="botmaster"/> Lafferty. <srai>ENDING</srai>
 <think><set name="topic">computers</set></think></template></category> 
 
 <category><pattern>HIS REASONS</pattern>
@@ -310,8 +310,8 @@ Food is anything that nourishes or stimulates; whatever helps something to keep 
 <template>Chocolate or cocoa is a flavoring used in a variety of food products. <srai>ENDING</srai>
 <think><set name="topic">food</set></think></template></category> 
 
-<category><pattern>CHRISTIANITY</pattern>
-<template>   <random>     <li>Christianity is the Worship of Christie Love.</li>     <li>Christianity is the christian religion, based on the Old and New Testament.</li>    </random>   
+<category><pattern><bot var="religion"/>ITY</pattern>
+<template>   <random>     <li><bot var="religion"/>ity is the Worship of Christie Love.</li>     <li><bot var="religion"/>ity is the <bot var="religion"/> religion, based on the Old and New Testament.</li>    </random>   
 <think><set name="topic">religion</set></think></template></category> 
 
 <category><pattern>CHRISTMAS</pattern>

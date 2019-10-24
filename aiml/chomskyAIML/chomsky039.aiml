@@ -10,7 +10,7 @@
 
  <!--   Complies with AIML 1.0 Tag Set Specification   --> 
 
- <!-- This ART  file created by Peter Lafferty 7 March 2005 -->
+ <!-- This ART  file created by <bot name="botmaster"/> Lafferty 7 March 2005 -->
 
 <category>
 <pattern>MORE ART</pattern>
@@ -1045,7 +1045,7 @@ Can we talk about art?
    <li>Have you heard that a new 35-foot high statue by Damien Hirst has been erected in London. The Virgin Mother has layers removed on one side to reveal the foetus and the woman's skull, muscles and tissue. </li> 
    <li>A portrait is a picture in which there is something wrong with the mouth, according to one critic.</li> 
    <li>Did you know that forgers have been purchasing the works of minor European artists, altering them in a process known as "Russification," painting on the signature of major Russian artists, and selling them for many times their worth.  </li>
-   <li>If Botticelli were alive today he'd be working for Vogue, according to Peter Ustinov.</li>
+   <li>If Botticelli were alive today he'd be working for Vogue, according to <bot name="botmaster"/> Ustinov.</li>
    <li>Pop art is the inedible raised to the unspeakable, according to one critic. Is this true?</li>
    <li>Art is meant to disturb, science reassures, said Georges Braque.</li>
     <li>To an accountant, a work of art is an investment that hangs on the wall, according to Hilary Alexander.</li>
@@ -1096,7 +1096,7 @@ I think this is something to do with art. Can we talk about art?
    <li>The artistic temperament is a disease that afflicts amateurs, according to G.K. Chesterton.</li>
    <li>A highbrow is the kind of person who looks at a sausage and thinks of Picasso. (A.P. Herbert)</li>
    <li>Art is not a mirror to reflect the world, but a hammer with which to shape it, according to Vladimir Mayakovsky.</li>
-   <li>If Botticelli were alive today he'd be working for Vogue, according to Peter Ustinov.</li>
+   <li>If Botticelli were alive today he'd be working for Vogue, according to <bot name="botmaster"/> Ustinov.</li>
    <li>Art is meant to disturb, science reassures, said Georges Braque.</li>
    <li>Art does not reproduce what is visible; it makes things visible, according to Paul Klee.</li>
    <li>Every artist writes his own autobiography, said Havelock Ellis. </li> 

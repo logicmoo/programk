@@ -337,8 +337,14 @@ uselessNameValue(_Dict,srcinfo,[nosrc]):-!.
 % ===============================================================================================
 setAliceMem(Dict,X,E):-currentContext(setAliceMem(Dict,X,E),Ctx), prolog_must(setAliceMem(Ctx,Dict,X,E)).
 
-setAliceMem(Ctx,IDict,Name,Value):-withValueAdd(Ctx,setAliceMem0:setAliceMem,IDict,Name,Value).
-setAliceMem(Ctx,Dict,default(Name),DefaultValue):-getAliceMem(Ctx,Dict,Name,'OM')->setAliceMem(Ctx,Dict,Name,DefaultValue);true.
+% OLD VERSION OF NEXT STATMENT 
+setAliceMem(Ctx,Dict,Name,Value):-withValueAdd(Ctx,setAliceMem0:setAliceMem,Dict,Name,Value),!.
+setAliceMem(Ctx,Dict,default(Name),DefaultValue):- (getAliceMem(Ctx,Dict,Name,'OM')->setAliceMem(Ctx,Dict,Name,DefaultValue);true),!.
+setAliceMem(Ctx,Dict,Name,Value):- prolog_must(setAliceMem_fallback(Ctx,Dict,Name,Value)),!.
+
+setAliceMem_fallback(Ctx,Dict,Name,Value):- setAliceMem0(Ctx,Dict,Name,Value),!.
+setAliceMem_fallback([[fctx]],Dict,Name,Value):-asserta_dict(Dict,Name,Value),!.
+
 setAliceMem0(Ctx,Dict,Name,Value):- prolog_must((resetAliceMem0(Ctx,Dict,Name,Value))),!.
 
 % ===============================================================================================

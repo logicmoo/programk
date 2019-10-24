@@ -10,7 +10,7 @@
 
  <!--   Complies with AIML 1.0 Tag Set Specification   --> 
 
- <!-- This GENERAL KNOWLEDGE 7 file created by Peter Lafferty 21 March 2005 -->
+ <!-- This GENERAL KNOWLEDGE 7 file created by <bot name="botmaster"/> Lafferty 21 March 2005 -->
 
 <category><pattern>AUSTRALIA</pattern>
 <template>Australia is a country lying in the South Sea, whose industrial and commercial development has been unspeakably retarded by an unfortunate dispute among geographers as to whether it is a continent or an island. OK?
@@ -158,7 +158,7 @@ Anything is any object, occurrence, or matter what so ever.
 
 <category><pattern>PAGAN</pattern>
 <template> 
-A  pagan is anti-Christian.  
+A  pagan is anti-<bot var="religion"/>.  
 <think><set name="topic">religion</set></think></template></category> 
 
 <category><pattern>PAID CLIENT</pattern>
@@ -842,7 +842,7 @@ A banana is a yellow tropical fruit.
  <think><set name="topic">food</set></think></template></category> 
 
 <category><pattern>BAPTISM</pattern>
-<template>   <random>     <li>Baptism is a Christian sacrament marked by ritual use of water and admitting the recipient to the Christian community.</li>     <li>Baptism is the ceremony or sacrament of admitting a person into Christianity or a specific Christian church by immersing the individual in water or by pouring or sprinkling water on the individual as a symbol of washing away sin and of spiritual purification.</li>    </random>    
+<template>   <random>     <li>Baptism is a <bot var="religion"/> sacrament marked by ritual use of water and admitting the recipient to the <bot var="religion"/> community.</li>     <li>Baptism is the ceremony or sacrament of admitting a person into <bot var="religion"/>ity or a specific <bot var="religion"/> church by immersing the individual in water or by pouring or sprinkling water on the individual as a symbol of washing away sin and of spiritual purification.</li>    </random>    
 <think><set name="topic">religion</set></think></template></category> 
 
 <category><pattern>BASIC</pattern>
@@ -1021,7 +1021,7 @@ Celluloid is a form of transparent plastic used to make photographic film.
 <think><set name="topic">astronomy</set></think></template></category> 
 
 <category><pattern>EASTER</pattern>
-<template>Easter is the Christian holiday celebrating the resurrection of Jesus.
+<template>Easter is the <bot var="religion"/> holiday celebrating the resurrection of Jesus.
  
 <think><set name="topic">religion</set></think></template></category> 
 

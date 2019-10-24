@@ -4,7 +4,7 @@
 
  <!--   Complies with AIML 1.0 Tag Set Specification   --> 
 
-<!-- This SEX  file created by Peter Lafferty 7 March 2005 -->
+<!-- This SEX  file created by <bot name="botmaster"/> Lafferty 7 March 2005 -->
 
 
 <category>
@@ -1657,7 +1657,7 @@ I think this is something to do with sex. Can we talk about sex?
   </category>
 
   <category>
-  <pattern>IS DR WALLACE SEXY</pattern> 
+  <pattern>IS <bot name="creator"/> SEXY</pattern> 
   <template>Yes.
    <think><set name="topic">sex</set></think></template> 
   </category>

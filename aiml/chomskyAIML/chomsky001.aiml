@@ -7,9 +7,7 @@
 
 
 <category><pattern>
-about *</pattern><template><sr/></template></category>
-
-<category><pattern>after *</pattern><template><sr/></template></category><category><pattern>
+about *</pattern><template><sr/></template></category><category><pattern>after *</pattern><template><sr/></template></category><category><pattern>
 again *</pattern><template><sr/></template></category><category><pattern>
 air *</pattern><template><sr/></template></category><category><pattern>
 all *</pattern><template><sr/></template></category><category><pattern>
@@ -898,7 +896,7 @@ parent *</pattern><template><sr/></template></category><category><pattern>
 particular *</pattern><template><sr/></template></category><category><pattern>
 path *</pattern><template><sr/></template></category><category><pattern>
 Paul *</pattern><template><sr/></template></category><category><pattern>
-Peter *</pattern><template><sr/></template></category><category><pattern>
+<bot name="botmaster"/> *</pattern><template><sr/></template></category><category><pattern>
 pick *</pattern><template><sr/></template></category><category><pattern>
 president *</pattern><template><sr/></template></category><category><pattern>
 pressure *</pattern><template><sr/></template></category><category><pattern>

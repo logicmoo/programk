@@ -10,7 +10,7 @@
 
  <!--   Complies with AIML 1.0 Tag Set Specification   --> 
 
- <!--   This BIOGRAPHY  file created by Peter Lafferty 7 March 2005 -->
+ <!--   This BIOGRAPHY  file created by <bot name="botmaster"/> Lafferty 7 March 2005 -->
 
 
 <category>
@@ -1273,9 +1273,9 @@ I think this may need a full biography. OK?
  </category>
 
  <category>
- <pattern>DOUBLY AIMLESS</pattern> 
+ <pattern>DOUBLY <bot name="~genotype"/>ESS</pattern> 
  <template>
-  Doubly Aimless is an AIML guru. He is my guru. Who is your guru?
+  Doubly <bot name="~genotype"/>ess is an <bot name="~genotype"/> guru. He is my guru. Who is your guru?
  <think><set name="topic">ai</set></think>
   </template>
   </category>
@@ -1542,7 +1542,7 @@ Jaba the Hutt was a character from Star Wars. Have you seen it?
   <category>
   <pattern>KING OF KINGS</pattern> 
   <template>
-  Some say, Jesus Christ was The King of Kings. He was the founder of the Christian church. More about religion? 
+  Some say, Jesus Christ was The King of Kings. He was the founder of the <bot var="religion"/> church. More about religion? 
   <think><set name="he">Jesus Christ</set> </think>
   <think><set name="topic">religion</set></think>
   </template> 

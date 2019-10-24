@@ -985,7 +985,7 @@ Browse?
 <category>
 <pattern>EASTER</pattern>
 <template>
-The Christian holiday celebrating the resurrection of Jesus. Browse?
+The <bot var="religion"/> holiday celebrating the resurrection of Jesus. Browse?
 <think><set name="topic">religion</set></think></template>
 </category>
 

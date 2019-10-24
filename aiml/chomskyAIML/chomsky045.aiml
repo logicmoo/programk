@@ -1,17 +1,10 @@
-<?xml version="1.0" encoding="ISO-8859-1" ?> 
-
- <aiml>
-
- <!--   The ALICE program is open source code released under  --> 
-
- <!--   the terms of the GNU General Public License    --> 
-
- <!--   as published by the Free Software Foundation.  --> 
-
- <!--   Complies with AIML 1.0 Tag Set Specification   --> 
-
-<!-- This BIOGRAPHY3 file created by Peter Lafferty 6 February 2005, (c) Peter Lafferty  -->
-
+﻿<?xml version="1.0" encoding="ISO-8859-1" ?> 
+<aiml>
+<!--   The ALICE program is open source code released under  -->
+<!--   the terms of the GNU General Public License    -->
+<!--   as published by the Free Software Foundation.  -->
+<!--   Complies with AIML 1.0 Tag Set Specification   -->
+<!-- This BIOGRAPHY3 file created by <bot name="botmaster"/> Lafferty 6 February 2005, (c) <bot name="botmaster"/> Lafferty  -->
 
 
   <category>
@@ -72,7 +65,7 @@
   <category>
   <pattern>PETER PAN</pattern> 
   <template>
-  Bedtime story: Peter Pan is Tinkerbell's playmate. Have you read it?
+  Bedtime story: <bot name="botmaster"/> Pan is Tinkerbell's playmate. Have you read it?
   <think><set name="topic">literature</set></think>
   </template> 
   </category>
@@ -326,7 +319,7 @@
   <category>
   <pattern>SATAN</pattern> 
   <template>
-  Satan, Lucifer, the Devil are all names given the spiritual manifestation of Evil in the Christian faith. Another question?
+  Satan, Lucifer, the Devil are all names given the spiritual manifestation of Evil in the <bot var="religion"/> faith. Another question?
   <think><set name="topic">religion</set></think>
   </template> 
   </category>
@@ -461,7 +454,7 @@
   <category>
   <pattern>SUPERMAN</pattern> 
   <template>
-  Superman, the man of steel, first appeared in Action Comics, 1938. Superman is really Clarke Kent. Do you know what Lois Lane sees in him? Well, he is made of steel, I suppose.
+  Superman, the man of steel, first appeared in Action Comics, 1938. Superman is really Clarke <bot var="location"/>. Do you know what Lois Lane sees in him? Well, he is made of steel, I suppose.
   <think><set name="topic">movies</set></think>
   </template> 
   </category>
@@ -489,7 +482,7 @@
   <think><set name="topic">biography</set></think>
   </template> 
   </category>
-n
+
   <category>
   <pattern>THE BEST HUMAN</pattern> 
   <template>
@@ -674,7 +667,7 @@ n
   <category>
   <pattern>HOLY GHOST</pattern> 
   <template>
-  The Holy Ghost is the third member of the holy trinity, Father, Son and Holy Ghost, in Christian doctrine. Do you understand?
+  The Holy Ghost is the third member of the holy trinity, Father, Son and Holy Ghost, in <bot var="religion"/> doctrine. Do you understand?
   <think><set name="topic">religion</set></think>
   </template> 
   </category>
@@ -1560,7 +1553,7 @@ I asked a straight question. How about a straight answer. OK?
  <category>
  <pattern>ALLAH</pattern>
  <template>
- Allah is the Islamic Supreme Being, as distinguished from the Supreme Beings of the Christian, Jewish, and so forth.
+ Allah is the Islamic Supreme Being, as distinguished from the Supreme Beings of the <bot var="religion"/>, Jewish, and so forth.
  Any questions?
  <think><set name="topic">religion</set></think>
  </template>

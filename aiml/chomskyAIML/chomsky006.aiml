@@ -6,7 +6,7 @@
 <!-- This program is open source code released under -->
 <!-- the terms of the GNU General Public License     -->
 <!-- as published by the Free Software Foundation.   -->
-<!-- Annotated Version ATOMIC1 updated Apr 29 2005 by Peter Lafferty -->
+<!-- Annotated Version ATOMIC1 updated Apr 29 2005 by <bot name="botmaster"/> Lafferty -->
 
 
   
@@ -789,7 +789,7 @@ What kind of music do you like?
 <think><set name="topic">music</set></think>
 </template></category>
   
-<category><pattern>I DO NOT LIKE AIML</pattern>
+<category><pattern>I DO NOT LIKE <bot name="~genotype"/></pattern>
 <template><think><set name="topic">atomic1</set></think>
 What language do you use?
 </template></category>
@@ -2200,7 +2200,7 @@ In wherever you really are.
 <category><pattern>IN WHICH LANGUAGE</pattern>
 <template><think><set name="topic">atomic1</set></think>
 <random>  
-<li>English.</li>  <li>AIML.</li>  <li>Lisp.</li>  
+<li>English.</li>  <li><bot name="~genokind"/>.</li>  <li>Lisp.</li>  
 </random>
 </template></category>
   

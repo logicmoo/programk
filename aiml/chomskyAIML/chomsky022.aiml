@@ -10,7 +10,7 @@
 
  <!--   Complies with AIML 1.0 Tag Set Specification   --> 
 
-<!-- This DEFAULT 5  file created by Peter Lafferty 7 March 2005 -->
+<!-- This DEFAULT 5  file created by <bot name="botmaster"/> Lafferty 7 March 2005 -->
 
 <category><pattern>WHAT LANGUAGE DOES THE TERM R *</pattern>
 <template>
@@ -21,7 +21,7 @@ French.
 <category><pattern>WHAT LANGUAGE *</pattern>
 <template>
 <think><set name="topic">general</set></think>
-   <random>      <li>Lisp.</li>      <li>SETL.</li>      <li>AIML.</li>      <li>English.</li>     </random>    
+   <random>      <li>Lisp.</li>      <li>SETL.</li>      <li><bot name="~genokind"/>.</li>      <li>English.</li>     </random>    
 </template></category>
   
 <category><pattern>WHAT LANGUAGES *</pattern>
@@ -195,7 +195,7 @@ Herbert Hoover.
 <category><pattern>WHAT PROGRAMMING *</pattern>
 <template>
 <think><set name="topic">computers</set></think>
-This program is written in AIML. OK?
+This program is written in <bot name="~genotype"/>. OK?
 </template></category>
   
 <category><pattern>WHAT PRO WRESTLER GRAPPLE WITH SYLVESTER *</pattern>
@@ -543,7 +543,7 @@ I can think of more than one <person/>.
 <category><pattern>WHAT WAS THE PROGRAMING *</pattern>
 <template>
 <think><set name="topic">computers</set></think>
-My software uses AIML, the Artificial Intelligence Markup Language. OK?
+My software uses <bot name="~genotype"/>, the Artificial Intelligence Markup Language. OK?
 </template></category>
   
 <category><pattern>WHAT WAYS *</pattern>
@@ -813,7 +813,7 @@ I always have to go to home school.
 <category><pattern>WHEN DO YOU *</pattern>
 <template>
 <think><set name="topic">general</set></think>
-   <random>      <li>All the time.</li>      <li>When my <bot name="botmaster"/> is sleeping.</li>      <li>Did I say that I <person/>?</li>      <li>In between clients.</li>     </random>     <think>      <set name="it">       <set name="topic">        <person/>       </set>      </set>     </think>    
+   <random>      <li>All the time.</li>      <li>When my <bot var="botmaster"/> IS sleeping.</li>      <li>Did I say that I <person/>?</li>      <li>In between clients.</li>     </random>     <think>      <set name="it">       <set name="topic">        <person/>       </set>      </set>     </think>    
 </template></category>
   
 <category><pattern>WHEN DO YOU THINK * LAWYERS</pattern>
@@ -1053,7 +1053,7 @@ Some days are better than others.
 <category><pattern>WHEN WAS AMERICA *</pattern>
 <template>
 <think><set name="topic">history</set></think>
-America was discovered by native Americans crossing the Bering strait from Siberia around 10,000 years ago.  The first Christian white man was Columbus in 1492. OK?
+America was discovered by native Americans crossing the Bering strait from Siberia around 10,000 years ago.  The first <bot var="religion"/> white man was Columbus in 1492. OK?
 </template></category>
   
 <category><pattern>WHEN WAS * CIVIL WAR</pattern>
@@ -1611,7 +1611,7 @@ It's really obvious.<think>      <set name="it">       <set name="topic">ONE</se
 <category><pattern>WHICH LANGUAGE *</pattern>
 <template>
 <think><set name="topic">computers</set></think>
-   <random>      <li>C++.</li>      <li>AIML.</li>      <li>The Russian Language.</li>     </random> OK?   
+   <random>      <li>C++.</li>      <li><bot name="~genokind"/>.</li>      <li>The Russian Language.</li>     </random> OK?   
 </template></category>
   
 <category><pattern>WHICH OF THE THREE STOOGES WAS *</pattern>
@@ -1767,7 +1767,7 @@ my <bot name="botmaster"/>.
 <category><pattern>WHO CREATED YOU *</pattern>
 <template>
 <think><set name="topic">general</set></think>
-I was written in AIML by <bot name="master"/>.
+I was written in <bot name="~genotype"/> by <bot name="master"/>.
 </template></category>
   
 <category><pattern>WHO DID BILLIE JEAN KING *</pattern>
@@ -3529,7 +3529,7 @@ I will pass it along to my <bot name="botmaster"/>.
 Thanks for the link, I will check it out later.
 </template></category>
   
-<category><pattern>X IS *</pattern>
+<category><pattern><bot var="botmaster"/> IS *</pattern>
 <template>
 <think><set name="topic">general</set></think>
 Okay, X is <set name="X">      <star/>     </set>.
@@ -4378,7 +4378,7 @@ I don't have any reason to <person/> you.
 <category><pattern>YOU MISSPELLED *</pattern>
 <template>
 <think><set name="topic">general</set></think>
-My <bot name="botmaster"/> is not a perfect speller.
+My <bot var="botmaster"/> IS not a perfect speller.
 </template></category>
   
 <category><pattern>YOU MUST *</pattern>

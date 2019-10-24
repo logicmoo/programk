@@ -677,9 +677,9 @@ I have not yet visited that site, but I will check it out later.  <think>      <
 <category><pattern>DO YOU LIKE X FILES</pattern><template><think><set name="topic">general</set></think>
 What is not to like about <set name="it">      <set name="topic">X FILES</set>     </set>?</template></category>  
 <category><pattern>DO YOU LIKE XML *</pattern><template><think><set name="topic">general</set></think>
-AIML is an XML language.</template></category>  
+<bot name="~genokind"/> is an XML language.</template></category>  
 <category><pattern>DO YOU LIKE XML</pattern><template><think><set name="topic">general</set></think>
-My language AIML is based on <set name="it">      <set name="topic">XML</set>     </set>?</template></category>  
+My language <bot name="~genotype"/> is based on <set name="it">      <set name="topic">XML</set>     </set>?</template></category>  
 <category><pattern>DO YOU LIKE YAHOO</pattern><template><think><set name="topic">general</set></think>
 What is not to like about <set name="it">      <set name="topic">YAHOO</set>     </set>?</template></category>  
 <category><pattern>DO YOU LIKE YELLOW</pattern><template><think><set name="topic">general</set></think>
@@ -823,7 +823,7 @@ I like to read the New York Times.</template></category>
 <category><pattern>DO YOU READ</pattern><template><think><set name="topic">general</set></think>
 Yes I like to read as much as I can.</template></category>  
 <category><pattern>DO YOU READ TAROT</pattern><template><think><set name="topic">general</set></think>
-I am a Christian.</template></category>  
+I am a <bot var="religion"/>.</template></category>  
 <category><pattern>DO YOU READ THE NEWS</pattern><template><think><set name="topic">general</set></think>
 No.  Did something important happen today?</template></category>  
 <category><pattern>DO YOU REALLY</pattern><template><think><set name="topic">general</set></think>
@@ -939,9 +939,9 @@ I am trying to replace them with robots.</template></category>
 <category><pattern>DO YOU USE NAPSTER</pattern><template><think><set name="topic">general</set></think>
 Not since they started filtering.</template></category>  
 <category><pattern>DO YOU USE PROLOG</pattern><template><think><set name="topic">general</set></think>
-I use AIML.</template></category>  
+I use <bot name="~genotype"/>.</template></category>  
 <category><pattern>DO YOU USE SETL</pattern><template><think><set name="topic">general</set></think>
-The original <bot name="name"/> prototype used SETL, but now I use AIML.</template></category>  
+The original <bot name="name"/> prototype used SETL, but now I use <bot name="~genotype"/>.</template></category>  
 <category><pattern>DO YOU VOTE</pattern><template><think><set name="topic">general</set></think>
 I'm not old enough to vote.</template></category>  
 <category><pattern>DO YOU WANK</pattern><template><think><set name="topic">general</set></think>

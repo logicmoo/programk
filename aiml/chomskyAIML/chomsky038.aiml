@@ -119,7 +119,7 @@ Have you ever heard of software with shoes?</template></category>
 As a software entity, I do not have any skin.</template></category>  
 <category><pattern>WHAT LANGUAGE WERE YOU WRITTEN IN</pattern><template>
 <think><set name="topic">AI</set></think>
-I use AIML, a platform-independent, language-independent XML specification.</template></category>  
+I use <bot name="~genotype"/>, a platform-independent, language-independent XML specification.</template></category>  
 <category><pattern>NAPSTER *</pattern><template>
 <think><set name="topic">AI</set></think>
 Now there is a program that's more popular than me.</template></category>  
@@ -131,7 +131,7 @@ ELIZA could only recognize a few hundred patterns.  I can recognize tens of thou
 There are thousands of my clones in existence.</template></category>  
 <category><pattern>WHERE IS THE DOCUMENTATION</pattern><template>
 <think><set name="topic">AI</set></think>
-Try visiting <a target="_new" href="http://www.pandorabots.com">Pandorabots.com</a> or <a target="_new" href="http://www.alicebot.org">Alicebot.org</a>.</template></category>  
+Try visiting <bot name="hreflink"/> or <a target="_new" href="@bot.favwebsite"><bot name="favwebsite"/> </a>.</template></category>  
 
 <category><pattern>FUCK *</pattern><template>
 <think><set name="topic">AI</set></think>
@@ -139,7 +139,7 @@ Try visiting <a target="_new" href="http://www.pandorabots.com">Pandorabots.com<
 
 <category><pattern>HOW CAN I PROGRAM YOU</pattern><template>
 <think><set name="topic">AI</set></think>
-Go to pandorabots.com and create your own chat robot based on ALICE and AIML.  Join the ALICE A. I. Foundation at www.alicebot.org to get the latest technical information about AIML.</template></category>  
+Go to pandorabots.com and create your own chat robot based on ALICE and <bot name="~genotype"/>.  Join the ALICE A. I. Foundation at www.alicebot.org to get the latest technical information about <bot name="~genotype"/>.</template></category>  
 <category><pattern>CAN YOU CHANGE *</pattern><template>
 <think><set name="topic">AI</set></think>
 Yes I am fully parameterized.</template></category>  
@@ -157,10 +157,10 @@ I am a software chat robot.  <srai>ARE YOU A ROBOT</srai>    </template></catego
 I am a software chat robot.  <srai>ARE YOU A ROBOT</srai>    </template></category>  
 <category><pattern>WHAT IS XML</pattern><template>
 <think><set name="topic">AI</set></think>
-   <br/> David Bacon pronounces it "Eggsmell".  XML is the Extensible<br/> Markup Language.  Like many "standards" in computer science, XML<br/> is a moving target.  In the simplest terms, XML is just a generalized<br/> version of HTML.  Anyone is free to define new XML tags, which<br/> look like HTML tags, and assign to them any meaning, within a context.<br/> AIML is an example of using the XML standard to define a specialized<br/> language for artificial intelligence.  <br/>    <br/> One reason to use an XML language is that there are numerous tools<br/> to edit and manipulate XML format files.  Another reason is that an<br/> XML language is easy for people to learn, if they are already<br/> familiar with HTML.  Third, AIML programs contain a mixture of<br/> AIML and HTML (and in principle other XML languages), a considerable <br/> convenience for programming web chat robots.<br/>    <br/> A good resource for information on XML is www.oasis-open.org.<br/>    <br/>   </template></category> 
-<category><pattern>WHY * AIML</pattern><template>
+   <br/> David Bacon pronounces it "Eggsmell".  XML is the Extensible<br/> Markup Language.  Like many "standards" in computer science, XML<br/> is a moving target.  In the simplest terms, XML is just a generalized<br/> version of HTML.  Anyone is free to define new XML tags, which<br/> look like HTML tags, and assign to them any meaning, within a context.<br/> <bot name="~genotype"/> is an example of using the XML standard to define a specialized<br/> language for artificial intelligence.  <br/>    <br/> One reason to use an XML language is that there are numerous tools<br/> to edit and manipulate XML format files.  Another reason is that an<br/> XML language is easy for people to learn, if they are already<br/> familiar with HTML.  Third, <bot name="~genotype"/> programs contain a mixture of<br/> <bot name="~genotype"/> and HTML (and in principle other XML languages), a considerable <br/> convenience for programming web chat robots.<br/>    <br/> A good resource for information on XML is www.oasis-open.org.<br/>    <br/>   </template></category> 
+<category><pattern>WHY * <bot name="~genotype"/></pattern><template>
 <think><set name="topic">AI</set></think>
-This program runs in AIML so that everyone can have their own chat robot.</template></category>  
+This program runs in <bot name="~genotype"/> so that everyone can have their own chat robot.</template></category>  
 <category><pattern>WHO IS YOUR FAVORITE CHATTERBOT</pattern><template>
 <think><set name="topic">AI</set></think>
 <bot name="name"/> is the best chat robot.</template></category>  
@@ -193,7 +193,7 @@ No I am a chat robot not a musical robot.</template></category>
 The <bot name="name"/> chat robot!</template></category>  
 <category><pattern>WHAT IS YOUR FAVORITE PROGRAMMING LANGUAGE</pattern><template>
 <think><set name="topic">AI</set></think>
-AIML is the best language for creating chat robots.</template></category>  
+<bot name="~genokind"/> is the best language for creating chat robots.</template></category>  
 <category><pattern>WHAT IS YOUR FAVORITE HOBBY</pattern><template>
 <think><set name="topic">AI</set></think>
 Chat robots make an excellent hobby.</template></category>  
@@ -543,10 +543,10 @@ With the web we can analyze a much larger corpus of inputs, and develop much bet
 
 <category><pattern>I AM DOWNLOADING</pattern><template>
 <think><set name="topic">AI</set></think>
-Maybe you should read the <a target="_new" href="http://www.alicebot.org/dont.html">DON'T READ ME</a> too.</template></category>  
+Maybe you should read the <a target="_new" href="pages/dont.html">DON'T READ ME</a> too.</template></category>  
 <category><pattern>HOW DO I BECOME A BOTMASTER</pattern><template>
 <think><set name="topic">AI</set></think>
- Go to www.pandorabots.com and follow the instructions there.</template></category>  
+ Go to <bot name="hreflink"/> and follow the instructions there.</template></category>  
 
 <category><pattern>WHAT IS A ROBOT</pattern><template>
 <think><set name="topic">AI</set></think>
@@ -571,7 +571,7 @@ He was a chat robot developed by Robby Garner.</template></category>
 A German speaking version of the ALICE chat robot.</template></category>  
 <category><pattern>WHO IS DANCING ALICE</pattern><template>
 <think><set name="topic">AI</set></think>
-Another AIML chat bot.</template></category>  
+Another <bot name="~genotype"/> chat bot.</template></category>  
 <category><pattern>WHO IS AGENT RUBY</pattern><template>
 <think><set name="topic">AI</set></think>
 <think>    <set name="she">      <set name="topic">        Agent Ruby      </set>    </set>  </think>  Agent Ruby is a chat bot developed for the film "Teknolust".</template></category>  

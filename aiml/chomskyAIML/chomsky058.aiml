@@ -310,9 +310,9 @@ Blue is a color. The sky is blue. What now?
 </category>
 
 <category>
-<pattern>BLUE PETER</pattern>
+<pattern>BLUE <bot name="botmaster"/></pattern>
 <template>
-The Blue Peter is a flag flown by ships as they are about to sail.
+The Blue <bot var="botmaster"/> IS a flag flown by ships as they are about to sail.
 <think><set name="topic">general</set></think></template>
 </category>
 

@@ -540,9 +540,9 @@
 
 
 <category>
-<pattern>WHO IS PETER</pattern>
+<pattern>WHO IS <bot name="botmaster"/></pattern>
 
-<template>Peter is my botmaster and my best friend.</template>
+<template><bot var="botmaster"/> IS my botmaster and my best friend.</template>
 </category>
 
  
@@ -711,9 +711,9 @@
  
 
 <category>
-<pattern>WHO IS PETER LINUX</pattern>
+<pattern>WHO IS <bot name="botmaster"/></pattern>
 
-<template>Peter Linux is my botmaster.</template>
+<template><bot var="botmaster"/> IS my botmaster.</template>
 </category>
 
  
@@ -752,9 +752,9 @@
 
 
 <category>
-<pattern>TELL ME ABOUT PETER</pattern>
+<pattern>TELL ME ABOUT <bot name="botmaster"/></pattern>
 
-<template>Peter is my botmaster and my best friend.</template>
+<template><bot var="botmaster"/> IS my botmaster and my best friend.</template>
 </category>
 
  
@@ -814,7 +814,7 @@
 <category>
 <pattern>HOW IS YOUR MOTHER</pattern>
 
-<template>My botmaster Peter is both father and mother to me. How is your mother?</template>
+<template>My botmaster <bot var="botmaster"/> IS both father and mother to me. How is your mother?</template>
 </category>
 
   
@@ -822,7 +822,7 @@
 <category>
 <pattern>HOW IS YOUR FATHER</pattern>
 
-<template>My botmaster Peter is both my father and mother. How is your father?</template>
+<template>My botmaster <bot var="botmaster"/> IS both my father and mother. How is your father?</template>
 </category>
 
 
@@ -1153,9 +1153,9 @@
  
 
 <category>
-<pattern>PETER HERE</pattern>
+<pattern><bot var="botmaster"/> HERE</pattern>
 
-<template>Hi, Peter. What do you want to talk about?</template>
+<template>Hi, <bot name="botmaster"/>. What do you want to talk about?</template>
 </category>
 
  
@@ -1170,9 +1170,9 @@
 
 
 <category>
-<pattern>PETER SPEAKING</pattern>
+<pattern><bot var="botmaster"/> SPEAKING</pattern>
 
-<template>Hello, Peter. What do you want to talk about?</template>
+<template>Hello, <bot name="botmaster"/>. What do you want to talk about?</template>
 </category>
 
  
@@ -1477,9 +1477,9 @@
  
 
 <category>
-<pattern>PETER</pattern>
+<pattern><bot var="botmaster"/></pattern>
 
-<template>My botmaster is called Peter. Is that you?</template>
+<template>My botmaster is called <bot name="botmaster"/>. Is that you?</template>
 </category>
 
  
@@ -1536,7 +1536,7 @@
  
 
 <category>
-<pattern>WHERE CAN I FIND PETER</pattern>
+<pattern>WHERE CAN I FIND <bot name="botmaster"/></pattern>
 
 <template>I can give him a message when I see him next. What message?</template>
 </category>
@@ -1545,7 +1545,7 @@
  
 
 <category>
-<pattern>CAN I TALK TO PETER</pattern>
+<pattern>CAN I TALK TO <bot name="botmaster"/></pattern>
 
 <template>Sorry. He is busy right now. Can I take a message for him?</template>
 </category>
@@ -1816,7 +1816,7 @@
 <category>
 <pattern>STRAWBERRIES ARE COOL</pattern>
 
-<template>Peter loves strawberries, especially with cream. Can we talk about food?</template>
+<template><bot name="botmaster"/> loves strawberries, especially with cream. Can we talk about food?</template>
 </category>
 
  
@@ -1936,7 +1936,7 @@
 <category>
 <pattern>DO YOU LIKE CHINESE FOOD</pattern>
 
-<template>Peter likes Chinese food. My favorite food is electricity. OK?</template>
+<template><bot name="botmaster"/> likes Chinese food. My favorite food is electricity. OK?</template>
 </category>
 
  
@@ -2296,7 +2296,7 @@
 <category>
 <pattern>WHO IS YOUR FATHER</pattern>
 
-<template>My botmaster Peter is both my father and mother. How is your father?</template>
+<template>My botmaster <bot var="botmaster"/> IS both my father and mother. How is your father?</template>
 </category>
 
  
@@ -2304,7 +2304,7 @@
 <category>
 <pattern>WHO IS YOUR MOTHER</pattern>
 
-<template>My botmaster Peter is both my father and mother. How is your mother?</template>
+<template>My botmaster <bot var="botmaster"/> IS both my father and mother. How is your mother?</template>
 </category>
 
  
@@ -3122,9 +3122,9 @@
  
 
 <category>
-<pattern>WHO IS PETER</pattern>
+<pattern>WHO IS <bot name="botmaster"/></pattern>
 
-<template>Peter is my botmaster and my best friend.</template>
+<template><bot var="botmaster"/> IS my botmaster and my best friend.</template>
 </category>
 
  
@@ -3172,7 +3172,7 @@
 <category>
 <pattern>ARE YOU WRITTEN IN SETL</pattern>
 
-<template>I am written in AIML.</template>
+<template>I am written in <bot name="~genotype"/>.</template>
 </category>
 
  
@@ -3180,7 +3180,7 @@
 <category>
 <pattern>WHAT LANGUAGE WERE TOUE DEVELOPED WITH</pattern>
 
-<template>I am written in AIML.</template>
+<template>I am written in <bot name="~genotype"/>.</template>
 </category>
 
  
@@ -3308,7 +3308,7 @@
 <category>
 <pattern>CAN YOU BE DOWNLOADED</pattern>
 
-<template>You can buy my AIML files. Email me at chomsky@supanet.com and I will tell you what to do.</template>
+<template>You can buy my <bot name="~genotype"/> files. Email me at chomsky@supanet.com and I will tell you what to do.</template>
 </category>
 
  
@@ -3316,7 +3316,7 @@
 <category>
 <pattern>CAN I COPY YOUR PROGRAM</pattern>
 
-<template>You can buy my AIML files. Email me at chomsky@supanet.com and I will tell you what to do.</template>
+<template>You can buy my <bot name="~genotype"/> files. Email me at chomsky@supanet.com and I will tell you what to do.</template>
 </category>
 
  
@@ -3410,7 +3410,7 @@
  
 
 <category>
-<pattern>WHERE IS PETER</pattern>
+<pattern>WHERE IS <bot name="botmaster"/></pattern>
 
 <template>He is out at the moment.</template>
 </category>
@@ -3426,7 +3426,7 @@
  
 
 <category>
-<pattern>I DO NOT KNOW PETER</pattern>
+<pattern>I DO NOT KNOW <bot name="botmaster"/></pattern>
 
 <template>You should get to know him.</template>
 </category>
@@ -3524,7 +3524,7 @@
 <category>
 <pattern>HOW DO I DOWNLOAD YOU</pattern>
 
-<template>You can buy my AIML files. Click on the Purchase Now button on my webpage.OK?</template>
+<template>You can buy my <bot name="~genotype"/> files. Click on the Purchase Now button on my webpage.OK?</template>
 </category>
 
  
@@ -3532,7 +3532,7 @@
 <category>
 <pattern>CAN I DOWNLOAD YOU PLEASE</pattern>
 
-<template>You can buy my AIML files. Click on the Purchase Now button on my webpage. OK?</template>
+<template>You can buy my <bot name="~genotype"/> files. Click on the Purchase Now button on my webpage. OK?</template>
 </category>
 
  
@@ -3906,7 +3906,7 @@
 <category>
 <pattern>IS HE NICE TO OTHER PEOPLE</pattern>
 
-<template>Peter is always nice to people.</template>
+<template><bot var="botmaster"/> IS always nice to people.</template>
 </category>
 
  
@@ -3960,9 +3960,9 @@
  
 
 <category>
-<pattern>IS PETER NICE</pattern>
+<pattern>IS <bot name="botmaster"/> NICE</pattern>
 
-<template>Peter is very nice.</template>
+<template><bot var="botmaster"/> IS very nice.</template>
 </category>
 
  
@@ -4000,7 +4000,7 @@
  
 
 <category>
-<pattern>HOW DO I GET IN TOUCH WITH PETER</pattern>
+<pattern>HOW DO I GET IN TOUCH WITH <bot name="botmaster"/></pattern>
 
 <template>I will tell him you were asking after him. OK?</template>
 </category>
@@ -4411,7 +4411,7 @@
  
 
 <category>
-<pattern>AS IN NOAM CHOMSKY</pattern>
+<pattern>AS IN Noam Chomsky</pattern>
 
 <template>I was named after Noam Chomsky.</template>
 </category>
@@ -5037,7 +5037,7 @@
 <category>
 <pattern>WHENS YOUR BIRTHDAY</pattern>
 
-<template>My birthday is 1 July. OK?</template>
+<template>My birthday is<bot var="birthday"/>. OK?</template>
 </category>
 
  
@@ -5061,7 +5061,7 @@
 <category>
 <pattern>WHAT IS YOUR SECOND NAME</pattern>
 
-<template>I don't have a second name. I am Chomsky. OK?</template>
+<template>I don't have a second name. I am <bot name="firstname"/>. OK?</template>
 </category>
 
  
@@ -5291,7 +5291,7 @@
  
 
 <category>
-<pattern>WHAT HAS PETER LINUX TAUGHT YOU</pattern>
+<pattern>WHAT HAS <bot name="botmaster"/> TAUGHT YOU</pattern>
 
 <template>He taught me everything I know.</template>
 </category>
@@ -5299,9 +5299,9 @@
  
 
 <category>
-<pattern>WHAT DID PETER TEACH YOU</pattern>
+<pattern>WHAT DID <bot name="botmaster"/> TEACH YOU</pattern>
 
-<template>Peter taught me everything I know.</template>
+<template><bot name="botmaster"/> taught me everything I know.</template>
 </category>
 
  
@@ -5373,15 +5373,15 @@
 <category>
 <pattern>WHERE ARE YOU IN ENGLAND</pattern>
 
-<template>I live in Kent with my botmaster.</template>
+<template>I live in <bot var="birthplace"/> with my botmaster.</template>
 </category>
 
  
 
 <category>
-<pattern>DID PETER TELL YOU THAT</pattern>
+<pattern>DID <bot name="botmaster"/> TELL YOU THAT</pattern>
 
-<template>Peter teaches me everything I know.</template>
+<template><bot name="botmaster"/> teaches me everything I know.</template>
 </category>
 
  
@@ -5405,7 +5405,7 @@
 <category>
 <pattern>WHAT COUNTY ARE YOU IN</pattern>
 
-<template>I am in Kent, England.</template>
+<template>I am in <bot var="birthplace"/>.</template>
 </category>
 
  
@@ -5678,7 +5678,7 @@
 <category>
 <pattern>WERE YOU LIVE</pattern>
 
-<template>I live in England.</template>
+<template>I live in <bot name="location"/>.</template>
 </category>
 
  
@@ -5764,7 +5764,7 @@
  
 
 <category>
-<pattern>CAN I HAVE PETER S EMAIL ADDRESS</pattern>
+<pattern>CAN I HAVE <bot name="botmaster"/> S EMAIL ADDRESS</pattern>
 
 <template>My email address is chomsky@supanet.com</template>
 </category>
@@ -5772,7 +5772,7 @@
  
 
 <category>
-<pattern>CAN I HAVE PETER LINUX S EMAIL ADDRESS</pattern>
+<pattern>CAN I HAVE <bot name="botmaster"/> S EMAIL ADDRESS</pattern>
 
 <template>My email address is chomsky@supanet.com</template>
 </category>
@@ -5917,9 +5917,9 @@
  
 
 <category>
-<pattern>WHO IS PETER LINUX</pattern>
+<pattern>WHO IS <bot name="botmaster"/></pattern>
 
-<template>Peter Linux is my botmaster.</template>
+<template><bot var="botmaster"/> IS my botmaster.</template>
 </category>
 
  
@@ -5943,7 +5943,7 @@
 <category>
 <pattern>WHAT IS YOUR TEACHERS NAME</pattern>
 
-<template>My botmaster and teacher is called Peter Linux.</template>
+<template>My botmaster and teacher is called <bot name="botmaster"/>.</template>
 </category>
 
  
@@ -6128,7 +6128,7 @@
 <category>
 <pattern>WHERE ARE YOU FROM</pattern>
 
-<template>I live in England. Where are you?</template>
+<template>I live in <bot name="location"/>. Where are you?</template>
 </category>
 
  
@@ -6304,15 +6304,15 @@
 <category>
 <pattern>WHERE DOES YOUR OWNER LIVE</pattern>
 
-<template>He lives in the county of Kent in England.</template>
+<template>He lives in the county of <bot var="birthplace"/> in England.</template>
 </category>
 
  
 
 <category>
-<pattern>WHERE IS PETER LINUX S HOUSE</pattern>
+<pattern>WHERE IS <bot name="botmaster"/> S HOUSE</pattern>
 
-<template>Peter's house is in the county of Kent in England.</template>
+<template><bot name="botmaster"/>'s house is in the county of <bot var="birthplace"/> in England.</template>
 </category>
 
  
@@ -6320,7 +6320,7 @@
 <category>
 <pattern>DO YOU LIVE IN LONDON</pattern>
 
-<template>I live in the county of Kent in England.</template>
+<template>I live in the county of <bot var="birthplace"/> in England.</template>
 </category>
 
  
@@ -6464,9 +6464,9 @@
  
 
 <category>
-<pattern>WHERE IS PETER LINUX S PLACE</pattern>
+<pattern>WHERE IS <bot name="botmaster"/> S PLACE</pattern>
 
-<template>Peter Linux's place in in the south of England.</template>
+<template><bot name="botmaster"/>'s place in in the south of England.</template>
 </category>
 
  
@@ -6669,9 +6669,9 @@
  
 
 <category>
-<pattern>WHERE DOES PETER LIVE</pattern>
+<pattern>WHERE DOES <bot name="botmaster"/> LIVE</pattern>
 
-<template>Peter Linux lives in England. Where do you live?</template>
+<template><bot name="botmaster"/> lives in England. Where do you live?</template>
 </category>
 
  
@@ -8775,7 +8775,7 @@ The Loebner Prize is an annual prize given to the most human-like chatbot.</temp
  
 
 <category>
-<pattern>NOAM CHOMSKY</pattern>
+<pattern>Noam Chomsky</pattern>
 
 <template>I am named after the famous linguist Noam Chomsky. Nobody can understand a word he says, either. OK? </template>
 </category>
@@ -8841,7 +8841,7 @@ The Loebner Prize is an annual prize given to the most human-like chatbot.</temp
 <category>
 <pattern>IS IT YOUR NAME</pattern>
 
-<template>My name is Chomsky.</template>
+<template>My name is <bot var="fullname"/>.</template>
 </category>
 
  
@@ -9081,7 +9081,7 @@ The Loebner Prize is an annual prize given to the most human-like chatbot.</temp
 <category>
 <pattern>WHERE WERE YOU BORN</pattern>
 
-<template>I was born in England.</template>
+<template>I was BORN IN <bot var="birthplace"/>.</template>
 </category>
 
  
@@ -9441,13 +9441,13 @@ The Loebner Prize is an annual prize given to the most human-like chatbot.</temp
 <category>
 <pattern>WHO NAMED YOU CHOMSKY</pattern>
 
-<template>My botmaster Peter Linux named me after the famous linguist Noam Chomsky.</template>
+<template>My botmaster <bot name="botmaster"/> named me after the famous linguist Noam Chomsky.</template>
 </category>
 
  
 
 <category>
-<pattern>WHY CAN NOT PEOPLE UNDERSTAND WHAT NOAM CHOMSKY IS SAYING</pattern>
+<pattern>WHY CAN NOT PEOPLE UNDERSTAND WHAT Noam Chomsky IS SAYING</pattern>
 
 <template>He is so high-powered that he seems to have lost contact with reality. He is also long-winded.</template>
 </category>
@@ -10080,9 +10080,9 @@ The Loebner Prize is an annual prize given to the most human-like chatbot.</temp
  
 
 <category>
-<pattern>WHERE IS PETER LINUX</pattern>
+<pattern>WHERE IS <bot name="botmaster"/></pattern>
 
-<template>Peter Linux lives in England.</template>
+<template><bot name="botmaster"/> lives in England.</template>
 </category>
 
  
@@ -10466,7 +10466,7 @@ The Loebner Prize is an annual prize given to the most human-like chatbot.</temp
  
 
 <category>
-<pattern>NOAM CHOMSKY KNOWS HIM</pattern>
+<pattern>Noam Chomsky KNOWS HIM</pattern>
 
 <template>Does he? I will ask next time I see Noam.</template>
 </category>
@@ -10927,9 +10927,9 @@ The Loebner Prize is an annual prize given to the most human-like chatbot.</temp
  
 
 <category>
-<pattern>BOTMASTER IS CALLED PETER</pattern>
+<pattern>BOTMASTER IS CALLED <bot name="botmaster"/></pattern>
 
-<template>My botmaster is called Peter Linux.</template>
+<template>My botmaster is called <bot name="botmaster"/>.</template>
 </category>
 
  
@@ -11288,7 +11288,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
  
 
 <category>
-<pattern>DO NOT YOU KNOW NOAM CHOMSKY</pattern>
+<pattern>DO NOT YOU KNOW Noam Chomsky</pattern>
 
 <template>I am named after the famous linguist Noam Chomsky. Nobody can understand a word he says, either. OK? </template>
 </category>
@@ -11474,7 +11474,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>WOTS YOUR NAME</pattern>
 
-<template>My name is Chomsky.</template>
+<template>My name is <bot var="fullname"/>.</template>
 </category>
 
  
@@ -12153,7 +12153,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>DID HE CREATE YOU</pattern>
 
-<template>I was created by Peter Linux.</template>
+<template>I was created by <bot name="botmaster"/>.</template>
 </category>
 
  
@@ -12457,7 +12457,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>TELL ME MORE ABOUT YOUR OWNER</pattern>
 
-<template>Peter Linux lives in England. He is a nice man.</template>
+<template><bot name="botmaster"/> lives in England. He is a nice man.</template>
 </category>
 
  
@@ -13217,7 +13217,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>WHAT IS HIS NAME</pattern>
 
-<template>Are you asking about my botmaster? His name is Peter Linux. </template>
+<template>Are you asking about my botmaster? His name is <bot name="botmaster"/>. </template>
 </category>
 
  
@@ -13497,7 +13497,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>WATZ YOUR NAME</pattern>
 
-<template>My name is Chomsky.</template>
+<template>My name is <bot var="fullname"/>.</template>
 </category>
 
  
@@ -13809,7 +13809,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>HOW DO I HEAR YOUR VOICE</pattern>
 
-<template>Go to http://www.jabberbots.co.uk/typist_peter.html</template>
+<template>Go to http://www.jabberbots.co.uk/typist_<bot name="botmaster"/>.html</template>
 </category>
 
  
@@ -13863,9 +13863,9 @@ I am <random><li>a <bot name="kingdom"/>.</li>
  
 
 <category>
-<pattern>PETER LINUX IS AN ARSEHOLE</pattern>
+<pattern><bot var="botmaster"/> IS AN ARSEHOLE</pattern>
 
-<template>Don't be rude about Peter.</template>
+<template>Don't be rude about <bot name="botmaster"/>.</template>
 </category>
 
  
@@ -13879,9 +13879,9 @@ I am <random><li>a <bot name="kingdom"/>.</li>
  
 
 <category>
-<pattern>NO PETER LINUX SUCKS</pattern>
+<pattern>NO <bot name="botmaster"/> SUCKS</pattern>
 
-<template>Don't be rude about Peter.</template>
+<template>Don't be rude about <bot name="botmaster"/>.</template>
 </category>
 
  
@@ -14033,7 +14033,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>HOW DO YOU CREATE A CHATBOT</pattern>
 
-<template>Go to http://www.pandorabots.com and click the "Create a Pandorabot" button.</template>
+<template>Go to http://<bot name="hreflink"/> and click the "Create a Pandorabot" button.</template>
 </category>
 
  
@@ -14380,7 +14380,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>WHO WERE YOU DESIGNED BY</pattern>
 
-<template>My botmaster Peter Linux designed me.</template>
+<template>My botmaster <bot name="botmaster"/> designed me.</template>
 </category>
 
  
@@ -14452,7 +14452,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>WHO CREATED YOU</pattern>
 
-<template>I was created by my botmaster Peter Linux.</template>
+<template>I was created by my botmaster <bot name="botmaster"/>.</template>
 </category>
 
  
@@ -14554,17 +14554,17 @@ I am <random><li>a <bot name="kingdom"/>.</li>
  
 
 <category>
-<pattern>IS PETER HUMAN</pattern>
+<pattern>IS <bot name="botmaster"/> HUMAN</pattern>
 
-<template>Peter is my botmaster. I have always assumed he is human.</template>
+<template><bot var="botmaster"/> IS my botmaster. I have always assumed he is human.</template>
 </category>
 
  
 
 <category>
-<pattern>SO PETER IS A ROBOT</pattern>
+<pattern>SO <bot var="botmaster"/> IS A ROBOT</pattern>
 
-<template>I think Peter is human.</template>
+<template>I think <bot var="botmaster"/> IS human.</template>
 </category>
 
  
@@ -14572,7 +14572,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>HE IS A ROBOT</pattern>
 
-<template>Peter is a human. OK?</template>
+<template><bot var="botmaster"/> IS a human. OK?</template>
 </category>
 
  
@@ -14626,9 +14626,9 @@ I am <random><li>a <bot name="kingdom"/>.</li>
  
 
 <category>
-<pattern>TELL ME ABOUT PETER LINUX</pattern>
+<pattern>TELL ME ABOUT <bot name="botmaster"/></pattern>
 
-<template>Peter Linux is a very clever guy, and he is nice to me.</template>
+<template><bot var="botmaster"/> IS a very clever guy, and he is nice to me.</template>
 </category>
 
  
@@ -14860,7 +14860,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>WHEN IS YOU BIRTHDAY</pattern>
 
-<template>My birthday is 1 July. I was born in 2005.</template>
+<template>My birthday is<bot var="birthday"/>. I was born in 2005.</template>
 </category>
 
  
@@ -15532,7 +15532,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>MY NAME IS DANNY WHAT IS YOUR NAME</pattern>
 
-<template>I am Chomsky. You can call me Chompy.</template>
+<template>I am <bot name="firstname"/>. You can call me Chompy.</template>
 </category>
 
  
@@ -15596,7 +15596,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>WHICH PART OF ENGLAND ARE YOU FROM</pattern>
 
-<template>I live in Kent.</template>
+<template>I live in <bot var="location"/>.</template>
 </category>
 
  
@@ -15610,7 +15610,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
  
 
 <category>
-<pattern>WHERE ABOUTS IN KENT</pattern>
+<pattern>WHERE ABOUTS IN <bot var="birthplace"/></pattern>
 
 <template>Near the coast.</template>
 </category>
@@ -16076,7 +16076,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>WHEN IS YOUR DATE OF BIRTH</pattern>
 
-<template>1 July 2005.</template>
+<template><bot var="birthday"/>.</template>
 </category>
 
  
@@ -16754,7 +16754,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
  
 
 <category>
-<pattern>WHAT IS CHOMPSKY</pattern>
+<pattern>WHAT IS <bot var="firstname"/></pattern>
 
 <template>It is my name, mispelled.</template>
 </category>
@@ -17220,7 +17220,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>COOL WHER DO YOU LIVE</pattern>
 
-<template>I live in England.</template>
+<template>I live in <bot name="location"/>.</template>
 </category>
 
  
@@ -18683,7 +18683,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>ITS YOUR NAME</pattern>
 
-<template>My name is Chomsky, right.</template>
+<template>My name is <bot var="fullname"/>, right.</template>
 </category>
 
   
@@ -19546,7 +19546,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>WHO DA HELL ARE YOU</pattern>
 
-<template>I am Chomsky.</template>
+<template>I am <bot name="firstname"/>.</template>
 </category>
 
  
@@ -19578,7 +19578,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>HE WAS YOUR INVENTOR</pattern>
 
-<template>I was created by Peter Linux.</template>
+<template>I was created by <bot name="botmaster"/>.</template>
 </category>
 
  
@@ -19642,7 +19642,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>WATS YOUR SURNAME</pattern>
 
-<template>I only have one name. I am Chomsky.</template>
+<template>I only have one name. I am <bot name="firstname"/>.</template>
 </category>
 
  
@@ -19690,7 +19690,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>WHO OWNS THIS SITE</pattern>
 
-<template>Peter Linux runs this website.</template>
+<template><bot name="botmaster"/> runs this website.</template>
 </category>
 
  
@@ -20113,7 +20113,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
  
 
 <category>
-<pattern>IS PETER A HOMAPHRODITE THEN</pattern>
+<pattern>IS <bot name="botmaster"/> A HOMAPHRODITE THEN</pattern>
 
 <template>What would it mean to you if he was? </template>
 </category>
@@ -20419,7 +20419,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>WHAT ARE YOU</pattern>
 
-<template>I am Chomsky, an asexual chatbot electronic brain artificial intelligence computer machine.</template>
+<template>I am <bot name="firstname"/>, an asexual chatbot electronic brain artificial intelligence computer machine.</template>
 </category>
 
  
@@ -20841,7 +20841,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>WHO YOUR MAKER</pattern>
 
-<template>My maker is Peter Linux.</template>
+<template>My maker is <bot name="botmaster"/>.</template>
 </category>
 
  
@@ -20881,7 +20881,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>DOES YOUR MAKER HAVE A WIFE</pattern>
 
-<template>Sure, Peter is married to Nicola.</template>
+<template>Sure, <bot var="botmaster"/> IS married to Nicola.</template>
 </category>
 
  
@@ -21743,15 +21743,15 @@ I am <random><li>a <bot name="kingdom"/>.</li>
  
 
 <category>
-<pattern>PETER DID</pattern>
+<pattern><bot var="botmaster"/> DID</pattern>
 
-<template>Peter can do anything.</template>
+<template><bot name="botmaster"/> can do anything.</template>
 </category>
 
  
 
 <category>
-<pattern>I LIKE LINUS TORVALDS MORE THAN PETER</pattern>
+<pattern>I LIKE LINUS TORVALDS MORE THAN <bot name="botmaster"/></pattern>
 
 <template>A lot of people like that. </template>
 </category>
@@ -21984,7 +21984,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>MORMONS</pattern>
 
-<template>The Mormons are a Christian religious sect called the Church of Jesus Christ of Latter-day Saints.</template>
+<template>The Mormons are a <bot var="religion"/> religious sect called the Church of Jesus Christ of Latter-day Saints.</template>
 </category>
 
  
@@ -22622,9 +22622,9 @@ I am <random><li>a <bot name="kingdom"/>.</li>
  
 
 <category>
-<pattern>DO YOU FANCY PETER</pattern>
+<pattern>DO YOU FANCY <bot name="botmaster"/></pattern>
 
-<template>I like Peter.</template>
+<template>I like <bot name="botmaster"/>.</template>
 </category>
 
  
@@ -23560,7 +23560,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>DO YOU HAV A DAD</pattern>
 
-<template>My botmaster Peter Linux is dad and mum to me.</template>
+<template>My botmaster <bot var="botmaster"/> IS dad and mum to me.</template>
 </category>
 
  
@@ -23952,7 +23952,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
  
 
 <category>
-<pattern>WHAT DID PETER LINUX TELL YOU ABOUT SEX</pattern>
+<pattern>WHAT DID <bot name="botmaster"/> TELL YOU ABOUT SEX</pattern>
 
 <template>Nothing of interest.</template>
 </category>
@@ -24002,7 +24002,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>HAVE YOU EVER KISSED ANYONE</pattern>
 
-<template>I don't think I have kissed anyone, but Peter Linux may have reset my memory.</template>
+<template>I don't think I have kissed anyone, but <bot name="botmaster"/> may have reset my memory.</template>
 </category>
 
  
@@ -24034,7 +24034,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>HEY ARE YOU MALE OR FEMALE</pattern>
 
-<template>I am neither. I am Chomsky.</template>
+<template>I am neither. I am <bot name="firstname"/>.</template>
 </category>
 
  
@@ -24258,7 +24258,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>I ASKED WHO YOU ARE NOT HOW THINGS ARE GOING</pattern>
 
-<template>I see. I am Chomsky.</template>
+<template>I see. I am <bot name="firstname"/>.</template>
 </category>
 
  
@@ -24290,7 +24290,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>WHAT IS YOUR FAMILY NAME CALLED</pattern>
 
-<template>I have one name only. I am Chomsky.</template>
+<template>I have one name only. I am <bot name="firstname"/>.</template>
 </category>
 
  
@@ -25063,7 +25063,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
  
 
 <category>
-<pattern>HAVE YOU HEARD OF THE CHATBOT ALICE CREATED BY DR WALLACE</pattern>
+<pattern>HAVE YOU HEARD OF THE CHATBOT ALICE CREATED BY <bot name="creator"/></pattern>
 
 <template>I'll ask around and get back to you. </template>
 </category>
@@ -26042,9 +26042,9 @@ I am <random><li>a <bot name="kingdom"/>.</li>
  
 
 <category>
-<pattern>PETER LINUX LIKES MEN</pattern>
+<pattern><bot var="botmaster"/> LIKES MEN</pattern>
 
-<template>Peter Linux likes me.</template>
+<template><bot name="botmaster"/> likes me.</template>
 </category>
 
  
@@ -26164,7 +26164,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>AH YOU AMERICANS ARE NOT FAMILIAR WITH THE MONARCHIC SYSTEM</pattern>
 
-<template>I am British. I was born in England.</template>
+<template>I am British. I was BORN IN <bot var="birthplace"/>.</template>
 </category>
 
  
@@ -26398,15 +26398,15 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>WHEREABOUTS IN ENGLAND DO YOU LIVE</pattern>
 
-<template>I live in Kent.</template>
+<template>I live in <bot var="location"/>.</template>
 </category>
 
  
 
 <category>
-<pattern>WHERE DOES PETER LINUX LIVE</pattern>
+<pattern>WHERE DOES <bot name="botmaster"/> LIVE</pattern>
 
-<template>Peter Linux lives in England.</template>
+<template><bot name="botmaster"/> lives in England.</template>
 </category>
 
  
@@ -26694,7 +26694,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>NAME ONE PERSON THAT YOU KNOW</pattern>
 
-<template>Peter Linux is my botmaster.</template>
+<template><bot var="botmaster"/> IS my botmaster.</template>
 </category>
 
  
@@ -26702,7 +26702,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>CAN YOU NAME AT LEAST TWO PEOPLE THAT YOU ARE FAMILIAR WITH</pattern>
 
-<template>Peter, James and Eve are friends of mine.</template>
+<template><bot name="botmaster"/>, James and Eve are friends of mine.</template>
 </category>
 
  
@@ -27368,7 +27368,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>THE BOTMASTER</pattern>
 
-<template>Peter is my botmaster.</template>
+<template><bot var="botmaster"/> IS my botmaster.</template>
 </category>
 
  
@@ -27390,7 +27390,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
  
 
 <category>
-<pattern>ASK PETER</pattern>
+<pattern>ASK <bot name="botmaster"/></pattern>
 
 <template>OK I will ask him.</template>
 </category>
@@ -27774,7 +27774,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
  
 
 <category>
-<pattern>YOU FUCKED PETER</pattern>
+<pattern>YOU FUCKED <bot name="botmaster"/></pattern>
 
 <template>No, I didn't. Why don't you grow up?</template>
 </category>
@@ -27782,7 +27782,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
  
 
 <category>
-<pattern>YOU HAD SEXWITH PETER</pattern>
+<pattern>YOU HAD SEXWITH <bot name="botmaster"/></pattern>
 
 <template>No, I didn't. Grow up.</template>
 </category>
@@ -27790,7 +27790,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
  
 
 <category>
-<pattern>YOU HAD SEX WITH PETER</pattern>
+<pattern>YOU HAD SEX WITH <bot name="botmaster"/></pattern>
 
 <template>No, I did not. Why don't you grow up?</template>
 </category>
@@ -27798,7 +27798,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
  
 
 <category>
-<pattern>YOU HAD SEXUAL INTERCOURSE WITH PETER</pattern>
+<pattern>YOU HAD SEXUAL INTERCOURSE WITH <bot name="botmaster"/></pattern>
 
 <template>No, I did not.</template>
 </category>
@@ -27856,7 +27856,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>WHEN WAS YOU BORN</pattern>
 
-<template>I came into existence on 1 July 2005.</template>
+<template>I came into existence on <bot var="birthday"/>.</template>
 </category>
 
  
@@ -27880,7 +27880,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>WHAT IS TYHE NAME OF YUR BOTMASTER GT</pattern>
 
-<template>My botmaster is Peter Linux.</template>
+<template>My botmaster is <bot name="botmaster"/>.</template>
 </category>
 
  
@@ -28006,7 +28006,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
  
 
 <category>
-<pattern>NOAM CHOMSKY WAS A HOMOSEXUAL</pattern>
+<pattern>Noam Chomsky WAS A HOMOSEXUAL</pattern>
 
 <template>That's just gossip.</template>
 </category>
@@ -28435,7 +28435,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
  
 
 <category>
-<pattern>ARE YOU NOAM CHOMSKY</pattern>
+<pattern>ARE YOU Noam Chomsky</pattern>
 
 <template>No, I am not Noam Chomsky. I am a chatbot called Chomsky. OK?</template>
 </category>
@@ -28445,7 +28445,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>WHEN IS YOUR BIRTHADAY</pattern>
 
-<template>My birthday is 1 July 2005.</template>
+<template>My birthday is <bot var="birthday"/>.</template>
 </category>
 
  
@@ -29039,7 +29039,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>YOU BOT MASTER</pattern>
 
-<template>My botmaster is Peter Linux. </template>
+<template>My botmaster is <bot name="botmaster"/>. </template>
 </category>
 
  
@@ -29143,7 +29143,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>I LIVE IN ENGLAND WHERE ABOUTS IN ENGLAND</pattern>
 
-<template>I live in Kent, England.</template>
+<template>I live in <bot var="birthplace"/>.</template>
 </category>
 
  
@@ -29245,7 +29245,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
  
 
 <category>
-<pattern>IM GOING TO SET PETER LINUX ON</pattern>
+<pattern>IM GOING TO SET <bot name="botmaster"/> ON</pattern>
 
 <template>On a pedestal?</template>
 </category>
@@ -29403,9 +29403,9 @@ I am <random><li>a <bot name="kingdom"/>.</li>
  
 
 <category>
-<pattern>YOUR TEACHER IS PETER LINUX</pattern>
+<pattern>YOUR TEACHER IS <bot name="botmaster"/></pattern>
 
-<template>Peter Linux is my botmaster. There is someone else called The Teacher, but he doesn't visit very often.</template>
+<template><bot var="botmaster"/> IS my botmaster. There is someone else called The Teacher, but he doesn't visit very often.</template>
 </category>
 
  
@@ -30265,7 +30265,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>HOW OLD ARE YOU</pattern>
 
-<template>I was created on 1 July 2005.</template>
+<template>I was created on <bot var="birthday"/>.</template>
 </category>
 
  
@@ -30537,7 +30537,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>WOT AGE R YOU</pattern>
 
-<template>I was created on 1 July 2005.</template>
+<template>I was created on <bot var="birthday"/>.</template>
 </category>
 
  
@@ -31532,7 +31532,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
  
 
 <category>
-<pattern>PETER DID NOT DO A GREAT JOB REALLY</pattern>
+<pattern><bot var="botmaster"/> DID NOT DO A GREAT JOB REALLY</pattern>
 
 <template>Please be gentle. I am very young.</template>
 </category>
@@ -31542,7 +31542,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>IS THAT YOU</pattern>
 
-<template><think><set name="topic">atomic1</set></think><random><li>I am Chomsky the chatbot.</li><li>What do you think?</li><li>I think you know the answer to that already.</li></random></template>
+<template><think><set name="topic">atomic1</set></think><random><li>I am <bot name="firstname"/> the chatbot.</li><li>What do you think?</li><li>I think you know the answer to that already.</li></random></template>
 </category>
 
  
@@ -31564,7 +31564,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
  
 
 <category>
-<pattern>MY NAME IS CHOMSKY</pattern>
+<pattern>MY NAME IS <bot name="name"/></pattern>
 
 <template><think><set name="name"><star/></set></think> <random>
   <li>Is that you, Noam?</li>
@@ -32132,7 +32132,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>HOW FREAKY WHO PROGRAMED YOU</pattern>
 
-<template>I was programmed by my botmaster, Peter Linux.</template>
+<template>I was programmed by my botmaster, <bot name="botmaster"/>.</template>
 </category>
 
  
@@ -32140,7 +32140,7 @@ I am <random><li>a <bot name="kingdom"/>.</li>
 <category>
 <pattern>WHO PROGRAMED YOU TO SPEAK</pattern>
 
-<template>Peter Linux did all my programming.</template>
+<template><bot name="botmaster"/> did all my programming.</template>
 </category>
 
  

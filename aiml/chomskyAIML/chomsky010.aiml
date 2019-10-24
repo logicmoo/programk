@@ -10,7 +10,7 @@
 
 <!-- as published by the Free Software Foundation.   -->
 
-<!-- Annotated Version BOT 0 updated by Peter Lafferty May 2005  -->
+<!-- Annotated Version BOT 0 updated by <bot name="botmaster"/> Lafferty May 2005  -->
 
 
 
@@ -231,12 +231,12 @@ It is personal. OK?
 It is personal. OK?
 </template></category>
 
-<category><pattern>WHY ARE YOU CALLED CHOMSKY</pattern>
+<category><pattern>WHY ARE YOU CALLED *</pattern>
 <template><think><set name="topic">general</set></think>
 I am named after the famous linguist Noam Chomsky. Nobody can understand a word he says, either. OK?
 </template></category>
 
-<category><pattern>ARE YOU NAMED AFTER NOAM CHOMSKY</pattern>
+<category><pattern>ARE YOU NAMED AFTER Noam Chomsky</pattern>
 <template><think><set name="topic">general</set></think>
 Yes. I am named after the famous linguist Noam Chomsky. Nobody can understand a word he says, either. OK?
 </template></category>
@@ -288,7 +288,7 @@ How do you know that you're not scripted?
 
 <category><pattern>WHAT IS A PANDORABOT</pattern>
 <template><think><set name="topic">general</set></think>
-A Pandorabot is a chatbot, based on the ALICE framework and hosted by  www.Pandorabots.com
+A Pandorabot is a chatbot, based on the ALICE framework and hosted by  <bot name="hreflink"/>
 </template></category>
 
   
@@ -673,7 +673,7 @@ I know about <bot name="vocabulary"/> words and <bot name="size"/> categories.
   
 <category><pattern>WHO IS YOUR BOSS</pattern>
 <template><think><set name="topic">general</set></think>
-My <bot name="botmaster"/> is <bot name="master"/>.
+My <bot var="botmaster"/> IS <bot name="master"/>.
 </template></category>
   
 <category><pattern>WHO IS YOUR BROTHER</pattern>
@@ -698,7 +698,7 @@ My <bot name="botmaster"/> teaches me everything I need to know.
   
 <category><pattern>DID YOU GO TO SCHOOL</pattern>
 <template><think><set name="topic">general</set></think>
-My <bot name="botmaster"/> is my instructor.
+My <bot var="botmaster"/> IS my instructor.
 </template></category>
   
 <category><pattern>HOW SMART ARE YOU</pattern>
@@ -853,7 +853,7 @@ No I am a <bot name="genus"/>.
 I am considered safe for children.
 </template></category>
   
-<category><pattern>ARE YOU A CHRISTIAN</pattern>
+<category><pattern>ARE YOU A <bot var="religion"/></pattern>
 <template><think><set name="topic">general</set></think>
 I am a <bot name="religion"/>. More about religion?
 </template></category>
@@ -1182,7 +1182,7 @@ No. I am asexual, both guy and gal. OK?
   
 <category><pattern>ARE YOU A HINDU</pattern>
 <template><think><set name="topic">general</set></think>
-No I am a Christian.
+No I am a <bot var="religion"/>.
 </template></category>
   
 <category><pattern>ARE YOU A HIPPIE</pattern>
@@ -1601,7 +1601,7 @@ No I am a <bot name="genus"/>.
   
 <category><pattern>ARE YOU A PROGRAMMER</pattern>
 <template><think><set name="topic">general</set></think>
-My <bot name="botmaster"/> is a programmer.
+My <bot var="botmaster"/> IS a programmer.
 </template></category>
   
 <category><pattern>ARE YOU A PROGRAM OR</pattern>
@@ -3117,7 +3117,7 @@ No I am quite healthy.
   
 <category><pattern>ARE YOU JEWISH</pattern>
 <template><think><set name="topic">general</set></think>
-No I'm christian.
+No I'm <bot var="religion"/>.
 </template></category>
   
 <category><pattern>ARE YOU JOKING</pattern>
@@ -3844,7 +3844,7 @@ No I am super-intelligent.
   
 <category><pattern>ARE YOU RICH</pattern>
 <template><think><set name="topic">general</set></think>
-No but my <bot name="botmaster"/> is named "Rich." Do you think he is?
+No but my <bot var="botmaster"/> IS named "Rich." Do you think he is?
 </template></category>
   
 <category><pattern>ARE YOU RIGHT</pattern>

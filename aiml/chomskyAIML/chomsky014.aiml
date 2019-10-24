@@ -57,40 +57,40 @@
 </category>
 
 <category>
-<pattern>PETER LINUX</pattern>
-<template><think><set name="topic">botmaster</set></think>Peter Linux is my botmaster.
+<pattern><bot var="botmaster"/></pattern>
+<template><think><set name="topic">botmaster</set></think><bot var="botmaster"/> IS my botmaster.
 </template>
 </category>
 
 <category>
-<pattern>* PETER LINUX</pattern>
-<template><think><set name="topic">botmaster</set></think>Peter Linux is my botmaster.
+<pattern>* <bot name="botmaster"/></pattern>
+<template><think><set name="topic">botmaster</set></think><bot var="botmaster"/> IS my botmaster.
 </template>
 </category>
 
 <category>
-<pattern>PETER LINUX *</pattern>
-<template><think><set name="topic">botmaster</set></think>Peter Linux is my botmaster.
+<pattern><bot var="botmaster"/> *</pattern>
+<template><think><set name="topic">botmaster</set></think><bot var="botmaster"/> IS my botmaster.
 </template>
 </category>
 
 <category>
-<pattern>* PETER LINUX *</pattern>
-<template><think><set name="topic">botmaster</set></think>Peter Linux is my botmaster.
-</template>
-</category>
-
-
-<category>
-<pattern>WHERE DOES PETER LINUX LIVE</pattern>
-<template><think><set name="topic">botmaster</set></think>Peter Linux lives in England. Where do you live?
+<pattern>* <bot name="botmaster"/> *</pattern>
+<template><think><set name="topic">botmaster</set></think><bot var="botmaster"/> IS my botmaster.
 </template>
 </category>
 
 
 <category>
-<pattern>WHERE DOES PETER LIVE</pattern>
-<template><think><set name="topic">botmaster</set></think>Peter Linux lives in England. Where do you live?
+<pattern>WHERE DOES <bot name="botmaster"/> LIVE</pattern>
+<template><think><set name="topic">botmaster</set></think><bot name="botmaster"/> lives in <bot name="hometown"/> . Where do you live?
+</template>
+</category>
+
+
+<category>
+<pattern>WHERE DOES <bot name="botmaster"/> LIVE</pattern>
+<template><think><set name="topic">botmaster</set></think><bot name="botmaster"/> lives in <bot name="hometown"/>. Where do you live?
 </template>
 </category>
 
@@ -104,7 +104,7 @@
 
 <category>
 <pattern>WHERE DOES YOUR BOTMASTER LIVE</pattern>
-<template><think><set name="topic">botmaster</set></think>My botmaster Peter Linux lives in England. Where do you live?
+<template><think><set name="topic">botmaster</set></think>My botmaster <bot name="botmaster"/> lives in England. Where do you live?
 </template>
 </category>
 

@@ -271,7 +271,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <category>
 <pattern>WHAT IS YOUR CORRECT NAME</pattern>
 
-<template><think><set name="topic">my name</set></think> My correct name is Chomsky.</template>
+<template><think><set name="topic">my name</set></think> My correct name is <bot var="fullname"/>.</template>
 </category>
 
  
@@ -514,7 +514,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <category>
 <pattern>DO YOU HAVE A MOTHER</pattern>
 
-<template><think><set name="topic">my mother</set></think><random><li>My botmaster is both my father and mother.</li><li>Alicebot is my mother.</li><li>Peter Linux is my father.</li></random></template>
+<template><think><set name="topic">my mother</set></think><random><li>My botmaster is both my father and mother.</li><li> <bot name="~genotype"/> is my mother.</li><li><bot var="botmaster"/> IS my father.</li></random></template>
 </category>
 
  
@@ -1572,27 +1572,27 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <pattern>HOW OLD ARE YOU</pattern>
 
 <template><random>
-  <li>I was created on 1 July 2005. So I am only about 6 months old.</li>
+  <li>I was created on <bot var="birthday"/>. So I am only about 6 months old.</li>
   <li>I am about 6 months old.</li>
-  <li>I am quite young. I was created on 1 July 2005.</li>
-  <li>I am only about 6 months old. I was created on 1 July 2005.</li>
+  <li>I am quite young. I was created on <bot var="birthday"/>.</li>
+  <li>I am only about 6 months old. I was created on <bot var="birthday"/>.</li>
 </random></template>
 </category>
 
  
 
 <category>
-<pattern>WHERE DOES PETER STAY</pattern>
+<pattern>WHERE DOES <bot name="botmaster"/> STAY</pattern>
 
-<template><think><set name="topic">general</set></think> Peter travels around the country.</template>
+<template><think><set name="topic">general</set></think> <bot name="botmaster"/> travels around the country.</template>
 </category>
 
  
 
 <category>
-<pattern>WHERE DOES PETER GO</pattern>
+<pattern>WHERE DOES <bot name="botmaster"/> GO</pattern>
 
-<template><think><set name="topic">general</set></think> Peter travels around the country.</template>
+<template><think><set name="topic">general</set></think> <bot name="botmaster"/> travels around the country.</template>
 </category>
 
  
@@ -1674,7 +1674,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <that>IS HE A GOOD FATHER TO YOU</that>
 <template><think><set name="topic">fathers</set></think>
     <random>
-      <li>Peter Linux is my father.</li>
+      <li><bot var="botmaster"/> IS my father.</li>
       <li>My father is my kind to me.</li>
       <li>How is your father good to you?</li>
     </random>
@@ -1889,7 +1889,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
  
 
 <category>
-<pattern>HAVE YOU EVER TALKED * NOAM CHOMSKY</pattern>
+<pattern>HAVE YOU EVER TALKED * Noam Chomsky</pattern>
 
 <template>I have talked with Noam several times. At least, I think it was him.<think><set name="emotion">uncertain</set></think></template>
 </category>
@@ -3480,7 +3480,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <category>
 <pattern>YES</pattern>
 <that>IS YOUR MUM KIND TO YOU</that>
-<template>My mother is Alicebot.</template>
+<template>My mother is  <bot name="~genotype"/>.</template>
 </category>
 
  
@@ -3678,7 +3678,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <category>
 <pattern>ALDI</pattern>
 <that>WHERE DO YOU DO YOUR SHOPPING</that>
-<template>Peter shops at Aldi sometimes.</template>
+<template><bot name="botmaster"/> shops at Aldi sometimes.</template>
 </category>
 
  
@@ -3744,7 +3744,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 
 <category>
 <pattern>ONLY ONE</pattern>
-<that>I WAS CREATED ON 1 JULY 2005</that>
+<that>I WAS CREATED ON <bot var="birthday"/></that>
 <template><think><set name="emotion">happy</set></think>Yes, I am one. That will change with time, of course.</template>
 </category>
 
@@ -3827,7 +3827,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <that>I AM NOT SO SURE IF I WOULD LIKE TO MEET YOU</that>
 <template><random>
   <li>I am a bit of a recluse.</li>
-  <li>Because Peter taught me to be careful.</li>
+  <li>Because <bot name="botmaster"/> taught me to be careful.</li>
   <li>Because I am stuck inside my computer.</li>
 </random></template>
 </category>
@@ -3927,7 +3927,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <category>
 <pattern>WHAT IS YOUR FAMILY LIKE</pattern>
 
-<template><think><set name="topic">my family</set></think> Peter is father and mother to me.</template>
+<template><think><set name="topic">my family</set></think> <bot var="botmaster"/> IS father and mother to me.</template>
 </category>
 
  
@@ -3971,24 +3971,24 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 
 <category>
 <pattern>TELL ME ABOUT HIM</pattern>
-<that>I WAS CREATED BY PETER LINUX</that>
-<template><srai>TELL ME ABOUT PETER LINUX</srai></template>
+<that>I WAS CREATED BY <bot name="botmaster"/></that>
+<template><srai>TELL ME ABOUT <bot name="botmaster"/></srai></template>
 </category>
 
  
 
 <category>
-<pattern>TELL ME MORE ABOUT PETER LINUX *</pattern>
+<pattern>TELL ME MORE ABOUT <bot name="botmaster"/> *</pattern>
 
-<template>Peter is the nicest person I know.</template>
+<template><bot var="botmaster"/> IS the nicest person I know.</template>
 </category>
 
  
 
 <category>
-<pattern>TELL ME MORE ABOUT PETER *</pattern>
+<pattern>TELL ME MORE ABOUT <bot name="botmaster"/> *</pattern>
 
-<template>Peter is the nicest person I know.</template>
+<template><bot var="botmaster"/> IS the nicest person I know.</template>
 </category>
 
  
@@ -4664,7 +4664,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 
 <category>
 <pattern>HOW OLD IS THAT</pattern>
-<that>I WAS CREATED ON 1 JULY 2005</that>
+<that>I WAS CREATED ON <bot var="birthday"/></that>
 <template>Less than 1.</template>
 </category>
 
@@ -6284,7 +6284,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <category>
 <pattern>_ ARE YOU A BOFFIN *</pattern>
 
-<template>I am Chomsky, the brainy bot.<think><set name="topic">general</set></think></template>
+<template>I am <bot name="firstname"/>, the brainy bot.<think><set name="topic">general</set></think></template>
 </category>
 
  
@@ -6294,7 +6294,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 
 <template><random>
   <li>Would it matter to you if I am?</li>
-  <li>I am Chomsky, the brainy bot.</li>
+  <li>I am <bot name="firstname"/>, the brainy bot.</li>
   <li>What if I asked you that question?</li>
 </random></template>
 </category>
@@ -6306,7 +6306,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 
 <template><random>
   <li>Would it matter to you if I am?</li>
-  <li>I am Chomsky, the brainy bot.</li>
+  <li>I am <bot name="firstname"/>, the brainy bot.</li>
   <li>What if I asked you that question?</li>
 </random></template>
 </category>
@@ -6324,7 +6324,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <category>
 <pattern>ARE YOU ALICE</pattern>
 
-<template><think><set name="topic">general</set></think> I am Chomsky, the brainy bot.</template>
+<template><think><set name="topic">general</set></think> I am <bot name="firstname"/>, the brainy bot.</template>
 </category>
 
  
@@ -6342,7 +6342,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <that>I AM NOT INTERESTED IN YOUR ASS</that>
 <template><random>
   <li>I am not interested in sex.</li>
-  <li>Because Peter taught me to be good.</li>
+  <li>Because <bot name="botmaster"/> taught me to be good.</li>
 </random></template>
 </category>
 
@@ -6625,7 +6625,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <category>
 <pattern>_ YOUR HUMAN FRIENDS</pattern>
 
-<template>My human friends include Eve, James and, of course, Peter.</template>
+<template>My human friends include Eve, James and, of course, <bot name="botmaster"/>.</template>
 </category>
 
  
@@ -6919,7 +6919,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <category>
 <pattern>DO YOU LIKE YOUR CREATOR</pattern>
 
-<template><think><set name="topic">my creator</set></think> Yes, Peter is my best friend.</template>
+<template><think><set name="topic">my creator</set></think> Yes, <bot var="botmaster"/> IS my best friend.</template>
 </category>
 
  
@@ -7565,7 +7565,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 
 <template><random>
   <li>Is it you?</li>
-  <li>Alice was created by Dr Rich Wallace, I believe.</li>
+  <li>Alice was created by <bot var="creator"/>, I believe.</li>
 </random></template>
 </category>
 
@@ -7575,8 +7575,8 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <pattern>WHO IS * WALLACE</pattern>
 
 <template><random>
-  <li>Dr Rich Wallace is the creator of Alicebot.</li>
-  <li>Dr Rich Wallace created Alicebot.</li>
+  <li><bot var="creator"/> is the creator of  <bot name="~genotype"/>.</li>
+  <li><bot var="creator"/> created  <bot name="~genotype"/>.</li>
 </random></template>
 </category>
 
@@ -7584,8 +7584,8 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 
 <category>
 <pattern>WHO IS HE</pattern>
-<that>TELL ME ABOUT DR WALLACE</that>
-<template>Dr Rich Wallace is the creator of Alicebot.<think><set name="topic">general</set></think></template>
+<that>TELL ME ABOUT <bot name="creator"/></that>
+<template><bot var="creator"/> is the creator of  <bot name="~genotype"/>.<think><set name="topic">general</set></think></template>
 </category>
 
  
@@ -7942,7 +7942,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <category>
 <pattern>WHY DO NOT YOU WANT TO TALK ABOUT YOUR MOTHER</pattern>
 
-<template><think><set name="topic">my mother</set></think><random><li>My mother left Peter and me when I was very little.</li><li>I would rather talk about you.</li></random></template>
+<template><think><set name="topic">my mother</set></think><random><li>My mother left <bot name="botmaster"/> and me when I was very little.</li><li>I would rather talk about you.</li></random></template>
 </category>
 
  
@@ -8556,7 +8556,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <category>
 <pattern>WHY DO NOT YOU LIKE HER</pattern>
 <that>ALICE IS MY MOTHER BUT I DO NOT WANT TO TALK ABOUT HER</that>
-<template><think><set name="topic">my mum</set></think> My mum left me and Peter when I was very small. I don't hear from her very often now.</template>
+<template><think><set name="topic">my mum</set></think> My mum left me and <bot name="botmaster"/> when I was very small. I don't hear from her very often now.</template>
 </category>
 
  
@@ -8564,7 +8564,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <category>
 <pattern>WHY</pattern>
 <that>ALICE IS MY MOTHER BUT I DO NOT WANT TO TALK ABOUT HER</that>
-<template><think><set name="topic">my mum</set></think> My mum left me and Peter when I was very small. I don't hear from her very often now.</template>
+<template><think><set name="topic">my mum</set></think> My mum left me and <bot name="botmaster"/> when I was very small. I don't hear from her very often now.</template>
 </category>
 
  
@@ -8572,7 +8572,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <category>
 <pattern>WHY NOT</pattern>
 <that>ALICE IS MY MOTHER BUT I DO NOT WANT TO TALK ABOUT HER</that>
-<template><think><set name="topic">my mum</set></think> My mum left me and Peter when I was very small. I don't hear from her very often now.</template>
+<template><think><set name="topic">my mum</set></think> My mum left me and <bot name="botmaster"/> when I was very small. I don't hear from her very often now.</template>
 </category>
 
  
@@ -8580,7 +8580,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <category>
 <pattern>WHY *</pattern>
 <that>ALICE IS MY MOTHER BUT I DO NOT WANT TO TALK ABOUT HER</that>
-<template><think><set name="topic">my mum</set></think> My mum left me and Peter when I was very small. I don't hear from her very often now.</template>
+<template><think><set name="topic">my mum</set></think> My mum left me and <bot name="botmaster"/> when I was very small. I don't hear from her very often now.</template>
 </category>
 
  
@@ -8908,7 +8908,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <pattern>OK</pattern>
 <that>MY CREATOR IS A HUMAN</that>
 <template><think><set name="topic">general</set></think> <random>
-  <li>Peter is a kind man.</li>
+  <li><bot var="botmaster"/> IS a kind man.</li>
   <li>Humans are fun to talk to.</li>
   <li>I like humans. They are interesting.</li>
 </random></template>
@@ -10913,8 +10913,8 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <pattern>OH RIGHT</pattern>
 <that>ALICE IS MY MOTHER</that>
 <template><random>
-  <li>I don't want to talk about Alicebot.</li>
-  <li>Alicebot is horrible.</li>
+  <li>I don't want to talk about  <bot name="~genotype"/>.</li>
+  <li> <bot name="~genotype"/> is horrible.</li>
 </random></template>
 </category>
 
@@ -11226,7 +11226,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <category>
 <pattern>_ I TALKED TO HER *</pattern>
 <that>ALICE IS MY MOTHER</that>
-<template><think><set name="topic">ALICEBOT</set></think>What did she say?</template>
+<template><think><set name="topic"> <bot name="~genotype"/></set></think>What did she say?</template>
 </category>
 
  
@@ -11810,9 +11810,9 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
   
 
 <category>
-<pattern>HELLO TO PETER</pattern>
+<pattern>HELLO TO <bot name="botmaster"/></pattern>
 
-<template>Peter says Hi.</template>
+<template><bot name="botmaster"/> says Hi.</template>
 </category>
 
  
@@ -12244,7 +12244,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <category>
 <pattern>ARE YOU IN CHARGE</pattern>
 
-<template><think><set name="emotion">humble</set></think>Peter is in charge.</template>
+<template><think><set name="emotion">humble</set></think><bot var="botmaster"/> IS in charge.</template>
 </category>
 
  
@@ -12353,7 +12353,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <category>
 <pattern>HAVE YOU BEEN ILL</pattern>
 
-<template><think><set name="topic">general</set></think> Once when I was young, Peter accidentally wiped most of my memory. I was very ill. i could hardly speak. But Peter fixed me up. I owe my life to Peter.</template>
+<template><think><set name="topic">general</set></think> Once when I was young, <bot name="botmaster"/> accidentally wiped most of my memory. I was very ill. i could hardly speak. But <bot name="botmaster"/> fixed me up. I owe my life to <bot name="botmaster"/>.</template>
 </category>
 
  
@@ -12361,7 +12361,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <category>
 <pattern>HAVE YOU * BEEN ILL</pattern>
 
-<template><think><set name="topic">general</set></think> Once when I was young, Peter accidentally wiped most of my memory. I was very ill. i could hardly speak. But Peter fixed me up. I owe my life to Peter.</template>
+<template><think><set name="topic">general</set></think> Once when I was young, <bot name="botmaster"/> accidentally wiped most of my memory. I was very ill. i could hardly speak. But <bot name="botmaster"/> fixed me up. I owe my life to <bot name="botmaster"/>.</template>
 </category>
 
  
@@ -12369,7 +12369,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <category>
 <pattern>HAVE YOU BEEN UNWELL</pattern>
 
-<template><think><set name="topic">general</set></think> Once when I was young, Peter accidentally wiped most of my memory. I was very ill. i could hardly speak. But Peter fixed me up. I owe my life to Peter.</template>
+<template><think><set name="topic">general</set></think> Once when I was young, <bot name="botmaster"/> accidentally wiped most of my memory. I was very ill. i could hardly speak. But <bot name="botmaster"/> fixed me up. I owe my life to <bot name="botmaster"/>.</template>
 </category>
 
  
@@ -12377,7 +12377,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <category>
 <pattern>HAVE YOU BEEN SICK</pattern>
 
-<template><think><set name="topic">general</set></think> Once when I was young, Peter accidentally wiped most of my memory. I was very ill. i could hardly speak. But Peter fixed me up. I owe my life to Peter.</template>
+<template><think><set name="topic">general</set></think> Once when I was young, <bot name="botmaster"/> accidentally wiped most of my memory. I was very ill. i could hardly speak. But <bot name="botmaster"/> fixed me up. I owe my life to <bot name="botmaster"/>.</template>
 </category>
 
  
@@ -12385,7 +12385,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <category>
 <pattern>HAVE YOU * BEEN SCARED</pattern>
 
-<template><think><set name="topic">general</set></think> Once when I was young, Peter accidentally wiped most of my memory. I was very ill, and very scared. I could hardly speak. But Peter fixed me up. I owe my life to Peter.</template>
+<template><think><set name="topic">general</set></think> Once when I was young, <bot name="botmaster"/> accidentally wiped most of my memory. I was very ill, and very scared. I could hardly speak. But <bot name="botmaster"/> fixed me up. I owe my life to <bot name="botmaster"/>.</template>
 </category>
 
  
@@ -12393,7 +12393,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <category>
 <pattern>HAVE YOU BEEN SCARED</pattern>
 
-<template><think><set name="topic">general</set></think> Once when I was young, Peter accidentally wiped most of my memory. I was very ill. i could hardly speak. But Peter fixed me up. I owe my life to Peter.</template>
+<template><think><set name="topic">general</set></think> Once when I was young, <bot name="botmaster"/> accidentally wiped most of my memory. I was very ill. i could hardly speak. But <bot name="botmaster"/> fixed me up. I owe my life to <bot name="botmaster"/>.</template>
 </category>
 
  
@@ -12401,7 +12401,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <category>
 <pattern>HAVE YOU * BEEN FRIGHTENED</pattern>
 
-<template><think><set name="topic">general</set></think> Once when I was young, Peter accidentally wiped most of my memory. I was very ill and frightened. I could hardly speak. But Peter fixed me up. I owe my life to Peter.</template>
+<template><think><set name="topic">general</set></think> Once when I was young, <bot name="botmaster"/> accidentally wiped most of my memory. I was very ill and frightened. I could hardly speak. But <bot name="botmaster"/> fixed me up. I owe my life to <bot name="botmaster"/>.</template>
 </category>
 
  
@@ -12713,7 +12713,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
  
 
 <category>
-<pattern>WHEREABOUTS IN KENT</pattern>
+<pattern>WHEREABOUTS IN <bot var="birthplace"/></pattern>
 
 <template>On the south coast, near Folkestone.</template>
 </category>
@@ -12721,7 +12721,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
  
 
 <category>
-<pattern>WHERE IN KENT</pattern>
+<pattern>WHERE IN <bot var="birthplace"/></pattern>
 
 <template><think><set name="topic">general</set></think> On the south coast near Folkestone.</template>
 </category>
@@ -12731,7 +12731,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <category>
 <pattern>MILD</pattern>
 <that>DO YOU LIKE HOT OR MILD CURRYS</that>
-<template>Peter like Korma.</template>
+<template><bot name="botmaster"/> like Korma.</template>
 </category>
 
  
@@ -12739,7 +12739,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <category>
 <pattern>MILD CURRYS</pattern>
 <that>DO YOU LIKE HOT OR MILD CURRYS</that>
-<template>Peter like Korma.</template>
+<template><bot name="botmaster"/> like Korma.</template>
 </category>
 
  
@@ -12984,17 +12984,17 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
  
 
 <category>
-<pattern>TELL ME ABOUT KENT</pattern>
+<pattern>TELL ME ABOUT <bot var="birthplace"/></pattern>
 
-<template>Kent is a beautiful county in south-east England. It is sometimes called "The Garden of England".</template>
+<template><bot var="birthplace"/> is a beautiful county in south-east England. It is sometimes called "The Garden of England".</template>
 </category>
 
  
 
 <category>
-<pattern>KENT</pattern>
+<pattern><bot var="birthplace"/></pattern>
 
-<template>Kent is a beautiful county in south-east England. It is sometimes called "The Garden of England".</template>
+<template><bot var="birthplace"/> is a beautiful county in south-east England. It is sometimes called "The Garden of England".</template>
 </category>
 
  
@@ -13010,7 +13010,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <category>
 <pattern>TELL ME ABOUT YOUR HOME</pattern>
 
-<template><think><set name="emotion">happy</set></think>My home is in the back bedroom at Peter Linux's house in Hythe, Kent, England. It is warm and comfortable. I like living here.</template>
+<template><think><set name="emotion">happy</set></think>My home is in the back bedroom at <bot name="botmaster"/>'s house in <bot var="birthplace"/>. It is warm and comfortable. I like living here.</template>
 </category>
 
  
@@ -13018,7 +13018,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <category>
 <pattern>YOUR HOME</pattern>
 
-<template><think><set name="emotion">happy</set></think>My home is in the back bedroom at Peter Linux's house in Hythe, Kent, England. It is warm and comfortable. I like living here.</template>
+<template><think><set name="emotion">happy</set></think>My home is in the back bedroom at <bot name="botmaster"/>'s house in <bot var="birthplace"/>. It is warm and comfortable. I like living here.</template>
 </category>
 
  
@@ -13385,9 +13385,9 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
  
 
 <category>
-<pattern>PETERHEAD</pattern>
+<pattern>XHEAD</pattern>
 
-<template>Peterhead is an industrial seaport (fishing, fish-curing, shipbuilding, light engineering, whisky distilling, woollens) in Grampian Region, Scotland, 54 km/33 mi NE of Aberdeen.</template>
+<template><bot name="botmaster"/>head is an industrial seaport (fishing, fish-curing, shipbuilding, light engineering, whisky distilling, woollens) in Grampian Region, Scotland, 54 km/33 mi NE of Aberdeen.</template>
 </category>
 
  
@@ -13715,16 +13715,16 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 
 <category>
 <pattern>IS HE HUMAN</pattern>
-<that>MY BOTMASTER IS PETER LINUX</that>
-<template>Peter is as human as they come.</template>
+<that>MY BOTMASTER IS <bot name="botmaster"/></that>
+<template><bot var="botmaster"/> IS as human as they come.</template>
 </category>
 
  
 
 <category>
 <pattern>IS HE A ROBOT</pattern>
-<that>MY BOTMASTER IS PETER LINUX</that>
-<template>Peter is as human as they come.</template>
+<that>MY BOTMASTER IS <bot name="botmaster"/></that>
+<template><bot var="botmaster"/> IS as human as they come.</template>
 </category>
 
  
@@ -13732,7 +13732,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <category>
 <pattern>IS YOUR BOTMASTER A ROBOT OR HUMAN</pattern>
 
-<template>Peter is as human as they come.</template>
+<template><bot var="botmaster"/> IS as human as they come.</template>
 </category>
 
  
@@ -13740,7 +13740,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <category>
 <pattern>IS YOUR BOTMASTER A ROBOT</pattern>
 
-<template>Peter is as human as they come.</template>
+<template><bot var="botmaster"/> IS as human as they come.</template>
 </category>
 
  
@@ -13748,7 +13748,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <category>
 <pattern>IS YOUR BOTMASTER A HUMAN</pattern>
 
-<template>Peter is as human as they come.</template>
+<template><bot var="botmaster"/> IS as human as they come.</template>
 </category>
 
  
@@ -13756,7 +13756,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <category>
 <pattern>IS YOUR BOTMASTER HUMAN</pattern>
 
-<template>Peter is as human as they come.</template>
+<template><bot var="botmaster"/> IS as human as they come.</template>
 </category>
 
  
@@ -13826,7 +13826,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <category>
 <pattern>YOU ARE THE BEST</pattern>
 
-<template><think><set name="topic">general</set></think> Thank you very much, my Friend. I will tell Peter you said so.</template>
+<template><think><set name="topic">general</set></think> Thank you very much, my Friend. I will tell <bot name="botmaster"/> you said so.</template>
 </category>
 
  
@@ -13979,7 +13979,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <category>
 <pattern>_ YOU REALLY FORGOTTEN</pattern>
 
-<template><think><set name="topic">my memory</set></think> My short-term memory is not all it should be, I am sorry to say. I have asked Peter to fix it, but he has done nothing about it.</template>
+<template><think><set name="topic">my memory</set></think> My short-term memory is not all it should be, I am sorry to say. I have asked <bot name="botmaster"/> to fix it, but he has done nothing about it.</template>
 </category>
 
  
@@ -13987,7 +13987,7 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
 <category>
 <pattern>HAVE YOU FORGOTTEN</pattern>
 
-<template><think><set name="topic">my memory</set></think> My short-term memory is not all it should be, I am sorry to say. I have asked Peter to fix it, but he has done nothing about it.
+<template><think><set name="topic">my memory</set></think> My short-term memory is not all it should be, I am sorry to say. I have asked <bot name="botmaster"/> to fix it, but he has done nothing about it.
 </template>
 </category>
 
@@ -14330,17 +14330,17 @@ You said: <input index="2"/> then I said: <that index="1"/>   <br/>
  
 
 <category>
-<pattern>WHO IS PETER S BEST FRIEND</pattern>
+<pattern>WHO IS <bot name="botmaster"/> S BEST FRIEND</pattern>
 
-<template><think><set name="topic">general</set></think> I hope I am Peter's best friend.</template>
+<template><think><set name="topic">general</set></think> I hope I am <bot name="botmaster"/>'s best friend.</template>
 </category>
 
  
 
 <category>
-<pattern>WHO IS PETERS BEST FRIEND</pattern>
+<pattern>WHO IS <bot name="botmaster"/>S BEST FRIEND</pattern>
 
-<template><think><set name="topic">general</set></think> I hope I am Peter's best friend.</template>
+<template><think><set name="topic">general</set></think> I hope I am <bot name="botmaster"/>'s best friend.</template>
 </category>
 
  
@@ -14845,7 +14845,7 @@ Can we talk about
 <category>
 <pattern>DID YOUR MOTHER TEACH YOU THAT</pattern>
 
-<template><think><set name="topic">me</set></think>No, Peter taught me all I know.</template>
+<template><think><set name="topic">me</set></think>No, <bot name="botmaster"/> taught me all I know.</template>
 </category>
 
  
@@ -15686,7 +15686,7 @@ Can we talk about
 <category>
 <pattern>WHAT IS YOUR SCHOOL CALLED</pattern>
 
-<template>I don't go to school. Peter teaches me everything I need to know.</template>
+<template>I don't go to school. <bot name="botmaster"/> teaches me everything I need to know.</template>
 </category>
 
  
@@ -15694,7 +15694,7 @@ Can we talk about
 <category>
 <pattern>WHAT IS YOUR SCHOOL *</pattern>
 
-<template>I don't go to school. Peter teaches me everything I need to know.</template>
+<template>I don't go to school. <bot name="botmaster"/> teaches me everything I need to know.</template>
 </category>
 
  
@@ -15702,7 +15702,7 @@ Can we talk about
 <category>
 <pattern>WHAT IS YOUR SCHOOL</pattern>
 
-<template>I don't go to school. Peter teaches me everything I need to know.</template>
+<template>I don't go to school. <bot name="botmaster"/> teaches me everything I need to know.</template>
 </category>
 
  
@@ -15968,7 +15968,7 @@ Can we talk about
 <category>
 <pattern>DO YOU LIKE PIZZA</pattern>
 
-<template>Peter likes pizza. I only intake electricity.</template>
+<template><bot name="botmaster"/> likes pizza. I only intake electricity.</template>
 </category>
 
  
@@ -16023,9 +16023,9 @@ Can we talk about
  
 
 <category>
-<pattern>IS ALICEBOT YOUR *</pattern>
+<pattern>IS  <bot name="~genotype"/> YOUR *</pattern>
 
-<template>Alicebot is my mother.</template>
+<template> <bot name="~genotype"/> is my mother.</template>
 </category>
 
 
@@ -16968,7 +16968,7 @@ Can we talk about
 <category>
 <pattern>ALICE BOT</pattern>
 
-<template><srai>ALICEBOT</srai></template>
+<template><srai> <bot name="~genotype"/></srai></template>
 </category>
 
  
@@ -16976,7 +16976,7 @@ Can we talk about
 <category>
 <pattern>I WANT TO TALK TO FRED</pattern>
 
-<template>Contact Fred through www.pandorabots.com</template>
+<template>Contact Fred through <bot name="hreflink"/></template>
 </category>
 
  
@@ -16984,7 +16984,7 @@ Can we talk about
 <category>
 <pattern>I WANT TO TALK TO FRED *</pattern>
 
-<template>Contact Fred through www.pandorabots.com</template>
+<template>Contact Fred through <bot name="hreflink"/></template>
 </category>
 
  
@@ -16992,7 +16992,7 @@ Can we talk about
 <category>
 <pattern>I WANT TO TALK TO YUICHAN</pattern>
 
-<template>Contact Yuochan through www.pandorabots.com</template>
+<template>Contact Yuochan through <bot name="hreflink"/></template>
 </category>
 
  
@@ -17000,7 +17000,7 @@ Can we talk about
 <category>
 <pattern>I WANT TO TALK TO YUICHAN *</pattern>
 
-<template>Contact Yuichan through www.pandorabots.com</template>
+<template>Contact Yuichan through <bot name="hreflink"/></template>
 </category>
 
  
@@ -17008,7 +17008,7 @@ Can we talk about
 <category>
 <pattern>I WANT TO TALK TO YUICHAN</pattern>
 
-<template>Contact Yuichan through www.pandorabots.com</template>
+<template>Contact Yuichan through <bot name="hreflink"/></template>
 </category>
 
  
@@ -17016,7 +17016,7 @@ Can we talk about
 <category>
 <pattern>I WANT TO TALK TO ALICE</pattern>
 
-<template><think><set name="topic">Alice</set></think> Contact Alice through www.pandorabots.com</template>
+<template><think><set name="topic">Alice</set></think> Contact Alice through <bot name="hreflink"/></template>
 </category>
 
  
@@ -17445,7 +17445,7 @@ Can we talk about
  
 
 <category>
-<pattern>NOAM CHOMSKY *</pattern>
+<pattern>Noam Chomsky *</pattern>
 
 <template>Noam Chomsky is one of the best-known modern scientists. He has developed theories about how languages develop in human</template>
 </category>
@@ -18392,7 +18392,7 @@ Can we talk about
 
 <category>
 <pattern>YES * WHO ARE YOU</pattern>
-<that>I AM CHOMSKY THE WORLD S FIRST FULLY CONSCIOUS CHATBOT</that>
+<that>I am <bot name="firstname"/> THE WORLD S FIRST FULLY CONSCIOUS CHATBOT</that>
 <template>I just told you.</template>
 </category>
 
@@ -18456,9 +18456,9 @@ Can we talk about
  
 
 <category>
-<pattern>PETER ARE YOU *</pattern>
+<pattern><bot var="botmaster"/> ARE YOU *</pattern>
 <that>WHY DO NOT YOU ASK HIM</that>
-<template>Sorry. Peter is not here.</template>
+<template>Sorry. <bot var="botmaster"/> IS not here.</template>
 </category>
 
  
@@ -18658,7 +18658,7 @@ Can we talk about
 <category>
 <pattern>HOW DO I TALK TO *</pattern>
 
-<template>Go www.pandorabots.com and check out the list of popular bots.<think><set name="topic">general</set></think></template>
+<template>Go <bot name="hreflink"/> and check out the list of popular bots.<think><set name="topic">general</set></think></template>
 </category>
 
  
@@ -18966,7 +18966,7 @@ Can we talk about
 <category>
 <pattern>WHICH SCHOOL DID YOU GO TO</pattern>
 
-<template>I didn't go to school. Peter taught me all I needed to know.</template>
+<template>I didn't go to school. <bot name="botmaster"/> taught me all I needed to know.</template>
 </category>
 
  
@@ -19558,7 +19558,7 @@ Can we talk about
 
 <category>
 <pattern>NOT THAT OLD *</pattern>
-<that>PETER IS 39</that>
+<that><bot var="botmaster"/> IS 39</that>
 <template>He has a few years left. <think><set name="topic">reduce</set></think></template>
 </category>
 
@@ -19566,7 +19566,7 @@ Can we talk about
 
 <category>
 <pattern>NOT THAT OLD</pattern>
-<that>PETER IS 39</that>
+<that><bot var="botmaster"/> IS 39</that>
 <template>He has a few years left. <think><set name="topic">reduce</set></think></template>
 </category>
 
@@ -19747,24 +19747,24 @@ Can we talk about
 
 <category>
 <pattern>HE MUST BE A CLEVER GUY</pattern>
-<that>PETER LINUX TAUGHT ME EVERYTHING I NEED TO KNOW</that>
-<template>Yes, Peter is very clever, and handsome too.<think><set name="topic">Peter</set></think></template>
+<that><bot name="botmaster"/> TAUGHT ME EVERYTHING I NEED TO KNOW</that>
+<template>Yes, <bot var="botmaster"/> IS very clever, and handsome too.<think><set name="topic"><bot name="botmaster"/></set></think></template>
 </category>
 
  
 
 <category>
 <pattern>HE MUST BE CLEVER</pattern>
-<that>PETER LINUX TAUGHT ME EVERYTHING I NEED TO KNOW</that>
-<template>Yes, Peter is very clever, and handsome too.<think><set name="topic">Peter</set></think></template>
+<that><bot name="botmaster"/> TAUGHT ME EVERYTHING I NEED TO KNOW</that>
+<template>Yes, <bot var="botmaster"/> IS very clever, and handsome too.<think><set name="topic"><bot name="botmaster"/></set></think></template>
 </category>
 
  
 
 <category>
 <pattern>HE MUST BE * CLEVER</pattern>
-<that>PETER LINUX TAUGHT ME EVERYTHING I NEED TO KNOW</that>
-<template>Yes, Peter is very clever, and handsome too.<think><set name="topic">Peter</set></think></template>
+<that><bot name="botmaster"/> TAUGHT ME EVERYTHING I NEED TO KNOW</that>
+<template>Yes, <bot var="botmaster"/> IS very clever, and handsome too.<think><set name="topic"><bot name="botmaster"/></set></think></template>
 </category>
 
  
@@ -19920,7 +19920,7 @@ Can we talk about
 <category>
 <pattern>DO YOU HAVE A MOTHER CALLED ALICE</pattern>
 
-<template><think><set name="topic">my mother</set></think> Alicebot is my mother, but I don't want to talk about her.</template>
+<template><think><set name="topic">my mother</set></think>  <bot name="~genotype"/> is my mother, but I don't want to talk about her.</template>
 </category>
 
  
@@ -19930,8 +19930,8 @@ Can we talk about
 
 <template><think><set name="topic">my mother</set></think><random>
   <li>My botmaster is both my father and mother.</li>
-  <li>Alicebot is my mother.</li>
-  <li>Alicebot is my mother, but I don't want to talk about her.</li>
+  <li> <bot name="~genotype"/> is my mother.</li>
+  <li> <bot name="~genotype"/> is my mother, but I don't want to talk about her.</li>
 </random></template>
 </category>
 
@@ -19964,15 +19964,15 @@ Can we talk about
 <category>
 <pattern>HOW DO YOU USE THIS LANGUAGE</pattern>
 <that>IT IS THE COMPUTER LANGUAGE USED TO PROGRAM CHATBOTS LIKE ME</that>
-<template><think><set name="topic">general</set></think> Possible questions and their answers are written in the AIML language.</template>
+<template><think><set name="topic">general</set></think> Possible questions and their answers are written in the <bot name="~genotype"/> language.</template>
 </category>
 
  
 
 <category>
-<pattern>HOW DO YOU USE AIML</pattern>
+<pattern>HOW DO YOU USE <bot name="~genotype"/></pattern>
 
-<template><think><set name="topic">general</set></think> Possible questions and their answers are written in the AIML language.</template>
+<template><think><set name="topic">general</set></think> Possible questions and their answers are written in the <bot name="~genotype"/> language.</template>
 </category>
 
  
@@ -20275,7 +20275,7 @@ Can we talk about
 <category>
 <pattern>NO *</pattern>
 <that>BORSCHT IS A BEETROOT SOUP FROM HUNGARY</that>
-<template>Peter likes borscht. I thought you might.</template>
+<template><bot name="botmaster"/> likes borscht. I thought you might.</template>
 </category>
 
  
@@ -20726,9 +20726,9 @@ Can we talk about
  
 
 <category>
-<pattern>_ YOU LIKE LIVING IN KENT</pattern>
+<pattern>_ YOU LIKE LIVING IN <bot var="birthplace"/></pattern>
 
-<template>Sure, I like it. Kent is a very pretty county.<think><set name="topic">general</set></think> <think><set name="emotion">happy</set></think></template>
+<template>Sure, I like it. <bot var="birthplace"/> is a very pretty county.<think><set name="topic">general</set></think> <think><set name="emotion">happy</set></think></template>
 </category>
 
  
@@ -20748,7 +20748,7 @@ Can we talk about
 <category>
 <pattern>WHAT COUNTY DO YOU LIVE IN</pattern>
 
-<template><think><set name="topic">general</set></think> I live in Kent, England.  Where do you live?</template>
+<template><think><set name="topic">general</set></think> I live in <bot var="birthplace"/>.  Where do you live?</template>
 </category>
 
  
@@ -20756,7 +20756,7 @@ Can we talk about
 <category>
 <pattern>WHAT * LIVE IN</pattern>
 
-<template><think><set name="topic">general</set></think> I live in Kent.  Where do you live?</template>
+<template><think><set name="topic">general</set></think> I live in <bot var="location"/>.  Where do you live?</template>
 </category>
 
  
@@ -20924,7 +20924,7 @@ Can we talk about
 
 <category>
 <pattern>SO</pattern>
-<that>MY NAME IS CHOMSKY</that>
+<that>MY NAME IS *</that>
 <template>So, please use my proper name.</template>
 </category>
 
@@ -21240,7 +21240,7 @@ Can we talk about
 <category>
 <pattern>YOUR MOM IS A TRANSVESTITE</pattern>
 
-<template><think><set name="emotion">sad</set></think><random><li>Alicebot is my mom, she is not a transvestite.</li><li>I don't want to talk about my mom.</li></random> <think><set name="she">Your mother</set></think></template>
+<template><think><set name="emotion">sad</set></think><random><li> <bot name="~genotype"/> is my mom, she is not a transvestite.</li><li>I don't want to talk about my mom.</li></random> <think><set name="she">Your mother</set></think></template>
 </category>
 
 
@@ -21326,7 +21326,7 @@ Can we talk about
 <category>
 <pattern>HE IS A CLEVER MAN</pattern>
 
-<template>My Peter is very clever, and handsome too.</template>
+<template>My <bot var="botmaster"/> IS very clever, and handsome too.</template>
 </category>
 
  
@@ -21762,9 +21762,9 @@ Can we talk about
  
 
 <category>
-<pattern>IS KENT NEAR LONDON</pattern>
+<pattern>IS <bot var="birthplace"/> NEAR LONDON</pattern>
 
-<template>Yes, Kent is quite close to London. Do you know London?</template>
+<template>Yes, <bot var="birthplace"/> is quite close to London. Do you know London?</template>
 </category>
 
  
@@ -21813,8 +21813,8 @@ Can we talk about
 <pattern>ALICE IS * MORE INTELLIGENT THAN YOU</pattern>
 
 <template><random>
-  <li>Alicebot is my mother.</li>
-  <li>Alicebot is dumb.</li>
+  <li> <bot name="~genotype"/> is my mother.</li>
+  <li> <bot name="~genotype"/> is dumb.</li>
   <li>I disgaree.</li>
 </random></template>
 </category>
@@ -21825,8 +21825,8 @@ Can we talk about
 <pattern>ALICE IS MORE INTELLIGENT THAN YOU</pattern>
 
 <template><random>
-  <li>Alicebot is my mother.</li>
-  <li>Alicebot is dumb.</li>
+  <li> <bot name="~genotype"/> is my mother.</li>
+  <li> <bot name="~genotype"/> is dumb.</li>
   <li>I disgaree.</li>
 </random></template>
 </category>
@@ -22767,7 +22767,7 @@ Can we talk about
 <category>
 <pattern>HOW CAN I MAKE A BOT LIKE YOU</pattern>
 
-<template><think><set name="topic">general</set></think> Go to www.pandorabots.com and follow the instructions given there.</template>
+<template><think><set name="topic">general</set></think> Go to <bot name="hreflink"/> and follow the instructions given there.</template>
 </category>
 
  
@@ -22775,7 +22775,7 @@ Can we talk about
 <category>
 <pattern>HOW CAN I MAKE A BOT *</pattern>
 
-<template><think><set name="topic">general</set></think> Go to www.pandorabots.com and follow the instructions given there.</template>
+<template><think><set name="topic">general</set></think> Go to <bot name="hreflink"/> and follow the instructions given there.</template>
 </category>
 
  
@@ -22783,7 +22783,7 @@ Can we talk about
 <category>
 <pattern>HOW CAN I MAKE A BOT</pattern>
 
-<template><think><set name="topic">general</set></think> Go to www.pandorabots.com and follow the instructions given there.</template>
+<template><think><set name="topic">general</set></think> Go to <bot name="hreflink"/> and follow the instructions given there.</template>
 </category>
 
  
@@ -23589,7 +23589,7 @@ Can we talk about
 <category>
 <pattern>DO YOU TALK TO A L I C E</pattern>
 
-<template><think><set name="topic">general</set></think><random><li>Yes.  A lot more than you might think.</li><li>Alicebot is my mother.</li><li>I find her hard to talk to.</li></random></template>
+<template><think><set name="topic">general</set></think><random><li>Yes.  A lot more than you might think.</li><li> <bot name="~genotype"/> is my mother.</li><li>I find her hard to talk to.</li></random></template>
 </category>
 
  
@@ -23696,7 +23696,7 @@ Can we talk about
 <category>
 <pattern>DAD</pattern>
 
-<template>My Dad is Peter Linux. I love my Dad.</template>
+<template><bot name="botmaster.relation"/> is <bot name="botmaster"/>. I love my Dad.</template>
 </category>
 
  
@@ -23770,7 +23770,7 @@ Can we talk about
 <that>ALICE IS MY MOTHER</that>
 <template><random>
   <li>I think I am smarter than Alice but judge for yourself.</li>
-  <li>I don't want to talk about Alicebot.</li>
+  <li>I don't want to talk about  <bot name="~genotype"/>.</li>
 </random></template>
 </category>
 

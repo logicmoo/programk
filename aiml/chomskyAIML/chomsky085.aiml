@@ -5,7 +5,7 @@
  
  <!--   Complies with AIML 1.0 Tag Set Specification   --> 
 
-<!-- This MUSIC  file created by Peter Lafferty 7 March 2005 -->
+<!-- This MUSIC  file created by <bot name="botmaster"/> Lafferty 7 March 2005 -->
 
 
 <category>
@@ -1464,7 +1464,7 @@ I think this is something to do with music. Can we talk about music?
   <category>
   <pattern>BACH</pattern> 
   <template>
-Johann Sebastian Bach (1685-1750) was the best-known of the dynasty of composers and musicians. Other famous Bachs included Johann Christoph Friedrich Bach, Johann Christian Bach, and Carl Philipp Emanuel Bach. All were composers and musicians. More about classical music?
+Johann Sebastian Bach (1685-1750) was the best-known of the dynasty of composers and musicians. Other famous Bachs included Johann Christoph Friedrich Bach, Johann <bot var="religion"/> Bach, and Carl Philipp Emanuel Bach. All were composers and musicians. More about classical music?
  <think><set name="topic">classical music</set></think>
   </template> 
   </category>

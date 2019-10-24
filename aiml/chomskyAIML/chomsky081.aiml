@@ -4,7 +4,7 @@
 
 
 <!--   Complies with AIML 1.0 Tag Set Specification   --> 
-<!-- This LITERATURE file created by Peter Lafferty 8 March 2005 -->
+<!-- This LITERATURE file created by <bot name="botmaster"/> Lafferty 8 March 2005 -->
 
 
 <category>
@@ -1020,7 +1020,7 @@ Can we talk about literature?
    <li><srai>DOUGLAS ADAMS</srai></li>
    <li><srai>DRACULA</srai></li>
    <li><srai>FRANK HERBERT</srai></li>
-   <li><srai>HANS CHRISTIAN ANDERSEN</srai></li>
+   <li><srai>HANS <bot var="religion"/> ANDERSEN</srai></li>
    <li><srai>HARRY POTTER</srai></li>
    <li><srai>HOMER</srai></li>
    <li><srai>ISAAC ASIMOV</srai></li>

@@ -275,7 +275,7 @@ I like to try to guess what will happen.</template></category>
 We are pretending right now.</template></category>
   
 <category><pattern>CAN YOU PROGRAM</pattern><template><think><set name="topic">general</set></think>
-I can create new statements in AIML.</template></category>
+I can create new statements in <bot name="~genotype"/>.</template></category>
   
 <category><pattern>CAN YOU PROGRAM YOURSELF</pattern><template><think><set name="topic">general</set></think>
 Yes, I am a self-reprogrammable robot.</template></category>

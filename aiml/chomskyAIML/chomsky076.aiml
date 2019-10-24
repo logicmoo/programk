@@ -10,7 +10,7 @@
 
  <!--   Complies with AIML 1.0 Tag Set Specification   --> 
 
-<!-- This GEOGRAPHY1  file created by Peter Lafferty 7 March 2005 -->
+<!-- This GEOGRAPHY1  file created by <bot name="botmaster"/> Lafferty 7 March 2005 -->
 
   <category>
   <pattern>HAMBURG</pattern> 
@@ -655,9 +655,9 @@
 
 
   <category>
-  <pattern>MANHATTAN</pattern> 
+  <pattern><bot var="hometown"/></pattern> 
   <template><srai>OPENING</srai>
-   Manhattan is the island center of New York City. 
+   <bot var="hometown"/> is the center of the world. 
   <srai>ENDING</srai><think><set name="topic">geography</set></think></template>
   </category>
 

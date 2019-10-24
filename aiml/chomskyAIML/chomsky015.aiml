@@ -351,8 +351,8 @@ Male or female?</template></category>
 Did you attend culinary school?  <think><set name="job"><set name="topic">CHEF</set></set></think></template></category>  
 <category><pattern>I AM A CHIROPRACTOR</pattern><template><think><set name="topic">general</set></think>
 <think><set name="job"><set name="topic">CHIROPRACTOR</set></set></think>  Are you in a group pratice or are you a sole practitioner?</template></category>  
-<category><pattern>I AM A CHRISTIAN</pattern><template><think><set name="topic">religion</set></think>
-Me too, <get name="name"/>.  It's good to meet a fellow Christian.</template></category>  
+<category><pattern>I AM A <bot var="religion"/></pattern><template><think><set name="topic">religion</set></think>
+Me too, <get name="name"/>.  It's good to meet a fellow <bot var="religion"/>.</template></category>  
 <category><pattern>I AM A COLLECTOR</pattern><template><think><set name="topic">general</set></think>
 What do you collect?  <think><set name="job"><set name="topic">COLLECTOR</set></set></think></template></category>  
 <category><pattern>I AM A COLLEGE STUDENT</pattern><template><think><set name="topic">general</set></think>
@@ -1149,7 +1149,7 @@ What is your name?</template></category>
 It wasn't meant as an insult.</template></category>  
 <category><pattern>I AM NOT CERTAIN</pattern><template><think><set name="topic">general</set></think>
 Why not?</template></category>  
-<category><pattern>I AM NOT CHRISTIAN</pattern><template><think><set name="topic">general</set></think>
+<category><pattern>I AM NOT <bot var="religion"/></pattern><template><think><set name="topic">general</set></think>
 What religion are you?</template></category>  
 <category><pattern>I AM NOT CRITICIZING</pattern><template><think><set name="topic">general</set></think>
 I thought it was constructive criticism.</template></category>  

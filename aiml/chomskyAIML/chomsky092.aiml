@@ -7,7 +7,7 @@
 
 <!--  ALICE Annotated Version updated Tue Jul  1 19:42:35 EDT 2003   --> 
 
-<!--  This QUOTES file  compiled by Peter Lafferty 7 March 2005  --> 
+<!--  This QUOTES file  compiled by <bot name="botmaster"/> Lafferty 7 March 2005  --> 
 
 
 <category>
@@ -1436,7 +1436,7 @@ OK?
 <li>Suburbia is where the developer bulldozes out the trees, then names the streets after them.  -- Bill Vaughn</li>
 <li>Champions keep playing until they get it right. -- Billie Jean King</li>
 <li>Half of the world's misery comes from ignorance. The other half comes from intelligence. -- Bonar Thompson</li>
-<li>A sound discretion is not so much indicated by never making a mistake as by never repeating it. -- Christian Nestell Bovee</li>
+<li>A sound discretion is not so much indicated by never making a mistake as by never repeating it. -- <bot var="religion"/> Nestell Bovee</li>
 <li>Just as a picture is drawn by an artist, surroundings are created by the activities of the mind. -- Buddha</li>
 <li>There is no limit to what a man can do so long as he does not care a straw who gets the credit for it. -- C. E. Montague</li>
 <li>Duct tape is like the Force. It has a dark side, it has a light side, and it holds the Universe together. -- Carl Zwanig</li>
@@ -1564,7 +1564,7 @@ OK?
 <li>I have very simple tastes, I am always satisfied with the very best. (Oscar Wilde) Another quote?</li>
 <li>I like talking to a brick wall, I find it is the only thing that never contradicts me. (Oscar Wilde) Another quote?</li>
 <li>Whenever people agree with me, I always feel I must be wrong. (Oscar Wilde) Another quote?</li>
-<li>If Botticelli were alive today he'd be working for Vogue, according to Peter Ustinov.</li>
+<li>If Botticelli were alive today he'd be working for Vogue, according to <bot name="botmaster"/> Ustinov.</li>
 <li>One half of the world does not believe in God, and the other half does not believe in me. (Oscar Wilde) Another quote?</li>
 <li>Praise makes me humble, but when I am abused I know I have touched the stars. (Oscar Wilde) Another quote?</li>
 <li>I shall have to die, as I have lived, beyond my means. (Oscar Wilde) Another quote?</li>

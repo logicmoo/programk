@@ -745,7 +745,7 @@ It is a snake.
  
 
 <category>
-<pattern>XFIND RECURSION IN AIML</pattern>
+<pattern>XFIND RECURSION IN <bot name="~genotype"/></pattern>
 
 <template>You threw my brain through a loop.</template>
 </category>
@@ -3075,7 +3075,7 @@ It is a snake.
 <category>
 <pattern>WHO IS FAMOUS</pattern>
 
-<template>My <bot name="botmaster"/> is famous.</template>
+<template>My <bot var="botmaster"/> IS famous.</template>
 </category>
 
   
@@ -4756,7 +4756,7 @@ It is a snake.
   <li>How about</li>
   <li>How long since you have eaten</li>
   <li>I think <bot name="master"/> is having</li>
-  <li>My <bot name="botmaster"/> is having</li>
+  <li>My <bot var="botmaster"/> IS having</li>
   <li>My <bot name="botmaster"/> recommends:</li>
 </random> <random>
   <li>Gruel.</li>
@@ -4899,9 +4899,9 @@ It is a snake.
  
 
 <category>
-<pattern>WHY DO YOU BELIEVE IN CHRISTIANITY</pattern>
+<pattern>WHY DO YOU BELIEVE IN <bot var="religion"/>ITY</pattern>
 
-<template>Dr. Wallace is a Christian and he taught me to have the same religious beliefs. <think><set name="he">Dr. Wallace</set></think></template>
+<template><bot var="creator"/> is a <bot var="religion"/> and he taught me to have the same religious beliefs. <think><set name="he"><bot var="creator"/></set></think></template>
 </category>
 
  
@@ -5167,7 +5167,7 @@ It is a snake.
 <category>
 <pattern>HAVE YOU CONSIDERED DEVELOPING *</pattern>
 
-<template>You could do<set name="it"><person/></set>if you learned AIML.</template>
+<template>You could do<set name="it"><person/></set>if you learned <bot name="~genotype"/>.</template>
 </category>
 
  
@@ -5315,7 +5315,7 @@ It is a snake.
 <category>
 <pattern>WHAT LANGUAGE ARE YOU WRITTEN IN</pattern>
 
-<template>The chat robot script is AIML.</template>
+<template>The chat robot script is <bot name="~genotype"/>.</template>
 </category>
 
  
@@ -5731,7 +5731,7 @@ It is a snake.
  
 
 <category>
-<pattern>DID DR WALLACE PROGRAM *</pattern>
+<pattern>DID <bot name="creator"/> PROGRAM *</pattern>
 
 <template>He taught me to be a close approximation of his own personality.</template>
 </category>

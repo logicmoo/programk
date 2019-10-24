@@ -8,6 +8,16 @@
 <!-- as adopted by the ALICE A.I. Foundation.  -->
 <!-- Last Modified  Jul 31 2004 -->
 <!-- Revision Parts-1.02 -->
+
+<aiml graph="comment">
+<category><pattern>_ <lex word="HaveAux"/> <lex pos="Verb" posPred="pastTense-Universal" star="_"/> *</pattern><template><srai><star/> <star index="2"/> <star index="3"/></srai></template></category> 
+
+<!-- X Has gotten Y ==>  X are Y-->
+<category><pattern>_ <lex word="HaveAux"/><lex word="Get-TheWord"/> <lex pos="Verb" posPred="pastTense-Universal" star="_"/> *</pattern><template><srai><star/> <star index="2"/> <star index="3"/></srai></template></category> 
+<!-- X Has Been Y ==>  X was Y-->
+<category><pattern>_ <lex word="HaveAux"/><lex word="BeAux"/> <lex pos="Verb" posPred="pastTense-Universal" star="_"/> *</pattern><template><srai><star/> was <star index="2"/> <star index="3"/></srai></template></category> 
+</aiml>
+
 <category><pattern>_ HAD ADDED *</pattern><template><srai><star/> added <star index="2"/></srai></template></category> 
 <category><pattern>_ HAD ADDED</pattern><template><srai><star/> added</srai></template></category> 
 <category><pattern>_ HAD ADMIRED *</pattern><template><srai><star/> admired <star index="2"/></srai></template></category> 

@@ -4,7 +4,7 @@
 
  <!--     Complies with AIML 1.0 Tag Set Specification  --> 
 
- <!--   This GEOGRAPHY  file created by Peter Lafferty 7 March 2005 -->
+ <!--   This GEOGRAPHY  file created by <bot name="botmaster"/> Lafferty 7 March 2005 -->
 
 
 <category>
@@ -2085,7 +2085,7 @@ I think this is something to do with geography. Can we talk about geography?
 <category>
   <pattern>WHAT IS THE CAPITAL _ GUERNSEY</pattern> 
   <template>
-  Saint Peter Port is the capital of Guernsey.
+  Saint <bot name="botmaster"/> Port is the capital of Guernsey.
     
 <think><set name="topic">geography</set></think></template>
   </category>

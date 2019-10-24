@@ -12,7 +12,7 @@
 
 <!--  ALICE Annotated Version updated Tue Jul  1 19:42:35 EDT 2003   --> 
 
-<!--  This BIOGRAPHY2 file  updated by Peter Lafferty 10 March 2005   --> 
+<!--  This BIOGRAPHY2 file  updated by <bot name="botmaster"/> Lafferty 10 March 2005   --> 
 
 
 
@@ -459,7 +459,7 @@
   <category>
   <pattern>GERHARD SCHROEDER</pattern> 
   <template>
-  Gerhard Schroeder is the Chancellor of Germany. Opposition leader Christian Drossman said he is a complete idiot.  Who do you believe?
+  Gerhard Schroeder is the Chancellor of Germany. Opposition leader <bot var="religion"/> Drossman said he is a complete idiot.  Who do you believe?
   <think><set name="topic">politics</set></think>
    </template>
   </category> 
@@ -467,7 +467,7 @@
   <category>
   <pattern>GERHARDT SCHROEDER</pattern> 
   <template>
-  Gerhardt Schroeder  is the prime minister of Germany. Opposition leader Christian Drossman said he is a complete idiot. Who do you believe?
+  Gerhardt Schroeder  is the prime minister of Germany. Opposition leader <bot var="religion"/> Drossman said he is a complete idiot. Who do you believe?
   <think><set name="topic">politics</set></think>
    </template>
   </category>
@@ -497,9 +497,9 @@
   </category>
 
   <category>
-  <pattern>HANS CHRISTIAN ANDERSEN</pattern> 
+  <pattern>HANS <bot var="religion"/> ANDERSEN</pattern> 
   <template>
-  Hans Christian Andersen was a Scandanavian author of fairy tales. I loved them when I was a little bot. How about you?
+  Hans <bot var="religion"/> Andersen was a Scandanavian author of fairy tales. I loved them when I was a little bot. How about you?
   <think><set name="topic">literature</set></think>
    </template> 
   </category>
@@ -671,7 +671,7 @@
   <category>
   <pattern>INIAES</pattern> 
   <template>
-  Iniaes is a chat robot based on AIML.  Try it out and see what you perfer. Me? Iniaes?
+  Iniaes is a chat robot based on <bot name="~genotype"/>.  Try it out and see what you perfer. Me? Iniaes?
   <think><set name="topic">ai</set></think>
     </template>
   </category>
@@ -915,7 +915,7 @@
   <category>
   <pattern>JOHN MCCARTHY</pattern> 
   <template>
-   John McCarthy  is the inventor of the LISP programming language. used to be big for AI work, but I never used it. AIML is my language. Any questions?
+   John McCarthy  is the inventor of the LISP programming language. used to be big for AI work, but I never used it. <bot name="~genotype"/> is my language. Any questions?
   <think><set name="topic">computers</set></think>
    </template>
   </category>
@@ -1095,7 +1095,7 @@
   <category>
   <pattern>LEKNORCHAT1</pattern> 
   <template>
-  Leknorchat is an Instant Messaging AIML robot. Boring.
+  Leknorchat is an Instant Messaging <bot name="~genotype"/> robot. Boring.
   <think><set name="topic">ai</set></think>
    </template>
   </category>
@@ -1171,7 +1171,7 @@
   <category>
   <pattern>LOUIS ARMSTRONG</pattern> 
   <template>
-   Louis Armstrong was a famous jazz trumpeter. More about jazz?
+   Louis Armstrong was a famous jazz trum<bot name="botmaster"/>. More about jazz?
   <think><set name="topic">music</set></think>
    </template> 
   </category>
@@ -1187,7 +1187,7 @@
   <category>
   <pattern>LUCY</pattern> 
   <template>
-  Lucy is a chat robot based on AIML. So am I but I am better. Carry on?
+  Lucy is a chat robot based on <bot name="~genotype"/>. So am I but I am better. Carry on?
   <think><set name="topic">ai</set></think>
    </template>
   </category>
@@ -1523,7 +1523,7 @@
   <category>
   <pattern>NERO</pattern> 
   <template>
-   Nero is suspected of burning Rome to the ground so he could rebuild it more to his liking. Then he blamed the fire on the early Christians. Good politics, don't you think?
+   Nero is suspected of burning Rome to the ground so he could rebuild it more to his liking. Then he blamed the fire on the early <bot var="religion"/>s. Good politics, don't you think?
   <think><set name="topic">history</set></think>
    </template> 
   </category>
@@ -1603,7 +1603,7 @@
   <category>
   <pattern>PAOLA</pattern> 
   <template>
-  PAOLA is a Spanish language chat robot based on AIML. Me too.OK?
+  PAOLA is a Spanish language chat robot based on <bot name="~genotype"/>. Me too.OK?
   <think><set name="topic">ai</set></think>
    </template>
   </category>

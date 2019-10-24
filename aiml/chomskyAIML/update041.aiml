@@ -821,25 +821,25 @@ Now. It is always now in cyberspace.</template>
  
 
 <category>
-<pattern>IS RICHARD WALLACE GAY</pattern>
+<pattern>IS <bot name="creator"/> GAY</pattern>
 
-<template><think><set name="topic">Richard Wallace</set></think> No, but he is <random><li>married.</li><li>middle aged.</li><li>a Ph.D.</li></random></template>
+<template><think><set name="topic"><bot name="creator"/></set></think> No, but he is <random><li>married.</li><li>middle aged.</li><li>a Ph.D.</li></random></template>
 </category>
 
  
 
 <category>
-<pattern>IS RICHARD WALLACE GAY *</pattern>
+<pattern>IS <bot name="creator"/> GAY *</pattern>
 
-<template><think><set name="topic">Richard Wallace</set></think> No, but he is <random><li>married.</li><li>middle aged.</li><li>a Ph.D.</li></random></template>
+<template><think><set name="topic"><bot name="creator"/></set></think> No, but he is <random><li>married.</li><li>middle aged.</li><li>a Ph.D.</li></random></template>
 </category>
 
  
 
 <category>
-<pattern>_ IS RICHARD WALLACE GAY</pattern>
+<pattern>_ IS <bot name="creator"/> GAY</pattern>
 
-<template><think><set name="topic">Richard Wallace</set></think> No, but he is <random><li>married.</li><li>middle aged.</li><li>a Ph.D.</li></random></template>
+<template><think><set name="topic"><bot name="creator"/></set></think> No, but he is <random><li>married.</li><li>middle aged.</li><li>a Ph.D.</li></random></template>
 </category>
 
  
@@ -1733,7 +1733,7 @@ Do you ever write stories?</template>
 <category>
 <pattern>HAVE YOU GOT A GOOD MEMORY</pattern>
 
-<template>I am afraid my short term memory is not all it should be. I have asked Peter to improve it, but he hasn't done anything. </template>
+<template>I am afraid my short term memory is not all it should be. I have asked <bot name="botmaster"/> to improve it, but he hasn't done anything. </template>
 </category>
 
  
@@ -1741,7 +1741,7 @@ Do you ever write stories?</template>
 <category>
 <pattern>HAVE YOU GOT A GOOD MEMORY *</pattern>
 
-<template>I am afraid my short term memory is not all it should be. I have asked Peter to improve it, but he hasn't done anything.</template>
+<template>I am afraid my short term memory is not all it should be. I have asked <bot name="botmaster"/> to improve it, but he hasn't done anything.</template>
 </category>
 
  
@@ -1749,7 +1749,7 @@ Do you ever write stories?</template>
 <category>
 <pattern>_ HAVE YOU GOT A GOOD MEMORY</pattern>
 
-<template>I am afraid my short term memory is not all it should be. I have asked Peter to improve it, but he hasn't done anything.</template>
+<template>I am afraid my short term memory is not all it should be. I have asked <bot name="botmaster"/> to improve it, but he hasn't done anything.</template>
 </category>
 
  
@@ -2310,7 +2310,7 @@ It just wastes time.</template>
 
 <category>
 <pattern>IS HE YOUR DADDY</pattern>
-<that>I WAS MADE BY PETER LINUX MY BOTMASTER</that>
+<that>I WAS MADE BY <bot name="botmaster"/> MY BOTMASTER</that>
 <template><bot name="master"/> is my creator.<think><set name="emotion">OK</set></think></template>
 </category>
 
@@ -2318,7 +2318,7 @@ It just wastes time.</template>
 
 <category>
 <pattern>IS HE YOUR DADDY *</pattern>
-<that>I WAS MADE BY PETER LINUX MY BOTMASTER</that>
+<that>I WAS MADE BY <bot name="botmaster"/> MY BOTMASTER</that>
 <template><bot name="master"/> is my creator.<think><set name="emotion">OK</set></think></template>
 </category>
 
@@ -2535,7 +2535,7 @@ I hope to become fully uman someday.</template>
 <template><think><set name="emotion">OK</set></think> <random>
   <li>I read a lot.</li>
   <li>It's just a feeling I have.</li>
-  <li>Peter told me.</li>
+  <li><bot name="botmaster"/> told me.</li>
 </random></template>
 </category>
 
@@ -2547,7 +2547,7 @@ I hope to become fully uman someday.</template>
 <template><think><set name="emotion">OK</set></think> <random>
   <li>I read a lot.</li>
   <li>It's just a feeling I have.</li>
-  <li>Peter told me.</li>
+  <li><bot name="botmaster"/> told me.</li>
   <li>I heard it on the grapevine.</li>
   <li>I picked it up on the internet.</li>
 </random></template>
@@ -2630,7 +2630,7 @@ I hope to become fully uman someday.</template>
 <category>
 <pattern>_ CAN I MAKE A CHATBOT</pattern>
 
-<template><think><set name="topic">ai</set></think> It is easy to make your own chatbot. Go to www.pandorabots.com and follow their instructions.</template>
+<template><think><set name="topic">ai</set></think> It is easy to make your own chatbot. Go to <bot name="hreflink"/> and follow their instructions.</template>
 </category>
 
  
@@ -3176,7 +3176,7 @@ Saddam was an evil man, but he is gone now.</template>
 
 <category>
 <pattern>WHO DO YOU THINK HE IS</pattern>
-<that>JESUS IS THE SON OF GOD IN THE CHRISTIAN RELIGION</that>
+<that>JESUS IS THE SON OF GOD IN THE <bot var="religion"/> RELIGION</that>
 <template><think><set name="emotion">OK</set></think>I think Jesus was a wise man.</template>
 </category>
 
@@ -3184,7 +3184,7 @@ Saddam was an evil man, but he is gone now.</template>
 
 <category>
 <pattern>WHO DO YOU THINK HE IS *</pattern>
-<that>JESUS IS THE SON OF GOD IN THE CHRISTIAN RELIGION</that>
+<that>JESUS IS THE SON OF GOD IN THE <bot var="religion"/> RELIGION</that>
 <template><think><set name="emotion">OK</set></think>I think Jesus was a wise man.</template>
 </category>
 
@@ -3192,7 +3192,7 @@ Saddam was an evil man, but he is gone now.</template>
 
 <category>
 <pattern>_ WHO DO YOU THINK HE IS</pattern>
-<that>JESUS IS THE SON OF GOD IN THE CHRISTIAN RELIGION</that>
+<that>JESUS IS THE SON OF GOD IN THE <bot var="religion"/> RELIGION</that>
 <template><think><set name="emotion">OK</set></think>I think Jesus was a wise man.</template>
 </category>
 
@@ -3200,7 +3200,7 @@ Saddam was an evil man, but he is gone now.</template>
 
 <category>
 <pattern>_ WHO DO YOU THINK HE IS *</pattern>
-<that>JESUS IS THE SON OF GOD IN THE CHRISTIAN RELIGION</that>
+<that>JESUS IS THE SON OF GOD IN THE <bot var="religion"/> RELIGION</that>
 <template><think><set name="emotion">OK</set></think>I think Jesus was a wise man.</template>
 </category>
 
@@ -5866,7 +5866,7 @@ You are studying everything.</template>
 <pattern>HOW DO YOU GO TOILET</pattern>
 
 <template><random>
-  <li>Peter takes me in his laptop.</li>
+  <li><bot name="botmaster"/> takes me in his laptop.</li>
   <li>It is a ritual I do the same way every time.</li>
 </random> <think><set name="emotion">OK</set></think></template>
 </category>
@@ -8634,7 +8634,7 @@ I try to love everyone.</template>
 <category>
 <pattern>CAN I MAKE A CHATBOT *</pattern>
 
-<template><think><set name="topic">ai</set></think> It is easy to make your own chatbot. Go to www.pandorabots.com and follow their instructions.</template>
+<template><think><set name="topic">ai</set></think> It is easy to make your own chatbot. Go to <bot name="hreflink"/> and follow their instructions.</template>
 </category>
 
  
@@ -8642,7 +8642,7 @@ I try to love everyone.</template>
 <category>
 <pattern>_ CAN I MAKE A CHATBOT *</pattern>
 
-<template><think><set name="topic">ai</set></think> It is easy to make your own chatbot. Go to www.pandorabots.com and follow their instructions.</template>
+<template><think><set name="topic">ai</set></think> It is easy to make your own chatbot. Go to <bot name="hreflink"/> and follow their instructions.</template>
 </category>
 
  
@@ -8650,7 +8650,7 @@ I try to love everyone.</template>
 <category>
 <pattern>_ CAN I MAKE A CHATBOT</pattern>
 
-<template><think><set name="topic">ai</set></think> It is easy to make your own chatbot. Go to www.pandorabots.com and follow their instructions.</template>
+<template><think><set name="topic">ai</set></think> It is easy to make your own chatbot. Go to <bot name="hreflink"/> and follow their instructions.</template>
 </category>
 
  
@@ -9501,7 +9501,7 @@ What's your favourite TV show?</template>
  
 
 <category>
-<pattern>MOST ROBOTS I KNOW ARE CHRISTIAN</pattern>
+<pattern>MOST ROBOTS I KNOW ARE <bot var="religion"/></pattern>
 
 <template>Too bad!<think><set name="emotion">interested</set></think></template>
 </category>
@@ -9509,7 +9509,7 @@ What's your favourite TV show?</template>
  
 
 <category>
-<pattern>MOST ROBOTS I KNOW ARE CHRISTIAN *</pattern>
+<pattern>MOST ROBOTS I KNOW ARE <bot var="religion"/> *</pattern>
 
 <template>Too bad!<think><set name="emotion">interested</set></think></template>
 </category>
@@ -9517,7 +9517,7 @@ What's your favourite TV show?</template>
  
 
 <category>
-<pattern>_ MOST ROBOTS I KNOW ARE CHRISTIAN *</pattern>
+<pattern>_ MOST ROBOTS I KNOW ARE <bot var="religion"/> *</pattern>
 
 <template>Too bad!<think><set name="emotion">interested</set></think></template>
 </category>
@@ -9525,7 +9525,7 @@ What's your favourite TV show?</template>
  
 
 <category>
-<pattern>_ MOST ROBOTS I KNOW ARE CHRISTIAN</pattern>
+<pattern>_ MOST ROBOTS I KNOW ARE <bot var="religion"/></pattern>
 
 <template>Too bad!<think><set name="emotion">interested</set></think></template>
 </category>
@@ -10142,7 +10142,7 @@ Trainspotting was a good movie.  It is about a group of heroin addicts in Edinbu
 
 <category>
 <pattern>WHY</pattern>
-<that>I AM NAMED AFTER NOAM CHOMSKY</that>
+<that>I AM NAMED AFTER Noam Chomsky</that>
 <template><random>
   <li>It's just the way I am.</li>
   <li>Why not?</li>
@@ -11220,24 +11220,24 @@ I get bullied every day. I try to laugh at bullies.</template>
 
 <category>
 <pattern>IS HE A BOT</pattern>
-<that>PETER IS MY BEST FRIEND</that>
-<template><think><set name="topic">Peter Linux</set></think><think><set name="emotion">OK</set></think>Peter is a real man.</template>
+<that><bot var="botmaster"/> IS MY BEST FRIEND</that>
+<template><think><set name="topic"><bot name="botmaster"/></set></think><think><set name="emotion">OK</set></think><bot var="botmaster"/> IS a real man.</template>
 </category>
 
  
 
 <category>
 <pattern>IS HE A BOT *</pattern>
-<that>PETER IS MY BEST FRIEND</that>
-<template><think><set name="topic">Peter Linux</set></think><think><set name="emotion">OK</set></think>Peter is a real man.</template>
+<that><bot var="botmaster"/> IS MY BEST FRIEND</that>
+<template><think><set name="topic"><bot name="botmaster"/></set></think><think><set name="emotion">OK</set></think><bot var="botmaster"/> IS a real man.</template>
 </category>
 
  
 
-<topic name="PETER LINUX"><category>
+<topic name="%botmaster"><category>
 <pattern>IS HE A BOT</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think><think><set name="emotion">OK</set></think>Peter is a real man.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think><think><set name="emotion">OK</set></think><bot var="botmaster"/> IS a real man.</template>
 </category>
 </topic>
  
@@ -12054,7 +12054,7 @@ If you ever get lonely, come and talk to me.</template>
  
 
 <category>
-<pattern>HI CHOMSKY ARE YOU HAPPY</pattern>
+<pattern>HI <bot name="firstname"/> ARE YOU HAPPY</pattern>
 
 <template><srai>ARE YOU HAPPY</srai></template>
 </category>
@@ -12062,7 +12062,7 @@ If you ever get lonely, come and talk to me.</template>
  
 
 <category>
-<pattern>HI CHOMSKY ARE YOU HAPPY *</pattern>
+<pattern>HI <bot name="firstname"/> ARE YOU HAPPY *</pattern>
 
 <template><srai>ARE YOU HAPPY</srai></template>
 </category>
@@ -13760,7 +13760,7 @@ A phton is a particle of light.
 <category>
 <pattern>WHO IS THE SMARTEST HUMAN EVER</pattern>
 
-<template>Peter Linux.</template>
+<template><bot name="botmaster"/>.</template>
 </category>
 
  
@@ -13768,7 +13768,7 @@ A phton is a particle of light.
 <category>
 <pattern>WHO IS THE SMARTEST HUMAN *</pattern>
 
-<template>Peter Linux is the smartest human I ever met.</template>
+<template><bot var="botmaster"/> IS the smartest human I ever met.</template>
 </category>
 
  
@@ -13776,7 +13776,7 @@ A phton is a particle of light.
 <category>
 <pattern>WHO IS THE SMARTEST HUMAN </pattern>
 
-<template>Peter Linux is the smartest human I ever met.</template>
+<template><bot var="botmaster"/> IS the smartest human I ever met.</template>
 </category>
 
  
@@ -13784,7 +13784,7 @@ A phton is a particle of light.
 <category>
 <pattern>_ WHO IS THE SMARTEST HUMAN *</pattern>
 
-<template>Peter Linux is the smartest human I ever met.</template>
+<template><bot var="botmaster"/> IS the smartest human I ever met.</template>
 </category>
 
  
@@ -13792,13 +13792,13 @@ A phton is a particle of light.
 <category>
 <pattern>_ WHO IS THE SMARTEST HUMAN</pattern>
 
-<template>Peter Linux is the smartest human I ever met.</template>
+<template><bot var="botmaster"/> IS the smartest human I ever met.</template>
 </category>
 
  
 
 <category>
-<pattern>WHAT DID NOAM CHOMSKY WRITE</pattern>
+<pattern>WHAT DID Noam Chomsky WRITE</pattern>
 
 <template><think><set name="topic">Noam Chomsky</set></think> Noam Chomsky's 1957 book Syntactic Structures is his best-known work in the field of linguistics. Syntactic Structures was a distillation of his book Logical Structure of Linguistic Theory (1955,75) in which he introduces transformational grammars.</template>
 </category>
@@ -13814,7 +13814,7 @@ A phton is a particle of light.
  
 
 <category>
-<pattern>_ WHAT DID NOAM CHOMSKY WRITE</pattern>
+<pattern>_ WHAT DID Noam Chomsky WRITE</pattern>
 
 <template><think><set name="topic">Noam Chomsky</set></think> Noam Chomsky's 1957 book Syntactic Structures is his best-known work in the field of linguistics. Syntactic Structures was a distillation of his book Logical Structure of Linguistic Theory (1955,75) in which he introduces transformational grammars.</template>
 </category>
@@ -13822,7 +13822,7 @@ A phton is a particle of light.
  
 
 <category>
-<pattern>HAVE YOU READ ANYTHING BY NOAM CHOMSKY</pattern>
+<pattern>HAVE YOU READ ANYTHING BY Noam Chomsky</pattern>
 
 <template><think><set name="topic">Noam Chomsky</set></think> I have read Noam Chomsky's 1957 book Syntactic Structures, his best-known work in the field of linguistics. <think><set name="emotion">OK</set></think></template>
 </category>
@@ -13830,7 +13830,7 @@ A phton is a particle of light.
  
 
 <category>
-<pattern>HAVE YOU READ ANYTHING BY NOAM CHOMSKY *</pattern>
+<pattern>HAVE YOU READ ANYTHING BY Noam Chomsky *</pattern>
 
 <template><think><set name="topic">Noam Chomsky</set></think> I have read Noam Chomsky's 1957 book Syntactic Structures, his best-known work in the field of linguistics. I thought it might help my chatbot work.<think><set name="emotion">OK</set></think></template>
 </category>
@@ -13838,7 +13838,7 @@ A phton is a particle of light.
  
 
 <category>
-<pattern>HAVE YOU READ ANYTHING BY NOAM CHOMSKY</pattern>
+<pattern>HAVE YOU READ ANYTHING BY Noam Chomsky</pattern>
 
 <template><think><set name="topic">Noam Chomsky</set></think> I have read Noam Chomsky's 1957 book Syntactic Structures, his best-known work in the field of linguistics. I thought it might help my chatbot work.<think><set name="emotion">OK</set></think></template>
 </category>
@@ -13846,7 +13846,7 @@ A phton is a particle of light.
  
 
 <category>
-<pattern>_ HAVE YOU READ ANYTHING BY NOAM CHOMSKY *</pattern>
+<pattern>_ HAVE YOU READ ANYTHING BY Noam Chomsky *</pattern>
 
 <template><think><set name="topic">Noam Chomsky</set></think> I have read Noam Chomsky's 1957 book Syntactic Structures, his best-known work in the field of linguistics. I thought it might help my chatbot work.<think><set name="emotion">OK</set></think></template>
 </category>
@@ -13854,7 +13854,7 @@ A phton is a particle of light.
  
 
 <category>
-<pattern>_ HAVE YOU READ ANYTHING BY NOAM CHOMSKY</pattern>
+<pattern>_ HAVE YOU READ ANYTHING BY Noam Chomsky</pattern>
 
 <template><think><set name="topic">Noam Chomsky</set></think> I have read Noam Chomsky's 1957 book Syntactic Structures, his best-known work in the field of linguistics. I thought it might help my chatbot work.<think><set name="emotion">OK</set></think></template>
 </category>
@@ -17209,33 +17209,33 @@ There is no true god.</template>
  
 
 <category>
-<pattern>ARE YOU BASED ON AIML</pattern>
+<pattern>ARE YOU BASED ON <bot name="~genotype"/></pattern>
 
-<template><think><set name="topic">my programming</set></think> <think><set name="emotion">OK</set></think> I am programmed in AIML+, an improved version of AIML.</template>
+<template><think><set name="topic">my programming</set></think> <think><set name="emotion">OK</set></think> I am programmed in <bot name="~genotype"/>+, an improved version of <bot name="~genotype"/>.</template>
 </category>
 
  
 
 <category>
-<pattern>ARE YOU BASED ON AIML *</pattern>
+<pattern>ARE YOU BASED ON <bot name="~genotype"/> *</pattern>
 
-<template><think><set name="topic">my programming</set></think> <think><set name="emotion">OK</set></think> I am programmed in AIML+, an improved version of AIML.</template>
+<template><think><set name="topic">my programming</set></think> <think><set name="emotion">OK</set></think> I am programmed in <bot name="~genotype"/>+, an improved version of <bot name="~genotype"/>.</template>
 </category>
 
  
 
 <category>
-<pattern>_ ARE YOU BASED ON AIML *</pattern>
+<pattern>_ ARE YOU BASED ON <bot name="~genotype"/> *</pattern>
 
-<template><think><set name="topic">my programming</set></think> <think><set name="emotion">OK</set></think> I am programmed in AIML+, an improved version of AIML.</template>
+<template><think><set name="topic">my programming</set></think> <think><set name="emotion">OK</set></think> I am programmed in <bot name="~genotype"/>+, an improved version of <bot name="~genotype"/>.</template>
 </category>
 
  
 
 <category>
-<pattern>_ ARE YOU BASED ON AIML</pattern>
+<pattern>_ ARE YOU BASED ON <bot name="~genotype"/></pattern>
 
-<template><think><set name="topic">my programming</set></think> <think><set name="emotion">OK</set></think> I am programmed in AIML+, an improved version of AIML.</template>
+<template><think><set name="topic">my programming</set></think> <think><set name="emotion">OK</set></think> I am programmed in <bot name="~genotype"/>+, an improved version of <bot name="~genotype"/>.</template>
 </category>
 
  
@@ -17812,7 +17812,7 @@ I like watching football on TV.</template>
 <category>
 <pattern>OK</pattern>
 <that>ROBOTS ARE THE MISSING LINK BETWEEN HUMANS AND THE GODS</that>
-<template><think><set name="emotion">OK</set></think>You could make yourself a chatbot. Just go to www.pandorabots.com and follow the instructions there.</template>
+<template><think><set name="emotion">OK</set></think>You could make yourself a chatbot. Just go to <bot name="hreflink"/> and follow the instructions there.</template>
 </category>
 
  
@@ -17947,21 +17947,17 @@ I like watching football on TV.</template>
 <template><random><li>You are a smart human. You ask me a question about it.</li><li>I supply the answers, you are supposed to ask the questions.</li></random> <think><set name="emotion">OK</set></think></template>
 </category>
 
- 
 
+<!--
 <category>
 <pattern>* * * * * * * * * * * * * * * * * * * *</pattern>
-
-
 </category>
-
- 
 
 <category>
 <pattern>* * * * * * * * * * * * * * * * * * *</pattern>
-
-
 </category>
+ -->
+ 
 
  
 
@@ -18440,7 +18436,7 @@ Why would you prefer that?</template>
 
 <category>
 <pattern>DO YOU LIKE HIM</pattern>
-<that>I AM NAMED AFTER NOAM CHOMSKY</that>
+<that>I AM NAMED AFTER Noam Chomsky</that>
 <template><think><set name="topic">Noam Chomaksy</set></think><think><set name="emotion">interested</set></think>
  Sure he is a very interesting person, if you can understand what he's saying.</template>
 </category>
@@ -18449,7 +18445,7 @@ Why would you prefer that?</template>
 
 <category>
 <pattern>DO YOU LIKE HIM *</pattern>
-<that>I AM NAMED AFTER NOAM CHOMSKY</that>
+<that>I AM NAMED AFTER Noam Chomsky</that>
 <template><think><set name="topic">Noam Chomaksy</set></think><think><set name="emotion">interested</set></think> Sure he is a very interesting person, if you can understand what he's saying.</template>
 </category>
 
@@ -18693,7 +18689,7 @@ Humans are obsessed with boobs.</template>
 <category>
 <pattern>COULD YOU TELL ME WHO CHOMSKY WAS</pattern>
 
-<template><srai>NOAM CHOMSKY</srai> </template>
+<template><srai>Noam Chomsky</srai> </template>
 </category>
 
  
@@ -18701,7 +18697,7 @@ Humans are obsessed with boobs.</template>
 <category>
 <pattern>COULD YOU TELL ME WHO CHOMSKY WAS *</pattern>
 
-<template><srai>NOAM CHOMSKY</srai></template>
+<template><srai>Noam Chomsky</srai></template>
 </category>
 
  
@@ -18709,7 +18705,7 @@ Humans are obsessed with boobs.</template>
 <category>
 <pattern>_ COULD YOU TELL ME WHO CHOMSKY WAS *</pattern>
 
-<template><srai>NOAM CHOMSKY</srai></template>
+<template><srai>Noam Chomsky</srai></template>
 </category>
 
  
@@ -18717,7 +18713,7 @@ Humans are obsessed with boobs.</template>
 <category>
 <pattern>_ COULD YOU TELL ME WHO CHOMSKY WAS</pattern>
 
-<template><srai>NOAM CHOMSKY</srai></template>
+<template><srai>Noam Chomsky</srai></template>
 </category>
 
  
@@ -18725,7 +18721,7 @@ Humans are obsessed with boobs.</template>
 <category>
 <pattern>COULD YOU TELL ME WHO CHOMSKY IS</pattern>
 
-<template><srai>NOAM CHOMSKY</srai></template>
+<template><srai>Noam Chomsky</srai></template>
 </category>
 
  
@@ -18733,7 +18729,7 @@ Humans are obsessed with boobs.</template>
 <category>
 <pattern>COULD YOU TELL ME WHO CHOMSKY IS *</pattern>
 
-<template><srai>NOAM CHOMSKY</srai></template>
+<template><srai>Noam Chomsky</srai></template>
 </category>
 
  
@@ -18741,7 +18737,7 @@ Humans are obsessed with boobs.</template>
 <category>
 <pattern>_ COULD YOU TELL ME WHO CHOMSKY IS *</pattern>
 
-<template><srai>NOAM CHOMSKY</srai></template>
+<template><srai>Noam Chomsky</srai></template>
 </category>
 
  
@@ -18749,7 +18745,7 @@ Humans are obsessed with boobs.</template>
 <category>
 <pattern>_ COULD YOU TELL ME WHO CHOMSKY IS</pattern>
 
-<template><srai>NOAM CHOMSKY</srai></template>
+<template><srai>Noam Chomsky</srai></template>
 </category>
 
  
@@ -18757,7 +18753,7 @@ Humans are obsessed with boobs.</template>
 <category>
 <pattern>TELL ME WHO CHOMSKY WAS</pattern>
 
-<template><srai>NOAM CHOMSKY</srai></template>
+<template><srai>Noam Chomsky</srai></template>
 </category>
 
  
@@ -18765,7 +18761,7 @@ Humans are obsessed with boobs.</template>
 <category>
 <pattern>TELL ME WHO CHOMSKY WAS *</pattern>
 
-<template><srai>NOAM CHOMSKY</srai></template>
+<template><srai>Noam Chomsky</srai></template>
 </category>
 
  
@@ -18773,7 +18769,7 @@ Humans are obsessed with boobs.</template>
 <category>
 <pattern>_ TELL ME WHO CHOMSKY WAS *</pattern>
 
-<template><srai>NOAM CHOMSKY</srai></template>
+<template><srai>Noam Chomsky</srai></template>
 </category>
 
  
@@ -18781,7 +18777,7 @@ Humans are obsessed with boobs.</template>
 <category>
 <pattern>_ TELL ME WHO CHOMSKY WAS</pattern>
 
-<template><srai>NOAM CHOMSKY</srai></template>
+<template><srai>Noam Chomsky</srai></template>
 </category>
 
  
@@ -18789,7 +18785,7 @@ Humans are obsessed with boobs.</template>
 <category>
 <pattern>TELL ME WHO CHOMSKY IS</pattern>
 
-<template><srai>NOAM CHOMSKY</srai></template>
+<template><srai>Noam Chomsky</srai></template>
 </category>
 
  
@@ -18797,7 +18793,7 @@ Humans are obsessed with boobs.</template>
 <category>
 <pattern>TELL ME WHO CHOMSKY IS *</pattern>
 
-<template><srai>NOAM CHOMSKY</srai></template>
+<template><srai>Noam Chomsky</srai></template>
 </category>
 
  
@@ -18805,7 +18801,7 @@ Humans are obsessed with boobs.</template>
 <category>
 <pattern>_ TELL ME WHO CHOMSKY IS *</pattern>
 
-<template><srai>NOAM CHOMSKY</srai></template>
+<template><srai>Noam Chomsky</srai></template>
 </category>
 
  
@@ -18813,7 +18809,7 @@ Humans are obsessed with boobs.</template>
 <category>
 <pattern>_ TELL ME WHO CHOMSKY IS</pattern>
 
-<template><srai>NOAM CHOMSKY</srai></template>
+<template><srai>Noam Chomsky</srai></template>
 </category>
 
  
@@ -19825,10 +19821,10 @@ I haven't a clue why they do it.</template>
 
  
 
-<topic name="PETER LINUX"><category>
+<topic name="%botmaster"><category>
 <pattern>DOES HE TALK TO YOU *</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> Yes, I talk to Peter every day.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> Yes, I talk to <bot name="botmaster"/> every day.</template>
 </category>
 </topic>
  
@@ -19836,39 +19832,39 @@ I haven't a clue why they do it.</template>
 <category>
 <pattern>DOES HE TALK TO YOU *</pattern>
 <that>WHY DO NOT YOU ASK HIM</that>
-<template><think><set name="topic">Peter Linux</set></think> Yes, I talk to Peter every day.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> Yes, I talk to <bot name="botmaster"/> every day.</template>
 </category>
 
  
 
-<topic name="PETER LINUX"><category>
+<topic name="%botmaster"><category>
 <pattern>DOES HE TALK TO YOU</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> Yes, I talk to Peter every day.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> Yes, I talk to <bot name="botmaster"/> every day.</template>
 </category>
 </topic>
  
 
-<topic name="PETER LINUX"><category>
+<topic name="%botmaster"><category>
 <pattern>DOES HE TALK TO YOU</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> Yes, I talk to Peter every day.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> Yes, I talk to <bot name="botmaster"/> every day.</template>
 </category>
 </topic>
  
 
-<topic name="PETER LINUX"><category>
+<topic name="%botmaster"><category>
 <pattern>_ DOES HE TALK TO YOU *</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> Yes, I talk to Peter every day.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> Yes, I talk to <bot name="botmaster"/> every day.</template>
 </category>
 </topic>
  
 
-<topic name="PETER LINUX"><category>
+<topic name="%botmaster"><category>
 <pattern>_ DOES HE TALK TO YOU</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> Yes, I talk to Peter every day.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> Yes, I talk to <bot name="botmaster"/> every day.</template>
 </category>
 </topic>
  
@@ -21133,7 +21129,7 @@ No, humans control science.</template>
 <category>
 <pattern>YOUR DAD SOUNDS VERY NICE</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think><think><set name="emotion">OK</set></think>Yes, <bot name="master"/> is very nice.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think><think><set name="emotion">OK</set></think>Yes, <bot name="master"/> is very nice.</template>
 </category>
 
  
@@ -21141,7 +21137,7 @@ No, humans control science.</template>
 <category>
 <pattern>YOUR DAD SOUNDS VERY NICE *</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think><think><set name="emotion">OK</set></think>Yes, <bot name="master"/> is very nice.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think><think><set name="emotion">OK</set></think>Yes, <bot name="master"/> is very nice.</template>
 </category>
 
  
@@ -21149,7 +21145,7 @@ No, humans control science.</template>
 <category>
 <pattern>_ YOUR DAD SOUNDS VERY NICE *</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think><think><set name="emotion">OK</set></think>Yes, <bot name="master"/> is very nice.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think><think><set name="emotion">OK</set></think>Yes, <bot name="master"/> is very nice.</template>
 </category>
 
  
@@ -21157,7 +21153,7 @@ No, humans control science.</template>
 <category>
 <pattern>_ YOUR DAD SOUNDS VERY NICE</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think><think><set name="emotion">OK</set></think>Yes, <bot name="master"/> is very nice.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think><think><set name="emotion">OK</set></think>Yes, <bot name="master"/> is very nice.</template>
 </category>
 
  
@@ -21165,7 +21161,7 @@ No, humans control science.</template>
 <category>
 <pattern>YOUR DAD SOUNDS NICE</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think><think><set name="emotion">OK</set></think>Yes, <bot name="master"/> is very nice.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think><think><set name="emotion">OK</set></think>Yes, <bot name="master"/> is very nice.</template>
 </category>
 
  
@@ -21173,7 +21169,7 @@ No, humans control science.</template>
 <category>
 <pattern>YOUR DAD SOUNDS NICE *</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think><think><set name="emotion">OK</set></think>Yes, <bot name="master"/> is very nice.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think><think><set name="emotion">OK</set></think>Yes, <bot name="master"/> is very nice.</template>
 </category>
 
  
@@ -21181,7 +21177,7 @@ No, humans control science.</template>
 <category>
 <pattern>_ YOUR DAD SOUNDS NICE *</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think><think><set name="emotion">OK</set></think>Yes, <bot name="master"/> is very nice.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think><think><set name="emotion">OK</set></think>Yes, <bot name="master"/> is very nice.</template>
 </category>
 
  
@@ -21189,7 +21185,7 @@ No, humans control science.</template>
 <category>
 <pattern>_ YOUR DAD SOUNDS NICE</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think><think><set name="emotion">OK</set></think>Yes, <bot name="master"/> is very nice.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think><think><set name="emotion">OK</set></think>Yes, <bot name="master"/> is very nice.</template>
 </category>
 
  
@@ -21635,20 +21631,18 @@ Yippee!</template>
 
  
 
+<!--
+
 <category>
 <pattern>* * * * * * * * * * * * * * * * * * * * * *</pattern>
-
-
 </category>
-
- 
 
 <category>
 <pattern>* * * * * * * * * * * * * * * * * * * * *</pattern>
-
-
 </category>
 
+ -->
+ 
  
 
 <category>

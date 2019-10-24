@@ -10,7 +10,7 @@
 
  <!--   Complies with AIML 1.0 Tag Set Specification   --> 
 
- <!-- This GENERAL KNOWLEDGE 8 file created by Peter Lafferty March 2005 -->
+ <!-- This GENERAL KNOWLEDGE 8 file created by <bot name="botmaster"/> Lafferty March 2005 -->
 
 
 <category><pattern>WHAT DO WISE MEN SAY</pattern>
@@ -247,7 +247,7 @@
 <think><set name="topic">ai</set></think></template></category> 
 
 <category><pattern>ALICE XL</pattern>
-<template>ALICE XL is a chatbot developed by Peter Lafferty. Me! 
+<template>ALICE XL is a chatbot developed by <bot name="botmaster"/> Lafferty. Me! 
 <think><set name="topic">ai</set></think></template></category> 
 
 <category><pattern>MINDSPRING</pattern>
@@ -637,7 +637,7 @@
 <think><set name="topic">geography</set></think></template></category> 
 
 <category><pattern>PATTERN CHARS</pattern>
-<template>Pattern chars are memory storage for AIML patterns.
+<template>Pattern chars are memory storage for <bot name="~genotype"/> patterns.
 <think><set name="topic">ai</set></think></template></category> 
 
 <category><pattern>PATTERN</pattern>

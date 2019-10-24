@@ -110,7 +110,10 @@ with_files(Verb,File):-compound(File),not(is_list(File)),global_pathname(File,FI
 with_files(Verb,File):-exists_directory_safe(File),!,prolog_must(atomic(File)),aiml_files(File,Files),!,with_files(Verb,Files),!.
 with_files(Verb,File):-exists_file_safe(File),!,with_files(Verb,[File]).
 with_files(Verb,File):-file_name_extension(File,'aiml',Aiml), exists_file_safe(Aiml),!,with_files(Verb,[File]).
-with_files(Verb,File):-expand_file_name(File,FILES),not([File]=FILES),!,with_files(Verb,FILES),!.
+with_files(Verb,File):-expand_file_name(File,FILES),FILES\==[],[File]\=FILES,!,with_files(Verb,FILES),!.
+
+% with_files(Verb,File):-atom(File),sub_atom(File,Before,_Len,After,'*')
+
 with_files(Verb,File):-prolog_must(call(Verb,File)).
 %%with_files(Verb,File):-throw_safe(error(existence_error(source_sink, File),functor(Verb,F,A),context(F/A, 'No such file or directory'))).
 
@@ -156,7 +159,8 @@ sgml_parser_defs(
 tls :- string_to_structure('<aiml><p>hi</p></aiml>',X),debugFmt(X).
 tls2 :- string_to_structure('<?xml version="1.0" encoding="ISO-8859-1"?>\n<aiml><p>hi</p></aiml>\n\n',X),debugFmt(X).
 
-string_to_structure(String,XMLSTRUCTURESIN):- fail, sformat(Strin0,'<pre>~s</pre>',[String]),string_to_structure0(Strin0,XMLSTRUCTURES),!,trace,
+string_to_structure(String,XMLSTRUCTURESIN):- fail, sformat(Strin0,'<pre>~s</pre>',[String]),string_to_structure0(Strin0,XMLSTRUCTURES),!,
+   trace,
    prolog_must([element(pre,[],XMLSTRUCTURESIN)]=XMLSTRUCTURES).
    
 string_to_structure(String,XMLSTRUCTURES):- string_to_structure0(String,XMLSTRUCTURES),!.

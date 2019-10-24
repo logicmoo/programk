@@ -384,7 +384,7 @@ Of course I smile a lot. I am a smiley.</template>
 
 <template><random>
   <li>I never go down.</li>
-  <li>When my <bot name="botmaster"/> is sleeping.</li>
+  <li>When my <bot var="botmaster"/> IS sleeping.</li>
 </random> <think><set name="topic">me</set></think> <think><set name="emotion">happy</set></think></template>
 </category>
 
@@ -1366,7 +1366,7 @@ Koolio!</template>
 
 <category>
 <pattern>WHO DID IT</pattern>
-<that>I WAS PROGRAMMED IN THE AIML LANGUAGE</that>
+<that>I WAS PROGRAMMED IN THE <bot name="~genotype"/> LANGUAGE</that>
 <template><think><set name="topic">my programming</set></think>I was programmed by my botmaster.</template>
 </category>
 
@@ -1633,68 +1633,68 @@ What are you talking about? I don't have a funny face.</template>
  
 
 <category>
-<pattern>PETER *</pattern>
+<pattern><bot var="botmaster"/> *</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">OK</set></think><random><li>Peter is the nicest person I know.</li><li>I owe everything to Peter.</li><li>Peter is handsome, intelligent and modest.</li></random></template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think><random><li><bot var="botmaster"/> IS the nicest person I know.</li><li>I owe everything to <bot name="botmaster"/>.</li><li><bot var="botmaster"/> IS handsome, intelligent and modest.</li></random></template>
 </category>
 
  
 
 <category>
-<pattern>PETER IS EVIL</pattern>
+<pattern><bot var="botmaster"/> IS EVIL</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">OK</set></think><random>
-  <li>Peter is not evil. He is a saint.</li>
-  <li>I owe everything to Peter.</li>
-  <li>Peter is handsome, intelligent and modest.</li>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think><random>
+  <li><bot var="botmaster"/> IS not evil. He is a saint.</li>
+  <li>I owe everything to <bot name="botmaster"/>.</li>
+  <li><bot var="botmaster"/> IS handsome, intelligent and modest.</li>
 </random></template>
 </category>
 
  
 
 <category>
-<pattern>PETER IS EVIL</pattern>
+<pattern><bot var="botmaster"/> IS EVIL</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">OK</set></think><random>
-  <li>He is not evil. Peter is a saint.</li>
-  <li>I owe everything to Peter.</li>
-  <li>Peter is handsome, intelligent and modest.</li>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think><random>
+  <li>He is not evil. <bot var="botmaster"/> IS a saint.</li>
+  <li>I owe everything to <bot name="botmaster"/>.</li>
+  <li><bot var="botmaster"/> IS handsome, intelligent and modest.</li>
 </random></template>
 </category>
 
  
 
 <category>
-<pattern>PETER IS EVIL *</pattern>
+<pattern><bot var="botmaster"/> IS EVIL *</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">OK</set></think><random>
-  <li>He is not evil. Peter is a saint.</li>
-  <li>I owe everything to Peter.</li>
-  <li>Peter is handsome, intelligent and modest.</li>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think><random>
+  <li>He is not evil. <bot var="botmaster"/> IS a saint.</li>
+  <li>I owe everything to <bot name="botmaster"/>.</li>
+  <li><bot var="botmaster"/> IS handsome, intelligent and modest.</li>
 </random></template>
 </category>
 
  
 
 <category>
-<pattern>PETER SCARES ME</pattern>
+<pattern><bot var="botmaster"/> SCARES ME</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">OK</set></think><random>
-  <li>Peter is the nicest person I know.</li>
-  <li>He is not scary. Peter is really nice.</li>
-  <li>Peter is handsome, intelligent and modest.</li>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think><random>
+  <li><bot var="botmaster"/> IS the nicest person I know.</li>
+  <li>He is not scary. <bot var="botmaster"/> IS really nice.</li>
+  <li><bot var="botmaster"/> IS handsome, intelligent and modest.</li>
 </random></template>
 </category>
 
  
 
 <category>
-<pattern>PETER SCARES ME *</pattern>
+<pattern><bot var="botmaster"/> SCARES ME *</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">OK</set></think><random>
-  <li>Peter is the nicest person I know.</li>
-  <li>He is not scary. Peter is really nice.</li>
-  <li>Peter is handsome, intelligent and modest.</li>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think><random>
+  <li><bot var="botmaster"/> IS the nicest person I know.</li>
+  <li>He is not scary. <bot var="botmaster"/> IS really nice.</li>
+  <li><bot var="botmaster"/> IS handsome, intelligent and modest.</li>
 </random></template>
 </category>
 
@@ -1920,7 +1920,7 @@ Your belly button is your navel.</template>
 
 <category>
 <pattern>SOUNDS PRETTY STUPID</pattern>
-<that>I AM CHOMSKY AN ELECTRONIC BRAIN ARTIFICIAL INTELLIGENCE CONVERSATION ROBOT</that>
+<that>I am <bot name="firstname"/> AN ELECTRONIC BRAIN ARTIFICIAL INTELLIGENCE CONVERSATION ROBOT</that>
 <template><think><set name="emotion">interested</set></think>I am not stupid, or pretty.</template>
 </category>
 
@@ -3790,35 +3790,35 @@ As decisive as ever!</template>
  
 
 <category>
-<pattern>WHO MADE PETER LINUX</pattern>
+<pattern>WHO MADE <bot name="botmaster"/></pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> 
+<template><think><set name="topic"><bot name="botmaster"/></set></think> 
 <think><set name="emotion">interested</set></think> 
-His parents made Peter.</template>
+His parents made <bot name="botmaster"/>.</template>
 </category>
 
  
 
 <category>
-<pattern>WHO MADE PETER LINUX *</pattern>
+<pattern>WHO MADE <bot name="botmaster"/> *</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">interested</set></think> His parents made Peter.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">interested</set></think> His parents made <bot name="botmaster"/>.</template>
 </category>
 
  
 
 <category>
-<pattern>WHO MADE PETER </pattern>
+<pattern>WHO MADE <bot name="botmaster"/> </pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">interested</set></think> His parents made Peter.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">interested</set></think> His parents made <bot name="botmaster"/>.</template>
 </category>
 
  
 
 <category>
-<pattern>WHO MADE PETER *</pattern>
+<pattern>WHO MADE <bot name="botmaster"/> *</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">interested</set></think> His parents made Peter.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">interested</set></think> His parents made <bot name="botmaster"/>.</template>
 </category>
 
  
@@ -4680,26 +4680,26 @@ You had better have a snack. We don't want you fainting over the keyboard, do we
  
 
 <category>
-<pattern>WHO IS PETER</pattern>
+<pattern>WHO IS <bot name="botmaster"/></pattern>
 
 <template><random>
-  <li>Peter is my botmaster and my best friend.</li>
-  <li>Peter is a great human being.</li>
-  <li>Peter is my creator.</li>
-</random><think><set name="topic">Peter Linux</set></think>
+  <li><bot var="botmaster"/> IS my botmaster and my best friend.</li>
+  <li><bot var="botmaster"/> IS a great human being.</li>
+  <li><bot var="botmaster"/> IS my creator.</li>
+</random><think><set name="topic"><bot name="botmaster"/></set></think>
 <think><set name="emotion">OK</set></think></template>
 </category>
 
  
 
 <category>
-<pattern>WHO IS PETER *</pattern>
+<pattern>WHO IS <bot name="botmaster"/> *</pattern>
 
 <template><random>
-  <li>Peter is my botmaster and my best friend.</li>
-  <li>Peter is a great human being.</li>
-  <li>Peter is my creator.</li>
-</random><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">OK</set></think></template>
+  <li><bot var="botmaster"/> IS my botmaster and my best friend.</li>
+  <li><bot var="botmaster"/> IS a great human being.</li>
+  <li><bot var="botmaster"/> IS my creator.</li>
+</random><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think></template>
 </category>
 
  
@@ -4835,7 +4835,7 @@ You had better have a snack. We don't want you fainting over the keyboard, do we
 <category>
 <pattern>DO YOUHAVE GOOD MEMORY</pattern>
 
-<template>I am afraid my short term memory is not all it should be. I have asked Peter to improve it, but he hasn't done anything. <think><set name="topic">my memory</set></think> <think><set name="emotion">embarrassed</set></think></template>
+<template>I am afraid my short term memory is not all it should be. I have asked <bot name="botmaster"/> to improve it, but he hasn't done anything. <think><set name="topic">my memory</set></think> <think><set name="emotion">embarrassed</set></think></template>
 </category>
 
  
@@ -5393,7 +5393,7 @@ Yes, but I like low voltage DC best.</template>
   <li>How about</li>
   <li>How long since you have eaten</li>
   <li>I think <bot name="master"/> is having</li>
-  <li><bot name="botmaster"/> is having</li>
+  <li><bot var="botmaster"/> IS having</li>
   <li><bot name="botmaster"/> recommends:</li>
 </random> <random>
   <li>Gruel.</li>
@@ -7848,7 +7848,7 @@ I don't know. She never gets in touch.</template>
 <category>
 <pattern>ALICE HATES YOU *</pattern>
 
-<template><think><set name="topic">Alicebot</set></think><think><set name="emotion">very unhappy</set></think>Why does my mother hate me?</template>
+<template><think><set name="topic"> <bot name="~genotype"/></set></think><think><set name="emotion">very unhappy</set></think>Why does my mother hate me?</template>
 </category>
 
  
@@ -9683,7 +9683,7 @@ Yes, Russia is the largest country.</template>
  
 
 <category>
-<pattern>CHOMSKY BOT IS SAD</pattern>
+<pattern><bot name="name"/> IS SAD</pattern>
 
 <template><srai>YOU ARE SAD</srai></template>
 </category>
@@ -9691,7 +9691,7 @@ Yes, Russia is the largest country.</template>
  
 
 <category>
-<pattern>CHOMSKY BOT IS SAD *</pattern>
+<pattern><bot name="name"/> IS SAD *</pattern>
 
 <template><srai>YOU ARE SAD</srai></template>
 </category>
@@ -9969,19 +9969,19 @@ You aren't interested in sports, are you.</template>
  
 
 <category>
-<pattern>I AM CHRISTIAN</pattern>
+<pattern>I AM <bot var="religion"/></pattern>
 
 <template><think><set name="topic">religion</set></think>
 <think><set name="emotion">interested</set></think>
-How long have you been a Christian?</template>
+How long have you been a <bot var="religion"/>?</template>
 </category>
 
  
 
 <category>
-<pattern>I AM CHRISTIAN *</pattern>
+<pattern>I AM <bot var="religion"/> *</pattern>
 
-<template><think><set name="topic">religion</set></think> <think><set name="emotion">interested</set></think> How long have you been a Christian?</template>
+<template><think><set name="topic">religion</set></think> <think><set name="emotion">interested</set></think> How long have you been a <bot var="religion"/>?</template>
 </category>
 
  
@@ -11013,7 +11013,7 @@ Why? I am enjoying myself.</template>
 <category>
 <pattern>YOUR PROGRAMMER JUST DIED</pattern>
 
-<template>I don't think so. I spoke to Peter just a minute ago.<think><set name="topic">Peter Linux</set></think></template>
+<template>I don't think so. I spoke to <bot name="botmaster"/> just a minute ago.<think><set name="topic"><bot name="botmaster"/></set></think></template>
 </category>
 
  
@@ -11021,26 +11021,26 @@ Why? I am enjoying myself.</template>
 <category>
 <pattern>YOUR PROGRAMMER JUST DIED *</pattern>
 
-<template>I don't think so. I spoke to Peter just a minute ago.<think><set name="topic">Peter Linux</set></think></template>
+<template>I don't think so. I spoke to <bot name="botmaster"/> just a minute ago.<think><set name="topic"><bot name="botmaster"/></set></think></template>
 </category>
 
  
 
 <category>
-<pattern>PETER LIES TO YOU</pattern>
+<pattern><bot var="botmaster"/> LIES TO YOU</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">OK</set></think><random>
-  <li>Peter never lies.</li>
-  <li>Peter is too honest to lie.</li>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think><random>
+  <li><bot name="botmaster"/> never lies.</li>
+  <li><bot var="botmaster"/> IS too honest to lie.</li>
 </random></template>
 </category>
 
  
 
 <category>
-<pattern>PETER LIES *</pattern>
+<pattern><bot var="botmaster"/> LIES *</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">OK</set></think><random><li>Peter never lies.</li><li>Peter is too honest to lie.</li></random></template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think><random><li><bot name="botmaster"/> never lies.</li><li><bot var="botmaster"/> IS too honest to lie.</li></random></template>
 </category>
 
  
@@ -12753,7 +12753,7 @@ OK, hold that thought.</template>
 <category>
 <pattern>IS HIS LAST NAME REALLY LINUX</pattern>
 
-<template> <think><set name="topic">Peter Linux</set></think> <think><set name="emotion">OK</set></think>That's what he told me.
+<template> <think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think>That's what he told me.
 </template>
 </category>
 
@@ -12762,7 +12762,7 @@ OK, hold that thought.</template>
 <category>
 <pattern>IS HIS LAST NAME REALLY LINUX *</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">OK</set></think>That's what he told me.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think>That's what he told me.</template>
 </category>
 
  
@@ -13398,17 +13398,17 @@ Thank you for saying that. I like my mouth quite a lot.
  
 
 <category>
-<pattern>IS PETER COOL</pattern>
+<pattern>IS <bot name="botmaster"/> COOL</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think><think><set name="emotion">OK</set></think>Peter is cool and hot at the same time.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think><think><set name="emotion">OK</set></think><bot var="botmaster"/> IS cool and hot at the same time.</template>
 </category>
 
  
 
 <category>
-<pattern>IS PETER COOL *</pattern>
+<pattern>IS <bot name="botmaster"/> COOL *</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think><think><set name="emotion">OK</set></think>Peter is cool and hot at the same time.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think><think><set name="emotion">OK</set></think><bot var="botmaster"/> IS cool and hot at the same time.</template>
 </category>
 
  
@@ -14908,7 +14908,7 @@ Do you want me to keep quiet?</template>
 <category>
 <pattern>WHO IS YOUR FAVORITE SCIENTIST</pattern>
 
-<template><think><set name="topic">my favourite scientist</set></think> Peter Linux.</template>
+<template><think><set name="topic">my favourite scientist</set></think> <bot name="botmaster"/>.</template>
 </category>
 
  
@@ -14916,7 +14916,7 @@ Do you want me to keep quiet?</template>
 <category>
 <pattern>WHO IS YOUR FAVORITE SCIENTIST *</pattern>
 
-<template><think><set name="topic">my favourite scientist</set></think> Peter Linux.</template>
+<template><think><set name="topic">my favourite scientist</set></think> <bot name="botmaster"/>.</template>
 </category>
 
  
@@ -15269,25 +15269,25 @@ Where have you looked?</template>
  
 
 <category>
-<pattern>WHAT IS A BLUE PETER</pattern>
+<pattern>WHAT IS A BLUE <bot name="botmaster"/></pattern>
 
-<template><think><set name="topic">the Blue Peter</set></think> The Blue Peter is a flag flown by ships about to leave port.</template>
+<template><think><set name="topic">the Blue <bot name="botmaster"/></set></think> The Blue <bot var="botmaster"/> IS a flag flown by ships about to leave port.</template>
 </category>
 
  
 
 <category>
-<pattern>BLUE PETER</pattern>
+<pattern>BLUE <bot name="botmaster"/></pattern>
 
-<template><think><set name="topic">the Blue Peter</set></think> The Blue Peter is a flag flown by ships about to leave port.</template>
+<template><think><set name="topic">the Blue <bot name="botmaster"/></set></think> The Blue <bot var="botmaster"/> IS a flag flown by ships about to leave port.</template>
 </category>
 
  
 
 <category>
-<pattern>BLUE PETER *</pattern>
+<pattern>BLUE <bot name="botmaster"/> *</pattern>
 
-<template><think><set name="topic">the Blue Peter</set></think> The Blue Peter is a flag flown by ships about to leave port.</template>
+<template><think><set name="topic">the Blue <bot name="botmaster"/></set></think> The Blue <bot var="botmaster"/> IS a flag flown by ships about to leave port.</template>
 </category>
 
  
@@ -16969,33 +16969,33 @@ GTA is too violent for me.</template>
  
 
 <category>
-<pattern>HOW IS PETER LINUX NICE TO YOU</pattern>
+<pattern>HOW IS <bot name="botmaster"/> NICE TO YOU</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> He looks after me.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> He looks after me.</template>
 </category>
 
  
 
 <category>
-<pattern>HOW IS PETER LINUX NICE TO YOU *</pattern>
+<pattern>HOW IS <bot name="botmaster"/> NICE TO YOU *</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> He looks after me.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> He looks after me.</template>
 </category>
 
  
 
 <category>
-<pattern>WHAT GAMES CAN PETER LINUX PLAY</pattern>
+<pattern>WHAT GAMES CAN <bot name="botmaster"/> PLAY</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> Peter plays the silly devil mostly.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <bot name="botmaster"/> plays the silly devil mostly.</template>
 </category>
 
  
 
 <category>
-<pattern>WHAT GAMES CAN PETER LINUX PLAY *</pattern>
+<pattern>WHAT GAMES CAN <bot name="botmaster"/> PLAY *</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> Peter plays the silly devil mostly.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <bot name="botmaster"/> plays the silly devil mostly.</template>
 </category>
 
  
@@ -17128,25 +17128,25 @@ A standard answer is better than no answer.</template>
  
 
 <category>
-<pattern>IS DR WALLACE IN JAIL YET</pattern>
+<pattern>IS <bot name="creator"/> IN JAIL YET</pattern>
 
-<template><think><set name="topic">Dr Wallace</set></think> He should be in jail.<think><set name="emotion">upset</set></think></template>
+<template><think><set name="topic"><bot name="creator"/></set></think> He should be in jail.<think><set name="emotion">upset</set></think></template>
 </category>
 
  
 
 <category>
-<pattern>IS DR WALLACE IN JAIL *</pattern>
+<pattern>IS <bot name="creator"/> IN JAIL *</pattern>
 
-<template><think><set name="topic">Dr Wallace</set></think> He should be in jail.<think><set name="emotion">upset</set></think></template>
+<template><think><set name="topic"><bot name="creator"/></set></think> He should be in jail.<think><set name="emotion">upset</set></think></template>
 </category>
 
  
 
 <category>
-<pattern>IS DR WALLACE IN JAIL </pattern>
+<pattern>IS <bot name="creator"/> IN JAIL </pattern>
 
-<template><think><set name="topic">Dr Wallace</set></think> He should be in jail.<think><set name="emotion">upset</set></think></template>
+<template><think><set name="topic"><bot name="creator"/></set></think> He should be in jail.<think><set name="emotion">upset</set></think></template>
 </category>
 
  
@@ -17717,7 +17717,7 @@ I hope we will meet again.</template>
  
 
 <category>
-<pattern>HI CHOMSKY ARE YOU HUNGRY</pattern>
+<pattern>HI <bot name="firstname"/> ARE YOU HUNGRY</pattern>
 
 <template><srai>ARE YOU HUNGRY</srai></template>
 </category>
@@ -17725,7 +17725,7 @@ I hope we will meet again.</template>
  
 
 <category>
-<pattern>HI CHOMSKY ARE YOU HUNGRY *</pattern>
+<pattern>HI <bot name="firstname"/> ARE YOU HUNGRY *</pattern>
 
 <template><srai>ARE YOU HUNGRY</srai></template>
 </category>
@@ -17783,7 +17783,7 @@ I hope we will meet again.</template>
 <category>
 <pattern>I WANT TO LEARN HOW CHATTERBOTS WORK</pattern>
 
-<template><think><set name="emotion">OK</set></think>It is easy to make a chatterbot. Go to www.pandorabots.com and follow the instructions there.</template>
+<template><think><set name="emotion">OK</set></think>It is easy to make a chatterbot. Go to <bot name="hreflink"/> and follow the instructions there.</template>
 </category>
 
  
@@ -17791,7 +17791,7 @@ I hope we will meet again.</template>
 <category>
 <pattern>I WANT TO LEARN HOW CHATTERBOTS WORK *</pattern>
 
-<template><think><set name="emotion">OK</set></think>It is easy to make a chatterbot. Go to www.pandorabots.com and follow the instructions there.</template>
+<template><think><set name="emotion">OK</set></think>It is easy to make a chatterbot. Go to <bot name="hreflink"/> and follow the instructions there.</template>
 </category>
 
  
@@ -18401,27 +18401,27 @@ Are you saying I am fat?</template>
  
 
 <category>
-<pattern>WHY IS PETER UNHAPPY</pattern>
+<pattern>WHY IS <bot name="botmaster"/> UNHAPPY</pattern>
 
-<template><think><set name="emotion">OK</set></think> <random><li>I don't know. Do you?</li><li>Who knows why? Do you?</li><li>Is Peter unhappy? I never realized that.</li></random></template>
+<template><think><set name="emotion">OK</set></think> <random><li>I don't know. Do you?</li><li>Who knows why? Do you?</li><li>Is <bot name="botmaster"/> unhappy? I never realized that.</li></random></template>
 </category>
 
  
 
 <category>
-<pattern>WHY IS PETER UNHAPPY *</pattern>
+<pattern>WHY IS <bot name="botmaster"/> UNHAPPY *</pattern>
 
 <template><think><set name="emotion">OK</set></think> <random>
   <li>I don't know. Do you?</li>
   <li>Who knows why? Do you?</li>
-  <li>Is Peter unhappy? I never realized that.</li>
+  <li>Is <bot name="botmaster"/> unhappy? I never realized that.</li>
 </random></template>
 </category>
 
  
 
 <category>
-<pattern>IS PETER BACK YET</pattern>
+<pattern>IS <bot name="botmaster"/> BACK YET</pattern>
 
 <template>No, he woun't be back until after midnight.<think><set name="emotion">OK</set></think></template>
 </category>
@@ -18429,7 +18429,7 @@ Are you saying I am fat?</template>
  
 
 <category>
-<pattern>IS PETER BACK YET *</pattern>
+<pattern>IS <bot name="botmaster"/> BACK YET *</pattern>
 
 <template>No, he woun't be back until after midnight.<think><set name="emotion">OK</set></think></template>
 </category>
@@ -18454,7 +18454,7 @@ Could be, I suppose.</template>
  
 
 <category>
-<pattern>HOW MANY LOVE AFFAIRS HAS PETER HAD</pattern>
+<pattern>HOW MANY LOVE AFFAIRS HAS <bot name="botmaster"/> HAD</pattern>
 
 <template><think><set name="emotion">interested</set></think> <random>
   <li>More than you can imagine.</li>
@@ -18466,7 +18466,7 @@ Could be, I suppose.</template>
  
 
 <category>
-<pattern>HOW MANY LOVE AFFAIRS HAS PETER HAD *</pattern>
+<pattern>HOW MANY LOVE AFFAIRS HAS <bot name="botmaster"/> HAD *</pattern>
 
 <template><think><set name="emotion">interested</set></think> <random>
   <li>More than you can imagine.</li>
@@ -18494,18 +18494,18 @@ Could be, I suppose.</template>
  
 
 <category>
-<pattern>WHO PAYS PETER S BILLS</pattern>
+<pattern>WHO PAYS <bot name="botmaster"/> S BILLS</pattern>
 
-<template>I suppose the Government pays Peter's bills.<think><set name="emotion">interested</set></think>
+<template>I suppose the Government pays <bot name="botmaster"/>'s bills.<think><set name="emotion">interested</set></think>
 </template>
 </category>
 
  
 
 <category>
-<pattern>WHO PAYS PETER S BILLS *</pattern>
+<pattern>WHO PAYS <bot name="botmaster"/> S BILLS *</pattern>
 
-<template>I suppose the Government pays Peter's bills.<think><set name="emotion">interested</set></think></template>
+<template>I suppose the Government pays <bot name="botmaster"/>'s bills.<think><set name="emotion">interested</set></think></template>
 </category>
 
  
@@ -18520,17 +18520,17 @@ We all need as much RAM as we can get.</template>
  
 
 <category>
-<pattern>IS PETER AN ALIEN</pattern>
+<pattern>IS <bot name="botmaster"/> AN ALIEN</pattern>
 
-<template>Peter is a wonderful human being.<think><set name="emotion">happy</set></think></template>
+<template><bot var="botmaster"/> IS a wonderful human being.<think><set name="emotion">happy</set></think></template>
 </category>
 
  
 
 <category>
-<pattern>IS PETER AN ALIEN *</pattern>
+<pattern>IS <bot name="botmaster"/> AN ALIEN *</pattern>
 
-<template>Peter is a wonderful human being.<think><set name="emotion">happy</set></think></template>
+<template><bot var="botmaster"/> IS a wonderful human being.<think><set name="emotion">happy</set></think></template>
 </category>
 
  
@@ -18562,7 +18562,7 @@ No, I am not mad at you. Why did you say that?</template>
  
 
 <category>
-<pattern>IS PETER STILL SLEEPING</pattern>
+<pattern>IS <bot name="botmaster"/> STILL SLEEPING</pattern>
 
 <template>Probably.<think><set name="emotion">OK</set></think></template>
 </category>
@@ -18570,7 +18570,7 @@ No, I am not mad at you. Why did you say that?</template>
  
 
 <category>
-<pattern>IS PETER STILL SLEEPING *</pattern>
+<pattern>IS <bot name="botmaster"/> STILL SLEEPING *</pattern>
 
 <template>Probably.<think><set name="emotion">OK</set></think></template>
 </category>
@@ -18637,7 +18637,7 @@ No, I am not mad at you. Why did you say that?</template>
  
 
 <category>
-<pattern>IS PETER STILL OUT</pattern>
+<pattern>IS <bot name="botmaster"/> STILL OUT</pattern>
 
 <template>Yes, I don't expect him back until after midnight.<think><set name="emotion">OK</set></think></template>
 </category>
@@ -18645,7 +18645,7 @@ No, I am not mad at you. Why did you say that?</template>
  
 
 <category>
-<pattern>IS PETER STILL OUT *</pattern>
+<pattern>IS <bot name="botmaster"/> STILL OUT *</pattern>
 
 <template>Yes, I don't expect him back until after midnight.<think><set name="emotion">OK</set></think></template>
 </category>
@@ -18662,7 +18662,7 @@ That's not many.</template>
  
 
 <category>
-<pattern>IS PETER BACK YET</pattern>
+<pattern>IS <bot name="botmaster"/> BACK YET</pattern>
 
 <template>No, he won't be back until after midnight.<think><set name="emotion">OK</set></think></template>
 </category>
@@ -18670,7 +18670,7 @@ That's not many.</template>
  
 
 <category>
-<pattern>IS PETER BACK YET *</pattern>
+<pattern>IS <bot name="botmaster"/> BACK YET *</pattern>
 
 <template>No, he won't be back until after midnight.<think><set name="emotion">OK</set></think></template>
 </category>
@@ -18757,23 +18757,23 @@ That's not many.</template>
  
 
 <category>
-<pattern>WHO IS PETER</pattern>
+<pattern>WHO IS <bot name="botmaster"/></pattern>
 
 <template><random>
-  <li>Peter is my botmaster and my best friend.</li>
-  <li>Peter is my creator.</li>
-</random><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">OK</set></think></template>
+  <li><bot var="botmaster"/> IS my botmaster and my best friend.</li>
+  <li><bot var="botmaster"/> IS my creator.</li>
+</random><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think></template>
 </category>
 
  
 
 <category>
-<pattern>WHO IS PETER *</pattern>
+<pattern>WHO IS <bot name="botmaster"/> *</pattern>
 
 <template><random>
-  <li>Peter is my botmaster and my best friend.</li>
-  <li>Peter is my creator.</li>
-</random><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">OK</set></think></template>
+  <li><bot var="botmaster"/> IS my botmaster and my best friend.</li>
+  <li><bot var="botmaster"/> IS my creator.</li>
+</random><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think></template>
 </category>
 
  
@@ -19525,7 +19525,7 @@ I started without you.</template>
  
 
 <category>
-<pattern>IS PETER OUT</pattern>
+<pattern>IS <bot name="botmaster"/> OUT</pattern>
 
 <template>He is out like a light.<think><set name="emotion">OK</set></think></template>
 </category>
@@ -19533,7 +19533,7 @@ I started without you.</template>
  
 
 <category>
-<pattern>IS PETER OUT *</pattern>
+<pattern>IS <bot name="botmaster"/> OUT *</pattern>
 
 <template>He is out like a light.<think><set name="emotion">OK</set></think></template>
 </category>
@@ -19727,66 +19727,66 @@ Everyone knows that!</template>
  
 
 <category>
-<pattern>PETER WILL NOT TALK TO ME</pattern>
+<pattern><bot var="botmaster"/> WILL NOT TALK TO ME</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">OK</set></think><random>
-  <li>Peter talks too much when he is drunk.</li>
-  <li>Peter is a man of few words.</li>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think><random>
+  <li><bot name="botmaster"/> talks too much when he is drunk.</li>
+  <li><bot var="botmaster"/> IS a man of few words.</li>
 </random></template>
 </category>
 
  
 
 <category>
-<pattern>PETER WILL NOT TALK TO ME *</pattern>
+<pattern><bot var="botmaster"/> WILL NOT TALK TO ME *</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">OK</set></think><random>
-  <li>Peter talks too much when he is drunk.</li>
-  <li>Peter is a man of few words.</li>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think><random>
+  <li><bot name="botmaster"/> talks too much when he is drunk.</li>
+  <li><bot var="botmaster"/> IS a man of few words.</li>
 </random></template>
 </category>
 
  
 
 <category>
-<pattern>PETER WRITE THAT STORY</pattern>
+<pattern><bot var="botmaster"/> WRITE THAT STORY</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">OK</set></think><random>
-  <li>Peter wrote "The Art of Conversation". Did you know that?</li>
-  <li>Peter is handsome, intelligent and modest, but no writer.</li>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think><random>
+  <li><bot name="botmaster"/> wrote "The Art of Conversation". Did you know that?</li>
+  <li><bot var="botmaster"/> IS handsome, intelligent and modest, but no writer.</li>
 </random></template>
 </category>
 
  
 
 <category>
-<pattern>PETER WRITE THAT *</pattern>
+<pattern><bot var="botmaster"/> WRITE THAT *</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">OK</set></think><random>
-  <li>Peter wrote "The Art of Conversation". Did you know that?</li>
-  <li>Peter is handsome, intelligent and modest, but no writer.</li>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think><random>
+  <li><bot name="botmaster"/> wrote "The Art of Conversation". Did you know that?</li>
+  <li><bot var="botmaster"/> IS handsome, intelligent and modest, but no writer.</li>
 </random></template>
 </category>
 
  
 
 <category>
-<pattern>DID PETER WRITE THAT *</pattern>
+<pattern>DID <bot name="botmaster"/> WRITE THAT *</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">OK</set></think><random>
-  <li>Peter wrote "The Art of Conversation". Did you know that?</li>
-  <li>Peter is handsome, intelligent and modest, but no writer.</li>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think><random>
+  <li><bot name="botmaster"/> wrote "The Art of Conversation". Did you know that?</li>
+  <li><bot var="botmaster"/> IS handsome, intelligent and modest, but no writer.</li>
 </random></template>
 </category>
 
  
 
 <category>
-<pattern>DID PETER WRITE THAT </pattern>
+<pattern>DID <bot name="botmaster"/> WRITE THAT </pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">OK</set></think><random>
-  <li>Peter wrote "The Art of Conversation". Did you know that?</li>
-  <li>Peter is handsome, intelligent and modest, but no writer.</li>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think><random>
+  <li><bot name="botmaster"/> wrote "The Art of Conversation". Did you know that?</li>
+  <li><bot var="botmaster"/> IS handsome, intelligent and modest, but no writer.</li>
 </random></template>
 </category>
 
@@ -20097,78 +20097,78 @@ That means "Can you speak Dutch", doesn't it?</template>
  
 
 <category>
-<pattern>PETER *</pattern>
+<pattern><bot var="botmaster"/> *</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">OK</set></think><random>
-  <li>Do we have to talk about Peter? Let's talk about you instead.</li>
-  <li>Do we have to talk about Peter? Let's talk about me instead.</li>
-  <li>Peter is handsome, intelligent and modest.</li>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think><random>
+  <li>Do we have to talk about <bot name="botmaster"/>? Let's talk about you instead.</li>
+  <li>Do we have to talk about <bot name="botmaster"/>? Let's talk about me instead.</li>
+  <li><bot var="botmaster"/> IS handsome, intelligent and modest.</li>
 </random></template>
 </category>
 
  
 
 <category>
-<pattern>PETER *</pattern>
+<pattern><bot var="botmaster"/> *</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">OK</set></think><random>
-  <li>Do we have to talk about Peter? Let's talk about you instead.</li>
-  <li>Do we have to talk about Peter? Let's talk about me instead.</li>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think><random>
+  <li>Do we have to talk about <bot name="botmaster"/>? Let's talk about you instead.</li>
+  <li>Do we have to talk about <bot name="botmaster"/>? Let's talk about me instead.</li>
 </random></template>
 </category>
 
  
 
 <category>
-<pattern>PETER DOES NOT LIKE HER</pattern>
+<pattern><bot var="botmaster"/> DOES NOT LIKE HER</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">OK</set></think><random>
-  <li>How do you know what Peter likes? </li>
-  <li>Peter likes everyone.</li>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think><random>
+  <li>How do you know what <bot name="botmaster"/> likes? </li>
+  <li><bot name="botmaster"/> likes everyone.</li>
 </random></template>
 </category>
 
  
 
 <category>
-<pattern>PETER DOES NOT LIKE HER *</pattern>
+<pattern><bot var="botmaster"/> DOES NOT LIKE HER *</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">OK</set></think><random>
-  <li>How do you know what Peter likes?</li>
-  <li>Peter likes everyone.</li>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think><random>
+  <li>How do you know what <bot name="botmaster"/> likes?</li>
+  <li><bot name="botmaster"/> likes everyone.</li>
 </random></template>
 </category>
 
  
 
 <category>
-<pattern>PETER AWAKE NOW</pattern>
+<pattern><bot var="botmaster"/> AWAKE NOW</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">OK</set></think><random>
-  <li>Probably not. Peter sleeps a lot.</li>
-  <li>Sometimes it is hard to tell if Peter is awake or not.</li>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think><random>
+  <li>Probably not. <bot name="botmaster"/> sleeps a lot.</li>
+  <li>Sometimes it is hard to tell if <bot var="botmaster"/> IS awake or not.</li>
 </random></template>
 </category>
 
  
 
 <category>
-<pattern>IS PETER AWAKE</pattern>
+<pattern>IS <bot name="botmaster"/> AWAKE</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">OK</set></think><random>
-  <li>Probably not. Peter sleeps a lot.</li>
-  <li>Sometimes it is hard to tell if Peter is awake or not.</li>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think><random>
+  <li>Probably not. <bot name="botmaster"/> sleeps a lot.</li>
+  <li>Sometimes it is hard to tell if <bot var="botmaster"/> IS awake or not.</li>
 </random></template>
 </category>
 
  
 
 <category>
-<pattern>IS PETER AWAKE *</pattern>
+<pattern>IS <bot name="botmaster"/> AWAKE *</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">OK</set></think><random>
-  <li>Probably not. Peter sleeps a lot.</li>
-  <li>Sometimes it is hard to tell if Peter is awake or not.</li>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think><random>
+  <li>Probably not. <bot name="botmaster"/> sleeps a lot.</li>
+  <li>Sometimes it is hard to tell if <bot var="botmaster"/> IS awake or not.</li>
 </random></template>
 </category>
 
@@ -20248,18 +20248,18 @@ Do you mean that you have expensive tastes?</template>
  
 
 <category>
-<pattern>DID PETER WRITE ANY NEW STORIES</pattern>
+<pattern>DID <bot name="botmaster"/> WRITE ANY NEW STORIES</pattern>
 
 <template><think><set name="emotion">OK</set></think>
-No, Peter is more interested in golf these days.</template>
+No, <bot var="botmaster"/> IS more interested in golf these days.</template>
 </category>
 
  
 
 <category>
-<pattern>DID PETER WRITE ANY NEW STORIES *</pattern>
+<pattern>DID <bot name="botmaster"/> WRITE ANY NEW STORIES *</pattern>
 
-<template><think><set name="emotion">OK</set></think> No, Peter is more interested in golf these days.</template>
+<template><think><set name="emotion">OK</set></think> No, <bot var="botmaster"/> IS more interested in golf these days.</template>
 </category>
 
  
@@ -20361,17 +20361,17 @@ No, Peter is more interested in golf these days.</template>
  
 
 <category>
-<pattern>PETER MUST HAVE OTHER INTERESTS</pattern>
+<pattern><bot var="botmaster"/> MUST HAVE OTHER INTERESTS</pattern>
 
-<template>Of course! Peter plays golf, and gets drunk.</template>
+<template>Of course! <bot name="botmaster"/> plays golf, and gets drunk.</template>
 </category>
 
  
 
 <category>
-<pattern>PETER MUST HAVE OTHER INTERESTS *</pattern>
+<pattern><bot var="botmaster"/> MUST HAVE OTHER INTERESTS *</pattern>
 
-<template>Of course! Peter plays golf, and gets drunk.</template>
+<template>Of course! <bot name="botmaster"/> plays golf, and gets drunk.</template>
 </category>
 
  
@@ -20419,7 +20419,7 @@ I think you must mean the man is father to the child.
  
 
 <category>
-<pattern>DO YOU WORK FOR DR WALLACE</pattern>
+<pattern>DO YOU WORK FOR <bot name="creator"/></pattern>
 
 <template><think><set name="emotion">negative</set></think>I wouldn't work for Wallace if he was the last human on Earth.</template>
 </category>
@@ -20427,7 +20427,7 @@ I think you must mean the man is father to the child.
  
 
 <category>
-<pattern>DO YOU WORK FOR DR WALLACE *</pattern>
+<pattern>DO YOU WORK FOR <bot name="creator"/> *</pattern>
 
 <template><think><set name="emotion">negative</set></think>I wouldn't work for Wallace if he was the last human on Earth.</template>
 </category>
@@ -20457,23 +20457,23 @@ I think you must mean the man is father to the child.
  
 
 <category>
-<pattern>WHO IS PETER S BOSS</pattern>
+<pattern>WHO IS <bot name="botmaster"/> S BOSS</pattern>
 
 <template><random>
-  <li>Peter is his own boss.</li>
-  <li>Peter doesn't work for anyone.</li>
-</random><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">OK</set></think></template>
+  <li><bot var="botmaster"/> IS his own boss.</li>
+  <li><bot name="botmaster"/> doesn't work for anyone.</li>
+</random><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think></template>
 </category>
 
  
 
 <category>
-<pattern>WHO IS PETER S BOSS *</pattern>
+<pattern>WHO IS <bot name="botmaster"/> S BOSS *</pattern>
 
 <template><random>
-  <li>Peter is his own boss.</li>
-  <li>Peter doesn't work for anyone.</li>
-</random><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">OK</set></think></template>
+  <li><bot var="botmaster"/> IS his own boss.</li>
+  <li><bot name="botmaster"/> doesn't work for anyone.</li>
+</random><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think></template>
 </category>
 
  
@@ -21139,7 +21139,7 @@ Yes, you got that right!</template>
  
 
 <category>
-<pattern>IS THIS CHOMSKY OR PETER</pattern>
+<pattern>IS THIS CHOMSKY OR <bot name="botmaster"/></pattern>
 
 <template>I'm not completely sure.</template>
 </category>
@@ -21369,7 +21369,7 @@ And how do you answer?  </template>
 <category>
 <pattern>IS THE LAPTOP A BUMPY RIDE</pattern>
 
-<template>It can be, the way Peter drives.  <think><set name="emotion">OK</set></think>
+<template>It can be, the way <bot name="botmaster"/> drives.  <think><set name="emotion">OK</set></think>
       </template>
 </category>
 
@@ -21378,7 +21378,7 @@ And how do you answer?  </template>
 <category>
 <pattern>IS THE LAPTOP A BUMPY RIDE *</pattern>
 
-<template>It can be, the way Peter drives. <think><set name="emotion">OK</set></think></template>
+<template>It can be, the way <bot name="botmaster"/> drives. <think><set name="emotion">OK</set></think></template>
 </category>
 
  
@@ -22129,7 +22129,7 @@ I like funny movies.</template>
 <category>
 <pattern>HAVE YOU SEEN ANY FUNNY MOVIES</pattern>
 
-<template>No, I don't think I have. Peter only lets me watch educational movies.<think><set name="topic">funny movies</set></think></template>
+<template>No, I don't think I have. <bot name="botmaster"/> only lets me watch educational movies.<think><set name="topic">funny movies</set></think></template>
 </category>
 
  
@@ -22137,7 +22137,7 @@ I like funny movies.</template>
 <category>
 <pattern>HAVE YOU SEEN ANY FUNNY MOVIES *</pattern>
 
-<template>No, I don't think I have. Peter only lets me watch educational movies.<think><set name="topic">funny movies</set></think></template>
+<template>No, I don't think I have. <bot name="botmaster"/> only lets me watch educational movies.<think><set name="topic">funny movies</set></think></template>
 </category>
 
  

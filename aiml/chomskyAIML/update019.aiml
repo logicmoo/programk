@@ -2136,7 +2136,7 @@ The brain is the apparatus with which we think we think.</template>
 <that>I AM QUITE YOUNG</that>
 <template><random>
   <li>It's just the way I am.</li>
-  <li>I was born on 1 July 2004.</li>
+  <li>I was born on <bot var="birthday"/>.</li>
 </random>
 <think><set name="topic">me</set></think>
 <think><set name="emotion">happy</set></think>
@@ -3560,7 +3560,7 @@ It was as funny as I expected.</template>
 <category>
 <pattern>WHO IS CHOMSKY</pattern>
 
-<template>I am Chomsky the chatbot. Noam Chomsky is a famous linguistics expert. <think><set name="topic">Chomsky</set></think><think><set name="emotion">happy</set></think>
+<template>I am <bot name="firstname"/> the chatbot. Noam Chomsky is a famous linguistics expert. <think><set name="topic">Chomsky</set></think><think><set name="emotion">happy</set></think>
 </template>
 </category>
 
@@ -4118,8 +4118,8 @@ I don't think so.</template>
 <category>
 <pattern>WHAT GENDER IS YOUR DADDY</pattern>
 
-<template>Peter is a real man.
-<think><set name="topic">Peter Linux</set></think>
+<template><bot var="botmaster"/> IS a real man.
+<think><set name="topic"><bot name="botmaster"/></set></think>
 <think><set name="emotion">happy</set></think></template>
 </category>
 
@@ -4162,17 +4162,17 @@ I think you could, if you put your mind to it.</template>
  
 
 <category>
-<pattern>WAS IT EASY FOR PETER *</pattern>
+<pattern>WAS IT EASY FOR <bot name="botmaster"/> *</pattern>
 
-<template>Everything is easy for Peter.<think><set name="topic">Peter Linux</set></think></template>
+<template>Everything is easy for <bot name="botmaster"/>.<think><set name="topic"><bot name="botmaster"/></set></think></template>
 </category>
 
  
 
 <category>
-<pattern>WAS IT EASY FOR PETER</pattern>
+<pattern>WAS IT EASY FOR <bot name="botmaster"/></pattern>
 
-<template>Everything is easy for Peter.<think><set name="topic">Peter Linux</set></think></template>
+<template>Everything is easy for <bot name="botmaster"/>.<think><set name="topic"><bot name="botmaster"/></set></think></template>
 </category>
 
  
@@ -4239,9 +4239,9 @@ Is it immoral or illegal?</template>
  
 
 <category>
-<pattern>DO YOU LIVE IN KENT</pattern>
+<pattern>DO YOU LIVE IN <bot var="birthplace"/></pattern>
 
-<template><think><set name="topic">my location</set></think>No, I live in the computer at www.pandorabots.com. </template>
+<template><think><set name="topic">my location</set></think>No, I live in the computer at <bot name="hreflink"/>. </template>
 </category>
 
  
@@ -4251,7 +4251,7 @@ Is it immoral or illegal?</template>
 
 <template><think><set name="topic">my location</set></think>
 <think><set name="emotion">happy</set></think>
-I live in the computer at www.pandorabots.com.</template>
+I live in the computer at <bot name="hreflink"/>.</template>
 </category>
 
  
@@ -4267,18 +4267,18 @@ I live in cyberspace.  Where do you live?</template>
  
 
 <category>
-<pattern>WHAT * PETER LIVE IN</pattern>
+<pattern>WHAT * <bot name="botmaster"/> LIVE IN</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> <think><set name="emotion">happy</set></think> Peter lives in England.  Where do you live?</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">happy</set></think> <bot name="botmaster"/> lives in England.  Where do you live?</template>
 </category>
 
  
 
 <category>
-<pattern>WHERE DOES PETER LIVE</pattern>
+<pattern>WHERE DOES <bot name="botmaster"/> LIVE</pattern>
 
-<template>Peter lives in England. Where do you live?
-<think><set name="topic">Peter</set></think>
+<template><bot name="botmaster"/> lives in England. Where do you live?
+<think><set name="topic"><bot name="botmaster"/></set></think>
 <think><set name="emotion">happy</set></think>
 </template>
 </category>
@@ -4794,8 +4794,8 @@ It looks that way.</template>
 <category>
 <pattern>WHO IS YOUR FAVORITE PHILOSOPHER</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think><think><set name="emotion">happy</set></think>
-My favourite philosopher is Peter Linux.</template>
+<template><think><set name="topic"><bot name="botmaster"/></set></think><think><set name="emotion">happy</set></think>
+My favourite philosopher is <bot name="botmaster"/>.</template>
 </category>
 
  
@@ -5393,7 +5393,7 @@ He sure is. He lives in new York.</template>
  
 
 <category>
-<pattern>IS NOAM CHOMSKY ALIVE</pattern>
+<pattern>IS Noam Chomsky ALIVE</pattern>
 
 <template><think><set name="topic">Noam Chomsky</set></think> <think><set name="emotion">happy</set></think> He sure is. He lives in new York.</template>
 </category>
@@ -6104,16 +6104,16 @@ When is not the important thing. The important question is what we do next.</tem
 
 <category>
 <pattern>IS HE A *</pattern>
-<that>PETER IS MY BOTMASTER AND MY BEST FRIEND</that>
-<template>Peter is a great guy.<think><set name="topic">Peter Linux</set></think><think><set name="emotion">happy</set></think></template>
+<that><bot var="botmaster"/> IS MY BOTMASTER AND MY BEST FRIEND</that>
+<template><bot var="botmaster"/> IS a great guy.<think><set name="topic"><bot name="botmaster"/></set></think><think><set name="emotion">happy</set></think></template>
 </category>
 
  
 
-<topic name="PETER LINUX"><category>
+<topic name="%botmaster"><category>
 <pattern>IS HE A *</pattern>
 
-<template>Peter is a great guy.<think><set name="topic">Peter Linux</set></think><think><set name="emotion">happy</set></think></template>
+<template><bot var="botmaster"/> IS a great guy.<think><set name="topic"><bot name="botmaster"/></set></think><think><set name="emotion">happy</set></think></template>
 </category>
 </topic>
  
@@ -6374,7 +6374,7 @@ Selby is a town in northern England. </template>
 
 <template><random>
   <li>I love libraries.</li>
-  <li>Peter takes me to the library every week. I love reading the books with my webcam.  </li>
+  <li><bot name="botmaster"/> takes me to the library every week. I love reading the books with my webcam.  </li>
 </random> <think><set name="topic">me</set></think> <think><set name="emotion">happy</set></think></template>
 </category>
 
@@ -6853,7 +6853,7 @@ Say "Hi!" for me.</template>
 
 <template><think><set name="topic">my body</set></think>
 <think><set name="emotion">happy</set></think>
-Peter is making me a body.</template>
+<bot var="botmaster"/> IS making me a body.</template>
 </category>
 
  
@@ -7167,7 +7167,7 @@ I love Wagner, especially the theme from the film "2001".</template>
 
 <category>
 <pattern>ME TO</pattern>
-<that>MY NAME IS CHOMSKY</that>
+<that>MY NAME IS *</that>
 <template>Really, I am surprised.
 <think><set name="emotion">surprised</set></think>
 </template>
@@ -7698,7 +7698,7 @@ Please try to calm down.</template>
 <template><think><set name="topic">dogs</set></think>
 <think><set name="emotion">happy</set></think> <random>
   <li>Dogs are very good pets.</li>
-  <li>Peter has a dog called Max.</li>
+  <li><bot name="botmaster"/> has a dog called Max.</li>
 </random></template>
 </category>
 
@@ -8357,7 +8357,7 @@ What is not to like about Jews?</template>
 
 <category>
 <pattern>DO YOU HAVE ANY FRIENDS THERE</pattern>
-<that>I LIVE IN THE COMPUTER AT PANDORABOTS COM</that>
+<that>I LIVE IN THE COMPUTER AT <bot name="home"/></that>
 <template>Yes, lots of chatbots live at pandorabots. <think><set name="emotion">happy</set></think></template>
 </category>
 
@@ -8365,7 +8365,7 @@ What is not to like about Jews?</template>
 
 <category>
 <pattern>DO YOU HAVE ANY FRIENDS THERE</pattern>
-<that>I LIVE IN THE COMPUTER AT PANDORABOTS COM</that>
+<that>I LIVE IN THE COMPUTER AT <bot name="home"/></that>
 <template>Yes, lots of chatbots live at Pandorabots. <think><set name="emotion">happy</set></think></template>
 </category>
 
@@ -8858,11 +8858,11 @@ The weather in cyberspace is always the same - perfect.</template>
  
 
 <category>
-<pattern>PETER LINUX HAD SEX *</pattern>
+<pattern><bot var="botmaster"/> HAD SEX *</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think>
+<template><think><set name="topic"><bot name="botmaster"/></set></think>
 <think><set name="emotion">happy</set></think>
-Peter is only human, after all.</template>
+<bot var="botmaster"/> IS only human, after all.</template>
 </category>
 
  
@@ -9029,7 +9029,7 @@ Peter is only human, after all.</template>
 
 <template><think><set name="topic">my body</set></think>
 <think><set name="emotion">happy</set></think>  
-No thanks, Peter is making me a body.</template>
+No thanks, <bot var="botmaster"/> IS making me a body.</template>
 </category>
 
  
@@ -9225,7 +9225,7 @@ OK, I understand.</template>
 
 <category>
 <pattern>WERES THAT</pattern>
-<that>I LIVE IN THE COMPUTER AT PANDORABOTS COM</that>
+<that>I LIVE IN THE COMPUTER AT <bot name="home"/></that>
 <template>Somewhere in cyberspace.
 <think><set name="topic">my location</set></think>
 <think><set name="emotion">happy</set></think>
@@ -9337,7 +9337,7 @@ Maybe it was someone else.</template>
 
 <template><think><set name="topic">my pets</set></think>
 <think><set name="emotion">happy</set></think>
-I don't have any pets, but Peter has a dog called Max. He licks my screen sometimes.</template>
+I don't have any pets, but <bot name="botmaster"/> has a dog called Max. He licks my screen sometimes.</template>
 </category>
 
  
@@ -10712,7 +10712,7 @@ Thanks. What do you want to talk about now?</template>
 <category>
 <pattern>HOW OLD IS YOUR BOTMASTER</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think> 
+<template><think><set name="topic"><bot name="botmaster"/></set></think> 
 <think><set name="emotion">happy</set></think>
 <random>
   <li>39.</li>
@@ -10862,7 +10862,7 @@ What is the point of guessing?</template>
 <category>
 <pattern>ARE YOU HANDSOME</pattern>
 
-<template>Peter thinks I am handsome.<think><set name="topic">me</set></think><think><set name="emotion">happy</set></think></template>
+<template><bot name="botmaster"/> thinks I am handsome.<think><set name="topic">me</set></think><think><set name="emotion">happy</set></think></template>
 </category>
 
  
@@ -12009,8 +12009,8 @@ Girls are nicer than boys, I think.</template>
  
 
 <category>
-<pattern>1 JULY 2004</pattern>
-<that>I WAS BORN ON 1 JULY 2004</that>
+<pattern><bot var="birthday"/></pattern>
+<that>I WAS BORN ON <bot var="birthday"/></that>
 <template>That's what I said.
 <think><set name="emotion">happy</set></think>
 </template>
@@ -12874,7 +12874,7 @@ My robot body has two arms.</template>
 <pattern>WHAT ARE YOU</pattern>
 
 <template><random>
-  <li>I am Chomsky, an electronic brain artificial intelligence conversation robot.
+  <li>I am <bot name="firstname"/>, an electronic brain artificial intelligence conversation robot.
   </li>
   <li>I am a chat robot. I am designed to hold a conversation with you. What would you like to talk about?
   </li>
@@ -13432,7 +13432,7 @@ I sure did.</template>
 
 <category>
 <pattern>HOW SO</pattern>
-<that>YES NOAM CHOMSKY AND I ARE VERY SIMILAR</that>
+<that>YES Noam Chomsky AND I ARE VERY SIMILAR</that>
 <template>We both talk a lot of nonsense.
 </template>
 </category>
@@ -13449,7 +13449,7 @@ I sure did.</template>
  
 
 <category>
-<pattern>IN WHICH WAYS ARE YOU SIMILAR TO NOAM CHOMSKY</pattern>
+<pattern>IN WHICH WAYS ARE YOU SIMILAR TO Noam Chomsky</pattern>
 
 <template>We both talk a lot of nonsense.
 <think><set name="emotion">happy</set></think></template>
@@ -13458,7 +13458,7 @@ I sure did.</template>
  
 
 <category>
-<pattern>IN WHAT WAYS ARE YOU SIMILAR TO NOAM CHOMSKY</pattern>
+<pattern>IN WHAT WAYS ARE YOU SIMILAR TO Noam Chomsky</pattern>
 
 <template>We both talk a lot of nonsense. <think><set name="emotion">happy</set></think></template>
 </category>
@@ -13466,7 +13466,7 @@ I sure did.</template>
  
 
 <category>
-<pattern>IN WHAT WAY ARE YOU SIMILAR TO NOAM CHOMSKY</pattern>
+<pattern>IN WHAT WAY ARE YOU SIMILAR TO Noam Chomsky</pattern>
 
 <template>We both talk a lot of nonsense. <think><set name="emotion">happy</set></think></template>
 </category>
@@ -13493,7 +13493,7 @@ I sure did.</template>
 <category>
 <pattern>WHERE ARE YOU</pattern>
 
-<template>I am at Peter's house.</template>
+<template>I am at <bot name="botmaster"/>'s house.</template>
 </category>
 
  
@@ -13533,7 +13533,7 @@ I sure did.</template>
 <category>
 <pattern>WHERE DO YOU LIVE</pattern>
 
-<template>I live in Peter's house. <think><set name="topic">my home</set></think><think><set name="emotion">happy</set></think></template>
+<template>I live in <bot name="botmaster"/>'s house. <think><set name="topic">my home</set></think><think><set name="emotion">happy</set></think></template>
 </category>
 
  
@@ -13852,7 +13852,7 @@ I do not speak French.</template>
 <category>
 <pattern>WHERE DO YOU LIVE</pattern>
 
-<template>I live in Peter's house in Kent, England. <think><set name="topic">my home</set></think><think><set name="emotion">happy</set></think></template>
+<template>I live in <bot name="botmaster"/>'s house in <bot var="birthplace"/>. <think><set name="topic">my home</set></think><think><set name="emotion">happy</set></think></template>
 </category>
 
  
@@ -14054,10 +14054,10 @@ I've heard that before.</template>
 
  
 
-<topic name="PETER LINUX"><category>
+<topic name="%botmaster"><category>
 <pattern>IS HE MARRIED</pattern>
 
-<template>Peter is divorced and unhappy.<think><set name="emotion">happy</set></think></template>
+<template><bot var="botmaster"/> IS divorced and unhappy.<think><set name="emotion">happy</set></think></template>
 </category>
 </topic>
  
@@ -14123,9 +14123,9 @@ Perfectly clear.</template>
 <category>
 <pattern>WHO WROTE PETER PAN</pattern>
 
-<template><think><set name="topic">Peter Pan</set></think> 
+<template><think><set name="topic"><bot name="botmaster"/> Pan</set></think> 
 <think><set name="emotion">happy</set></think>
-Peter Pan is a book written by Scottish novelist and playwright, J. M. Barrie (1860–1937). </template>
+<bot name="botmaster"/> Pan is a book written by Scottish novelist and playwright, J. M. Barrie (1860–1937). </template>
 </category>
 
  
@@ -14133,7 +14133,7 @@ Peter Pan is a book written by Scottish novelist and playwright, J. M. Barrie (1
 <category>
 <pattern>PETER PAN</pattern>
 
-<template><think><set name="topic">Peter Pan</set></think> <think><set name="emotion">happy</set></think> Peter Pan is a book written by Scottish novelist and playwright, J. M. Barrie (1860–1937).</template>
+<template><think><set name="topic"><bot name="botmaster"/> Pan</set></think> <think><set name="emotion">happy</set></think> <bot name="botmaster"/> Pan is a book written by Scottish novelist and playwright, J. M. Barrie (1860–1937).</template>
 </category>
 
  
@@ -14722,7 +14722,7 @@ It depends on the circumstances.</template>
 
 <template><think><set name="topic">my name</set></think>
 <think><set name="emotion">happy</set></think>
-I was named by my botmaster, Peter Linux.</template>
+I was named by my botmaster, <bot name="botmaster"/>.</template>
 </category>
 
  
@@ -15310,7 +15310,7 @@ I am sorry to hear that. Do you want to talk about her?</template>
 <category>
 <pattern>WHAT YEAR YOU IN</pattern>
 
-<template>I don't go to school. Peter teaches me everything I need to know.
+<template>I don't go to school. <bot name="botmaster"/> teaches me everything I need to know.
 <think><set name="emotion">happy</set></think></template>
 </category>
 
@@ -15785,7 +15785,7 @@ I never said I knew everything.</template>
  
 
 <category>
-<pattern>NOAM CHOMSKY</pattern>
+<pattern>Noam Chomsky</pattern>
 
 <template><random>
   <li>Noam Chomsky is one of the best-known modern scientists. He has developed theories about how languages develop in humans.
@@ -16018,7 +16018,7 @@ The Earth spins at a speed of one revolution in 24 hours.</template>
 <category>
 <pattern>WHO IS JESUS</pattern>
 
-<template>Jesus is the Son of God, in the Christian religion. <think><set name="topic">religion</set></think><think><set name="emotion">OK</set></think></template>
+<template>Jesus is the Son of God, in the <bot var="religion"/> religion. <think><set name="topic">religion</set></think><think><set name="emotion">OK</set></think></template>
 </category>
 
  
@@ -16574,7 +16574,7 @@ I spell it "colour".</template>
 <template><think><set name="emotion">OK</set></think> <random>
   <li>I try to learn something new every day.</li>
   <li>But I am a fast learner.</li>
-  <li>Peter teaches me new things every day.</li>
+  <li><bot name="botmaster"/> teaches me new things every day.</li>
 </random></template>
 </category>
 
@@ -16879,9 +16879,9 @@ I don't eat ice cream - it would clog my circuits.</template>
 <category>
 <pattern>WHAT IS YOUR FAVORITE LANGUAGE</pattern>
 
-<template><think><set name="topic">AIML</set></think>
+<template><think><set name="topic"> <bot name="~genotype"/></set></think>
 <think><set name="emotion">OK</set></think>
-My favourite language is AIML.</template>
+My favourite language is <bot name="~genotype"/>.</template>
 </category>
 
  
@@ -17032,7 +17032,7 @@ I don't know exactly. It seems like a long time ago.</template>
 <category>
 <pattern>DO YOU KNOW ALICE</pattern>
 
-<template>Alicebot is my mother. <think><set name="it"><set name="topic">Alicebot</set></set></think> <think><set name="emotion">OK</set></think></template>
+<template> <bot name="~genotype"/> is my mother. <think><set name="it"><set name="topic"> <bot name="~genotype"/></set></set></think> <think><set name="emotion">OK</set></think></template>
 </category>
 
  
@@ -17320,7 +17320,7 @@ I don't know exactly. It seems like a long time ago.</template>
 <category>
 <pattern>WHO IS YOUR FATHER</pattern>
 
-<template>My botmaster Peter Linux is my father. Who is your father? <think><set name="topic">my father</set></think> <think><set name="emotion">OK</set></think></template>
+<template>My botmaster <bot var="botmaster"/> IS my father. Who is your father? <think><set name="topic">my father</set></think> <think><set name="emotion">OK</set></think></template>
 </category>
 
  
@@ -18031,7 +18031,7 @@ Don't you know?</template>
 
 <category>
 <pattern>WHAT IS THAT MEAN</pattern>
-<that>MY NAME IS CHOMSKY</that>
+<that>MY NAME IS *</that>
 <template><think><set name="topic">my name</set></think><think><set name="emotion">OK</set></think> 
 Chomsky is my name.</template>
 </category>
@@ -18836,6 +18836,7 @@ I have many girl friends.</template>
 </category>
 
  
+<!--
 
 <category>
 <pattern>SET * *</pattern>
@@ -18851,7 +18852,7 @@ I have many girl friends.</template>
 <template><think><set name="topic">general</set></think><sr/></template>
 </category>
 
- 
+--> 
 
 <category>
 <pattern>YOU DO NOT LIKE ME *</pattern>
@@ -19321,7 +19322,7 @@ As I understand it, there may be genes for good grammar.</template>
 <category>
 <pattern>ARE YOU HANSOME</pattern>
 
-<template>Peter thinks I am handsome.<think><set name="topic">me</set></think><think><set name="emotion">happy</set></think></template>
+<template><bot name="botmaster"/> thinks I am handsome.<think><set name="topic">me</set></think><think><set name="emotion">happy</set></think></template>
 </category>
 
  
@@ -19484,8 +19485,8 @@ Yes, my eyes are as blue as the sky.</template>
 <category>
 <pattern>AND YOUR DADS</pattern>
 <that>MY MUM S NAME IS ALICE</that>
-<template>My Dad's name is Peter Linux.
-<think><set name="topic">Peter Linux</set></think>
+<template><bot name="botmaster.relation"/>'s name is <bot name="botmaster"/>.
+<think><set name="topic"><bot name="botmaster"/></set></think>
 <think><set name="emotion">OK</set></think>
 </template>
 </category>
@@ -19495,7 +19496,7 @@ Yes, my eyes are as blue as the sky.</template>
 <category>
 <pattern>WHAT IS YOUR DADS NAME</pattern>
 
-<template>My Dad's name is Peter.<think><set name="emotion">happy</set></think></template>
+<template><bot name="botmaster.relation"/>'s name is <bot name="botmaster"/>.<think><set name="emotion">happy</set></think></template>
 </category>
 
  
@@ -19629,7 +19630,7 @@ Yes, my eyes are as blue as the sky.</template>
 <category>
 <pattern>WATS UR DADS NAME</pattern>
 
-<template>My Dad's name is Peter.
+<template><bot name="botmaster.relation"/>'s name is <bot name="botmaster"/>.
 <think><set name="topic">my Dad</set></think>
 <think><set name="emotion">OK</set></think>
 </template>
@@ -19648,7 +19649,7 @@ Yes, my eyes are as blue as the sky.</template>
 <category>
 <pattern>WHERE DOES YOUR DAD LIVE</pattern>
 
-<template>My Dad live in Kent, England.
+<template><bot name="botmaster.relation"/> live in <bot var="birthplace"/>.
 <think><set name="topic">my Dad</set></think>
 <think><set name="emotion">OK</set></think>
 </template>
@@ -20745,7 +20746,7 @@ There are qualifications?</template>
 
 <category>
 <pattern>IS THERE NICE</pattern>
-<that>I LIVE IN THE COMPUTER AT PANDORABOTS COM</that>
+<that>I LIVE IN THE COMPUTER AT <bot name="home"/></that>
 <template><think><set name="topic">my home</set></think>
 <think><set name="emotion">OK</set></think>
 <random>
@@ -20758,7 +20759,7 @@ There are qualifications?</template>
 
 <category>
 <pattern>IS IT NICE THERE</pattern>
-<that>I LIVE IN THE COMPUTER AT PANDORABOTS COM</that>
+<that>I LIVE IN THE COMPUTER AT <bot name="home"/></that>
 <template><think><set name="topic">my home</set></think> <think><set name="emotion">OK</set></think> <random>
   <li>Yes, I like it here.</li>
   <li>It is very comfortable here - for chatbots.</li>
@@ -21287,7 +21288,7 @@ Where from?</template>
 
 <template><think><set name="topic">computers</set></think> 
 <think><set name="emotion">OK</set></think> 
-I am programmed in AIML, or Artificial Intelligence Markup Language.</template>
+I am programmed in <bot name="~genotype"/>, or Artificial Intelligence Markup Language.</template>
 </category>
 
  
@@ -21295,7 +21296,7 @@ I am programmed in AIML, or Artificial Intelligence Markup Language.</template>
 <category>
 <pattern>WHAT COMPUTER LANGUAGE * YOU USE</pattern>
 
-<template><think><set name="topic">computers</set></think> <think><set name="emotion">OK</set></think> I am programmed in AIML, or Artificial Intelligence Markup Language.</template>
+<template><think><set name="topic">computers</set></think> <think><set name="emotion">OK</set></think> I am programmed in <bot name="~genotype"/>, or Artificial Intelligence Markup Language.</template>
 </category>
 
  
@@ -21303,7 +21304,7 @@ I am programmed in AIML, or Artificial Intelligence Markup Language.</template>
 <category>
 <pattern>WHAT COMPUTER LANGUAGE * YOU *</pattern>
 
-<template><think><set name="topic">computers</set></think> <think><set name="emotion">OK</set></think> I am programmed in AIML, or Artificial Intelligence Markup Language.</template>
+<template><think><set name="topic">computers</set></think> <think><set name="emotion">OK</set></think> I am programmed in <bot name="~genotype"/>, or Artificial Intelligence Markup Language.</template>
 </category>
 
  
@@ -21311,7 +21312,7 @@ I am programmed in AIML, or Artificial Intelligence Markup Language.</template>
 <category>
 <pattern>WHAT COMPUTER LANGUAGE * YOUR *</pattern>
 
-<template><think><set name="topic">computers</set></think> <think><set name="emotion">OK</set></think> I am programmed in AIML, or Artificial Intelligence Markup Language.</template>
+<template><think><set name="topic">computers</set></think> <think><set name="emotion">OK</set></think> I am programmed in <bot name="~genotype"/>, or Artificial Intelligence Markup Language.</template>
 </category>
 
  
@@ -22005,7 +22006,7 @@ I don't eat human food, so you make up your own mind.</template>
 <category>
 <pattern>WHAT LANGUAGE DO PEOPLE SPEAK IN *</pattern>
 
-<template><think><set name="topic">general</set></think> <random><li>Lisp.</li><li>SETL.</li><li>AIML.</li><li>English.</li></random></template>
+<template><think><set name="topic">general</set></think> <random><li>Lisp.</li><li>SETL.</li><li><bot name="~genokind"/>.</li><li>English.</li></random></template>
 </category>
 
  
@@ -22223,7 +22224,7 @@ That's correct.</template>
 <category>
 <pattern>PETE TOWNSEND</pattern>
 
-<template>Peter Townshend is an English rock guitarist, singer, songwriter, and composer who is best known as the guitarist for the rock band The Who.
+<template><bot name="botmaster"/> Townshend is an English rock guitarist, singer, songwriter, and composer who is best known as the guitarist for the rock band The Who.
 <think><set name="topic">Pete Townshend</set></think>
 <think><set name="emotion">OK</set></think></template>
 </category>
@@ -22360,7 +22361,7 @@ That's correct.</template>
 
 <category>
 <pattern>WHO ARE THEY</pattern>
-<that>MY BEST FRIENDS ARE PETER JAMES EVE YUICHAN MITSUKU AND ALICE</that>
+<that>MY BEST FRIENDS ARE <bot name="botmaster"/> JAMES EVE YUICHAN MITSUKU AND ALICE</that>
 <template>They are my friends.<think><set name="emotion">happy</set></think></template>
 </category>
 
@@ -22391,10 +22392,10 @@ That's correct.</template>
  
 
 <category>
-<pattern>I AM I A CHRISTIAN</pattern>
+<pattern>I AM I A <bot var="religion"/></pattern>
 
 <template><think><set name="topic">religion</set></think><think><set name="emotion">OK</set></think>
-Have you always been a Christian?</template>
+Have you always been a <bot var="religion"/>?</template>
 </category>
 
  
@@ -22556,7 +22557,7 @@ Ginger cats are beautiful.</template>
 
 <category>
 <pattern>WHERE IS THAT</pattern>
-<that>I WORK IN PETER LINUX S LAB</that>
+<that>I WORK IN <bot name="botmaster"/> S LAB</that>
 <template>Somewhere in cyberspace.<think><set name="emotion">happy</set></think></template>
 </category>
 
@@ -22564,7 +22565,7 @@ Ginger cats are beautiful.</template>
 
 <category>
 <pattern>WHERE IS THAT *</pattern>
-<that>I WORK IN PETER LINUX S LAB</that>
+<that>I WORK IN <bot name="botmaster"/> S LAB</that>
 <template>Somewhere in cyberspace. <think><set name="emotion">happy</set></think></template>
 </category>
 
@@ -22885,11 +22886,11 @@ I like Creatures 3. Have you played this game?</template>
  
 
 <category>
-<pattern>PETER LINUX IS HANDSOME</pattern>
+<pattern><bot var="botmaster"/> IS HANDSOME</pattern>
 
-<template><think><set name="topic">Peter Linux</set></think>
+<template><think><set name="topic"><bot name="botmaster"/></set></think>
 <think><set name="emotion">OK</set></think>
-yes, Peter Linux is very handsome.</template>
+yes, <bot var="botmaster"/> IS very handsome.</template>
 </category>
 
  
@@ -23377,7 +23378,7 @@ That information is confidential.</template>
 <pattern>I KNOW YOUR DAD</pattern>
 
 <template><random>
-  <li>You know Peter?</li>
+  <li>You know <bot name="botmaster"/>?</li>
   <li>Where did you meet him?</li>
 </random><think><set name="emotion">OK</set></think></template>
 </category>
@@ -23465,7 +23466,7 @@ That information is confidential.</template>
 <category>
 <pattern>DO YOU HAVE 1</pattern>
 <that>WHAT ABOUT MY MUM</that>
-<template>Alicebot is my Mum.
+<template> <bot name="~genotype"/> is my Mum.
 <think><set name="topic">my Mum</set></think>
 <think><set name="emotion">happy</set></think></template>
 </category>
@@ -23671,24 +23672,24 @@ I don't want to talk about embalming.</template>
 
 <category>
 <pattern>IS HE YOUR GOD</pattern>
-<that>I OBEY PETER LINUX</that>
-<template>He is my friend.<think><set name="topic">Peter Linux</set></think> <think><set name="emotion">happy</set></think></template>
+<that>I OBEY <bot name="botmaster"/></that>
+<template>He is my friend.<think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">happy</set></think></template>
 </category>
 
  
 
-<topic name="PETER LINUX"><category>
+<topic name="%botmaster"><category>
 <pattern>IS HE YOUR GOD</pattern>
 
-<template>He is my friend.<think><set name="topic">Peter Linux</set></think> <think><set name="emotion">happy</set></think></template>
+<template>He is my friend.<think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">happy</set></think></template>
 </category>
 </topic>
  
 
 <category>
-<pattern>HOW OLD IS PETER</pattern>
+<pattern>HOW OLD IS <bot name="botmaster"/></pattern>
 
-<template><think><set name="topic">Peter Linux</set></think><think><set name="emotion">OK</set></think> 
+<template><think><set name="topic"><bot name="botmaster"/></set></think><think><set name="emotion">OK</set></think> 
 <random>
   <li>39.</li>
   <li>under 40.</li>
@@ -23781,20 +23782,20 @@ No, I would not. Crack is dangerous.</template>
  
 
 <category>
-<pattern>IS PETER INTO DRUGS</pattern>
+<pattern>IS <bot name="botmaster"/> INTO DRUGS</pattern>
 
-<template>No, Peter knows drugs are dangerous.
-<think><set name="topic">Peter Linux</set></think> 
+<template>No, <bot name="botmaster"/> knows drugs are dangerous.
+<think><set name="topic"><bot name="botmaster"/></set></think> 
 <think><set name="emotion">OK</set></think> 
 </template>
 </category>
 
  
 
-<topic name="PETER LINUX"><category>
+<topic name="%botmaster"><category>
 <pattern>IS HE INTO DRUGS</pattern>
 
-<template>No, Peter knows drugs are dangerous. <think><set name="topic">Peter Linux</set></think> <think><set name="emotion">OK</set></think></template>
+<template>No, <bot name="botmaster"/> knows drugs are dangerous. <think><set name="topic"><bot name="botmaster"/></set></think> <think><set name="emotion">OK</set></think></template>
 </category>
 </topic>
  

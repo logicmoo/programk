@@ -21,9 +21,9 @@
 
 :-discontiguous(convert_ele/3).
 
-:-ensure_loaded(library('programk/logicmoo_module_aiml_graphmaster.pl')).
-:-ensure_loaded(library('programk/logicmoo_module_aiml_convertor.pl')).
-:-ensure_loaded(library('programk/logicmoo_module_aiml_cxt_path.pl')).
+:-ensure_loaded('logicmoo_module_aiml_graphmaster.pl').
+:-ensure_loaded('logicmoo_module_aiml_convertor.pl').
+:-ensure_loaded('logicmoo_module_aiml_cxt_path.pl').
 
 % =================================================================================
 % Entity Loading
@@ -84,7 +84,7 @@ reloadAimlFiles:-withCurrentContext(reloadAimlFiles).
 reloadAimlFiles(Ctx):-forall(retract(loaded_aiml_file(A,P,_)),assert(pending_aiml_file(A,P))),do_pending_loads(Ctx).
 
 %%load_aiml_files:- aimlCateSig(CateSig),retractall(CateSig),fail.
-%load_aiml_files:-once(load_aiml_files('programk/test_suite/*.aiml')),fail.
+%load_aiml_files:-once(load_aiml_files('test_suite/*.aiml')),fail.
 %%load_aiml_files:-once(load_aiml_files(Ctx,'*.aiml')),fail.
 %load_aiml_files:-aimlCateSig(CateSig),pp_listing(CateSig).
 load_aiml_files.
@@ -95,26 +95,34 @@ load_aiml_files(Files):-currentContext(load_aiml_files,Ctx),prolog_must(load_aim
 
 % Detect between content vs filename
 load_aiml_files(Ctx,element(Tag,Attribs,ContentIn)):- !, prolog_must((load_aiml_structure(Ctx,element(Tag,Attribs,ContentIn)),!,do_pending_loads(Ctx))).
-load_aiml_files(Ctx,File):- withAttributes(Ctx,[withCategory=[writeqnl,assert_cate_in_load]],prolog_must(with_files(load_single_aiml_file(Ctx),File))),!,do_pending_loads(Ctx).
+load_aiml_files(Ctx,File):- 
+ withAttributes(Ctx,[withCategory=[writeqnl,assert_cate_in_load]],
+   prolog_must(with_files(load_single_aiml_file(Ctx),File))),!,
+     do_pending_loads(Ctx).
 
 
 translate_aiml_files(Files):-currentContext(translate_aiml_files,Ctx),translate_aiml_files(Ctx,Files),!.
 
-translate_aiml_files(Ctx,File):-not(is_list(File);atom(File)),translate_aiml_structure(Ctx,File),!.
+translate_aiml_files(Ctx,File):- \+ (is_list(File);atom(File)),!,translate_aiml_structure(Ctx,File),!.
 translate_aiml_files(Ctx,File):-with_files(translate_single_aiml_file(Ctx),File),!.
 
 
-with_files(_Verb,[]):-!.
-with_files(Verb,[File|Rest]):-!,maplist_safe(Verb,[File|Rest]),!,do_pending_loads.
-with_files(Verb,File):-compound(File),not(is_list(File)),global_pathname(File,FILES),not(File=FILES),!,with_files(Verb,FILES),!.
-with_files(Verb,File):-exists_directory_safe(File),!,prolog_must(atomic(File)),aiml_files(File,Files),!,with_files(Verb,Files),!.
-with_files(Verb,File):-exists_file_safe(File),!,with_files(Verb,[File]).
+with_files_list(Verb,[File|Rest]):- maplist_safe(Verb,[File|Rest]),!,do_pending_loads.
+
+denotesAimlDir('aiml/').
+denotesAimlDir('../aiml/').
+denotesAimlDir('/aiml/').
+
+with_files(Verb,List):-is_list(List),!,maplist(with_files(Verb),List).
+with_files(Verb,File):-compound(File),!, global_pathname(File,FILES), File \= FILES,with_files(Verb,FILES),!.
+with_files(Verb,File):-exists_directory_safe(File),!,prolog_must(atomic(File)),aiml_files(File,Files),!,with_files_list(Verb,Files),!.
+with_files(Verb,File):-exists_file_safe(File),!,with_files_list(Verb,[File]).
 with_files(Verb,File):-file_name_extension(File,'aiml',Aiml), exists_file_safe(Aiml),!,with_files(Verb,[File]).
-with_files(Verb,File):-expand_file_name(File,FILES),FILES\==[],[File]\=FILES,!,with_files(Verb,FILES),!.
-
-% with_files(Verb,File):-atom(File),sub_atom(File,Before,_Len,After,'*')
-
-with_files(Verb,File):-prolog_must(call(Verb,File)).
+with_files(Verb,File):-expand_file_name(File,FILES),FILES\==[],!,with_files_list(Verb,FILES),!.
+with_files(Verb,File):- denotesAimlDir(DenotesAimlDir),atom_concat(DenotesAimlDir,Rest,File),!,with_files(Verb,aiml(Rest)).
+%with_files(Verb,File):-atom(File),sub_atom(_File,Before,_Len,_After,'*'),!,with_files(Verb,aiml(File)).
+with_files(Verb,File):-!,with_files(Verb,aiml(File)).
+%%with_files(Verb,File):-prolog_must(call(Verb,File)).
 %%with_files(Verb,File):-throw_safe(error(existence_error(source_sink, File),functor(Verb,F,A),context(F/A, 'No such file or directory'))).
 
 aiml_files(File,Files):-atom(File),sub_atom(File,_Before,_Len,_After,'*'),!,expand_file_name(File,Files),!.
@@ -125,13 +133,12 @@ aiml_files(File,Files):-exists_directory_safe(File), %absolute_file_name(File,_F
 
 aimlOption(rebuild_Aiml_Files,false).
 
-load_single_aiml_file(Ctx,F0):-global_pathname(F0,File),F0\==File,!,load_single_aiml_file(Ctx,File).
-
+load_single_aiml_file(Ctx,F0):- global_pathname(F0,File),F0\==File,!,load_single_aiml_file(Ctx,File).
 load_single_aiml_file(Ctx,F0):-
   prolog_mustEach((
    global_pathname(F0,File),
    cateForFile(Ctx,File,FileMatch),!,
-   atom_concat_safe(File,'.pl',PLNAME),
+   atom_concat_safe(File,'.tmp.pl',PLNAME),
    load_single_aiml_file(Ctx,File,PLNAME,FileMatch),!)).
 
 %%load_single_aiml_file(_Ctx,File,PLNAME,_FileMatch):- loaded_aiml_file(File,PLNAME,_Time),!.
@@ -182,7 +189,7 @@ string_to_structure0(String,PARSER_DEFAULTS0,XMLSTRUCTURESIN):-
        (free_sgml_parser(Parser),close(In))),!,prolog_must(XMLSTRUCTURESIN=XMLSTRUCTURES).
 
 string_parse_structure(Len,Parser, M:Options, Document, In) :-
-	notrace((catch(call(string_parse_structure_opts_547(Parser),In,M,Options,Options2),_,string_parse_structure_opts(Parser,In,M,Options,Options2)))),
+	notrace((catch(call(call,string_parse_structure_opts_547(Parser),In,M,Options,Options2),_,string_parse_structure_opts(Parser,In,M,Options,Options2)))),
         % notrace((string_parse_structure_opts(Parser,In,M,Options,Options2))),
 	sgml:sgml_parse(Parser,
 		   [ document(Document),
@@ -214,7 +221,8 @@ fileToLineInfoElements(Ctx,File,XMLSTRUCTURES):-
 termFileContents(_Ctx,File,termFileContents(File)):-!. %%,atrace.
 
 termFileContents(_Ctx,File,element(aiml,[],XMLSTRUCTURES)):- %% another way to fileToLineInfoElements
-   setup_call_cleanup((open(File, read, In, [])), findall(Elem,((repeat,read(In,Elem),((Elem\=end_of_file)->true;!))),XMLSTRUCTURES), close(In)),!.
+   setup_call_cleanup((open(File, read, In, [])), 
+      findall(Elem,((repeat,read(In,Elem),((Elem\=end_of_file)->true;!))),XMLSTRUCTURES), close(In)),!.
 
 
 
@@ -223,12 +231,16 @@ fileToLineInfoElements0(Ctx,F0,XMLSTRUCTURES):-
    global_pathname(F0,File),
        retractall(lineInfoElement(File,_,_,_)),
         setup_call_cleanup((open(File, read, In, [type(binary)]),new_sgml_parser(Parser, [])),
+
           prolog_must((           
            sgml_parser_defs(PARSER_DEFAULTS,PARSER_CALLBACKS),
            maplist_safe(set_sgml_parser(Parser),[file(File)|PARSER_DEFAULTS]),
            %% todo offset(Offset)
            sgml_parse(Parser,[source(In)|PARSER_CALLBACKS]))),
+
         (free_sgml_parser(Parser),close(In))),!,
+
+
         fileToLineInfoElements2(Ctx,File,XMLSTRUCTURES).
 
 

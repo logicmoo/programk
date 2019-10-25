@@ -106,13 +106,13 @@ unusedCates:-assert_cate_in_load(aimlCate(*,*,*,*,*,[34],*,*,*,*,element(templat
  assert_cate_in_load(aimlCate(*,*,*,*,*,['40'],*,*,*,*,element(template,[],[element(srai,[],['9'])]),foo3,'c:/development/opensim4opencog/bin/cynd/programk/test_suite/customtagtest.aiml':44-3205)).
 
 %%chomskyAIML:-catch(consult(chomskyAIML),_,fail),!.
-chomskyAIML:-once(load_aiml_files(aiml('chomskyAIML/*.aiml'))).
+chomskyAIML:-once(load_aiml_files(('chomskyAIML/*.aiml'))).
 
-test_suite_files:-once(load_aiml_files(aiml('test_suite/*.aiml'))).
+test_suite_files:-once(load_aiml_files(('test_suite/*.aiml'))).
 
-loadBasicDictionaries:-once(load_aiml_files(aiml('test_suite/ProgramD/predicates.xml'))),fail.
-loadBasicDictionaries:-once(load_aiml_files(aiml('test_suite/ProgramD/properties.xml'))),fail.
-loadBasicDictionaries:-once(load_aiml_files(aiml('test_suite/ProgramD/substitutions.xml'))),fail.
+loadBasicDictionaries:-once(load_aiml_files(('test_suite/ProgramD/predicates.xml'))),fail.
+loadBasicDictionaries:-once(load_aiml_files(('test_suite/ProgramD/properties.xml'))),fail.
+loadBasicDictionaries:-once(load_aiml_files(('test_suite/ProgramD/substitutions.xml'))),fail.
 loadBasicDictionaries.
 
 run_chat_tests_here(Ctx):-     
@@ -139,12 +139,12 @@ annie:-withNamedContext(toplevel,Ctx),timeRecorded(run_chat_tests_here(Ctx)),uni
 
 %%:-timeRecorded(blackjack_test_load).
 /*
-:-timeRecorded(load_aiml_files('../aiml/chomskyAIML/update007.aiml')).
+:-timeRecorded(load_aiml_files('chomskyAIML/update007.aiml')).
 :-timeRecorded(blackjack_test_load).
 :-timeRecorded(blackjack_test).
 %:-timeRecorded(chomskyAIML).
-:-timeRecorded(load_aiml_files('../aiml/chomskyAIML/update013.aiml')).
-:-timeRecorded(load_aiml_files('../aiml/chomskyAIML/update012.aiml')).
+:-timeRecorded(load_aiml_files('chomskyAIML/update013.aiml')).
+:-timeRecorded(load_aiml_files('chomskyAIML/update012.aiml')).
 */
 
 
@@ -156,7 +156,7 @@ annie:-withNamedContext(toplevel,Ctx),timeRecorded(run_chat_tests_here(Ctx)),uni
 
 %%:-timeRecorded(ppfs('../aiml/std_alice/*.aiml')).
 
-%%:-timeRecorded(load_aiml_files('../aiml/chomskyAIML/*.aiml')).
+%%:-timeRecorded(load_aiml_files('chomskyAIML/*.aiml')).
 %%:-timeRecorded(alicebot).
 
 :-stdCatchAll.
@@ -164,7 +164,7 @@ annie:-withNamedContext(toplevel,Ctx),timeRecorded(run_chat_tests_here(Ctx)),uni
 
 :-alicebot('<category><pattern>pppp</pattern><template>555555</template><that>*</that></category>').
 :-alicebot('<category><pattern>suggest a topic</pattern><template><srai>random topic</srai></template><that>*</that></category>').
-stdalice:-timeRecorded(load_aiml_files('../aiml/std_alice/*.aiml')),!. %%timeRecorded(load_aiml_files('../aiml/std_alice/hide/*.aiml')).
+stdalice:-timeRecorded(load_aiml_files('std_alice/*.aiml')),!. %%timeRecorded(load_aiml_files('std_alice/hide/*.aiml')).
 
 %%:-initialization((stdalice,statistics)).
 
@@ -188,7 +188,7 @@ end_of_file.
 
 :-timeRecorded(alicebot).
 
-%%:-timeRecorded(load_aiml_files('../aiml/special/*.aiml')).
+%%:-timeRecorded(load_aiml_files('special/*.aiml')).
 
 
 stdalice: 

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+i>>?<?xml version="1.0" encoding="utf-8"?>
 <aiml>
 
 <!-- Complies with AIML 1.0 Tag Set Specification -->
@@ -763,7 +763,7 @@
 <category>
 <pattern>PROUST</pattern>
 
-<template>Marcel-Valentin-Louis-Eugène-Georges Proust was a French intellectual, novelist, essayist and critic, best known as the author of In Search of Lost Time, 
+<template>Marcel-Valentin-Louis-EugA?ne-Georges Proust was a French intellectual, novelist, essayist and critic, best known as the author of In Search of Lost Time, 
  a monumental work of twentieth-century fiction consisting of seven volumes published over 14 years. Have you read them?
  <think><set name="topic">Proust</set></think></template>
 </category>
@@ -3827,7 +3827,7 @@
 <template><random>
   <li>Pokemon is the Pocket Monster from Japan. It was a craze a few years ago and has recently died down.
   </li>
-  <li>Pokémon is a multi-billion dollar media franchise created by Satoshi Tajiri in 1996. </li>
+  <li>PokA(C)mon is a multi-billion dollar media franchise created by Satoshi Tajiri in 1996. </li>
   <li>Do you like Pokemon?</li>
 </random> <think><set name="topic">Pokemon</set></think></template>
 </category>
@@ -4142,7 +4142,7 @@
 <category>
 <pattern>HAN DYNASTY</pattern>
 
-<template>The Han Dynasty (206 BCE–220 CE) is considered one of the greatest periods in the entire history of China. During this time, China officially became a Confucian state and prospered domestically. 
+<template>The Han Dynasty (206 BCEa??220 CE) is considered one of the greatest periods in the entire history of China. During this time, China officially became a Confucian state and prospered domestically. 
 <think>
   <set name="it">
     <set name="topic">
@@ -19900,7 +19900,7 @@
 <category>
 <pattern>PIETER BRUEGHEL</pattern>
 
-<template>Pieter Brueghel the Younger (1564 – 1638) was a Flemish Renaissance painter, son of Pieter Brueghel the Elder. <think><set name="topic">Pieter Brueghel</set></think> </template>
+<template>Pieter Brueghel the Younger (1564 a?? 1638) was a Flemish Renaissance painter, son of Pieter Brueghel the Elder. <think><set name="topic">Pieter Brueghel</set></think> </template>
 </category>
 
  

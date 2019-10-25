@@ -48,7 +48,7 @@
 	 subst/4,
 	 isCycOption/1,
 	 isCycOption/2,
-	 unnumbervars/2,
+	 unnumbervars_cyc/2,
 	 %% transparent defaultAssertMt/1,
          mtForCycL/2,
          assertIfNew/1,
@@ -183,22 +183,9 @@ isConsole :- current_output(X),!,stream_property(X,alias(user_output)).
 willTrace:- \+ isConsole, !,fail.
 willTrace:-canTrace.
 
-:- dynamic(cyc:hideTrace/0).
+ctrace:- willTrace->trace; notrace.
 
-hideTrace:-
- %trace,
-   %trace(hideTrace/0, -all),
-   trace(willTrace/0, -all),
-   trace(canTrace/0, -all),
-   trace(ctrace/0, -all),
-   trace(system:throw/1, +all),
-   trace(system:print_message/2, -fail),
-   trace(user:message_hook/3 , +all),
-   trace(system:message_to_string/2, -fail).
 
-ctrace:-willTrace->trace;notrace.
-
-:-hideTrace.
 
 withoutCyc(_,[]):-fail.
 
@@ -265,7 +252,7 @@ multi_transparent(X):-functor(X,F,A),multi_transparent(F/A),!.
 %:-set_prolog_flag(verbose,normal).
 :-set_prolog_flag(double_quotes,codes).
 :-set_prolog_flag(float_format,'%.12g').
-:-set_prolog_flag(gc,false).
+%:-set_prolog_flag(gc,false).
 :-dynamic_transparent(cycConnectionAvalable/5).
 :-dynamic_transparent(cycConnectionUsed/5).
 :-dynamic_transparent(cycMutex/2).
@@ -310,7 +297,7 @@ isFn(X):-name(X,[Cap|_]),char_type(Cap,upper),!.
 
 balanceBindingS2P(X,Z):-
       balanceBinding(X,Y),
-      unnumbervars(Y,UN),
+      unnumbervars_cyc(Y,UN),
       s2p(UN,Z,_),!.
 
 :-dynamic(cyc:dbCache/2).
@@ -1331,9 +1318,9 @@ termCyclifyAtom3(':',Before,Before).
 termCyclifyAtom3('(',Before,Before).
 termCyclifyAtom3('!',Before,After):-atom_concat('!',After,Before).
 termCyclifyAtom3('"',Before,Before).
-termCyclifyAtom3(_,Before,After):-atom_to_number(Before,After),!.
-termCyclifyAtom3(_,Before,After):-badConstant(Before),quoteAtomString(Before,After).
-termCyclifyAtom3(_,Before,After):-atom_concat('#$',Before,After),makeConstant(Before).      
+termCyclifyAtom3(_,Before,After):- atom_to_number(Before,After),!.
+termCyclifyAtom3(_,Before,After):- badConstant(Before),quoteAtomString(Before,After).
+termCyclifyAtom3(_,Before,After):- atom_concat('#$',Before,After),makeConstant(Before).      
 
 badConstant(Atom):-member(Char,['/','*','"','.',',',' ','!','?','#','%']),concat_atom([S,T|UFF],Char,Atom),!.
 quoteAtomString([34|T],Out):-name(Out,[34|T]),!.
@@ -1407,7 +1394,7 @@ isCycConstantNever(_,'4').
 
 isCycConstant(Const):-(var(Const);is_string(Const);number(Const)),!,fail.
 isCycConstant(Const):-user:isCycConstantMade(Const),!.
-isCycConstant(Const):-cyc:constant(Const,_,_,_),!.
+isCycConstant(Const):- constant(Const,_,_,_),!.
 isCycConstant(Const):-holds(isa,Const,_),!.
 %isCycConstant(Const):-termCyclify(Const,_),!,fail.
 isCycConstant(Const):-atom(Const),atom_concat('#$',X,Const),!,isCycConstant(X).
@@ -1782,7 +1769,7 @@ getSurfaceFromToks(WFFClean,WFFOut,VARSOut):-
                (once(phrase(cycl(WFF),WFFClean))),
                collect_temp_vars(VARS),!,
                ((VARS=[],VARSOut=_,WFFOut=WFF);
-                    (unnumbervars(VARS,LIST),
+                    (unnumbervars_cyc(VARS,LIST),
                      cyclVarNums(LIST,WFF,WFFOut,VARSOut2) ,
                      list_to_set(VARSOut2,VARSOut1),
                      open_list(VARSOut1,VARSOut)))),ERROR,(trace,WFFOut=[error_tok,ERROR,WFFClean])),!.
@@ -1937,12 +1924,12 @@ cyclVarNums_list(LIST,[A|RGS],[V|ARARGS],VARLIST):-
             append(VARS1,VARS2,VARLIST).
 
 
-unnumbervars(STUFF,UN):-sformat(S,'~W',[STUFF,[quoted(true),character_escapes(true),module(user),numbervars(true),portray(false),double_quotes(true)]]),string_to_atom(S,Atom),atom_to_term(Atom,UN,_).
+unnumbervars_cyc(STUFF,UN):-sformat(S,'~W',[STUFF,[quoted(true),character_escapes(true),module(user),numbervars(true),portray(false),double_quotes(true)]]),string_to_atom(S,Atom),atom_to_term(Atom,UN,_).
 
 open_list(V,V):-var(V).
 open_list(A,B):-append(A,_,B).
 
-unnumbervars_nil(X,Y):-!,unnumbervars(X,Y).
+unnumbervars_nil(X,Y):-!,unnumbervars_cyc(X,Y).
 
 collect_temp_vars(VARS):-!,(setof(=(Name,Number),numbered_var(Name,Number),VARS);VARS=[]).
 
@@ -2242,7 +2229,7 @@ weak_nd_subst2( X, Sk, L, L ).
 :-module(system_dependant,
       [getCputime/1,
       safe_numbervars/1,
-      unnumbervars/2,
+      unnumbervars_cyc/2,
       cyc_debugFmt/1,
       cyc_debugFmt/2,
       writeFmt/1,
@@ -2349,7 +2336,7 @@ writeFileToStream(Dest,Filename):-
 safe_numbervars(X):-get_time(T),convert_time(T,A,B,C,D,E,F,G),!,safe_numbervars(X,'$VAR',G,_).
 safe_numbervars(Copy,X,Z):-numbervars(Copy,X,Z,[attvar(skip)]).
 safe_numbervars(Copy,_,X,Z):-numbervars(Copy,X,Z,[attvar(skip)]).
-%unnumbervars(X,Y):-term_to_atom(X,A),atom_to_term(A,Y,_).
+%unnumbervars_cyc(X,Y):-term_to_atom(X,A),atom_to_term(A,Y,_).
 
 % ========================================================================================
 % Ensure a Module is loaded
@@ -2732,8 +2719,8 @@ cfaslWrite(Out,ist(Mt,Assert)):-put(Out,51),put(Out,33),cfaslWrite(Out,Assert),c
 %:-dynamic(assertion/13).
 %:-multifile(assertion/13).
 
-:-module_transparent(constant/4).
-:-dynamic(constant/4).
+:-module_transparent(cyc:constant/4).
+:-dynamic(cyc:constant/4).
 %user:constant(A,B,C,D):-cyc:constant(A,B,C,D).
 
 :-dynamic(constantGuid/2).
@@ -4339,4 +4326,16 @@ valueToCheckMark(Value,'OFF',' ').
 %% lisp_reade_term(Lisp)
 %% ======================================
 % :-set_prolog_flag(double_quotes,codes).
+/*:-  user:((
+   % notrace(trace(hideTrace, -fail)),
+   trace,
+   notrace(prolog_trace:trace(cyc:willTrace/0, -all)),
+  % notrace(trace(cyc:canTrace/0, -all)),
+  % notrace(trace(cyc:ctrace/0, -all)),
+  % notrace(trace(system:throw/1, +all)),
+  % notrace(trace(system:print_message/2, -fail)),
+  % notrace(trace(user:message_hook/3 , +all)),
+  % notrace(trace(system:message_to_string/2, -fail)
+   !)).
 
+*/

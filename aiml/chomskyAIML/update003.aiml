@@ -3010,7 +3010,7 @@
  
 
 <category>
-<pattern>ABOUT £50</pattern>
+<pattern>ABOUT GBP50</pattern>
 
 <template>That's not a lot by today's standards.</template>
 </category>
@@ -9641,7 +9641,7 @@
  
 
 <category>
-<pattern>£1000 POINT 0002</pattern>
+<pattern>GBP1000 POINT 0002</pattern>
 
 <template>That sounds a lot.</template>
 </category>
@@ -10189,7 +10189,7 @@
  
 
 <category>
-<pattern>£200</pattern>
+<pattern>GBP200</pattern>
 
 <template>That sounds a lot of money.</template>
 </category>
@@ -17439,7 +17439,7 @@
 
 <category>
 <pattern>IF YOU ASKED ME TO DO IT I WOULD</pattern>
-<that>WHAT WOULD MAKE YOU PAY £6 POINT 59 FOR ME</that>
+<that>WHAT WOULD MAKE YOU PAY GBP6 POINT 59 FOR ME</that>
 <template>OK. Let's see your money. <think><set name="topic">reduce</set></think></template>
 </category>
 

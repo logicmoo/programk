@@ -343,7 +343,7 @@ setAliceMem(Ctx,Dict,default(Name),DefaultValue):- (getAliceMem(Ctx,Dict,Name,'O
 setAliceMem(Ctx,Dict,Name,Value):- prolog_must(setAliceMem_fallback(Ctx,Dict,Name,Value)),!.
 
 setAliceMem_fallback(Ctx,Dict,Name,Value):- setAliceMem0(Ctx,Dict,Name,Value),!.
-setAliceMem_fallback([[fctx]],Dict,Name,Value):-asserta_dict(Dict,Name,Value),!.
+setAliceMem_fallback([[fctx]],Dict,Name,Value):- asserta_dict(Dict,Name,Value),!.
 
 setAliceMem0(Ctx,Dict,Name,Value):- prolog_must((resetAliceMem0(Ctx,Dict,Name,Value))),!.
 

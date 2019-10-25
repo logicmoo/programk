@@ -702,7 +702,7 @@ cateFallback([
        guard = '*',
        userdict = 'user',
        % template = [],  ['Nothing'] ?
-       template= [gensym(template)],
+       % template= [gensym(template)],
        srcinfo=missinginfo,
        srcfile=missingfile,
        withCategory=[writeqnl,assert_cate_in_load]]).

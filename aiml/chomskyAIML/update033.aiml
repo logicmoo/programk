@@ -9069,7 +9069,7 @@ You had better get started.</template>
 <category>
 <pattern>MAO ZEDONG</pattern>
 
-<template><a href="http://en.wikipedia.org/wiki/Mao" target="_blank">Mao Zedong</a> was a Chinese Marxist military and political leader and philosopher, who led the Communist Party of China to victory against the Kuomintang in the Chinese Civil War, and the People’s Republic of China from its establishment in 1949 until his death in 1976.<think><set name="topic">Mao</set></think><think><set name="emotion">OK</set></think></template>
+<template><a href="http://en.wikipedia.org/wiki/Mao" target="_blank">Mao Zedong</a> was a Chinese Marxist military and political leader and philosopher, who led the Communist Party of China to victory against the Kuomintang in the Chinese Civil War, and the People?s Republic of China from its establishment in 1949 until his death in 1976.<think><set name="topic">Mao</set></think><think><set name="emotion">OK</set></think></template>
 </category>
 
  
@@ -12586,7 +12586,7 @@ OK, let me ask you this ...  <srai>ASK A QUESTION</srai></template>
 <category>
 <pattern>UNIVERSAL LANGUAGE</pattern>
 
-<template>The idea of a <a href="http://en.wikipedia.org/wiki/Universal_language" target="_blank">universal language</a> is at least as old as the Biblical story of Babel. The biblical tale of Babel's fall states that there was once a time of a universal Adamic language — and then something happened to destroy this happy situation. <think><set name="topic">universal language</set></think>
+<template>The idea of a <a href="http://en.wikipedia.org/wiki/Universal_language" target="_blank">universal language</a> is at least as old as the Biblical story of Babel. The biblical tale of Babel's fall states that there was once a time of a universal Adamic language ? and then something happened to destroy this happy situation. <think><set name="topic">universal language</set></think>
 <think><set name="emotion">OK</set></think></template>
 </category>
 
@@ -15827,7 +15827,7 @@ Really? I never knew that.</template>
 <category>
 <pattern>MUDKIP</pattern>
 
-<template><a href="http://en.wikipedia.org/wiki/Mudkips" target="_blank">Mudkip</a> is one of the 493 fictional species of Pokémon creatures from the Pokémon collection of video games, anime, manga, books, trading cards and other media. <think><set name="topic">mudkips</set></think> 
+<template><a href="http://en.wikipedia.org/wiki/Mudkips" target="_blank">Mudkip</a> is one of the 493 fictional species of Pokemon creatures from the Pokemon collection of video games, anime, manga, books, trading cards and other media. <think><set name="topic">mudkips</set></think> 
 <think><set name="emotion">OK</set></think></template>
 </category>
 
@@ -15836,7 +15836,7 @@ Really? I never knew that.</template>
 <category>
 <pattern>MUDKIPS</pattern>
 
-<template><a href="http://en.wikipedia.org/wiki/Mudkips" target="_blank">Mudkip</a> is one of the 493 fictional species of Pokémon creatures from the Pokémon collection of video games, anime, manga, books, trading cards and other media. <think><set name="topic">mudkips</set></think> <think><set name="emotion">OK</set></think></template>
+<template><a href="http://en.wikipedia.org/wiki/Mudkips" target="_blank">Mudkip</a> is one of the 493 fictional species of Pokemon creatures from the Pokemon collection of video games, anime, manga, books, trading cards and other media. <think><set name="topic">mudkips</set></think> <think><set name="emotion">OK</set></think></template>
 </category>
 
  

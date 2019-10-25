@@ -129,11 +129,12 @@ alicebotCTX(Ctx):-
         repeat,
         current_input(In),
 	read_line_to_codes(In,Codes),
-        ( Codes==end_of_file -> true ;
+        ( Codes==end_of_file 
+         -> ! ;
         (tokenizeInput(Atom,Codes),
         %%atom_codes(Atom,Codes),
          ignore(once(alicebotCTX(Ctx,Atom))),
-         Atom\==end_of_file)).
+         Atom==end_of_file)).
 
 % ===============================================================================================
 % Main Alice Input

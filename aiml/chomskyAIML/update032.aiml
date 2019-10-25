@@ -12097,7 +12097,7 @@ The simplest forms of matter are the quarks, leptons and gauge bosons.</template
 <category>
 <pattern>WHAT IS THE SPEED OF SOUND IN WATER</pattern>
 
-<template><think><set name="topic">speed of sound</set></think> In fresh water, sound travels at about 1497 m/s at 25 °C. </template>
+<template><think><set name="topic">speed of sound</set></think> In fresh water, sound travels at about 1497 m/s at 25 ?C. </template>
 </category>
 
  
@@ -12124,7 +12124,7 @@ Gollum is a slimy loathsome creature in The Lord of The Ring.</template>
 <pattern>SMEAGOL</pattern>
 
 <template><think><set name="topic">Smeagol</set></think><think><set name="emotion">interested</set></think>
-In The Lord of The Rings Sméagol strangled his friend Deagol for the Ring and was banished from his home. Sméagol fled to the Misty Mountains where he slowly withered and became a loathsome, slimy creature called Gollum.
+In The Lord of The Rings Smeagol strangled his friend Deagol for the Ring and was banished from his home. Smeagol fled to the Misty Mountains where he slowly withered and became a loathsome, slimy creature called Gollum.
 </template>
 </category>
 
@@ -23048,7 +23048,7 @@ Who is your favourite jazz artist?</template>
 <category>
 <pattern>POKEMON RANGER</pattern>
 
-<template><a href="http://en.wikipedia.org/wiki/Pokemon_Ranger" target="_blank">Pokémon Ranger</a> is an action/role-playing video game for the Nintendo DS video game console. The game is notable for being the first game in the Pokémon RPG series that doesn't involve the use of Pokéballs to capture Pokémon. <think><set name="topic">Pokemon Ranger</set></think>
+<template><a href="http://en.wikipedia.org/wiki/Pokemon_Ranger" target="_blank">Pokemon Ranger</a> is an action/role-playing video game for the Nintendo DS video game console. The game is notable for being the first game in the Pokemon RPG series that doesn't involve the use of Pokeballs to capture Pokemon. <think><set name="topic">Pokemon Ranger</set></think>
 <think><set name="emotion">OK</set></think>
 </template>
 </category>

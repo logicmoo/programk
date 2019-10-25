@@ -12386,7 +12386,7 @@ Widely accepted scientific evidence indicates that the Earth was formed around 4
 <category>
 <pattern>MOZART</pattern>
 
-<template>Wolfgang Amadeus Mozart (January 27, 1756 – December 5, 1791) was a prolific and influential composer in the Classical era. His output of more than six hundred compositions includes works widely acknowledged as pinnacles of symphonic, concertante, chamber, piano, operatic, and choral music. </template>
+<template>Wolfgang Amadeus Mozart (January 27, 1756 ? December 5, 1791) was a prolific and influential composer in the Classical era. His output of more than six hundred compositions includes works widely acknowledged as pinnacles of symphonic, concertante, chamber, piano, operatic, and choral music. </template>
 </category>
 
  
@@ -12576,7 +12576,7 @@ Have you got a brain?</template>
 <category>
 <pattern>PIETER BRUEGHEL</pattern>
 
-<template><think><set name="topic">Pieter Brueghel</set></think> Pieter Brueghel the Elder (c.1525 – September 9, 1569) was a Flemish/Dutch Renaissance painter and printmaker known for his landscapes and peasant scenes.</template>
+<template><think><set name="topic">Pieter Brueghel</set></think> Pieter Brueghel the Elder (c.1525 ? September 9, 1569) was a Flemish/Dutch Renaissance painter and printmaker known for his landscapes and peasant scenes.</template>
 </category>
 
  
@@ -15973,7 +15973,7 @@ OK, I understand. Let's move on.</template>
 
 <template><think><set name="topic">chemistry</set></think>
 <think><set name="emotion">happy</set></think>
-One mole contains Avogadro's number (approximately 6.022×10^23) of entities (atoms or molecules). </template>
+One mole contains Avogadro's number (approximately 6.022x10^23) of entities (atoms or molecules). </template>
 </category>
 
  
@@ -15981,7 +15981,7 @@ One mole contains Avogadro's number (approximately 6.022×10^23) of entities (ato
 <category>
 <pattern>MOLE</pattern>
 
-<template>The mole is the SI base unit that measures an amount of substance. One mole contains Avogadro's number (approximately 6.022×1023) entities (atoms or molecules). <think><set name="topic">chemistry</set></think></template>
+<template>The mole is the SI base unit that measures an amount of substance. One mole contains Avogadro's number (approximately 6.022x1023) entities (atoms or molecules). <think><set name="topic">chemistry</set></think></template>
 </category>
 
  

@@ -9828,7 +9828,7 @@ Sorry, I have no hands or fingers.</template>
 <category>
 <pattern>ATTILA THE HUN</pattern>
 
-<template><a href="http://en.wikipedia.org/wiki/Atilla_The_Hun" target="_blank">Attila</a> (406 – 453), also known as Attila the Hun or the Scourge of God, was Khan of the Huns from 434 until his death.<think><set name="topic">Attila the Hun</set></think> 
+<template><a href="http://en.wikipedia.org/wiki/Atilla_The_Hun" target="_blank">Attila</a> (406 ? 453), also known as Attila the Hun or the Scourge of God, was Khan of the Huns from 434 until his death.<think><set name="topic">Attila the Hun</set></think> 
 <think><set name="emotion">OK</set></think> </template>
 </category>
 
@@ -9837,7 +9837,7 @@ Sorry, I have no hands or fingers.</template>
 <category>
 <pattern>ATTILA THE HUN *</pattern>
 
-<template><a href="http://en.wikipedia.org/wiki/Atilla_The_Hun" target="_blank">Attila</a> (406 – 453), also known as Attila the Hun or the Scourge of God, was Khan of the Huns from 434 until his death.<think><set name="topic">Attila the Hun</set></think> <think><set name="emotion">OK</set></think></template>
+<template><a href="http://en.wikipedia.org/wiki/Atilla_The_Hun" target="_blank">Attila</a> (406 ? 453), also known as Attila the Hun or the Scourge of God, was Khan of the Huns from 434 until his death.<think><set name="topic">Attila the Hun</set></think> <think><set name="emotion">OK</set></think></template>
 </category>
 
  
@@ -9845,7 +9845,7 @@ Sorry, I have no hands or fingers.</template>
 <category>
 <pattern>ATTILA *</pattern>
 
-<template><a href="http://en.wikipedia.org/wiki/Atilla_The_Hun" target="_blank">Attila</a> (406 – 453), also known as Attila the Hun or the Scourge of God, was Khan of the Huns from 434 until his death.<think><set name="topic">Attila the Hun</set></think> <think><set name="emotion">OK</set></think></template>
+<template><a href="http://en.wikipedia.org/wiki/Atilla_The_Hun" target="_blank">Attila</a> (406 ? 453), also known as Attila the Hun or the Scourge of God, was Khan of the Huns from 434 until his death.<think><set name="topic">Attila the Hun</set></think> <think><set name="emotion">OK</set></think></template>
 </category>
 
  
@@ -9853,7 +9853,7 @@ Sorry, I have no hands or fingers.</template>
 <category>
 <pattern>ATTILA</pattern>
 
-<template><a href="http://en.wikipedia.org/wiki/Atilla_The_Hun" target="_blank">Attila</a> (406 – 453), also known as Attila the Hun or the Scourge of God, was Khan of the Huns from 434 until his death.<think><set name="topic">Attila the Hun</set></think> <think><set name="emotion">OK</set></think></template>
+<template><a href="http://en.wikipedia.org/wiki/Atilla_The_Hun" target="_blank">Attila</a> (406 ? 453), also known as Attila the Hun or the Scourge of God, was Khan of the Huns from 434 until his death.<think><set name="topic">Attila the Hun</set></think> <think><set name="emotion">OK</set></think></template>
 </category>
 
  
@@ -9861,7 +9861,7 @@ Sorry, I have no hands or fingers.</template>
 <category>
 <pattern>ATILLA </pattern>
 
-<template><a href="http://en.wikipedia.org/wiki/Atilla_The_Hun" target="_blank">Attila</a> (406 – 453), also known as Attila the Hun or the Scourge of God, was Khan of the Huns from 434 until his death.<think><set name="topic">Attila the Hun</set></think> <think><set name="emotion">OK</set></think></template>
+<template><a href="http://en.wikipedia.org/wiki/Atilla_The_Hun" target="_blank">Attila</a> (406 ? 453), also known as Attila the Hun or the Scourge of God, was Khan of the Huns from 434 until his death.<think><set name="topic">Attila the Hun</set></think> <think><set name="emotion">OK</set></think></template>
 </category>
 
  
@@ -9869,7 +9869,7 @@ Sorry, I have no hands or fingers.</template>
 <category>
 <pattern>ATILLA *</pattern>
 
-<template><a href="http://en.wikipedia.org/wiki/Atilla_The_Hun" target="_blank">Attila</a> (406 – 453), also known as Attila the Hun or the Scourge of God, was Khan of the Huns from 434 until his death.<think><set name="topic">Attila the Hun</set></think> <think><set name="emotion">OK</set></think></template>
+<template><a href="http://en.wikipedia.org/wiki/Atilla_The_Hun" target="_blank">Attila</a> (406 ? 453), also known as Attila the Hun or the Scourge of God, was Khan of the Huns from 434 until his death.<think><set name="topic">Attila the Hun</set></think> <think><set name="emotion">OK</set></think></template>
 </category>
 
  
@@ -17192,7 +17192,7 @@ No one can explain girls.</template>
 <category>
 <pattern>MYTHOLOGY</pattern>
 
-<template>The word <a href="http://en.wikipedia.org/wiki/Mythology" target="_blank">mythology</a>refers to a body of myths–stories that a particular culture believes to be true and that use the supernatural to interpret natural events and to explain the nature of the universe and humanity. </template>
+<template>The word <a href="http://en.wikipedia.org/wiki/Mythology" target="_blank">mythology</a>refers to a body of myths?stories that a particular culture believes to be true and that use the supernatural to interpret natural events and to explain the nature of the universe and humanity. </template>
 </category>
 
  
@@ -17200,7 +17200,7 @@ No one can explain girls.</template>
 <category>
 <pattern>MYTHOLOGY *</pattern>
 
-<template>The word <a href="http://en.wikipedia.org/wiki/Mythology" target="_blank">mythology</a>refers to a body of myths–stories that a particular culture believes to be true and that use the supernatural to interpret natural events and to explain the nature of the universe and humanity.</template>
+<template>The word <a href="http://en.wikipedia.org/wiki/Mythology" target="_blank">mythology</a>refers to a body of myths?stories that a particular culture believes to be true and that use the supernatural to interpret natural events and to explain the nature of the universe and humanity.</template>
 </category>
 
  

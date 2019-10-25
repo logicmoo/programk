@@ -3,10 +3,11 @@
 <!--
 
 This is the file that listens to things the bot says and leans from itself..
-Since not all authoprial content is not semantic!
+Since not all authorial content is semantic!
 
 -->
 <aiml graph="HeardSelfSay">
+
 <aiml graph="parent">  
   <category>
     <pattern>HeardSelfSay *</pattern>
@@ -38,6 +39,7 @@ Since not all authoprial content is not semantic!
   </category>  
 
 </aiml>
+
 </aiml>
 
 

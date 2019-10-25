@@ -77,7 +77,7 @@ unused:atrace:-prolog_is_vetted_safe->notrace;(willTrace->trace;notrace).
 f0rmt(A,B,C):-'format'(A,B,C).
 
 %%% Modified version of <http://pastebin.com/GvmVQ1f1>
-
+/*
 %================================================================
 prolog_trace_interception_pce(A, B, C, E) :- true,
 %================================================================
@@ -101,7 +101,7 @@ define_self_trace :-
     ).
 
 :- initialization define_self_trace.
-
+*/  
 %================================================================
 %% print_stack_trace(+Stream,[+Option,...],+Depth)
 % `Option' being one of
@@ -923,11 +923,14 @@ contains_term(SearchThis,Find):-compound(SearchThis),functor(SearchThis,Func,_),
 global_pathname(B,C):-absolute_file_name(B,A),!,canonical_pathname(A,C),!.
 global_pathname(B,A):-relative_pathname(B,A).
 
-relative_pathname(Path,Relative):-absolute_file_name(Path,[relative_to('./')],Absolute),member(Rel,['./','../','../../']),absolute_file_name(Rel,Clip),
+relative_pathname(Path,Relative):-
+   absolute_file_name(Path,[relative_to('./')],Absolute),
+   member(Rel,['./','../','../../']),
+   absolute_file_name(Rel,Clip),
    canonical_pathname(Absolute,AbsoluteA),
    canonical_pathname(Clip,ClipA),
    atom_concat_safe(ClipA,RelativeA,AbsoluteA),!,atom_concat_safe(Rel,RelativeA,Relative),!.
-relative_pathname(Path,Relative):-canonical_pathname(Path,Relative),!.
+relative_pathname(Path,Relative):- canonical_pathname(Path,Relative),!.
 
 canonical_pathname(Absolute,AbsoluteB):-prolog_to_os_filename(AbsoluteA,Absolute),canonical_pathname0(AbsoluteA,AbsoluteB),!.
 

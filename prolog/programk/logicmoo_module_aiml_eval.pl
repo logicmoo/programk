@@ -261,7 +261,10 @@ systemCall_Bot(Ctx,['ctxlist'],template([ctxed,current_value(Ctx,Name,Value),Cou
 
 
 systemCall_Bot(Ctx,[FIRST|REST],DONE):-toLowerIfAtom(FIRST,CMD),FIRST\==CMD,!,systemCall_Bot(Ctx,[CMD|REST],DONE).
+systemCall_Bot(Ctx,List,YN):- append(New,[('.')],List),!,systemCall_Bot(Ctx,New,YN).
 
+systemCall_Bot(_Ctx,[prolog],YN):- prolog  -> YN=['Yes.'] ; YN=['No.'].
+systemCall_Bot(_Ctx,[prolog,Call],YN):- predicate_property(Call,defined),!,call(Call)-> YN=['Yes.'] ; YN=['No.'].
 systemCall_Bot(_Ctx,DONE,template([delayed,DONE])).
 
 showCtx(Ctx):-forall(

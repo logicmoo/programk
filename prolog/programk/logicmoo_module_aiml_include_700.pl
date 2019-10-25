@@ -1,4 +1,15 @@
 
+:- context_module(M),hidden_away:module(hidden_away),
+   module(M),hidden_away:use_module(library(debuggery/dmsg),[dmsg/1,dmsg/2]).
+
+%:- use_module(library(programk/cyc_pl/cyc),[is_string/1,isConsole/0,atom_to_number/2,balanceBinding/2,writeFmtFlushed/2,writeFmtFlushed/3,toCycApiExpression/3]).
+
+:- use_module(library(debuggery/ucatch),[catchv/3]).
+:- multifile(dumpst_hook:simple_rewrite/2).
+:- dynamic(dumpst_hook:simple_rewrite/2).
+
+dumpst_hook:simple_rewrite(I,O):- hide_complex_ctx(I,O).
+
 :-ensure_loaded(('cyc_pl/cyc.pl')).
 
 /*
@@ -12,8 +23,6 @@
 :- endif.
 :- if(\+ predicate_property(nop(_),defined)).
 :- endif.
-:- if( \+ predicate_property(term_to_string(_,_),defined)).
-:- endif.
 %:- if(\+ predicate_property(alldiscontiguous(),defined)).
 %:- endif.
 
@@ -23,21 +32,19 @@ cls:-shell(cls).
 
 :-asserta(user:library_directory('/opt/logicmoo_workspace/packs_sys/logicmoo_utils/prolog/')).
 
+:- if( \+ predicate_property(term_to_string(_,_),defined)).
 term_to_string(I,IS):- error_catch(string_to_atom(IS,I),_,fail),!.
 term_to_string(I,IS):- term_to_atom(I,A),string_to_atom(IS,A),!.
-alldiscontiguous:-!.
+:- endif.
+%alldiscontiguous:-!.
 cyc:debugFmt(Stuff):-once(lmdebugFmt(Stuff)).
 cyc:debugFmt(F,A):-once(lmdebugFmt(F,A)).
 
 nop(_).
 
-string_parse_structure_opts_547(Parser, _In, _M, Options,Options2):-
-	sgml:set_parser_options(Parser, Options, Options1),
-	Options2=Options1.
+%:- module_transparent(setup_call_cleanup/3).
 
-:- module_transparent(setup_call_cleanup/3).
-
-setup_call_cleanup(X,Y,Z):- X,!,call_cleanup(Y,Z).
+% setup_call_cleanup(X,Y,Z):- X,!,call_cleanup(Y,Z).
 % atomic_list_concat_aiml(X,Y,Z):- atomic_list_concat_aiml(X,Y,Z).
 
 
@@ -363,8 +370,10 @@ user:prolog_exception_hook(error(_, _),_, _, _) :- fail,
 %
 
 % Version 1
+:- if( \+ predicate_property(quietly(_),defined)).
 quietly(Goal):- \+ tracing,!,call(Goal).
 quietly(Goal):- notrace,call_cleanup(Goal,trace).
+:- endif.
 
 % version 2 
 quietly2(Goal):- \+ tracing -> Goal ; (notrace,call_cleanup(scce_orig(notrace,Goal,trace),trace)).
@@ -522,14 +531,4 @@ ftrace(Goal):- restore_trace((
 %:- endif.
 
 */
-%:- context_module(M),hidden_away:module(hidden_away),
-%   module(M),hidden_away:use_module(library(debuggery/dmsg),[dmsg/1,dmsg/2]).
-
-:- use_module(library(debuggery/ucatch),[catchv/3]).
-:- use_module(library(programk/cyc_pl/cyc),[is_string/1,isConsole/0,atom_to_number/2,balanceBinding/2,writeFmtFlushed/2,writeFmtFlushed/3,toCycApiExpression/3]).
-
-:- multifile(dumpst_hook:simple_rewrite/2).
-:- dynamic(dumpst_hook:simple_rewrite/2).
-
-dumpst_hook:simple_rewrite(I,O):- hide_complex_ctx(I,O).
 

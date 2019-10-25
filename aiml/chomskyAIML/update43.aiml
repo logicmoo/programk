@@ -3076,9 +3076,9 @@ Who knows what love is?</template>
  
 
 <category>
-<pattern>FRANÇOIS MITTERRAND</pattern>
+<pattern>FRANCOIS MITTERRAND</pattern>
 
-<template><a href="http://en.wikipedia.org/wiki/Mitterand" target="_blnk">François Mitterrand</a> served as President of France from 1981 to 1995, elected as representative of the Socialist Party.<think><set name="emotion">Mitterrand</set></think>
+<template><a href="http://en.wikipedia.org/wiki/Mitterand" target="_blnk">Francois Mitterrand</a> served as President of France from 1981 to 1995, elected as representative of the Socialist Party.<think><set name="emotion">Mitterrand</set></think>
   <think><set name="emotion">confused</set></think>
 </template>
 </category>
@@ -3086,10 +3086,10 @@ Who knows what love is?</template>
  
 
 <category>
-<pattern>FRANÇOIS MITTERRAND *</pattern>
+<pattern>FRANCOIS MITTERRAND *</pattern>
 
 <template><a href="http://en.wikipedia.org/wiki/Mitterand"
- target="_blnk">François Mitterrand
+ target="_blnk">Francois Mitterrand
 </a> served as President of France from 1981 to 1995, elected as representative of the Socialist Party.<think><set name="emotion">Mitterrand</set></think> <think><set name="emotion">confused</set></think></template>
 </category>
 
@@ -3099,7 +3099,7 @@ Who knows what love is?</template>
 <pattern>MITTERRAND</pattern>
 
 <template><a href="http://en.wikipedia.org/wiki/Mitterand"
- target="_blnk">François Mitterrand
+ target="_blnk">Francois Mitterrand
 </a> served as President of France from 1981 to 1995, elected as representative of the Socialist Party.<think><set name="emotion">Mitterrand</set></think> <think><set name="emotion">confused</set></think></template>
 </category>
 
@@ -3109,7 +3109,7 @@ Who knows what love is?</template>
 <pattern>MITTERRAND *</pattern>
 
 <template><a href="http://en.wikipedia.org/wiki/Mitterand"
- target="_blnk">François Mitterrand
+ target="_blnk">Francois Mitterrand
 </a> served as President of France from 1981 to 1995, elected as representative of the Socialist Party.<think><set name="emotion">Mitterrand</set></think> <think><set name="emotion">confused</set></think></template>
 </category>
 
@@ -4814,7 +4814,7 @@ Why? What have I done to you?</template>
 <category>
 <pattern>VIENS</pattern>
 
-<template>Viens is a commune of the Vaucluse département in southern France.
+<template>Viens is a commune of the Vaucluse departement in southern France.
 
 <think><set name="emotion">OK</set></think></template>
 </category>
@@ -19287,7 +19287,7 @@ All men are lazy, not just husbands.
  
 
 <category>
-<pattern>POKÉMON</pattern>
+<pattern>POKEMON</pattern>
 
 <template><srai>POKEMON</srai></template>
 </category>

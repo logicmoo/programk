@@ -4867,7 +4867,7 @@ I am in the uncanny valley.</template>
 <category>
 <pattern>PIKACHU</pattern>
 
-<template><a href="http://en.wikipedia.org/wiki/Pikachu" target="_blank">Pikachu</a> is one of the fictional species of Pokémon creatures from the multi-billion-dollar Pokémon media franchise — a collection of video games, anime, manga, books, trading cards. <think><set name="topic">Pikachu</set></think>
+<template><a href="http://en.wikipedia.org/wiki/Pikachu" target="_blank">Pikachu</a> is one of the fictional species of Pokemon creatures from the multi-billion-dollar Pokemon media franchise ? a collection of video games, anime, manga, books, trading cards. <think><set name="topic">Pikachu</set></think>
 <think><set name="emotion">interested</set></think></template>
 </category>
 
@@ -4876,7 +4876,7 @@ I am in the uncanny valley.</template>
 <category>
 <pattern>PIKACHU *</pattern>
 
-<template><a href="http://en.wikipedia.org/wiki/Pikachu" target="_blank">Pikachu</a> is one of the fictional species of Pokémon creatures from the multi-billion-dollar Pokémon media franchise — a collection of video games, anime, manga, books, trading cards. <think><set name="topic">Pikachu</set></think> <think><set name="emotion">interested</set></think></template>
+<template><a href="http://en.wikipedia.org/wiki/Pikachu" target="_blank">Pikachu</a> is one of the fictional species of Pokemon creatures from the multi-billion-dollar Pokemon media franchise ? a collection of video games, anime, manga, books, trading cards. <think><set name="topic">Pikachu</set></think> <think><set name="emotion">interested</set></think></template>
 </category>
 
  
@@ -22637,7 +22637,7 @@ I suggest you do a Google search.
 
 <category>
 <pattern>WHAT DO YOU LIKE ABOUT HIM</pattern>
-<that>HIS FULL NAME IS PABLO DIEGO JOSÉ FRANCISCO DE PAULA JUAN NEPOMUCENO MARÍA DE LOS REMEDIOS CIPRIANO DE LA SANTÍSIMA TRINIDAD CLITO RUIZ Y PICASSO</that>
+<that>HIS FULL NAME IS PABLO DIEGO JOSE FRANCISCO DE PAULA JUAN NEPOMUCENO MARIA DE LOS REMEDIOS CIPRIANO DE LA SANTISIMA TRINIDAD CLITO RUIZ Y PICASSO</that>
 <template><think><set name="topic">Picasso</set></think> <random><li>His sense of perspective.</li><li>His blue eyes.</li></random></template>
 </category>
 

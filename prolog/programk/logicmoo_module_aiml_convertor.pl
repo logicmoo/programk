@@ -57,7 +57,7 @@ translate_single_aiml_file(Ctx,F0):-
   prolog_mustEach((
    global_pathname(F0,File),!,
    cateForFile(Ctx,File,FileMatch),!,
-   atom_concat_safe(File,'.pl',PLNAME),
+   atom_concat_safe(File,'.tmp.pl',PLNAME),
    translate_single_aiml_file(Ctx,File,PLNAME,FileMatch))),!.
 
 translate_aiml_structure(Ctx,Structure):- string(Structure),!,
@@ -127,11 +127,11 @@ translate_single_aiml_file0(Ctx,File,PLNAME,FileMatch):-
         unify_listing(FileMatch),
         retractall(FileMatch),
    (format('%-----------------------------------------~n')),
- tell(PLNAME),
         flag(cateSigCount,PREV_cateSigCount,0),
    (format('%-----------------------------------------~n')),
       withAttributes(Ctx,[withCategory=[translate_cate]], %% asserta_cate = load it as well .. but interferes with timesrtamp
                ( fileToLineInfoElements(Ctx,File,AILSTRUCTURES),
+                 tell(PLNAME),
                   load_aiml_structure(Ctx,AILSTRUCTURES))),
 
    (format('%-----------------------------------------~n')),
@@ -154,13 +154,13 @@ stream_file(user,PLNAME):-!,atrace,stream_property(user,file_name(Name)),prolog_
 stream_file(PLNAMET,PLNAME):-atrace,is_stream(PLNAMET),stream_property(PLNAMET,file_name(Name)),prolog_must(PLNAME=Name).
 stream_file(PLNAMET,PLNAME):-exists_file(PLNAMET),!,prolog_must(PLNAME=PLNAMET).
 
+
 translate_single_aiml_file1(File,PLNAME,FileMatch):-
-    ignore((telling(PLNAMET),PLNAMET\==user,stream_file(PLNAMET,PLNAME),told)),
-    ignore((creating_aiml_file(File,PLNAME),delete_file(PLNAME))),
+    catch((ignore((telling(PLNAMET),PLNAMET\==user,stream_file(PLNAMET,PLNAME),told))),_,true),
+    catch((ignore((creating_aiml_file(File,PLNAME),retractall(creating_aiml_file(File,PLNAME)),delete_file(PLNAME)))),_,true),
     retractall(lineInfoElement(File,_,_,_)),
     retractall(FileMatch),
-    retractall(xmlns(_,_,_)),
-    retractall(creating_aiml_file(File,PLNAME)),!,
+    retractall(xmlns(_,_,_)),   
     retractall(loaded_aiml_file(File,PLNAME,_Time)).
 
 /*

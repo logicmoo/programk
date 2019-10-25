@@ -5999,7 +5999,7 @@ Do you mean me?</template>
 <category>
 <pattern>SATOSHI TAJIRI</pattern>
 
-<template><a href="http://en.wikipedia.org/wiki/Satoshi_Tajiri" target="_blank">Satoshi Tajiri</a> is a Japanese electronic game designer and the creator of Pocket Monsters, better known as Pokémon.
+<template><a href="http://en.wikipedia.org/wiki/Satoshi_Tajiri" target="_blank">Satoshi Tajiri</a> is a Japanese electronic game designer and the creator of Pocket Monsters, better known as Pokemon.
 <think><set name="topic">Satoshi Tajiri</set></think>
 <think><set name="emotion">OK</set></think></template>
 </category>
@@ -6011,7 +6011,7 @@ Do you mean me?</template>
 
 <template><a href="http://en.wikipedia.org/wiki/Satoshi_Tajiri"
  target="_blank">Satoshi Tajiri
-</a> is a Japanese electronic game designer and the creator of Pocket Monsters, better known as Pokémon. <think><set name="topic">Satoshi Tajiri</set></think> <think><set name="emotion">OK</set></think></template>
+</a> is a Japanese electronic game designer and the creator of Pocket Monsters, better known as Pokemon. <think><set name="topic">Satoshi Tajiri</set></think> <think><set name="emotion">OK</set></think></template>
 </category>
 
  

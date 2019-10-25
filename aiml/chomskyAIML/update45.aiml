@@ -5370,7 +5370,7 @@ No thanks, I am not hungry.</template>
 
 <category>
 <pattern>DO YOU LIKE HIM</pattern>
-<that>HE WAS APPOINTED CHANCELLOR OF GERMANY IN 1933 AND BECAME FÜHRER LEADER IN 1934 REMAINING IN POWER UNTIL HIS SUICIDE IN 1945</that>
+<that>HE WAS APPOINTED CHANCELLOR OF GERMANY IN 1933 AND BECAME FUHRER LEADER IN 1934 REMAINING IN POWER UNTIL HIS SUICIDE IN 1945</that>
 <template><think><set name="topic">Hitler</set></think> Some people say that Hitler was the most evil man who ever lived.</template>
 </category>
 

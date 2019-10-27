@@ -5,15 +5,19 @@ ProgramK:
 This comes with two Chatbot impls:
 
 # AIML2.0 
-The first ever Prolog Impl of the complete 2.0 Spec  - 
+The first ever Prolog Impl of the complete AIML Spec  - 
+@TODO Need soem offical 2.0 compliance tests!
 
 Using ChomskyAIML Set
+
 `swipl aiml_2_0 @load chomskyAIML`
 
 Running ProgramD tests
+
 `swipl aiml_2_0 @load test_suite/ProgramD`
 
 Running ProgramQ tests
+
 `swipl aiml_2_0 @load test_suite/ProgramQ`
 
 # AIML-LF

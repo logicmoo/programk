@@ -37,20 +37,23 @@ Running ProgramD tests
 
 
 ... bunch of gibberish...
+
 when you get the
+````
 |:  
 prompt 
 |:  hello bot, how are you today?
+````
 
- typing annie will make the aiml run the sanity chacks
+ typing `annie` will make the aiml run the sanity chacks
 
 if what you type is interpretable as prolog, it will treat it as prolog.
-
+````
 <dmiles_afk> |: member(X,[1,2,3]).
 <dmiles_afk> member(1,[1,2,3]):['X'=1]
 <dmiles_afk> member(2,[1,2,3]):['X'=2]
 <dmiles_afk> member(3,[1,2,3]):['X'=3]
-
+````
 typing prolog
 gets you back to prolog
 

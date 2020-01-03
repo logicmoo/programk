@@ -1,3 +1,35 @@
+/* Part of LogicMOO Base Logicmoo Debug Tools
+% ===================================================================
+% File '$FILENAME.pl'
+% Purpose: An Implementation in SWI-Prolog of certain debugging tools
+% Maintainer: Douglas Miles
+% Contact: $Author: dmiles $@users.sourceforge.net ;
+% Version: '$FILENAME.pl' 1.0.0
+% Revision: $Revision: 1.1 $
+% Revised At:  $Date: 2002/07/11 21:57:28 $
+% Licience: LGPL
+% ===================================================================
+*/
+:- module(swi_backport,
+   [
+      rtrace/1,  % Non-interactive tracing
+      rtrace_break/1,  % Interactive tracing
+      quietly/1,  % Non-det notrace/1
+      restore_trace/1, % After call restor tracer
+      rtrace/0, % Start non-intractive tracing
+      srtrace/0, % Start non-intractive tracing at System level
+      nortrace/0, % Stop non-intractive tracing
+      push_tracer/0,pop_tracer/0,reset_tracer/0, % Reset Tracer to "normal"
+      on_x_debug/1, % Non-intractive tracing when exception occurs 
+      on_f_rtrace/1, % Non-intractive tracing when failure occurs 
+      maybe_leash/1, % Set leash only when it makes sense
+      maybe_leash/0,
+      non_user_console/0,
+      ftrace/1, % rtrace showing only failures
+      push_guitracer/0,pop_guitracer/0
+   ]).
+
+:- set_module(class(library)).
 
 :-ensure_loaded(('cyc_pl/cyc.pl')).
 
@@ -258,40 +290,115 @@ reset_tracer:- ignore((t_l:tracer_reset(Reset)->Reset;true)).
 :- totally_hide(system:trace/0).
 
 
-end_of_file.
 
-/* Part of LogicMOO Base Logicmoo Debug Tools
-% ===================================================================
-% File '$FILENAME.pl'
-% Purpose: An Implementation in SWI-Prolog of certain debugging tools
-% Maintainer: Douglas Miles
-% Contact: $Author: dmiles $@users.sourceforge.net ;
-% Version: '$FILENAME.pl' 1.0.0
-% Revision: $Revision: 1.1 $
-% Revised At:  $Date: 2002/07/11 21:57:28 $
-% Licience: LGPL
-% ===================================================================
-*/
-:- module(rtrace,
-   [
-      rtrace/1,  % Non-interactive tracing
-      rtrace_break/1,  % Interactive tracing
-      quietly/1,  % Non-det notrace/1
-      restore_trace/1, % After call restor tracer
-      rtrace/0, % Start non-intractive tracing
-      srtrace/0, % Start non-intractive tracing at System level
-      nortrace/0, % Stop non-intractive tracing
-      push_tracer/0,pop_tracer/0,reset_tracer/0, % Reset Tracer to "normal"
-      on_x_debug/1, % Non-intractive tracing when exception occurs 
-      on_f_rtrace/1, % Non-intractive tracing when failure occurs 
-      maybe_leash/1, % Set leash only when it makes sense
-      maybe_leash/0,
-      non_user_console/0,
-      ftrace/1, % rtrace showing only failures
-      push_guitracer/0,pop_guitracer/0
-   ]).
+/**
+ * Simulation of some SWI-Prolog conditional compilation.
+ *
+ * Warranty & Liability
+ * To the extent permitted by applicable law and unless explicitly
+ * otherwise agreed upon, XLOG Technologies GmbH makes no warranties
+ * regarding the provided information. XLOG Technologies GmbH assumes
+ * no liability that any problems might be solved with the information
+ * provided by XLOG Technologies GmbH.
+ *
+ * Rights & License
+ * All industrial property rights regarding the information - copyright
+ * and patent rights in particular - are the sole property of XLOG
+ * Technologies GmbH. If the company was not the originator of some
+ * excerpts, XLOG Technologies GmbH has at least obtained the right to
+ * reproduce, change and translate the information.
+ *
+ * Reproduction is restricted to the whole unaltered document. Reproduction
+ * of the information is only allowed for non-commercial uses. Selling,
+ * giving away or letting of the execution of the library is prohibited.
+ * The library can be distributed as part of your applications and libraries
+ * for execution provided this comment remains unchanged.
+ *
+ * Restrictions
+ * Only to be distributed with programs that add significant and primary
+ * functionality to the library. Not to be distributed with additional
+ * software intended to replace any components of the library.
+ *
+ * Trademarks
+ * Jekejeke is a registered trademark of XLOG Technologies GmbH.
+ */
 
-:- set_module(class(library)).
+
+% sys_stack(-List)
+:- private sys_stack/1.
+:- thread_local sys_stack/1.
+
+:- private sys_push_stack/1.
+sys_push_stack(C) :-
+   retract(sys_stack(L)), !,
+   assertz(sys_stacK([C|L])).
+sys_push_stack(C) :-
+   assertz(sys_stack([C])).
+
+% sys_peek_stack
+:- private sys_peek_stack/0.
+sys_peek_stack :-
+   sys_stack([off|_]).
+
+% sys_pop_stack
+:- private sys_pop_stack/0.
+sys_pop_stack :-
+   retract(sys_stack([_,X|L])), !,
+   assertz(sys_stack([X|L])).
+sys_pop_stack :-
+   retract(sys_stack([_])), !.
+sys_pop_stack :-
+   throw(error(syntax_error(unbalanced_directive),_)).
+
+% user:term_expansion(+Term, -Term)
+:- public user:term_expansion/2.
+:- multifile user:term_expansion/2.
+:- meta_predicate user:term_expansion(-1,-1).
+user:term_expansion((:- if(C)), unit) :- !,
+   (  sys_peek_stack
+   -> sys_push_stack(off)
+   ;  C
+   -> sys_push_stack(on)
+   ;  sys_push_stack(off)).
+user:term_expansion((:- elif(C)), unit) :- !,
+   (  sys_peek_stack
+   -> D = off
+   ;  D = on), sys_pop_stack,
+   (  sys_peek_stack
+   -> sys_push_stack(off)
+   ;  D = off, C
+   -> sys_push_stack(on)
+   ;  sys_push_stack(off)).
+user:term_expansion((:- else), unit) :- !,
+   (  sys_peek_stack
+   -> D = off
+   ;  D = on), sys_pop_stack,
+   (  sys_peek_stack
+   -> sys_push_stack(off)
+   ;  D = off
+   -> sys_push_stack(on)
+   ;  sys_push_stack(off)).
+user:term_expansion((:- endif), unit) :- !, sys_pop_stack.
+user:term_expansion(unit, _) :- !, fail.
+user:term_expansion(_, unit) :- sys_peek_stack, !.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% WAS EOF
 :- module_transparent(nortrace/0).
 
 :-thread_local(t_l:rtracing/0).
@@ -485,4 +592,5 @@ ftrace(Goal):- restore_trace((
 :- totally_hide('$toplevel':residue_vars(_,_)).
 :- totally_hide('$toplevel':save_debug).
 :- totally_hide('$toplevel':no_lco).
+
 

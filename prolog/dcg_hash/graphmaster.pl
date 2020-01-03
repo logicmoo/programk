@@ -28,8 +28,9 @@ isStar0(X):-var(X), !, throw(isStar0(X)).
 isStar0('*').
 isStar0('_').
 
-into_path(List, NList):- notrace((is_list(List), !, maplist(upcase_atom, List, NList))), !.
+into_path(List, NList):- notrace((is_list(List), !, maplist(into_path, List, NList))), !.
 into_path(List, NList):- atom(List), !, upcase_atom(List, NList).
+into_path(List, NList):- compound(List), !, =(List, NList).
 into_path(List, NList):- throw(into_path(List, NList)).
 
 sameWords(Word1, Word2):-atom(Word1), atom(Word2), atoms_match0(Word1, Word2).
@@ -108,12 +109,15 @@ set_pathprop_now(_State, [], Props, Graph):- !,
  must(compound(Props)), 
  hashtable_set_props(Graph, Props).
 
-set_pathprop_now( State, [W1|More], Props, Graph):- !, 
- ( hashtable_get(Graph, W1, Next) 
+
+set_pathprop_now( State, [W1|More], Props, Graph):- 
+ functor(W1,Index,_), !, 
+ ( hashtable_get(Graph, Index, Next) 
    -> set_pathprop_now( State, More, Props, Next)
     ; (hashtable_new(NewNode),       
-       set_pathprop_now( State, More, Props, NewNode), 
-       hashtable_set(Graph, W1, NewNode))).
+       set_pathprop_now( State, More, Props, NewNode),
+       (Index==W1 -> NewNodeTerm = NewNode ; w(W1,NewNode) = NewNodeTerm ),
+       hashtable_set(Graph, Index, NewNodeTerm))).
 
 
 % ===================================================================
@@ -162,29 +166,46 @@ set_result_vars(S,X):-
              ; set_result_vars(S,E)))))).
 
 
+call_with_filler(NewCall):- call(NewCall).
 
 path_match_now(State, Path, Graph, Result):- 
   get_pathprops( State, Path, template = (Result), Graph).
+
+% Call_Star match
+path_match_now(State, InputList, Graph, Result):- 
+ hashtable_get(Graph, 'call_star', Found),
+ must(w(call_star(Star,Call),GraphMid)=Found),
+ star_n(Star,N), subst(Call,Star,Left,NewCall),
+ complex_match(State, N, InputList, Left, _Right, call_with_filler(NewCall), GraphMid, Result).
+
+% Call then match
+path_match_now(State, InputList, Graph, Result):- 
+ hashtable_get(Graph, 'call', w(call(Call),GraphMid)),
+ call_with_filler(Call),
+ path_match_now(State, InputList, GraphMid, Result).
+
+% phrase match
+path_match_now(State, InputList, Graph, Result):- 
+ hashtable_get(Graph, 'phrase', w(phrase(DCG),GraphMid)),
+ phrase(DCG,InputList,Rest),
+ path_match_now(State, Rest, GraphMid, Result).
+
 % exact match
 path_match_now(State, [Input|List], Graph, Result):- 
  into_path(Input,InputM),
  hashtable_get(Graph, InputM, GraphMid), 
  path_match_now(State, List, GraphMid, Result).
-% _ match
-path_match_now(State, InputList, Graph, Result):- 
- hashtable_get(Graph, '_', ComplexHT), 
- complex_match(State, 1, InputList, ComplexHT, Result).
-% _ match
-path_match_now(State, InputList, Graph, Result):- 
- hashtable_get(Graph, '^', ComplexHT), 
- complex_match(State, 0, InputList, ComplexHT, Result).
-% * match
-path_match_now(State, [Input|List], Graph, Result):- 
- hashtable_get(Graph, '*', ComplexHT), 
- complex_match(State, 1, [Input|List], ComplexHT, Result).
+% Star match
+path_match_now(State, InputList, Graph, Result):-
+ star_n(Star,N),
+ hashtable_get(Graph, Star, ComplexHT),   
+ complex_match(State, N, InputList, _Left, _Right, true, ComplexHT, Result).
 
+star_n('_',1).
+star_n('^',0).
+star_n('*',1).
 
-complex_match(State, Min, InputList, ComplexHT, Result):-
+complex_match(State, Min, InputList,Left,Right,NewCall,ComplexHT, Result):-
  member(NextWord, InputList), 
  into_path(NextWord,NextWordU),
  hashtable_get(ComplexHT, NextWordU, GraphNext), 
@@ -197,6 +218,7 @@ complex_match(State, Min, InputList, ComplexHT, Result):-
    hashtable_set(State,star_num,StarNum2),
    atom_concat(StarName,StarNum,StarVar),
    hashtable_set(State,StarVar,Left),
+   NewCall,
  path_match_now(State, Right, GraphNext, Result).
 
 
@@ -219,12 +241,17 @@ complex_match(State, Min, InputList, ComplexHT, Result):-
 :- set_template([a, b, '_'], ab(get(star1)), _).
 :- set_template([a, b2, *, e], ab_e(get(star1)), _).
 :- set_template([a, b2, '_', e], ab(get(star1)), _).
+:- set_template([a, call_star(*,(trace,member(*,[['b3']]))),c,d,e], call_member(get(star1)), _).
+:- set_template([a, call(X=1),b4,c,d,e], call_x(X), _).
 
 :- path_match([a, b, c, d, e],R), dmsg(R), R = abcde.
 :- path_match([a, b, c2, d, e],R),dmsg(R), R = abc2de.
 :- path_match([a, b, c3, d, e],R),dmsg(R), R = ab_e([c3, d]).
 :- path_match([a, b2, c4, d, e],R),dmsg(R), R = ab([c4, d]).
-
-:- clear_graph(graphmaster).
+:- path_match([a, b3, c, d, e],R),dmsg(R).
+:- path_match([a, b4, c, d, e],R),dmsg(R).
 
 :- show_name_values.
+
+% :- clear_graph(graphmaster).
+

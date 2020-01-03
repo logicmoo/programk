@@ -84,7 +84,8 @@ into_pairs_now(Graph, Props):- is_list(Graph), !,
   maplist(into_pairs_now,Graph,Props).
 into_pairs_now(Graph, Props):- \+ compound(Graph),!,Props=Graph.
 into_pairs_now(Graph, Props):- is_hashtable(Graph),!,
-  hashtable_pairs(Graph,Props).
+  % hashtable_pairs
+  =(Graph,Props).
 into_pairs_now(Props, Key=Value):- compound(Props),
   props_kv(Props,Key,Value).
 

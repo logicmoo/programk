@@ -110,6 +110,13 @@ set_pathprop_now(_State, [], Props, Graph):- !,
  hashtable_set_props(Graph, Props).
 
 
+set_pathprop_now(State, Path, Props, Graph):-
+  \+ ground(Path), 
+  make_path_props_v(Path, Props, PathV, PropsV), !,
+  must(ground(PathV)),
+  set_pathprop_now(State, PathV, PropsV, Graph).
+
+
 set_pathprop_now( State, [W1|More], Props, Graph):- 
  functor(W1,Index,_), !, 
  ( hashtable_get(Graph, Index, Next) 
@@ -119,6 +126,29 @@ set_pathprop_now( State, [W1|More], Props, Graph):-
        (Index==W1 -> NewNodeTerm = NewNode ; w(W1,NewNode) = NewNodeTerm ),
        hashtable_set(Graph, Index, NewNodeTerm))).
 
+
+
+make_path_props_v(Path, Props, PathV, PropsV):-
+  term_variables(Path,PathVars),
+  make_path_props_v(PathVars, Path, Props, PathV, PropsV).
+
+make_path_props_v([], Path, Props, Path, Props):-!.
+make_path_props_v([V|PathVars], Path, Props, PathV, PropsV):-
+  gensym(pathvar_,PV),
+  subst(Path, V, var(PV), PathM),
+  subst(Props, V, get(PV), PropsM),
+  make_path_props_v(PathVars, PathM, PropsM, PathV, PropsV).
+
+ revarify(Call,GraphMid,CallV,GraphMidV):-
+   sub_term(Sub,Call),compound(Sub),
+   Sub=var(Name),!,
+   subst(Call,Sub,NewVar,CallM),
+   subst(GraphMid,get(Name),NewVar,GraphMidM),
+   revarify(CallM,GraphMidM,CallV,GraphMidV).
+
+revarify(Call,GraphMid,Call,GraphMid):-!.
+
+  
 
 % ===================================================================
 % ===================================================================
@@ -180,9 +210,11 @@ path_match_now(State, InputList, Graph, Result):-
 
 % Call then match
 path_match_now(State, InputList, Graph, Result):- 
- hashtable_get(Graph, 'call', w(call(Call),GraphMid)),
- call_with_filler(Call),
- path_match_now(State, InputList, GraphMid, Result).
+ hashtable_get(Graph, 'call', Found),
+ must(w(call(Call),GraphMid)=Found),
+ revarify(Call,GraphMid,CallV,GraphMidV),
+ call_with_filler(CallV),
+ path_match_now(State, InputList, GraphMidV, Result).
 
 % phrase match
 path_match_now(State, InputList, Graph, Result):- 
@@ -241,7 +273,7 @@ complex_match(State, Min, InputList,Left,Right,NewCall,ComplexHT, Result):-
 :- set_template([a, b, '_'], ab(get(star1)), _).
 :- set_template([a, b2, *, e], ab_e(get(star1)), _).
 :- set_template([a, b2, '_', e], ab(get(star1)), _).
-:- set_template([a, call_star(*,(trace,member(*,[['b3']]))),c,d,e], call_member(get(star1)), _).
+:- set_template([a, call_star(*,(member(*,[[b3]]))),c,d,e], call_member(get(star1)), _).
 :- set_template([a, call(X=1),b4,c,d,e], call_x(X), _).
 
 :- path_match([a, b, c, d, e],R), dmsg(R), R = abcde.

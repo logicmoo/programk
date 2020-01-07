@@ -1,6 +1,6 @@
 
 
-
+value_member(Val,Val).
 
 portray_hashtable(T):- is_hashtable(T),!,hashtable_pairs(T,P),dict_create(Dict,'HT',P),writeq(Dict).
 % portray_hashtable(T):- is_hashtable(T),!,hashtable_pairs(T,P),write('HT{'),writeq(P),write('}').
@@ -14,7 +14,8 @@ hashtable_new(UDT):- notrace(rb_new(UDT)).
 
 hashtable_lookup(Key, Val, UDT):- notrace(rb_lookup(Key, Val, UDT)).
 
-hashtable_get(UDT, Key, Val):- notrace(rb_lookup(Key, Val, UDT)).
+hashtable_get(UDT, Key, Val):- notrace((rb_lookup(Key, ValS, UDT),value_member(Val,ValS))).
+hashtable_get_raw(UDT, Key, Val):- notrace((rb_lookup(Key, Val, UDT))).
 
 hashtable_insert(UDT,Key,Value,NewUDT):- notrace(rb_insert(UDT,Key,Value,NewUDT)).
 

@@ -105,7 +105,8 @@ set_pathprops(State, Path, Props, Graph):-
           into_path(Path, NPath), 
           into_props([pattern=Path|NState], Props, NProps),
           into_graph(Graph, NGraph)))), 
- set_pathprop_now(NState, NPath, NProps, NGraph).
+ with_name_value(NState, star_num, 1,
+    set_pathprop_now(NState, NPath, NProps, NGraph)).
  
 set_pathprop_now(_State, [], Props, Graph):- !, 
  must(compound(Props)), 
@@ -119,8 +120,8 @@ set_pathprop_now(State, Path, Props, Graph):-
   must(ground(PathV)),
   set_pathprop_now(State, PathV, PropsV, Graph).
 
- 
-set_pathprop_now( State, [W0|More], Props, Graph):- 
+
+set_pathprop_now(State, [W0|More], Props, Graph):- 
  path_expand(State, W0, W1, More),
  functor(W1, Index, _), !, 
  ( hashtable_get(Graph, Index, Next) 
@@ -263,8 +264,8 @@ path_match_now(State, InputList, Graph, Result):- fail,
  must(w('*'(DCG), GraphMid)=Found),  
  gm_phrase(DCG, InputList, Rest),
  append(Left,Rest,InputList),
- set_next_star(State, Left), 
- path_match_now(State, Rest, GraphMid, Result).
+ set_next_star(State, Left, 
+ path_match_now(State, Rest, GraphMid, Result)).
 
 % $VAR
 path_match_now(State, InputList, Graph, Result):- 
@@ -274,9 +275,9 @@ path_match_now(State, InputList, Graph, Result):-
    -> gm_phrase(req(RequiredValue), InputList, Rest) 
    ;  gm_phrase(NAME, InputList, Rest)), 
  append(Left,Rest,InputList),
- set_next_star(State, Left), 
- (atom(NAME) -> hashtable_set(State, NAME, Left) ; true),
- path_match_now(State, Rest, GraphMid, Result).
+ set_next_star(State, Left, 
+ ((atom(NAME) -> hashtable_set(State, NAME, Left) ; true),
+ path_match_now(State, Rest, GraphMid, Result))).
 
 % Call_Star match ^,*
 path_match_now(State, InputList, Graph, Result):- 
@@ -304,9 +305,9 @@ complex_match(State, Min, InputList, Left, Right, NewCall, GraphMid, Result):-
  length(Right, _),
  append(Left, [NextWord|Right], InputList), 
  length(Left, LL), LL>=Min, 
- set_next_star(State, Left),
- call(NewCall),
- path_match_now(State, Right, GraphNext, Result).
+ set_next_star(State, Left,
+ (call(NewCall),
+ path_match_now(State, Right, GraphNext, Result))).
 
 complex_match(State, Min, InputList, Left, Right, NewCall, GraphMid, Result):- 
  length(InputList, Max),
@@ -315,23 +316,23 @@ complex_match(State, Min, InputList, Left, Right, NewCall, GraphMid, Result):-
   -> (!,fail) 
   ; (append(Left, Right, InputList), 
      length(Left, LL), LL>=Min,
-     set_next_star(State, Left),
-     call(NewCall),
-     path_match_now(State, Right, GraphMid, Result))).
+     set_next_star(State, Left,
+     (call(NewCall),
+     path_match_now(State, Right, GraphMid, Result))))).
 
 
 gm_phrase( \+ DCG, InputList, Rest):- nonvar(DCG), !, \+ gm_phrase(DCG, InputList, Rest).
 gm_phrase(DCG, InputList, Rest):- phrase(DCG, InputList, Rest).
 
 
-set_next_star(State, Left):-
+
+set_next_star(State, Left, Goal):-
  hashtable_get(State, star_num, StarNum),
  hashtable_get(State, star_name, StarName),
- %set_state(State, star, Left), 
-   StarNum2 is StarNum + 1,
-   hashtable_set(State, star_num, StarNum2),
-   atom_concat(StarName, StarNum, StarVar),
-   hashtable_set(State, StarVar, Left), !.
+ atom_concat(StarName, StarNum, StarVar),
+ hashtable_set(State, StarVar, Left), !,
+ StarNum2 is StarNum + 1,
+ with_name_value(State, star_num, StarNum2, Goal).
 
 
 with_name_value(State, Name, Value, Goal):-

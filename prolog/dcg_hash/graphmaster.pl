@@ -110,7 +110,7 @@ set_pathprops(State, Path, Props, Graph):-
 set_pathprop_now(_State, [], Props, Graph):- !, 
  must(compound(Props)), 
  hashtable_set_props(Graph, Props),
- nop(hashtable_set(Graph, [], Props)).
+ hashtable_set(Graph, [], Props).
 
 
 set_pathprop_now(State, Path, Props, Graph):-
@@ -121,7 +121,7 @@ set_pathprop_now(State, Path, Props, Graph):-
 
  
 set_pathprop_now( State, [W0|More], Props, Graph):- 
- path_expand(State, W0, W1),
+ path_expand(State, W0, W1, More),
  functor(W1, Index, _), !, 
  ( hashtable_get(Graph, Index, Next) 
    *-> set_pathprop_now( State, More, Props, Next)
@@ -130,10 +130,10 @@ set_pathprop_now( State, [W0|More], Props, Graph):-
        (Index==W1 -> NewNodeTerm = NewNode ; w(W1, NewNode) = NewNodeTerm ),
        hashtable_set(Graph, Index, NewNodeTerm))).
 
+
 make_path_props_v(Path, Props, PathV, PropsV):-
   term_variables(Path, PathVars),
   make_path_props_v(PathVars, Path, Props, PathV, PropsV).
-
 make_path_props_v([], Path, Props, Path, Props):-!.
 make_path_props_v([V|PathVars], Path, Props, PathV, PropsV):-
   gensym('PVAR_', PV),
@@ -141,14 +141,20 @@ make_path_props_v([V|PathVars], Path, Props, PathV, PropsV):-
   subst(Props, V, '$VAR'(PV), PropsM),
   make_path_props_v(PathVars, PathM, PropsM, PathV, PropsV).
 
- revarify(Call, GraphMid, CallV, GraphMidV):-
+
+ revarify(State, Call, GraphMid, CallV, GraphMidV):-
    sub_term(Sub, Call), compound(Sub),
    Sub='$VAR'(_), !,
    subst(Call, Sub, NewVar, CallM),
    subst(GraphMid, Sub, NewVar, GraphMidM),
-   revarify(CallM, GraphMidM, CallV, GraphMidV).
-
-revarify(Call, GraphMid, Call, GraphMid):-!.
+   revarify(State, CallM, GraphMidM, CallV, GraphMidV).
+ revarify(State, Call, GraphMid, CallV, GraphMidV):-
+   sub_term(Sub, Call), compound(Sub),
+   Sub='$'(NAME), unbound_get(State, NAME, NewVar), !,
+   subst(Call, Sub, NewVar, CallM),
+   subst(GraphMid, Sub, NewVar, GraphMidM),
+   revarify(State, CallM, GraphMidM, CallV, GraphMidV).
+revarify(_State, Call, GraphMid, Call, GraphMid).
 
   
 
@@ -215,34 +221,34 @@ HELLO ^
 HELLO *
 */
 
-path_match_now(_State, [], Graph, Result):- 
+% {Call}
+path_match_now(State, InputList, Graph, Result):- 
+ hashtable_get(Graph, '{}', Found),
+ must(w('{}'(Call), GraphMid)=Found),
+ revarify(State, Call, GraphMid, CallV, GraphMidV),
+ call_with_filler(CallV),
+ path_match_now(State, InputList, GraphMidV, Result).
+
+path_match_now(_State, [], Graph, Result):- !,
  hashtable_get(Graph, '[]', Result). 
  
+
+% Call_Star match #,_
+path_match_now(State, InputList, Graph, Result):- 
+ star_n(N, CStar, _), N < 3,
+ atom_concat(call_star_,CStar, CS),
+ hashtable_get(Graph, CS, Found),
+ NEW =.. [CS, Star, Call],
+ must(w(NEW, GraphMid)=Found),
+ star_n(_, Star, Min), 
+ subst(Call, Star, Left, NewCall),
+ complex_match(State, Min, InputList, Left, _Right, call_with_filler(NewCall), GraphMid, Result).
+
 % exact match
 path_match_now(State, [Input|List], Graph, Result):- 
  into_path(Input, InputM),
  hashtable_get(Graph, InputM, GraphMid), 
  path_match_now(State, List, GraphMid, Result).
-
-% Call_Star match
-path_match_now(State, InputList, Graph, Result):- 
- star_n(CStar, _),
-
- atom_concat(call_star_,CStar, CS),
- hashtable_get(Graph, CS, Found),
- NEW =.. [CS, Star, Call],
- must(w(NEW, GraphMid)=Found),
- star_n(Star, Min), 
- subst(Call, Star, Left, NewCall),
- complex_match(State, Min, InputList, Left, _Right, call_with_filler(NewCall), GraphMid, Result).
-
-% Call then match
-path_match_now(State, InputList, Graph, Result):- 
- hashtable_get(Graph, 'call', Found),
- must(w(call(Call), GraphMid)=Found),
- revarify(Call, GraphMid, CallV, GraphMidV),
- call_with_filler(CallV),
- path_match_now(State, InputList, GraphMidV, Result).
 
 % @DCG
 path_match_now(State, InputList, Graph, Result):- 
@@ -251,43 +257,67 @@ path_match_now(State, InputList, Graph, Result):-
  gm_phrase(DCG, InputList, Rest),
  path_match_now(State, Rest, GraphMid, Result).
 
+% *DCG
+path_match_now(State, InputList, Graph, Result):- fail,
+ hashtable_get(Graph, '*', Found), \+ is_hashtable(Found),
+ must(w('*'(DCG), GraphMid)=Found),  
+ gm_phrase(DCG, InputList, Rest),
+ append(Left,Rest,InputList),
+ set_next_star(State, Left), 
+ path_match_now(State, Rest, GraphMid, Result).
+
 % $VAR
 path_match_now(State, InputList, Graph, Result):- 
  hashtable_get(Graph, '$', Found),
  must(w('$'(NAME), GraphMid)=Found),
- ((hashtable_get(State, NAME, RequiredValue), \+ is_unbound(RequiredValue))
+ (unbound_get(State, NAME, RequiredValue)
    -> gm_phrase(req(RequiredValue), InputList, Rest) 
    ;  gm_phrase(NAME, InputList, Rest)), 
-
  append(Left,Rest,InputList),
  set_next_star(State, Left), 
  (atom(NAME) -> hashtable_set(State, NAME, Left) ; true),
  path_match_now(State, Rest, GraphMid, Result).
 
+% Call_Star match ^,*
+path_match_now(State, InputList, Graph, Result):- 
+ star_n(N, CStar, _), N > 3,
+ atom_concat(call_star_,CStar, CS),
+ hashtable_get(Graph, CS, Found),
+ NEW =.. [CS, Star, Call],
+ must(w(NEW, GraphMid)=Found),
+ star_n(_, Star, Min), 
+ subst(Call, Star, Left, NewCall),
+ complex_match(State, Min, InputList, Left, _Right, call_with_filler(NewCall), GraphMid, Result).
+
 
 % Star match
 path_match_now(State, InputList, Graph, Result):-
- star_n(Star, Min),
+ star_n(_, Star, Min),
  hashtable_get(Graph, Star, GraphMid),   
  complex_match(State, Min, InputList, _Left, _Right, true, GraphMid, Result).
 
 
-complex_match(State, Min, InputList, Left, Right, NewCall, GraphMid, Result):-
+complex_match(State, Min, InputList, Left, Right, NewCall, GraphMid, Result):- 
  member(NextWord, InputList), 
  into_path(NextWord, NextWordU),
  hashtable_get(GraphMid, NextWordU, GraphNext), 
+ length(Right, _),
  append(Left, [NextWord|Right], InputList), 
  length(Left, LL), LL>=Min, 
  set_next_star(State, Left),
  call(NewCall),
  path_match_now(State, Right, GraphNext, Result).
 
-complex_match(State, Min, InputList, Left, Right, NewCall, GraphMid, Result):- fail,
- length(Left, LL), LL>=Min,
- append(Left, Right, InputList), 
- set_next_star(State, Left),
- call(NewCall),
- path_match_now(State, Right, GraphMid, Result).
+complex_match(State, Min, InputList, Left, Right, NewCall, GraphMid, Result):- 
+ length(InputList, Max),
+ length(Right, RMax), 
+ (RMax > Max 
+  -> (!,fail) 
+  ; (append(Left, Right, InputList), 
+     length(Left, LL), LL>=Min,
+     set_next_star(State, Left),
+     call(NewCall),
+     path_match_now(State, Right, GraphMid, Result))).
 
 
 gm_phrase( \+ DCG, InputList, Rest):- nonvar(DCG), !, \+ gm_phrase(DCG, InputList, Rest).
@@ -311,6 +341,7 @@ with_name_value(State, Name, Value, Goal):-
    *-> hashtable_set(State, Name, Was) 
     ; (hashtable_set(State, Name, Was), fail)).
 
+unbound_get(State, NAME, RequiredValue):- hashtable_get(State, NAME, RequiredValue), \+ is_unbound(RequiredValue).
   
 is_unbound(RequiredValue):- \+ is_list(RequiredValue).
  
@@ -322,25 +353,30 @@ match_ci(H,W):- atom(H),atom(W),upcase_atom(H,U),upcase_atom(W,U).
 req([]) --> [].
 req([H|T]) --> [W],{match_ci(H,W)},req(T).
 
+some([]) --> [].
+some([H|T]) --> [H],some(T).
+
 cd --> [c, d].
 color --> [red].
 color --> [blue].
 color --> [green].
 
 
-star_n('#', 0).
-star_n('_', 1).
+star_n(1, '#', 0).
+star_n(2, '_', 1).
 % star_n('phrase', 1).
 % star_n('@', 1).
-star_n('^', 0).
-star_n('*', 1).
+star_n(5,'^', 0).
+star_n(6,'*', 1).
 
 cmp_star(Star, Stuff, NEW):- atom_concat('call_star_',Star,CS), NEW =.. [CS, Star, Stuff].
 
-path_expand(_State, call_star(Star,Stuff), NEW):- cmp_star(Star, Stuff, NEW).
-path_expand(_State, CMP, NEW):- compound(CMP), functor(CMP, Star,1), star_n(Star,_), 
+path_expand(_State, call_star(Star,Stuff), NEW, _More):- cmp_star(Star, Stuff, NEW).
+path_expand(_State, CMP, NEW, _More):- compound(CMP), functor(CMP, Star,1), star_n(_, Star,_), % Star\=='*', 
    arg(1, CMP, Stuff), cmp_star(Star,phrase(Stuff,Star,[]), NEW).
-path_expand(_State, W, W).
+path_expand(_State, Star, NEW, [OStar| _More]):- star_n(_, Star,_),star_n(_, OStar,_), cmp_star(Star,phrase([_],Star,[]), NEW).
+path_expand(_State, Star, NEW, _More):- star_n(_, Star,_), cmp_star(Star,phrase(some(_),Star,[]), NEW).
+path_expand(_State, W, W, _More).
 
 % ======================================================================
 %   TEST EXPANSIONS
@@ -384,9 +420,9 @@ do_test(Test):-
 :- add_test([a, b, c2, d, e], abc2de).
 
 % ======================================================================
-:- set_template([a, b, *, e], c3_pass(get(star1)), _).
-:- set_template([a, b, '_'], c3_fail(get(star1)), _).
-:- add_test([a, b, c3, d, e], c3_pass([c3, d])).
+:- set_template([a, b, *, e], c3_fail(get(star1)), _).
+:- set_template([a, b, '_'], c3_pass(get(star1)), _).
+:- add_test([a, b, c3, d, e], c3_pass([c3, d, e])).
 
 % ======================================================================
 :- set_template([a, b2, *, d, e], b2_fail(get(star1)), _).
@@ -398,7 +434,7 @@ do_test(Test):-
 :- add_test([a, b3, c, d, e], _).
 
 % ======================================================================
-:- set_template([a, call(X=1), b4, c, d, e], b4(X), _).
+:- set_template([a, {X=1}, b4, c, d, e], b4(X), _).
 :- add_test([a, b4, c, d, e], b4(1)).
 
 % ======================================================================
@@ -433,6 +469,15 @@ do_test(Test):-
 % ======================================================================
 :- set_template([a, b12, '*'([c11,c12]), d, e], b12(get(star1)), _).
 :- add_test([a, b12, c11, c12, d, e], _).
+
+% ======================================================================
+:- set_template([a, b13, '_'([c11,c12]), d, e], b13_pass(get(star1)), _).
+:- set_template([a, b13, '*'([c11,c12]), d, e], b13_fail(get(star1)), _).
+:- add_test([a, b13, c11, c12, d, e], _).
+
+% ======================================================================
+:- set_template([a, b14, *, *, e], b14_pass(get(star1),get(star2)), _).
+:- add_test([a, b14, s1, s2, e], _).
 
 % ======================================================================
 %   RUN TESTS

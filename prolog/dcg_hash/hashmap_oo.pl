@@ -2,20 +2,26 @@
 
 value_member(Val,Val).
 
-portray_hashtable(T):- is_hashtable(T),!,hashtable_pairs(T,P),dict_create(Dict,'HT',P),writeq(Dict).
+safe_for_dict(P,D):- is_list(P),maplist(safe_for_dict,P,D).
+safe_for_dict(N=V,NN=V):- compound(N),term_to_atom(N,NN),!.
+safe_for_dict(N-V,NN-V):- compound(N),term_to_atom(N,NN),!.
+safe_for_dict(D,D).
+
+portray_hashtable(T):- is_hashtable(T),!,hashtable_pairs(T,P), safe_for_dict(P,D), dict_create(Dict,'HT',D),writeq(Dict).
 % portray_hashtable(T):- is_hashtable(T),!,hashtable_pairs(T,P),write('HT{'),writeq(P),write('}').
 
 
-user:portray(T):- notrace(((portray_hashtable(T)))),!.
+user:portray(T):- notrace(((catch(portray_hashtable(T),_,fail)))),!.
 
 is_hashtable(UDT):- notrace(is_rbtree(UDT)).
 
 hashtable_new(UDT):- notrace(rb_new(UDT)).
 
-hashtable_lookup(Key, Val, UDT):- notrace(rb_lookup(Key, Val, UDT)).
+hashtable_lookup(Key, Val, UDT):- notrace(ground(Key) ; \+ compound(Key)),!, notrace(rb_lookup(Key, Val, UDT)).
+hashtable_lookup(Key, Val, UDT):- notrace(rb_keys(UDT, Keys)),member(Key,Keys),notrace(rb_lookup(Key, Val, UDT)).
 
-hashtable_get(UDT, Key, Val):- notrace((rb_lookup(Key, ValS, UDT),value_member(Val,ValS))).
-hashtable_get_raw(UDT, Key, Val):- notrace((rb_lookup(Key, Val, UDT))).
+hashtable_get(UDT, Key, Val):- notrace((hashtable_get_raw(UDT, Key, ValS),value_member(Val,ValS))).
+hashtable_get_raw(UDT, Key, Val):- notrace((hashtable_lookup(Key, Val, UDT))).
 
 hashtable_insert(UDT,Key,Value,NewUDT):- notrace(rb_insert(UDT,Key,Value,NewUDT)).
 
@@ -76,7 +82,6 @@ hashtable_pairs_now(Props, Key=ValueO):- % compound(Props),
 hashtable_pairs_now(VV,VV).
 
 props_kv(Props,Key,Value):- Props=..[_, Key, Value].
-
 
 into_pairs(Graph, Props):- 
   notrace(\+ compound(Graph)->Props=Graph 

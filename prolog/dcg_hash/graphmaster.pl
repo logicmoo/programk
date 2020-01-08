@@ -244,12 +244,6 @@ path_match_now(State, InputList, Graph, Result):-
  call_with_filler(CallV),
  path_match_now(State, InputList, GraphMidV, Result).
 
-% phrase match
-path_match_now(State, InputList, Graph, Result):- 
- hashtable_get(Graph, 'phrase', w(phrase(DCG), GraphMid)),
- gm_phrase(DCG, InputList, Rest),
- path_match_now(State, Rest, GraphMid, Result).
-
 % @DCG
 path_match_now(State, InputList, Graph, Result):- 
  hashtable_get(Graph, '@', Found),
@@ -261,9 +255,12 @@ path_match_now(State, InputList, Graph, Result):-
 path_match_now(State, InputList, Graph, Result):- 
  hashtable_get(Graph, '$', Found),
  must(w('$'(NAME), GraphMid)=Found),
- gm_phrase(NAME, InputList, Rest),
- append(Left, Rest, InputList),
- set_next_star(State, Left),
+ (hashtable_get(State, NAME, RequiredValue)
+   -> gm_phrase(req(RequiredValue), InputList, Rest) 
+   ;  gm_phrase(NAME, InputList, Rest)), 
+
+ append(Left,Rest,InputList),
+ set_next_star(State, Left), 
  (atom(NAME) -> hashtable_set(State, NAME, Left) ; true),
  path_match_now(State, Rest, GraphMid, Result).
 
@@ -284,6 +281,13 @@ complex_match(State, Min, InputList, Left, Right, NewCall, GraphMid, Result):-
  set_next_star(State, Left),
  call(NewCall),
  path_match_now(State, Right, GraphNext, Result).
+
+complex_match(State, Min, InputList, Left, Right, NewCall, GraphMid, Result):- fail,
+ length(Left, LL), LL>=Min,
+ append(Left, Right, InputList), 
+ set_next_star(State, Left),
+ call(NewCall),
+ path_match_now(State, Right, GraphMid, Result).
 
 
 gm_phrase( \+ DCG, InputList, Rest):- nonvar(DCG), !, \+ gm_phrase(DCG, InputList, Rest).
@@ -312,6 +316,11 @@ with_name_value(State, Name, Value, Goal):-
  
 %%REAL-UNUSED set_matchit1(StarName, Pattern, Matcher, OnBind):- length(Pattern, MaxLen0), MaxLen is MaxLen0 + 2, 
 %%REAL-UNUSED set_matchit2(StarName, Pattern, Matcher, MaxLen, OnBind).
+
+match_ci(H,W):- atom(H),atom(W),upcase_atom(H,U),upcase_atom(W,U).
+
+req([]) --> [].
+req([H|T]) --> [W],{match_ci(H,W)},req(T).
 
 cd --> [c, d].
 color --> [red].
@@ -375,42 +384,42 @@ do_test(Test):-
 :- add_test([a, b, c2, d, e], abc2de).
 
 % ======================================================================
-:- set_template([a, b, *, e], ab_e(get(star1)), _).
-:- set_template([a, b, '_'], ab(get(star1)), _).
-:- add_test([a, b, c3, d, e], ab_e([c3, d])).
+:- set_template([a, b, *, e], c3_pass(get(star1)), _).
+:- set_template([a, b, '_'], c3_fail(get(star1)), _).
+:- add_test([a, b, c3, d, e], c3_pass([c3, d])).
 
 % ======================================================================
-:- set_template([a, b2, *, d, e], ab_e(get(star1)), _).
-:- set_template([a, b2, '_', e], ab(get(star1)), _).
-:- add_test([a, b2, c4, d, e], ab([c4, d])).
+:- set_template([a, b2, *, d, e], b2_fail(get(star1)), _).
+:- set_template([a, b2, '_', e], b2_pass(get(star1)), _).
+:- add_test([a, b2, c4, d, e], b2_pass([c4, d])).
 
 % ======================================================================
-:- set_template([a, call_star(*, (member(*, [[b3]]))), c, d, e], call_member(get(star1)), _).
+:- set_template([a, call_star(*, (member(*, [[b3]]))), c, d, e], b3(get(star1)), _).
 :- add_test([a, b3, c, d, e], _).
 
 % ======================================================================
-:- set_template([a, call(X=1), b4, c, d, e], call_x(X), _).
-:- add_test([a, b4, c, d, e], _).
+:- set_template([a, call(X=1), b4, c, d, e], b4(X), _).
+:- add_test([a, b4, c, d, e], b4(1)).
 
 % ======================================================================
 :- set_template([a, b5, @([c, d]), e], b5, _).
-:- add_test([a, b5, c, d, e], _).
+:- add_test([a, b5, c, d, e], b5).
 
 % ======================================================================
-:- set_template([a, b6, phrase(cd), e], b6, _).
-:- add_test([a, b6, c, d, e], _).
+:- set_template([a, b6, @(cd), e], b6, _).
+:- add_test([a, b6, c, d, e], b6).
 
 % ======================================================================
-:- set_template([a, b7, '@'(color), d, e], b7(get(star1)), _).
-:- add_test([a, b7, green, d, e], _).
+:- set_template([a, b7, '*'(color), d, e], b7(get(star1)), _).
+:- add_test([a, b7, green, d, e],  b7([green])).
 
 % ======================================================================
 :- set_template([a, b8, '$'(color), d, e], b8(get(star1), get(color)), _).
-:- add_test([a, b8, red, d, e], _).
+:- add_test([a, b8, red, d, e], b8([red], [red])).
 
 % ======================================================================
 :- set_template([a, b9, '$'(color), '$'(color), e], b9(get(star1), get(color)), _).
-:- add_test([a, b9, red, blue, e], _).
+:- add_test([a, b9, red, red, e], b9([red], [red])).
 
 % ======================================================================
 :- set_template([a, b10, @([c1];[c2]), d, e], b10, _).

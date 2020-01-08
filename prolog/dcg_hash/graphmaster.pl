@@ -255,7 +255,7 @@ path_match_now(State, InputList, Graph, Result):-
 path_match_now(State, InputList, Graph, Result):- 
  hashtable_get(Graph, '$', Found),
  must(w('$'(NAME), GraphMid)=Found),
- (hashtable_get(State, NAME, RequiredValue)
+ ((hashtable_get(State, NAME, RequiredValue), \+ is_unbound(RequiredValue))
    -> gm_phrase(req(RequiredValue), InputList, Rest) 
    ;  gm_phrase(NAME, InputList, Rest)), 
 
@@ -312,7 +312,7 @@ with_name_value(State, Name, Value, Goal):-
     ; (hashtable_set(State, Name, Was), fail)).
 
   
-     
+is_unbound(RequiredValue):- \+ is_list(RequiredValue).
  
 %%REAL-UNUSED set_matchit1(StarName, Pattern, Matcher, OnBind):- length(Pattern, MaxLen0), MaxLen is MaxLen0 + 2, 
 %%REAL-UNUSED set_matchit2(StarName, Pattern, Matcher, MaxLen, OnBind).

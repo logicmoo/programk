@@ -1,5 +1,5 @@
 name(programk).
-version('1.2.111').
+version('1.4.111').
 title('AIML 2.0 - Because an AIML Interpreter/Chatbot needed to exist in Prolog to!').
 keywords(['chatbot', 'aiml']).
 author( 'Douglas R. Miles', 'logicmoo@gmail.com' ).

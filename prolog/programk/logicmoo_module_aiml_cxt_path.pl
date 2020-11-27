@@ -391,7 +391,7 @@ brokenFallback(Fallback,Ctx):-withNamedContext(broken(Fallback),Ctx),!.
 
 mustMatch(PrevValues,PrevValuesIn):-ignore(PrevValues=PrevValuesIn).
 
-:-dynamic(no_cyclic_terms).
+:-dynamic(no_cyclic_terms/0).
 
 no_cyclic_terms.
 

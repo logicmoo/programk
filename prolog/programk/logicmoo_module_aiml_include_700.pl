@@ -58,8 +58,8 @@ nop(_).
  setup_call_cleanup('$set_predicate_attribute'(Pred, system, 0),
    catch(Goal,E,throw(E)),'$set_predicate_attribute'(Pred, system, 1))))).
 
-:- meta_predicate(totally_hide(:)).
-totally_hide(MP):- strip_module(MP,M,P),Pred=M:P,
+:- meta_predicate(totally_hide_here(:)).
+totally_hide_here(MP):- strip_module(MP,M,P),Pred=M:P,
    % (current_prolog_flag(runtime_debug,N), N>2) -> unhide(Pred) ; 
   '$with_unlocked_pred_local'(Pred,
    (('$set_predicate_attribute'(Pred, trace, 0),'$set_predicate_attribute'(Pred, hide_childs, 1)))).
@@ -195,7 +195,7 @@ rtrace0(Goal):-
      notrace(set_prolog_flag(debug,O))).
 
 
-scce_orig(Setup,Goal,Cleanup):-
+scce_orig_here(Setup,Goal,Cleanup):-
    \+ \+ '$sig_atomic'(Setup), 
    catch( 
      ((Goal, deterministic(DET)),
@@ -256,7 +256,7 @@ pop_tracer:- notrace((retract(t_l:tracer_reset(Reset))->Reset;true)).
 reset_tracer:- ignore((t_l:tracer_reset(Reset)->Reset;true)).
 :- totally_hide(reset_tracer/0).
 
-:- '$hide'(quietly/1).
+%:- '$hide'(quietly/1).
 %:- if_may_hide('totally_hide'(notrace/1,  hide_childs, 1)).
 %:- if_may_hide('totally_hide'(notrace/1)).
 :- totally_hide(system:tracing/0).
@@ -371,8 +371,8 @@ user:prolog_exception_hook(error(_, _),_, _, _) :- fail,
 
 % Version 1
 :- if( \+ predicate_property(quietly(_),defined)).
-quietly(Goal):- \+ tracing,!,call(Goal).
-quietly(Goal):- notrace,call_cleanup(Goal,trace).
+%quietly(Goal):- \+ tracing,!,call(Goal).
+%quietly(Goal):- notrace,call_cleanup(Goal,trace).
 :- endif.
 
 % version 2 

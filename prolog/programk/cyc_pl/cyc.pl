@@ -171,7 +171,7 @@ fresh_line:-current_output(Strm),fresh_line(Strm),!.
 fresh_line(Strm):-failOnError((stream_property(Strm,position('$stream_position'(_,_,POS,_))),ifThen(POS>0,nl(Strm)))),!.
 fresh_line(Strm):-trace,nl(Strm),!.
 
-:-dynamic(withoutCyc).
+:-dynamic(withoutCyc/0).
 withoutCyc:-fail.
 
 :-dynamic(canTrace/0).
@@ -819,7 +819,7 @@ is_string(L):-is_codelist(L),!.
 
 :-dynamic(asserted/4).
 :-dynamic(assertion/13).
-:-dynamic(('/')/2).
+%:-dynamic(('/')/2).
 
 
 decyclify(X,X):-var(X);number(X),!.
@@ -2875,7 +2875,9 @@ createProcessedGoal((
 
 :- dynamic cycAssertionCache/6.
 doit:- index(cycAssertionCache(0,1,1,1,1,0)).
+:- if(\+ predicate_property(nop(_),defined)).
 :- doit.
+:- endif.
 cacheAssertionById(Id):-cycAssertionCache(Id,Assertion,Mt,Strength,Direction,Vars),!.
 cacheAssertionById(Id):-getAssertionById(Id,Assertion,Mt,Strength,Direction,Vars),
       asserta(cycAssertionCache(Id,Assertion,Mt,Strength,Direction,Vars)).
@@ -4210,7 +4212,7 @@ mutex_call(Goal,Id):-
 % HTML
 % ===========================================================
 
-:- style_check(-atom).
+%:- style_check(-atom).
 
 writeHTMLStdHeader(Title):-
    writeFmtFlushed('

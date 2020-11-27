@@ -283,7 +283,7 @@ addAttribsToXML(Attribs,OUT,OUT):-!,debugFmt(addAttribsToXML(Attribs,OUT,OUT)),!
 
 
 :-thread_local(in_aiml_tag/1).
-:-thread_local(inLineNum).
+:-thread_local(inLineNum/0).
 
 skipOver(_).
 

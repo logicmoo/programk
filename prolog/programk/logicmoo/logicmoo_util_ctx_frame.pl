@@ -48,7 +48,7 @@
 currentContext(Name,X):-hotrace(makeLocalContext(Name,X)),!.
 
 % ===================================================================
-:-dynamic(no_cyclic_terms).
+:-dynamic(no_cyclic_terms/0).
 
 no_cyclic_terms.
 

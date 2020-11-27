@@ -68,7 +68,7 @@ evalSRAI(Ctx,Votes,_SraiDepth,ATTRIBS,Input,Output,VotesO):-
  prolog_must(var(SYM)),
  prolog_must(peekNameValue(Ctx,ATTRIBS,['evalsrai','userdict','scope'],SYMPREV,'$value'(user))),
  ifThen(var(SYM),evalsrai(SYM)),
- ignore(var(Proof)), 
+ nop(ignore(var(Proof))), 
    withAttributes(Ctx,['evalsrai'=SYM,proof=Proof],
   ((
     setup_call_cleanup(addInherit(SYM,SYMPREV),
@@ -656,7 +656,7 @@ starMust2(_Skip).
 
 starSet(Ctx,StarNameI,Pattern):- 
    starName(StarNameI,StarName),
-   ignore((var(N),star_flag(StarName,N,N))),
+   ignore((nop(var(N)),star_flag(StarName,N,N))),
    traceIf(isStarValue(Pattern)),
    getDictFromAttributes(Ctx,'evalsrai',[],Dict),
    prolog_must(Dict\==user),

@@ -247,7 +247,7 @@ sindent(Stream,PD,Txt):-PD2 is PD,forall(between(0,PD2,_),f0rmt(Stream,Txt,[])).
 
 
 %================================================================
-:-dynamic(prolog_is_vetted_safe).
+:-dynamic(prolog_is_vetted_safe/0).
 %================================================================
 %% True means the program skips many many runtime safety checks (runs faster)
 prolog_is_vetted_safe:-fail.
@@ -559,8 +559,8 @@ exists_directory_safe(File):-prolog_must(atomic(File)),exists_directory(File).
 % listify/ unlistify / unresultify
 % ===============================================================================================
 
-listify(OUT,OUT):-not(not(is_list(OUT))),!.
-listify(OUT,[OUT]).
+%listify(OUT,OUT):-not(not(is_list(OUT))),!.
+%listify(OUT,[OUT]).
 
 unlistify([L],O):-nonvar(L),unlistify(L,O),!.
 unlistify(L,L).
@@ -898,7 +898,7 @@ unify_listing0(FileMatch):-functor(FileMatch,F,A),unify_listing(FileMatch,F,A),!
 
 unify_listing_header(FileMatch):-functor(FileMatch,F,A),unify_listing_header(FileMatch,F,A),!.
 
-unify_listing_header(FileMatch,F,A):- fresh_line,(format('~n/* Prediate:  ~q/~q ',[F,A,FileMatch])),fresh_line,fail.
+unify_listing_header(_FileMatch,F,A):- fresh_line,(format('~n/* Prediate:  ~q/~q ',[F,A])),fresh_line,fail.
 unify_listing_header(FileMatch,_F,_A):- forall(predicate_property(FileMatch,Print),(format('~q.~n',[Print]))),fail.
 unify_listing_header(FileMatch,_F,_A):- (format('Pattern: ~q. ~n */~n',[FileMatch])),fresh_line,fail.
 unify_listing_header(FileMatch,F,A):-predicate_property(FileMatch,dynamic),(format(':-dynamic(~q).~n',[F/A])),fresh_line,fail.

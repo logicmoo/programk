@@ -47,14 +47,15 @@ graph_or_file_or_dir(Ctx,ATTRIBS, Filename, XML):- Filename=[A,B|_C],atom(A),ato
                     joinAtoms(Filename,'',FileAtom),!,
                     prolog_must(graph_or_file_or_dir(Ctx,ATTRIBS, FileAtom, XML)),!.
 
-graph_or_file_or_dir(_Ctx,_ATTRIBS, Filename,[element(aiml, [srcfile=AbsoluteFilename], XML)]):- os_to_prolog_filename(Filename,AFName),
+graph_or_file_or_dir(_Ctx,ATTRIBS, Filename,[element(aiml, [srcfile=AbsoluteFilename|ATTRIBS], XML)]):- os_to_prolog_filename(Filename,AFName),
                exists_file_safe(AFName),global_pathname(AFName,AbsoluteFilename),!,
+               dmsg(load_structure(AbsoluteFilename)),
                load_structure(AFName,XML,[dialect(xml),space(remove)]),!.
 
 graph_or_file_or_dir(Ctx,ATTRIBS, F, [element(aiml,DIRTRIBS,OUT)]):- DIRTRIBS = [srcdir=F|ATTRIBS],
       os_to_prolog_filename(F,ADName),
       exists_directory_safe(ADName),
-      aiml_files(ADName,Files),!, 
+      aiml_files(ADName,Files),!,
       findall(X, ((member(FF,Files), 
                    graph_or_file_or_dir(Ctx,[srcfile=FF|DIRTRIBS],FF,X))), OUT),!.
 
@@ -91,10 +92,11 @@ load_aiml_files.
 
 %%tell(f5),load_aiml_files('part5/*.aiml'),told.
 
-load_aiml_files(Files):-currentContext(load_aiml_files,Ctx),prolog_must(load_aiml_files(Ctx,Files)),!,prolog_must(do_pending_loads(Ctx)).
+load_aiml_files(Files):-currentContext(load_aiml_files,Ctx),with_no_gc((prolog_must(load_aiml_files(Ctx,Files)),!,prolog_must(do_pending_loads(Ctx)))).
 
 % Detect between content vs filename
-load_aiml_files(Ctx,element(Tag,Attribs,ContentIn)):- !, prolog_must((load_aiml_structure(Ctx,element(Tag,Attribs,ContentIn)),!,do_pending_loads(Ctx))).
+load_aiml_files(Ctx,element(Tag,Attribs,ContentIn)):- !, 
+  prolog_must((load_aiml_structure(Ctx,element(Tag,Attribs,ContentIn)),!,do_pending_loads(Ctx))).
 load_aiml_files(Ctx,File):- 
  withAttributes(Ctx,[withCategory=[writeqnl,assert_cate_in_load]],
    prolog_must(with_files(load_single_aiml_file(Ctx),File))),!,
@@ -158,31 +160,46 @@ sgml_parser_defs(
          [max_errors(0),call(begin, on_begin),call(end, on_end)]).
 
 
-%% ?- string_to_structure('<?xml version="1.0" encoding="ISO-8859-1"?>\n<aiml><p>hi</p></aiml>',X).
+% ?- string_to_structure('<?xml version="1.0" encoding="ISO-8859-1"?>\n<aiml><p>hi</p></aiml>',X).
 
-%% ?- string_to_structure('<category><pattern>_ PLANETS</pattern></category>',X).
+% ?- string_to_structure('<category><pattern>_ PLANETS</pattern></category>',X).
 
 
-tls :- string_to_structure('<aiml><p>hi</p></aiml>',X),debugFmt(X).
-tls2 :- string_to_structure('<?xml version="1.0" encoding="ISO-8859-1"?>\n<aiml><p>hi</p></aiml>\n\n',X),debugFmt(X).
+tls :- string_to_structure('<aiml><p>hi</p></aiml>',X),wdmsg(X).
+tls2 :- string_to_structure('<?xml version="1.0" encoding="ISO-8859-1"?>\n<aiml><p>hi</p></aiml>\n\n',X),wdmsg(X).
 
 string_to_structure(String,XMLSTRUCTURESIN):- fail, sformat(Strin0,'<pre>~s</pre>',[String]),string_to_structure0(Strin0,XMLSTRUCTURES),!,
    trace,
    prolog_must([element(pre,[],XMLSTRUCTURESIN)]=XMLSTRUCTURES).
-   
+
+
 string_to_structure(String,XMLSTRUCTURES):- string_to_structure0(String,XMLSTRUCTURES),!.
 string_to_structure0(String,XMLSTRUCTURES):- 
      %%sgml_parser_defs(PARSER_DEFAULTS,_PARSER_CALLBACKS),
      PARSER_DEFAULTS = [defaults(false), space(remove),/*number(integer),*/ qualify_attributes(false),dialect(xml)],
      string_to_structure0(String,PARSER_DEFAULTS,XMLSTRUCTURES),!.
 
-string_to_structure(String,PARSER_DEFAULTS0,XMLSTRUCTURES):-string_to_structure0(String,PARSER_DEFAULTS0,XMLSTRUCTURES).
+string_to_structure(String,ParserDefaults0,XMLSTRUCTURES):-string_to_structure0(String,ParserDefaults0,XMLSTRUCTURES).
 
-string_to_structure0(String,PARSER_DEFAULTS0,XMLSTRUCTURESIN):-
+string_to_structure0(String,ParserDefaults0,XMLSTRUCTURESIN):- atom_concat(' ',Str,String),!,
+  string_to_structure0(Str,ParserDefaults0,XMLSTRUCTURESIN).
+string_to_structure0(String,ParserDefaults0,['@'|XMLSTRUCTURESIN]):- atom_concat('@',Str,String),!,  
+  string_to_structure0(Str,ParserDefaults0,XMLSTRUCTURESIN).
+
+string_to_structure0(String,ParserDefaults0,XMLSTRUCTURESIN):- \+ atom_concat('<',_,String),!,
+  atomic_list_concat(['<?xml version="1.0" encoding="ISO-8859-1"?>\n<aiml>',String,'</aiml>'],Str),
+  string_to_structure0(Str,ParserDefaults0,[element(aiml, [],XMLSTRUCTURESIN)]).
+
+string_to_structure0(String,ParserDefaults0,XMLSTRUCTURESIN):-
+  string_to_structure1(String,ParserDefaults0,XMLSTRUCTURESIN),
+  ignore(append(XMLSTRUCTURESIN,[],_)).
+
+
+string_to_structure1(String,ParserDefaults0,XMLSTRUCTURESIN):-
         setup_call_cleanup(((string_to_stream(String,In),new_sgml_parser(Parser, []))),
           prolog_must((                     
            atom_length(String,Len),
-           append(PARSER_DEFAULTS0,[],PARSER_DEFAULTS),
+           append(ParserDefaults0,[],PARSER_DEFAULTS),
            maplist_safe(set_sgml_parser(Parser),PARSER_DEFAULTS),
            string_parse_structure(Len, Parser, user:PARSER_DEFAULTS, XMLSTRUCTURES, In)
            )),
@@ -254,7 +271,7 @@ load_inner_aiml_w_lineno(_SrcFile,_OuterTag,_Parent,_Attributes,_Ctx,Atom,Atom):
 load_inner_aiml_w_lineno(SrcFile,OuterTag,Parent,Attributes,Ctx,[H|T],LL):-!,
       maplist_safe(load_inner_aiml_w_lineno(SrcFile,OuterTag,Parent,Attributes,Ctx),[H|T],LL),!.
 
-%% offset
+% offset
 load_inner_aiml_w_lineno(SrcFile,[OuterTag|PREV],Parent,Attributes,Ctx,element(Tag,Attribs,ContentIn),element(Tag,NewAttribs,ContentOut)):-
    Context=[Tag,OuterTag|_],
    MATCH = lineInfoElement(SrcFile,Line:Offset, Context, element(Tag, Attribs, no_content_yet)),
@@ -332,6 +349,9 @@ on_xmlns(TAG, URL, _Parser) :- debugFmt(on_xmlns(URL, TAG)).
 on_decl(URL, _Parser) :- debugFmt(on_decl(URL)).
 on_pi(URL, _Parser) :- debugFmt(on_pi(URL)).
 
+with_no_gc(G):- call(G).
+%with_no_gc(G):- locally(set_prolog_flag(gc,false),G).
+
 
 xml_error(TAG, URL, Parser) :- !, debugFmt(xml_error(URL, TAG, Parser)).
 % ============================================
@@ -384,15 +404,15 @@ load_aiml_structure(Ctx,termFileContents(File)):- !,
       close(In)),!,expireCaches,statistics)).
 
 %catagory (mispelling?)
-load_aiml_structure(Ctx,element(catagory,ALIST,LIST)):-!,load_aiml_structure(Ctx,element(category,ALIST,LIST)),!.
+load_aiml_structure(Ctx,element(catagory,ALIST,LIST)):-!,with_no_gc(load_aiml_structure(Ctx,element(category,ALIST,LIST))),!.
 
 % aiml
 load_aiml_structure(Ctx,element(aiml,ALIST,LIST)):-
     replaceAttribute(Ctx,name,graph,ALIST,ATTRIBS),!,
  defaultCatePredicatesS(Defaults),
-  withAttributes(Ctx,Defaults,
+  with_no_gc((withAttributes(Ctx,Defaults,
         %withAttributes(Ctx,ATTRIBS,load_aiml_structure_lineno(ATTRIBS,Ctx,LIST)),!.
-     withAttributes(Ctx,ATTRIBS,maplist_safe(load_aiml_structure(Ctx),LIST))),!.
+     withAttributes(Ctx,ATTRIBS,maplist_safe(load_aiml_structure(Ctx),LIST))))),!.
 
 
 %genlMt (mispelling?)
@@ -461,7 +481,6 @@ load_aiml_structure(Ctx,[A|B]):-!,prolog_must(maplist_safe(load_aiml_structure(C
 
 load_aiml_structure(Ctx,X):- aiml_error(missing_load_aiml_structure(Ctx,X)).
 
-
 % ============================================
 % special dictionaries
 % ============================================
@@ -482,6 +501,8 @@ obtainDictionaryName(Ctx,_Tag,ALIST,Dict):- dictVarName(N), peekNameValue(Ctx,AL
 obtainDictionaryName(_Ctx,Tag,_ALIST,Dict):- dictionaryTypeTags(Tag,Dict),!.
 obtainDictionaryName(Ctx,_Tag,ALIST,Dict):- peekNameValue(Ctx,ALIST,[dictionary,name],Dict,'$error'),!.
 
+
+:-discontiguous(load_dict_structure/2).
 % user/bot dictionaries (outers-only)
 load_dict_structure(Ctx,element(Tag,ALIST,LIST)):-
    member(Tag,[predicates,vars,properties]),
@@ -582,7 +603,7 @@ convert_replacement(Ctx,Replace,ReplaceMM):-convert_template(Ctx,Replace,Replace
 %  UTILS
 % ===============================================================================================
 
-ignore_aiml(VAR):-var(VAR),!,aiml_error(VAR).
+ignore_aiml(VAR):-var(VAR),!,aiml_error(ignore_aiml_var(VAR)).
 ignore_aiml([]):-!.
 ignore_aiml(''):-!.
 ignore_aiml(A):-atom(A),!,atom_codes(A,C),!,clean_codes(C,D),!,D=[].
@@ -654,7 +675,7 @@ load_aiml_cate_element2(Ctx,LoaderVerbs,ATTRIBS,element(Tag,ALIST,INNER_XML)):- 
    immediateCall(Ctx,load_aiml_cate_element_now(LoaderVerbs,ATTRIBS,element(Tag,ALIST,INNER_XML))),!.
 
 %% immediate load of Cate
-load_aiml_cate_element2(Ctx,LoaderVerbs,ATTRIBS,element(Tag,ALIST,INNER_XML)):- 
+load_aiml_cate_element2(Ctx,LoaderVerbs,ATTRIBS,element(Tag,ALIST,INNER_XML)):- %trace,
    prolog_must(pushCateElement(Ctx,[withCategory=LoaderVerbs|ATTRIBS],element(Tag,[withCategory=LoaderVerbs|ALIST],INNER_XML))),!.
 
 load_aiml_cate_element_now(LoaderVerbs,ATTRIBS,element(Tag,ALIST,INNER_XML)):-

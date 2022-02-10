@@ -2372,7 +2372,9 @@ cyclVarNums_list(LIST,[A|RGS],[V|ARARGS],VARLIST):-
             append(VARS1,VARS2,VARLIST).
 
 
-unnumbervars(STUFF,UN):-sformat(S,'~W',[STUFF,[quoted(true),character_escapes(true),module(user),numbervars(true),portray(false),double_quotes(true)]]),string_to_atom(S,Atom),atom_to_term(Atom,UN,_).
+unnumbervars(STUFF,UN):-
+ sformat(S,'~W',[STUFF,[quoted(true),character_escapes(true),module(user),numbervars(true),portray(false),
+ double_quotes(true)]]),string_to_atom(S,Atom),atom_to_term(Atom,UN,_).
 
 open_list(V,V):-var(V).
 open_list(A,B):-append(A,_,B).

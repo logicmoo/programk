@@ -23,6 +23,7 @@
 % ===================================================================
 %  Prolog-like call
 % ===================================================================
+:- meta_predicate(aiml_call(+,+)).
 
 aiml_call(Ctx,_ - Calls):- must(nonvar(Calls)), !,aiml_call(Ctx,Calls),!.
 
@@ -38,6 +39,7 @@ aiml_call(Ctx,[Atomic|Rest]):- !, %%atrace,
 % Test Suite  
 % ============================================
 :-dynamic(unitTestResult/2).
+
 aiml_call(Ctx,element('testsuite',ATTRIBS,LIST)):-
      withAttributes(Ctx,ATTRIBS,maplist_safe(aiml_call(Ctx),LIST)),
      unify_listing(unitTestResult(unit_passed,PRINTRESULT),Passed),
@@ -54,11 +56,12 @@ aiml_call(Ctx,Current):- Current=element(TC,ATTRIBS,_LIST), member(TC,['testcase
                                 listify(ExpectedKeywords,ExpectedKeywords0)),ExpectedKeywordsList),
      testIt(ATTRIBS,Input,ExpectedAnswer,ExpectedKeywordsList,_Result,Name,Description,Ctx))),!.
 
-aiml_call(Ctx,element(A, B, C)):-tagType(A, immediate), prolog_must(nonvar(C)),
+aiml_call(Ctx,element(A, B, C)):- tagType(A, immediate), prolog_must(nonvar(C)),
       convert_name(A,AA),
       convert_attributes(Ctx,B,BB),
       convert_template(Ctx,C,CC),
-      (element(A, B, C) \== element(AA, BB, CC)),!,      aiml_call(Ctx,element(AA, BB, C)),!.
+      (element(A, B, C) \== element(AA, BB, CC)),!,      
+      aiml_call(Ctx,element(AA, BB, C)),!.
 
 
 aiml_call(Ctx,element(A, B, C)):- prolog_must(nonvar(C)),
@@ -148,7 +151,7 @@ aiml_eval0(_Ctx,A,B):-atomic(A),!,B=A.
 
 aiml_eval0(Ctx,element(Srai,ATTRIBS,DOIT),RETURN):- memberchk(Srai,[srai,template]),
       withAttributes(Ctx,ATTRIBS,
-         (hotrace((aiml_eval_each(Ctx,DOIT,INNER),
+         (aiml_notrace((aiml_eval_each(Ctx,DOIT,INNER),
           computeAnswer(Ctx,1,element(Srai,ATTRIBS,INNER),RMID,_Votes))))),
        RMID=RETURN.
 
@@ -233,6 +236,9 @@ systemCall_Bot(Ctx,ALLREST,template([mutiple,DONE1,DONE])):-append([F|IRST],['@'
 systemCall_Bot(Ctx,[Skipable|REST],DONE):-isWhiteWord(Skipable),!,systemCall_Bot(Ctx,REST,DONE).
 systemCall_Bot(Ctx,[FIRST|REST],DONE):-atom_concat_safe('@',CMD,FIRST),CMD\=='',!,systemCall_Bot(Ctx,['@',CMD|REST],DONE).
 systemCall_Bot(_Ctx,['eval'|DONE],template([evaled,DONE])):-!.
+systemCall_Bot(Ctx,['say'|REST],template([said,Output])):- computeTemplateOutput(Ctx,1,REST,Output,_VotesOut).
+systemCall_Bot(Ctx,['say1'|REST],Output):- computeTemplateOutput(Ctx,1,REST,Output,_VotesOut).
+
 systemCall_Bot(_Ctx,['echo'|DONE],DONE):-!.
 systemCall_Bot(Ctx,['set'],template([setted,Ctx])):-!,unify_listing(getUserDicts(_User,_Name,_Value)),!.
 systemCall_Bot(Ctx,['set',Dict,Name,'='|Value],template([setted,Name,Value])):- setAliceMem(Ctx,Dict,Name,Value),!.
@@ -273,14 +279,20 @@ showCtx(Ctx):-forall(
 
 systemCall_Load(Ctx,[],template([loaded,Ctx])):-!.
 systemCall_Load(Ctx,[File,Name|S],Output):-joinAtoms([File,Name|S],'',Filename),!,systemCall(Ctx,'bot',['load',Filename],Output).
-systemCall_Load(Ctx,[Filename],template([loaded,Filename])):-
-    peekNameValue(Ctx,_,graph,GraphI,'$first'(['$current_value','$value'('*')])), 
-    (GraphI=='*'->Graph=default; Graph=GraphI),
+
+systemCall_Load(Ctx,[Filename],Result):-
+ with_no_gc(
+   (peekNameValue(Ctx,_,graph,GraphI,'$first'(['$current_value','$value'('*')])), 
+    systemCall_Load_Graph(Ctx,Filename,GraphI,Result))).
+
+systemCall_Load_Graph(Ctx,Filename,GraphI,template([loaded,Filename,into,Graph])):-
+ with_no_gc(
+  ((GraphI=='*'->Graph=default; Graph=GraphI),
     ATTRIBS=[srcfile=Filename,graph=Graph],
     gather_aiml_graph(Ctx,ATTRIBS,Graph,Filename,AIML),
     warnIf(not(atomic(Graph))),
     warnIf(not(atomic(Filename))),
-    withAttributes(Ctx,ATTRIBS,load_aiml_structure(Ctx,AIML)),!.
+    withAttributes(Ctx,ATTRIBS,load_aiml_structure(Ctx,AIML)))),!.
 
 systemCall_Find(_Ctx,REST,proof(CateSig,REST)):-
          findall(U,(member(L,REST),literal_atom(L,U)),UUs),
@@ -310,7 +322,7 @@ tag_eval(Ctx,element(Learn, ATTRIBS, EXTRA),[loaded,Filename,via,Learn,into,Grap
 
 gather_aiml_graph(Ctx,XML,Graph,Filename,AIML):-
  ATTRIBS=[srcfile=Filename,graph=Graph|XML],
- withAttributes(Ctx,ATTRIBS,graph_or_file(Ctx,ATTRIBS, Filename, AIML)),!.
+ withAttributes(Ctx,ATTRIBS,graph_or_file(Ctx,ATTRIBS, Filename, AIML)).
 
 % ============================================
 % Test Suite  (now uses aiml_call/2 instead of tag_eval/3)
@@ -366,8 +378,8 @@ sameBinding1(X,X):-var(X),!.
 sameBinding1(_-X,Y):-nonvar(X),!,sameBinding1(X,Y).
 sameBinding1(X,Z):- convertToMatchableCS(X,Y),X\==Y,!,sameBinding1(Y,Z).
 %sameBinding1([A|B],AB):-convertToMatchableCS([A|B],AB),!.
-sameBinding1(X,X):-!.
-sameBinding1(X,Y):- balanceBinding(X,Y),!.
+sameBinding1(X,Y):- X=Y,!.
+%sameBinding1(X,Y):- balanceBinding(X,Y),!.
 
 
 sameBindingIC(X,Y):-hotrace((sameBinding1(X,X1),convertToMatchable(X1,X2),sameBinding1(Y,Y1),convertToMatchable(Y1,Y2),!,closeEnough1(X2,Y2))),!.

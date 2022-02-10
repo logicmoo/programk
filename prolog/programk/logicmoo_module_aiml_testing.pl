@@ -159,11 +159,12 @@ annie:-withNamedContext(toplevel,Ctx),timeRecorded(run_chat_tests_here(Ctx)),uni
 %%:-timeRecorded(load_aiml_files('chomskyAIML/*.aiml')).
 %%:-timeRecorded(alicebot).
 
-:-stdCatchAll.
-:-alicebot('<category><pattern>*</pattern><that>what was it</that><template><think><set name="it"><star/></set></think></template></category>').
+setupTesting:- 
+ stdCatchAll,
+ alicebot('<category><pattern>*</pattern><that>what was it</that><template><think><set name="it"><star/></set></think></template></category>'),
+ alicebot('<category><pattern>pppp</pattern><template>555555</template><that>*</that></category>'),
+ alicebot('<category><pattern>suggest a topic</pattern><template><srai>random topic</srai></template><that>*</that></category>').
 
-:-alicebot('<category><pattern>pppp</pattern><template>555555</template><that>*</that></category>').
-:-alicebot('<category><pattern>suggest a topic</pattern><template><srai>random topic</srai></template><that>*</that></category>').
 stdalice:-timeRecorded(load_aiml_files('std_alice/*.aiml')),!. %%timeRecorded(load_aiml_files('std_alice/hide/*.aiml')).
 
 %%:-initialization((stdalice,statistics)).
@@ -177,11 +178,14 @@ blastAll:-aimlCateSig(Sig),retractall(Sig),fail.
 blastAll:-retractall(argNFound(_,_,_,_)),fail.
 blastAll.
 
-%% :-sdtCatchAll.
+% :-sdtCatchAll.
 
-:-timeRecorded(annie).
-:-unify_listing(unitTestResult(unit_passed,_)).
-:-unify_listing(unitTestResult(unit_failed,_)).
+run_aiml_tests:- 
+ setupTesting,
+ timeRecorded(annie),
+ unify_listing(unitTestResult(unit_passed,_)),
+ unify_listing(unitTestResult(unit_failed,_)),
+ !.
 
 
 end_of_file.

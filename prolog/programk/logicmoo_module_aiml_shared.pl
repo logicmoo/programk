@@ -25,6 +25,7 @@
       consult(logicmoo_module_aiml_include_547); 
       consult(logicmoo_module_aiml_include_700)).
 
+debugFmt(x(_Stuff)):-!.
 debugFmt(Stuff):- debugFmt('~N~n% ~q',[Stuff]),!.
 debugFmt(F,A):- hide_complex_ctx(A,AA),!, once(lmdebugFmt(F,AA)).
 debugFmt(F,A):- once(lmdebugFmt(F,A)).
@@ -36,15 +37,15 @@ hide_complex_ctx(I,'$..$'(A1)):- functor(I,F,_),F==frame,!,arg(1,I,A0),functor(A
 hide_complex_ctx(I,O):- I=..M,hide_complex_ctx(M,N),!,O=..N.
 
 :- dynamic(noConsoleDebug/0).
-noConsoleDebug.
+noConsoleDebug:- current_prolog_flag(debug,false).
 
-lmdebugFmt(Stuff):- noConsoleDebug,Stuff \= say(_),!.
-lmdebugFmt(Stuff):- notrace((fresh_line,debugFmtS(Stuff),fresh_line)),!.
+%lmdebugFmt(Stuff):- noConsoleDebug,Stuff \= say(_),!.
+lmdebugFmt(Stuff):- once((fresh_line,debugFmtS(Stuff),fresh_line)),!.
 
 lmdebugFmt(_,_):- noConsoleDebug,!.
 lmdebugFmt(F,A):- 
         fresh_line(user_error),
-        writeFmtFlushed(user_error,F,A),
+        format(user_error,F,A),
         fresh_line(user_error),
         flush_output_safe(user_error),!.
 
@@ -264,12 +265,12 @@ tryCatchIgnore(MFA):- !,debugFmt(tryCatchIgnoreFailed(MFA)).
 inThreadJoin(Goal):-thread_create(Goal,Id,[]),thread_join(Id,_).
 
 :-tryHide(prolog_may/1).
-prolog_may(Call):-notrace((prolog_is_vetted_safe)),!,Call.
+prolog_may(Call):-notrace((prolog_is_vetted_safe)),!,call(Call).
 prolog_may(Call):-debugOnError(Call).
 
 :-tryHide(prolog_mustEach/1).
 :- meta_predicate prolog_mustEach(0).
-prolog_mustEach(Call):-notrace((prolog_is_vetted_safe)),!,Call.
+prolog_mustEach(Call):-notrace((prolog_is_vetted_safe)),!,call(Call).
 prolog_mustEach(Call):-prolog_Each(prolog_must,Call).
 
 
@@ -280,6 +281,7 @@ prolog_Each(Pred,Call):- prolog_call(Pred,Call).
 
 :-tryHide(prolog_must/1).
 :- meta_predicate prolog_must(0).
+prolog_must(Call):-tracing,!,call(Call).
 prolog_must(Call):-tracing,!,debugOnError(Call).
 %%prolog_must(Call):- prolog_is_vetted_safe,!,debugOnError(Call).
 prolog_must(OneA):- !, (OneA *-> true ; (atrace,OneA)).
@@ -443,13 +445,13 @@ addLibraryDir :- buggerDir(Here),atom_concat(Here,'/..',UpOne), absolute_file_na
 %  can/will Tracer.
 % ==========================================================
 
-%:- if( \+ predicate_property(canTrace,defined)).
-%:- dynamic(canTrace/0).
-%canTrace.
-%:- endif.
+:- if( \+ predicate_property(canTrace,defined)).
+:- dynamic(canTrace/0).
+canTrace.
+:- endif.
 
 %isConsole :- telling(user).
-unused:isConsole :- current_output(X),!,stream_property(X,alias(user_output)).
+isConsole :- current_output(X),!,stream_property(X,alias(user_output)).
 
 willTrace:-not(isConsole),!,fail.
 willTrace:-canTrace.
@@ -479,7 +481,7 @@ hideTrace:-
       apply/2,
       '$bags':findall/3,
       '$bags':findall/4,
-      once/1,
+      notrace/1,
       ','/2,
       catch/3,
       member/2], -all),
@@ -501,13 +503,13 @@ hideRest:-doTryHides.
 
 :- meta_predicate(hideTrace(:,+)).
 
-functor_source_file(M,P,F,A,File):-functor_source_file0(M,P,F,A,File). %% prolog_must(ground((M,F,A,File))),prolog_must(user:nonvar(P)).
+functor_source_file(M,P,F,A,File):-functor_source_file0(M,P,F,A,File). % prolog_must(ground((M,F,A,File))),prolog_must(user:nonvar(P)).
 functor_source_file0(M,P,F,A,File):-current_predicate(F/A),functor(P,F,A),source_file(P,File),predicate_module(P,M).
 
 predicate_module(P,M):- predicate_property(P,imported_from(M)),!.
 predicate_module(M:_,M):-!. %strip_module(P,M,_F),!.
 predicate_module(_P,user):-!. %strip_module(P,M,_F),!.
-%%predicate_module(P,M):- strip_module(P,M,_F),!.
+%predicate_module(P,M):- strip_module(P,M,_F),!.
 
 hideTrace(_:A, _) :-
         var(A), !, atrace, fail,
@@ -552,9 +554,10 @@ toReadableObject([I|N],[I0|N0]):-!,toReadableObject(I,I0),toReadableObject(N,N0)
 toReadableObject(Comp,Comp2):-compound(Comp),Comp=..[L,I|ST],toReadableObject([I|ST],[OI|OIST]),debugOnError(Comp2=..[L,OI|OIST]),!.
 toReadableObject(I,I):-!.
 
+:- if( \+ predicate_property(exists_file_safe(_),defined)).
 exists_file_safe(File):-prolog_must(atomic(File)),exists_file(File).
 exists_directory_safe(File):-prolog_must(atomic(File)),exists_directory(File).
-
+:- endif.
 % ===============================================================================================
 % listify/ unlistify / unresultify
 % ===============================================================================================
@@ -648,14 +651,14 @@ must_assign(From,To):-atrace,To=From.
 
 :-tryHide(debugOnError/1).
 :-tryHide(debugOnError0/1).
-debugOnError(Call):-notrace((prolog_is_vetted_safe)),!,Call.
+debugOnError(Call):-notrace((prolog_is_vetted_safe)),!,call(Call).
 debugOnError(Call):-prolog_ecall(debugOnError0,Call).
 debugOnError0(Call):- E = error(_,_),error_catch(Call,E,(notrace(debugFmt(caugth1st(Call,E))),debugOnError1((atrace,Call)))).
 debugOnError1(Call):- E = error(_,_),error_catch(Call,E,(notrace(debugFmt(caugth2nd(Call,E))),throw(E))).
 
 :-tryHide(prolog_must_call/1).
 :-tryHide(prolog_must_call0/1).
-prolog_must_call(Call):-notrace((prolog_is_vetted_safe)),!,Call.
+prolog_must_call(Call):-notrace((prolog_is_vetted_safe)),!,call(Call).
 prolog_must_call(Call):- prolog_ecall(prolog_must_call0,Call).   
 prolog_must_call0(Call):- atLeastOne(Call,interactStep(prolog_must_call0,Call,true)).
 
@@ -995,8 +998,30 @@ clean_out_atom(X,Y):-atom_codes(X,C),clean_codes(C,D),!,atom_codes(X,D),!,Y=X.
 expire1Cache:-retractall(atomWSplit_cached(_,_)).
 %%atomWSplit(A,B):- hotrace((cyc:atomWSplit(A,BB),!,BB=B)).
 atomWSplit(A,B):-prolog_must(ground(A)),atomWSplit_cached(A,B),!.
-atomWSplit(A,B):- hotrace((cyc:atomSplit(A,BB),!,BB=B,asserta(atomWSplit_cached(A,B)))).
+%atomWSplit(A,B):- hotrace((cyc:atomSplit(A,BB),!,BB=B,asserta(atomWSplit_cached(A,B)))).
+atomWSplit(A,B):- hotrace((atomSplit_oldy(A,BB),!,BB=B,asserta(atomWSplit_cached(A,B)))).
 
+
+atomSplit_oldy(Atom,WordsO):- atomSplit_oldy(Atom,WordsO,[' ','\t','\n','\r',' ','!','"','#','$','%','&','\'',
+     '\v','\f',
+    '(',')','*','+',',','-','.','/',':',';','<','=','>','?','@','[','\\',']','^','_','`','{','|','}','~']
+    ).     
+
+:- expire1Cache.
+
+atomSplit_oldy(Atom,WordsO,List):- 
+  notrace((atom(Atom), atomic_list_concat(Words1,' ',Atom),!, 
+   atomSplit_oldy2(Words1,Words,List),!,Words=WordsO)).
+%atomSplit_oldy(Atom,Words,[Space|List]):-notrace((var(Atom),ground(Words),!,atomic_list_concat(Words,Space,AtomO),!,Atom=AtomO)).
+
+atomSplit_oldy2([],[],_List):-!.
+atomSplit_oldy2([Mark|S],[Mark|Words],List):- member(Mark,List),!,atomSplit_oldy2(S,Words,List),!.
+atomSplit_oldy2([W|S],[A,Mark|Words],List):- member(Mark,List),atom_concat(A,Mark,W),!,atomSplit_oldy2(S,Words,List),!.
+atomSplit_oldy2([W|S],[Mark,A|Words],List):- member(Mark,List),atom_concat(Mark,A,W),!,atomSplit_oldy2(S,Words,List),!.
+atomSplit_oldy2([Word|S],Words,List):- member(Space,List),Atoms=[_,_|_],atomic_list_concat(Atoms,Space,Word),!,
+                  interleave(Atoms,Space,Left),
+                  atomSplit_oldy2(S,Right,List),append(Left,Right,WordsM),!,atomSplit_oldy2(WordsM,Words,List),!.
+atomSplit_oldy2([W|S],[W|Words],List):-atomSplit_oldy2(S,Words,List),!.
 
 
 expireCaches:-expire1Cache,fail.
@@ -1004,7 +1029,7 @@ expireCaches:-garbage_collect_atoms,garbage_collect.
 
 
 
-%%atomWSplit(A,B):-token_stream_of(A,AA),findall(B0,arg(1,AA,B),B).
+%atomWSplit(A,B):-token_stream_of(A,AA),findall(B0,arg(1,AA,B),B).
 
 atom_concat_safe(L,R,A):- ((atom(A),(atom(L);atom(R))) ; ((atom(L),atom(R)))), !, atom_concat(L,R,A),!.
 
@@ -1012,7 +1037,9 @@ concat_atom_safe(List,Sep,[Atom]):-atom(Atom),!,atomic_list_concat_aiml(List,Sep
 concat_atom_safe(List,Sep,Atom):-atom(Atom),!,atomic_list_concat_aiml(ListM,Sep,Atom),!,List = ListM.
 concat_atom_safe(List,Sep,Atom):- atomic_list_concat_aiml(List,Sep,Atom),!.
 
+:- if( \+ predicate_property(atom_contains(_,_),defined)).
 atom_contains(F,C):- hotrace((atom(F),atom(C),sub_atom(F,_,_,_,C))).
+:- endif.
 
 toCodes(B,A):-cyc:stringToCodelist(B,AO),(is_list(A) -> A=AO ; string_to_list(AO,A)),!.
 
@@ -1058,7 +1085,7 @@ maplist_safe(Pred,LISTIN, LIST):-!, findall(EE, ((member(E,LISTIN),prolog_must(a
 %================================================================
 
 map_tree_to_list(_,PATTERN,Output):- (var(PATTERN)),!,must_assign([PATTERN],Output).
-map_tree_to_list(_,NPATTERN,Output):- (number(NPATTERN),atom_to_number(PATTERN,NPATTERN)),!,must_assign([PATTERN],Output).
+map_tree_to_list(_,NPATTERN,Output):- (number(NPATTERN),atom_number(PATTERN,NPATTERN)),!,must_assign([PATTERN],Output).
 map_tree_to_list(_,[],OUT):-!,must_assign([],OUT).
 map_tree_to_list(Pred,IN,Output):- once(call(Pred,IN,MID)),prolog_must((MID=IN -> flatten([MID],OUT) ; map_tree_to_list(Pred,MID,OUT))),!,must_assign(OUT,Output).
 map_tree_to_list(Pred,[I|IN],Output):-!,prolog_must((map_tree_to_list(Pred,I,O1),map_tree_to_list(Pred,IN,O2),!,append(O1,O2,OUT))),!,must_assign(OUT,Output).
@@ -1151,7 +1178,7 @@ traceAll:-doTryHides.
 % ===================================================================
 
 :-tryHide(hotrace/1).
-hotrace(X):-tracing,!, notrace(X).
+hotrace(X):- tracing,!, notrace(X).
 hotrace(X):- call(X).
 
 :-tryHide(lotrace/1).

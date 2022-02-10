@@ -111,7 +111,7 @@
 yes
 @say1 Can you be more specific?
 no
-
+@say <random><li>a</li><li>b</li></random>
 -->
 
   <category>

@@ -50,7 +50,6 @@ file_newer(File1,File2):-
 :- endif.
 */
 
-:-discontiguous(convert_ele/3).
 
 translate_single_aiml_file(Ctx,F0):-global_pathname(F0,File),F0\==File,!,translate_single_aiml_file(Ctx,File).
 translate_single_aiml_file(Ctx,F0):-
@@ -199,7 +198,7 @@ convert_text_list(A,AA):-listify(A,AA).
 
 convert_atom(A,Z):-convert_atom0(A,Y),!,Y=Z.
 convert_atom(E,File):-aiml_error(convert_atom(E,File)),!,E=File.
-%convert_atom(A,C):-atom_to_number(A,C),!.
+%convert_atom(A,C):-atom_number(A,C),!.
 convert_atom0(A,C):-atomWSplit(A,M),!,convert_text(M,C),!.
 convert_atom0(A,D):-literal_atom_safe(A,D),!.
 convert_atom0(A,A):-concat_atom_safe([A],' ',A).
@@ -216,7 +215,7 @@ convert_template(_Ctx,X,_Y):-var(X),throw_safe(var(X)).
 convert_template(_Ctx,_X,Y):-nonvar(Y),throw_safe(nonvar(Y)).
 convert_template(_Ctx,[],[]):-!.
 %%HIDE convert_template(Ctx,[I|P],L):-!,convert_template(I,IO),!,convert_template(Ctx,P,PO),append(IO,PO,L),!.
-convert_template(_Ctx,I,[]):-ignore_aiml(I),!.
+convert_template(_Ctx,I,[]):- notrace(ignore_aiml(I)),!.
 
 %%%HIDE            %%convert_template(_Ctx,[ATOM],O):-atom(ATOM),!,atomWSplit(ATOM,LIST),!,toAtomList(LIST,O),!.
 convert_template(Ctx,I,GOOD):- atom(I),atomWSplit(I,LIST),toAtomList(LIST,O),[I] \== O,!, convert_template(Ctx,O,GOOD),!.
@@ -229,14 +228,18 @@ convert_template(Ctx,P,POL):-convert_element(Ctx,P,PO),!,listify(PO,POL).
 
 toAtomList(A,O):-delete(A,'',O),!.
 
-convert_element(Ctx,element(Tag, A, B),Out):-!,convert_ele(Ctx,element(Tag, A, B),M),!,M=Out,!.
-convert_element(_Ctx,Input,Out):-atomic(Input),convert_text_list(Input,Out),!.
-convert_element(Ctx,Input,Out):-convert_ele(Ctx,Input,M),!,prolog_must(M=Out).
+convert_element(Ctx,Input,Out):- convert_element0(Ctx,Input,Out),!. % ,wdmsg(convert_element_in(Ctx,Input)),wdmsg(convert_element_out(Out)),!.
+
+convert_element0(Ctx,element(Tag, A, B),Out):-!,convert_ele(Ctx,element(Tag, A, B),M),!,M=Out,!.
+convert_element0(_Ctx,Input,Out):-atomic(Input),convert_text_list(Input,Out),!.
+convert_element0(Ctx,Input,Out):-convert_ele(Ctx,Input,M),!,prolog_must(M=Out).
 
       
 nameOrValue(ALIST, _VALUE, NORV, 0):-lastMember(name=NORV,ALIST),!.
 nameOrValue(ALIST, _VALUE, NORV, 0):-lastMember(var=NORV,ALIST),!.
 nameOrValue(_XATS, VALUE, NORV, 1):- NORV = VALUE.
+
+:-discontiguous(convert_ele/3).
 
 convert_ele(_Ctx,_X,Y):-nonvar(Y),throw_safe(nonvar(Y)).
 convert_ele(_Ctx,In,_In):-not(ground(In)),aiml_error(not(ground(In))),!,fail.
@@ -310,7 +313,7 @@ convert_ele(Ctx,element(Tag, ALIST , INNER_XML), RESULT):-
 convert_ele(Ctx,L,LO):-is_list(L),flatten(L,M),!,
 	    (L==M -> LO=M ; convert_template(Ctx,M,LO)).
 
-%convert_ele(Ctx,A,B):-atom(A),atom_to_number(A,B).
+%convert_ele(Ctx,A,B):-atom(A),atom_number(A,B).
 
 convert_ele(_Ctx,A,W):-atom(A),atomWSplit(A,B),!,convert_text(B,W),!.
 

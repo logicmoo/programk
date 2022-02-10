@@ -28,6 +28,7 @@
 
 :-dynamic(lineInfoElement/4).
 
+aiml_notrace(G):- quietly(G).
 %% ======================================================
 %% Add a library directory 2 levels above this file
 %% ======================================================
@@ -101,7 +102,7 @@ ping_default_files:-exists_source(aiml('../temp/aimlCore3.pl')),trace,ensure_loa
 ping_default_files:-exists_source(aiml('../temp/aimlCore.pl')),trace,ensure_loaded(aiml('../temp/aimlCore.pl')),!.
 ping_default_files.
 
-main_loop:- ping_default_files,repeat,main_loop1(EOF),EOF==end_of_file.
+aiml_main_loop:- ping_default_files,repeat,main_loop1(EOF),EOF==end_of_file.
 
 :-dynamic(default_channel/1).
 :-dynamic(default_user/1).
@@ -131,7 +132,7 @@ alicebotCTX(Ctx):-
 	read_line_to_codes(In,Codes),
         ( Codes==end_of_file 
          -> ! ;
-        (tokenizeInput(Atom,Codes),
+        (tokenizeInput(Codes,Atom),
         %%atom_codes(Atom,Codes),
          ignore(once(alicebotCTX(Ctx,Atom))),
          Atom==end_of_file)).
@@ -164,7 +165,7 @@ alicebotCTX(Ctx,Input,Resp):-
 % ===============================================================================================
 % Main Alice Source-Input-Output
 % ===============================================================================================
-alicebotCTX4(Ctx,String,Input,Res):- callableInput(Ctx,String,Input,Res),!.
+%alicebotCTX4(Ctx,String,Input,Res):- callableInput(Ctx,String,Input,Res),!.
 alicebotCTX4(_Ctx,String,Input,_Resp):- isNoInput(String,Input), debugFmt('no input'),!,fail.
 alicebotCTX4(Ctx,String,Input,Resp):-
   prolog_mustEach((
@@ -199,8 +200,11 @@ isNoInput(_,_):-fail.
 % ===============================================================================================
 % Call like a SRAI tag
 % ===============================================================================================
-computeInput(Ctx, VoteIn,NotList,InputM):-not(is_list(NotList)),!,listify(NotList,Input),maplist_safe(computeInnerEach(Ctx, VoteIn),Input,InputM).
+computeInput(Ctx, VoteIn,NotList,InputM):-not(is_list(NotList)),!,listify(NotList,Input),
+   maplist_safe(computeInnerEach(Ctx, VoteIn),Input,InputM).
 computeInput(Ctx, VoteIn,Input,InputM):-maplist_safe(computeInnerEach(Ctx, VoteIn),Input,InputM).
+
+computeInputOutput(Ctx,_VoteIn,Input,Output,1):- callableInput(Ctx,Input,Input,Output),!.
 
 computeInputOutput(Ctx,VoteIn,Input,Output,VotesOut):-
     prolog_mustEach((computeInput(Ctx, VoteIn,Input,InputM),!,
@@ -1081,5 +1085,9 @@ substituteFromDict_l(Ctx,DictName,[V|Hidden],[V|Output]):-substituteFromDict_l(C
 %%:- cateFallback(ATTRIBS), pushAttributes(_Ctx,cateFallback,ATTRIBS).
 
 % run main loop if this was the toplevel file
-do_main_if_load:- current_prolog_flag(associated_file,File),file_base_name(File, 'logicmoo_module_aiml.pl')->main_loop;true.
+do_main_if_load:- current_prolog_flag(associated_file,File),file_base_name(File, 'logicmoo_module_aiml.pl')->aiml_main_loop;true.
 
+:- writeln('%~ MAYBE:  @load aiml/lilSophia').
+:- writeln('%~ MAYBE:  @load aiml/lilSo.aiml').
+:- writeln('%~ MAYBE:  @load aiml/lilSo2.aiml').
+:- writeln('%~ MAYBE:  @load aiml/lilSo3.aiml').

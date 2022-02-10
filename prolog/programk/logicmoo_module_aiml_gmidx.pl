@@ -24,7 +24,6 @@
 :-ensure_loaded(library('programk/logicmoo_module_aiml_convertor.pl')).
 :-ensure_loaded(library('programk/logicmoo_module_aiml_cxt_path.pl')).
 
-:-discontiguous(load_dict_structure/2).
 
 % ===============================================================================================
 % ===============================================================================================
@@ -325,7 +324,12 @@ assert_cate_in_load(NEW) :- currentContext(assert_cate_in_load,Ctx),prolog_must(
 
 assert_cate_in_load(Ctx,CateSig):-
     duplicate_term(CateSig,CateSigTest),
-    load_category(Ctx,CateSigTest),!.
+    load_category(Ctx,CateSigTest),!,
+    ignore((
+    functor(CateSigTest,_,A),
+    arg(A,CateSigTest,E),arule107=E,%break,
+    write(E),write('.'))).
+    
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% load_category(Ctx,CateSig)
@@ -515,6 +519,8 @@ toIndexableArg(_,_,B,AHL):-toIndexableArg(B,A),!,!,prolog_must(toLowercase(A,AHL
 
 toIndexableArg(A,A):- noTrickyIndexing,!.  %%TODO: REMOVE THIS DISABLER
 toIndexableArg(A,A):-var(A),!.
+toIndexableArg([S|H],AH):- string(S),maplist(any_to_atom,[S|H],[C|CT]),!,toIndexableArg([C|CT],AH).
+toIndexableArg(S,AH):- string(S),atom_string(A,S),!,toIndexableArg(A,AH).
 toIndexableArg(A,AH):-is_list(A),removeSkippables(A,AL),A\==AL,!,toIndexableArg(AL,AH).
 toIndexableArg(A,A):-member(A,['*','[]','_']),!.
 toIndexableArg([A],AA):-not(compound(A)),!,toIndexableArg(A,AA).
@@ -522,6 +528,7 @@ toIndexableArg(A,A):-not(compound(A)),!.
 toIndexableArg([A],AH):- atom(A),!,AH=..[A/*,idx0*/],!.
 toIndexableArg([A],N):-toIndexableArg(A,N).
 toIndexableArg(B,A):-prolog_must(toIndexableSArg(B,A)),!.
+toIndexableArg([S|H],AH):- string(S),atom_string(A,S),AH=..[A,idx|H],!.
 toIndexableArg([A|H],AH):- trace,atom(A),AH=..[A,idx|H],!.
 toIndexableArg([A|H],AH):- A=..[A0|AN],predify(A,AH,A0,AN,H),!.
 toIndexableArg(A,A).
@@ -669,7 +676,7 @@ defaultPredicatesS([
              userdict='user',
              substitutions='input',
              guard='*',
-             template=['is ERROR IN CATE'],
+             template=['is ERROR IN CATE (no template is set)'],
              lang='bot',
              srcinfo=missinginfo,
              srcfile=missingfile,

@@ -70,7 +70,7 @@ current_value(Ctx,Name,Value):-current_value(Ctx,Name,Value,'$global_value').
 current_value(Ctx,Name,Value,ElseVar):-peekNameValue(Ctx,_Scope,Name,Value,ElseVar).
 
 checkNameValue(Pred,Ctx,Scope,[Name],Value,Else):- nonvar(Name),!,checkNameValue(Pred,Ctx,Scope,Name,Value,Else).
-checkNameValue(Pred,Ctx,Scope,Name,Value,Else):-notrace(( call(Pred,Ctx,Scope,Name,ValueVar,Else),!,checkValue(ValueVar),valuesMatch(Ctx,ValueVar,Value))),!. %%,atrace.
+checkNameValue(Pred,Ctx,Scope,Name,Value,Else):-aiml_notrace(( call(Pred,Ctx,Scope,Name,ValueVar,Else),!,checkValue(ValueVar),valuesMatch(Ctx,ValueVar,Value))),!. %%,atrace.
 
 peekNameValue(Ctx,Scope,Name,Value,Else):-nonvar(Value),!,checkNameValue(peekNameValue,Ctx,Scope,Name,Value,Else).
 peekNameValue(Ctx,Scope,Name,Value,ElseVar):- locateNameValue(Ctx,Scope,Name,Value,'$first'(['$local_value','$global_value','$attribute_value',ElseVar])),!.
@@ -84,8 +84,8 @@ peekNameValue0(CtxI,Scope,Name,Value):-dictNameKey(Scope,Name,Key),getCtxValueND
 peekNameValue0(Ctx,Scope,Name,Value):-peekGlobalMem(Ctx,Scope,Name,Value).
 peekNameValue0(CtxI,Scope,Name,Value):-var(Scope),!,peekAnyNameValue(CtxI,Scope,Name,Value).
 peekNameValue0(CtxI,Scope,Name,Value):-getCtxValueND(CtxI,Scope:Name,Value).
-peekNameValue0(Ctx,ATTRIBS,NameS,ValueO):- notrace((findAttributeValue(Ctx,ATTRIBS,NameS,ValueO,'$failure'))).
-peekNameValue0(Ctx,XML,NameS,ValueO):- notrace((findTagValue(Ctx,XML,NameS,ValueO,'$failure'))).
+peekNameValue0(Ctx,ATTRIBS,NameS,ValueO):- aiml_notrace((findAttributeValue(Ctx,ATTRIBS,NameS,ValueO,'$failure'))).
+peekNameValue0(Ctx,XML,NameS,ValueO):- aiml_notrace((findTagValue(Ctx,XML,NameS,ValueO,'$failure'))).
 peekNameValue0(_Ctx,CtxI,Name,Value):- getCtxValueND(CtxI,Name,Value).
 peekNameValue0(Ctx,Scope,Name,Value):-lotrace((getIndexedValue(Ctx,Scope,Name,[],Value),checkAttribute(Scope,Name,Value))).
 peekNameValue0(Ctx,Scope,Name,Value):-getInheritedStoredValue(Ctx,Scope,Name,Value),checkAttribute(Scope,Name,Value),atrace.
@@ -132,7 +132,7 @@ valuesMatch(_Ctx,V,V):-!.
 valuesMatch(Ctx,V,A):-convertToMatchableCS(A,AA),convertToMatchableCS(V,VV),valuesMatch10(Ctx,VV,AA).
 
 
-valuesMatch10(Ctx,V,A):-notrace(valuesMatch11(Ctx,V,A)),!.
+valuesMatch10(Ctx,V,A):-aiml_notrace(valuesMatch11(Ctx,V,A)),!.
 valuesMatch10(Ctx,V,A):-ignorecase_literal(A,AA),ignorecase_literal(V,VV),!,valuesMatch11(Ctx,VV,AA),!.
 
 valuesMatch1(_Ctx,V,V).
@@ -182,40 +182,53 @@ popAttributes0(_Ctx,_Scope,VA):-var(VA),!.
 popAttributes0(_Ctx,_Scope,[]):-!.
 popAttributes0(Ctx,Scope,What):-debugFmt(popAttributes0(Ctx,Scope,What)),unify_listing(retract(dict(Scope,_,_))),!. %%,atrace.
 
-withAttributes(_Ctx,ATTRIBS,Call):-ATTRIBS==[],!,Call.
+withAttributes(_Ctx,ATTRIBS,Call):-ATTRIBS==[],!,call(Call),!.
 
+/*
 withAttributes(CtxIn,ATTRIBS,Call):- fail,
  %%gensym(withAttribs,SYM),
   ensureScope(NewCtx,ATTRIBS,Scope),
   makeContextBase(Scope,NewCtx),
   subst(Call,CtxIn,Ctx,ReCall),!,
   Ctx = l2r(NewCtx,CtxIn),
-  notrace((
+  aiml_notrace((
    ensureScope(NewCtx,ATTRIBS,Scope),
    checkAttributes(Scope,ATTRIBS))),
    call_cleanup((
-    once(notrace(pushAttributes(NewCtx,Scope,ATTRIBS))),
+    once(aiml_notrace(pushAttributes(NewCtx,Scope,ATTRIBS))),
     prolog_must(ReCall)),
-    once((notrace(popAttributes(NewCtx,Scope,ATTRIBS))))).
+    once((aiml_notrace(popAttributes(NewCtx,Scope,ATTRIBS))))),!.
+*/
 
-withAttributes(CtxIn,ATTRIBS,Call):-
- duplicate_term(CtxIn,Ctx),!,
-  notrace((
-   ensureScope(Ctx,ATTRIBS,Scope),
-   checkAttributes(Scope,ATTRIBS),
-   pushAttributes(Ctx,Scope,ATTRIBS))),!,
-    subst(Call,CtxIn,Ctx,ReCall),!,
-  call(ReCall).
-
-withAttributes(Ctx,ATTRIBS,Call):-
-  notrace((
+ /*
+ unitTestResult(unit_failed,f(testIt([teststarrecursion],[retention,of,star,values,during,srai,'(','46',')'],['Verifies',that,values,assigned,to,star,elements,from,pattern,matching,are,retained,after,a,srai,'(',i,'.',e,'.',',',that,the,srai,does,not,improperly,cause,the,reassignment,of,a,new,value,to,the,star,',',based,on,the,srai,'\'',ed,pattern,match,'.'],sameBinding(1.2100000000000002-['Test',case,#,'46','.','Test',failed,'.'],['Test',case,#,'46','.','Test',passed,'.'])),sameBinding(1.2100000000000002-['Test',case,#,'46','.','Test',failed,'.'],['Test',case,#,'46','.','Test',passed,'.']))).
+withAttributes(Ctx,ATTRIBS,Call):- 
+  aiml_notrace((
    ensureScope(Ctx,ATTRIBS,Scope),
    checkAttributes(Scope,ATTRIBS))),
    call_cleanup((
-    once(notrace(pushAttributes(Ctx,Scope,ATTRIBS))),
+    once(aiml_notrace(pushAttributes(Ctx,Scope,ATTRIBS))),
       Call),
-    once(notrace(popAttributes(Ctx,Scope,ATTRIBS)))).
-    
+    once(aiml_notrace(popAttributes(Ctx,Scope,ATTRIBS)))),!.
+ */
+% required for testcase 14 teststarrecursion
+withAttributes(CtxIn,ATTRIBS,Call):-
+ duplicate_term(CtxIn,Ctx),!,
+  aiml_notrace((
+   ensureScope(Ctx,ATTRIBS,Scope),
+   checkAttributes(Scope,ATTRIBS),
+   pushAttributes(Ctx,Scope,ATTRIBS))),!,
+    fr_subst(CtxIn,Ctx,Call,ReCall),!,
+  call(ReCall),!.
+
+
+fr_subst(F,R,I,O):- F==I,!,O=R.
+fr_subst(_,_,I,O):- \+ compound(I),!,I=O.
+fr_subst(_,_,element(C,Call,E),element(C,Call,E)):-!.
+%fr_subst(F,R,I,O):- is_list(I),maplist(fr_subst(F,R),I,O).
+fr_subst(F,R,[H|T],[HH|TT]):- !, fr_subst(F,R,H,HH),fr_subst(F,R,T,TT).
+fr_subst(F,R,I,O):- compound_name_arguments(I,A,II),fr_subst(F,R,II,OO),compound_name_arguments(O,A,OO).
+
 addScopeParent(Child,Parent):-addInherit(Child,Parent).
 
 checkAttributes(Scope,ATTRIBS):-prolog_must(nonvar(ATTRIBS)),maplist(checkAttribute(Scope),ATTRIBS).
@@ -275,7 +288,7 @@ makeSingleTag(Ctx,NameS,ATTRIBS,Default,Tag,ValueO):-makeAimlSingleParam0(Ctx,Na
       transformTagData(Ctx,Tag,Default,ValueI,ValueO),!.
 
 makeAimlSingleParam0(_Ctx,[N|NameS],ATTRIBS,_D,N,Value):-member(O,[N|NameS]),lastMember(OI=Value,ATTRIBS),atomsSameCI(O,OI),!,prolog_must(N\==Value).
-makeAimlSingleParam0(Ctx,[N|NameS],ATTRIBS,ElseVar,N,Value):- notrace((locateNameValue(Ctx,ATTRIBS,[N|NameS],Value,
+makeAimlSingleParam0(Ctx,[N|NameS],ATTRIBS,ElseVar,N,Value):- aiml_notrace((locateNameValue(Ctx,ATTRIBS,[N|NameS],Value,
           '$first'(['$local_value','$call_name'(prolog_must(cateFallback(N,Value)),N),
                     '$global_value','$call_name'(prolog_must(defaultPredicates(N,Value)),N),
                        ElseVar,'$error'])))),!,
@@ -373,7 +386,7 @@ makeContextBase__only_ForTesting(Gensym_Key, [frame(Gensym_Key,ndestruct,[assoc(
 % ===================================================================
 pushCtxFrame(Ctx,Name,NewValues):-prolog_mustEach((checkCtx(pushCtxFrame,Ctx),get_ctx_holderFreeSpot(Ctx,Holder,GuestDest),!,Holder=frame(Name,GuestDest,NewValues))).
 
-popCtxFrame(Ctx,Name,PrevValuesIn):- notrace(prolog_mustEach(((
+popCtxFrame(Ctx,Name,PrevValuesIn):- aiml_notrace(prolog_mustEach(((
       checkCtx(popCtxFrame,Ctx),
       get_ctx_frame_holder(Ctx,Name,Frame,_Held),
       %%prolog_must(atom(Name)),prolog_must(compound(Frame)),
@@ -440,22 +453,22 @@ unwrapValue1(Compound,Compound).
 bestSetterFn(v(_,Setter,_),_OuterSetter,Setter):-!.
 bestSetterFn(_Value,OuterSetter,OuterSetter).
 
-getCtxValueND(CtxIn,Name,Value):-checkCtx(getCtxValueND,CtxIn), notrace(( get_ctx_holder(CtxIn,Ctx),get_o_value(Name,Ctx,HValue,_Setter),unwrapValue(HValue,Value))).
-getCtxValueND(CtxI,Name,Value):-checkCtx(getCtxValueND,CtxI),lastMember(Ctx,CtxI),notrace(( get_ctx_holder(Ctx,CtxH),get_o_value(Name,CtxH,HValue,_Setter), unwrapValue(HValue,Value))),atrace.
+getCtxValueND(CtxIn,Name,Value):-checkCtx(getCtxValueND,CtxIn), aiml_notrace(( get_ctx_holder(CtxIn,Ctx),get_o_value(Name,Ctx,HValue,_Setter),unwrapValue(HValue,Value))).
+getCtxValueND(CtxI,Name,Value):-checkCtx(getCtxValueND,CtxI),lastMember(Ctx,CtxI),aiml_notrace(( get_ctx_holder(Ctx,CtxH),get_o_value(Name,CtxH,HValue,_Setter), unwrapValue(HValue,Value))),atrace.
 
 /*
 getCtxValueND(CtxIn,Dict:Name,Value):-var(Dict),!,getCtxValueND(CtxIn,Name,Value).
 getCtxValueND(CtxIn,Name,Value):-prolog_must(nonvar(Name)),getCtxValueND0(CtxIn,Name,Value).
 getCtxValueND(CtxIn,Dict:Name,Value):-getNamedCtxValue(CtxIn,Dict,Name,Value).
 
-getCtxValueND0(CtxIn,Name,Value):-checkCtx(getCtxValueND,CtxIn), notrace(( get_ctx_holder(CtxIn,Ctx),get_o_value(Name,Ctx,HValue,_Setter),unwrapValue(HValue,Value))).
-getCtxValueND0(CtxI,Name,Value):-checkCtx(getCtxValueND,CtxI),lastMember(Ctx,CtxI),notrace(( get_ctx_holder(Ctx,CtxH),get_o_value(Name,CtxH,HValue,_Setter), unwrapValue(HValue,Value))),atrace.
+getCtxValueND0(CtxIn,Name,Value):-checkCtx(getCtxValueND,CtxIn), aiml_notrace(( get_ctx_holder(CtxIn,Ctx),get_o_value(Name,Ctx,HValue,_Setter),unwrapValue(HValue,Value))).
+getCtxValueND0(CtxI,Name,Value):-checkCtx(getCtxValueND,CtxI),lastMember(Ctx,CtxI),aiml_notrace(( get_ctx_holder(Ctx,CtxH),get_o_value(Name,CtxH,HValue,_Setter), unwrapValue(HValue,Value))),atrace.
 */
 
 getCtxValue_nd(Ctx,Key,Value):- getNamedCtxValue(Ctx,Dict,Name,Value),dictNameKey(Dict,Name,Key).
 
 getNamedCtxValue(CtxIn,Dict,Name,Value):-get_ctx_frame_holder(CtxIn,Dict,_Frame,Held),atrace,get_c_value_wrapped(Held,Name,Value).
-getNamedCtxValue(CtxIn,Dict,Name,Value):-lastMember(Ctx,CtxIn),notrace((get_ctx_holder(Ctx,CtxHolder),ctxDict(CtxHolder,Dict,Held),get_c_value_wrapped(Held,Name,Value) )).
+getNamedCtxValue(CtxIn,Dict,Name,Value):-lastMember(Ctx,CtxIn),aiml_notrace((get_ctx_holder(Ctx,CtxHolder),ctxDict(CtxHolder,Dict,Held),get_c_value_wrapped(Held,Name,Value) )).
 getNamedCtxValue(CtxIn,Dict,Name,'$deleted'(CtxIn,Dict,Name)):-ignore(Dict=nodict),ignore(Name=noname).
 
 ctxDict(Ctx,Dict,[]):-var(Ctx),!,Dict=noctx.
@@ -494,7 +507,7 @@ get_ctx_frame_holder0([H|T],Name,R,Held):- nonvar(H), !, ( get_ctx_frame_holder0
 
 get_ctx_holder(Ctx,R):-compound(Ctx),get_ctx_holder1(Ctx,R).
 get_ctx_holder1([H|T],R):- nonvar(H), !, ( get_ctx_holder(T,R);get_ctx_holder1(H,R)) .
-get_ctx_holder1(v(_,_,_),_R):-!,fail.%% get_ctx_holder(Ctx,R).
+get_ctx_holder1(v(_,_,_),_R):-!,fail. % get_ctx_holder(Ctx,R).
 get_ctx_holder1(frame(_N,_Dest,Ctx),R):-!,get_ctx_holder(Ctx,R).
 get_ctx_holder1(l2r(H,T),R):- !, ( get_ctx_holder1(H,R);get_ctx_holder(T,R)) .
 get_ctx_holder1(assoc(Ctx),assoc(Ctx)):-!.
@@ -531,7 +544,7 @@ get_ctx_holderFreeSpot2(_,[_|Try2],NamedValue,Destruct):-get_ctx_holderFreeSpot0
 get_ctx_value(Name,Ctx,Value,Setter):-nonvar(Name),var(Value),get_o_value(Name,Ctx,Value,OuterSetter),bestSetterFn(Value,OuterSetter,Setter).
 
 get_o_value00(Name,Ctx,Value,Setter):-get_o_value0(Name,Ctx,Value,HIDE_Setter),((no_cyclic_terms,cyclic_term(HIDE_Setter))-> Setter=no_setter(cyclicOn(Name)) ; Setter =HIDE_Setter).
-get_o_value(Name,Ctx,Value,Setter):- notrace(get_o_value00(Name,Ctx,Value,Setter)).
+get_o_value(Name,Ctx,Value,Setter):- aiml_notrace(get_o_value00(Name,Ctx,Value,Setter)).
 
 get_o_value0(Name,Ctx,Value,Setter):-compound(Ctx),get_o_value1(Name,Ctx,Value,Setter).
 get_o_value1(Name,[H|T],Value,Setter):- !,(get_o_value0(Name,T,Value,Setter);get_o_value1(Name,H,Value,Setter)).
@@ -556,7 +569,7 @@ attributeValue(Ctx,Scope,Name,Value,_ElseVar):-peekNameValue0(Ctx,Scope,Name,Val
 attributeValue(Ctx,_Scope,Name,Value,ElseVar):-makeParamFallback(Ctx,Name,Value,ElseVar),!.
 */
 attributeValue(Ctx,ATTRIBS,NameS,ValueO,_Else):- ((findAttributeValue(Ctx,ATTRIBS,NameS,ValueO,'$failure'))),!.
-attributeValue(Ctx,XML,NameS,ValueO,_Else):- notrace((findTagValue(Ctx,XML,NameS,ValueO,'$failure'))),!.
+attributeValue(Ctx,XML,NameS,ValueO,_Else):- aiml_notrace((findTagValue(Ctx,XML,NameS,ValueO,'$failure'))),!.
 attributeValue(Ctx,ATTRIBS,NameS,ValueO,_Else):-compound(ATTRIBS),ATTRIBS=..[_|LIST],member(E,LIST),
    attributeValue(Ctx,E,NameS,ValueO,'$failure'),!.
 attributeValue(Ctx,Scope,NameS,ValueO,ElseVar):-ElseVar\=='$failure',makeParamFallback(Ctx,Scope,NameS,ValueO,ElseVar),!.

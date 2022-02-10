@@ -10,16 +10,17 @@
 
 
 %:- use_module(library(programk/cyc_pl/cyc),
-%  [is_string/1,atom_to_number/2,balanceBinding/2,writeFmtFlushed/2,writeFmtFlushed/3,toCycApiExpression/3]).
+%  [is_string/1,atom_number/2,balanceBinding/2,writeFmtFlushed/2,writeFmtFlushed/3,toCycApiExpression/3]).
 
 
 
 % ===============================================================================================
 % Split input into many words
 % ===============================================================================================
-toString_atom(Input,Atom):-toCycApiExpression(Input,Out,[]),atrace,string_to_atom(Atom,Out).
+%toString_atom(Input,Atom):- fail,toCycApiExpression(Input,Out,[]),atrace,string_to_atom(Atom,Out).
+toString_atom(Input,Atom):- string_to_atom(Input,Atom),!.
 
-tokenizeInput(Input,Tokens):- notrace(is_string(Input)),toString_atom(Input,Atom),!,tokenizeInput(Atom,Tokens),!.
+tokenizeInput(Input,Tokens):- notrace(is_string(Input)),toString_atom(Input,Atom),Input\=@=Atom,!,tokenizeInput(Atom,Tokens),!.
 %%tokenizeInput(String,Tokens):-hotrace(tokenizeInput0(String,Tokens)),!.
 tokenizeInput(String,Tokens):-hotrace(tokenizeInput0(String,Tokens)),Tokens\==[],ground(Tokens),!.
 tokenizeInput(String,Tokens):-tokenizeInput0(String,Tokens),!.
@@ -27,12 +28,13 @@ tokenizeInput(String,Tokens):-tokenizeInput0(String,Tokens),!.
 tokenizeInput0(Input,Tokens):-var(Input),!,Input=Tokens.
 tokenizeInput0([],[]):-!.
 tokenizeInput0([C0,C1|Odes],Tokens):- integer(C0),integer(C1),name(Input,[C0,C1|Odes]),!,tokenizeInput0(Input,Tokens).
-tokenizeInput0(Input,Tokens):- string(Input),string_to_atom(Input,Atom),!,tokenizeInput1(Atom,Tokens).
-tokenizeInput0([A|B],Out):- tokenizeInput0(A,AA),tokenizeInput_l(B,BB),!,flatten([AA,BB],Out).
+tokenizeInput0(Input,Tokens):- string(Input),string_to_atom(Input,Atom),Input\=@=Atom,!,tokenizeInput1(Atom,Tokens).
+tokenizeInput0([A|B],Out):- !, tokenizeInput0(A,AA),tokenizeInput_l(B,BB),!,flatten([AA,BB],Out).
 tokenizeInput0(Input,Tokens):- atom(Input),tokenizeInput1(Input,Tokens),!.
-tokenizeInput0(Input,Tokens):- number(Input),atom_to_number(Tokens,Input),!.
-tokenizeInput0(Input,Tokens):- notrace(is_string(Input)),toString_atom(Input,Atom),!,tokenizeInput0(Atom,Tokens).
-tokenizeInput0(Compound,Out):-Compound=..[A|B],tokenizeInput_l(B,BB),!,Out=..[A|BB].
+tokenizeInput0(Input,Tokens):- number(Input),atom_number(Tokens,Input),!.
+tokenizeInput0(Input,Tokens):- notrace(is_string(Input)),toString_atom(Input,Atom),Input\=@=Atom,!,tokenizeInput0(Atom,Tokens).
+tokenizeInput0(Input,Tokens):- notrace(is_string(Input)),toString_atom(Input,Atom),!,tokenizeInput1(Atom,Tokens).
+tokenizeInput0(Compound,Out):- Compound=..[A|B],tokenizeInput_l(B,BB),!,Out=..[A|BB].
 tokenizeInput0(A,A).
 
 
@@ -53,7 +55,7 @@ atomify(A,A):-var(A),!.
 %%%atomify(A,A):-atomic(A),!.
 atomify([A],A):-atom(A),!.
 atomify(A,A):-atomic(A),!.
-atomify(A,AA):-number(A),atom_to_number(AA,A),!.
+atomify(A,AA):-number(A),atom_number(AA,A),!.
 atomify([A],AA):-atomify(A,AA),!.
 atomify([A|List],Result):-joinAtoms([A|List],' ',Result).
 
@@ -78,7 +80,7 @@ joinAtoms1(List,Sep,Result):- debugOnError(atomic_list_concat_aiml(List,Sep,Resu
 % Split input into many sentences
 % ===============================================================================================
 
-splitSentences(In,Out):- notrace(splitSentences0(In,Out)). %%,flatten(Out,OutL),traceIf(member(xml,OutL)),!.
+splitSentences(In,Out):- notrace(splitSentences0(In,Out)). %,flatten(Out,OutL),traceIf(member(xml,OutL)),!.
 splitSentences0([],[]):-!.   
 splitSentences0(SR1,[SR0|SRMORE]):-grabFirstSetence(SR1,SR0,LeftOver),!,splitSentences0(LeftOver,SRMORE),!.
 splitSentences0(SR1,[SR1]):-!.

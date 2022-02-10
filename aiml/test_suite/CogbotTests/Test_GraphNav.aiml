@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!-- Reload in chat GUI with      
 	/aiml @load <bot name="~genotype"/>/bina_v1/ZZ_Stu.aiml
+	@load aiml/test_suite/CogbotTests/Test_GraphNav.aiml
 -->
 <aiml graph="start_graph">
   <genlMt to="all_graphs" />

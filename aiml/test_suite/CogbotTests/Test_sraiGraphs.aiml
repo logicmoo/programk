@@ -29,7 +29,7 @@
 
       <category>
         <pattern>WE ARE BUDS</pattern>
-        <template><think><set var="isbuddy">YES</set></think></template>
+        <template><think><set var="isbuddy">YES</set></think>SET WE ARE BUDS</template>
       </category>
 
       <category>
@@ -39,11 +39,7 @@
 
       <category>
         <pattern>ARE WE BUDS</pattern>
-        <template><condition>
-                      <li name="isbuddy" value="YES">YES WE ARE BUDS</li>
-                      <li name="isbuddy" value="NO">NO WE ARE NOT BUDS</li>
-                      <li>DUNNO IF WE ARE BUDS</li>
-                      </condition></template>
+        <template><condition><li name="isbuddy" value="YES">YES WE ARE BUDS</li><li name="isbuddy" value="NO">NO WE ARE NOT BUDS</li><li>DUNNO IF WE ARE BUDS</li></condition></template>
       </category>        
 
 </aiml>

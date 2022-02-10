@@ -30,7 +30,7 @@ getAliceMemOrSetDefault(CtxIn,ConvThread,SYM,Name,ValueO,OrDefault):-
 
 %%getAliceMemOrSetDefault0(CtxIn,ConvThread,Name,Value,_OrDefault):- hotrace(current_value(CtxIn,ConvThread:Name,Value)),!.
 getAliceMemOrSetDefault0(CtxIn,ConvThread,Name,Value,_OrDefault):-
-   notrace(getIndexedValue(CtxIn,ConvThread,Name,[],Value)),!.
+   aiml_notrace(getIndexedValue(CtxIn,ConvThread,Name,[],Value)),!.
 getAliceMemOrSetDefault0(CtxIn,ConvThread,Name,Value,OrDefault):-
    setAliceMem(CtxIn,ConvThread,Name,OrDefault),!,OrDefault=Value.
 
@@ -178,7 +178,7 @@ getMajorIndexedValue(Ctx,Dict,Name,Major,ValueS):-
 % ===============================================================================================
 getMajorIndexedValueLinear(Ctx,[D|List],Name,Major,ValueS):-
    member(Dict,[D|List]),
-   notrace(getMajorIndexedValueLinear0(Ctx,Dict,Name,Major,ValueS)),!.
+   aiml_notrace(getMajorIndexedValueLinear0(Ctx,Dict,Name,Major,ValueS)),!.
 
 getMajorIndexedValueLinear(Ctx,[D|List],Name,Major,ValueS):-!,fail,
    unify_listing(dict(_,Name,_)),
@@ -227,7 +227,7 @@ getMajorMinorIndexedValue0(Ctx,Dict,Name,Major,[M|Minor],ValueS,Value):-
 
 numberFyList([],[]).
 numberFyList([A|MajorMinor],[B|MajorMinorM]):-
-  atom(A),atom_to_number(A,B),
+  atom(A),atom_number(A,B),
   numberFyList(MajorMinor,MajorMinorM),!.
 numberFyList([A|MajorMinor],[A|MajorMinorM]):-numberFyList(MajorMinor,MajorMinorM).
 
@@ -248,7 +248,7 @@ getMinorSubscript(Items,'*',Value):- !,prolog_must(flatten(Items,Value)),!.
 getMinorSubscript(Items,',',Value):- throw_safe(getMinorSubscript(Items,',',Value)), !,prolog_must(=(Items,Value)),!.
 getMinorSubscript(Items,[A|B],Value):-!,getMinorSubscript(Items,A,ValueS),!,getMinorSubscript(ValueS,B,Value),!.
 getMinorSubscript(Items,[],Value):-!,xformOutput(Items,Value),!.
-getMinorSubscript(Items,ANum,Value):- \+ number(ANum),!,prolog_must(atom_to_number(ANum,Num)),!,getMinorSubscript(Items,Num,Value).
+getMinorSubscript(Items,ANum,Value):- \+ number(ANum),!,prolog_must(atom_number(ANum,Num)),!,getMinorSubscript(Items,Num,Value).
 %%%
 getMinorSubscript(Items,Num,Value):- prolog_must(is_list(Items)),length(Items,Len),Index is Len-Num,nth0(Index,Items,Value),is_list(Value),!.
 getMinorSubscript([],1,[]):-!.
@@ -258,7 +258,8 @@ getMinorSubscript(Items,Num,Value):-debugFmt(getMinorSubscriptFailed(Items,Num,V
 
 getUserDicts(User,Name,Value):-isPersonaUser(User),isPersonaPred(Name),once(getInheritedStoredValue(_Ctx,User,Name,Value)).
 
-isPersonaUser(User):-findall(User0,getContextStoredValue(_Ctx,User0,'is_type','agent'),Users),sort(Users,UsersS),!,member(User,UsersS).
+isPersonaUser(User):-findall(User0,getContextStoredValue(_Ctx,User0,'is_type','agent'),Users),Users\==[],!,sort(Users,UsersS),!,member(User,UsersS).
+isPersonaUser(_).
 isPersonaPred(Name):-findall(Pred,(getContextStoredValue(_Ctx,_Dict,Pred,_Value),atom(Pred)),Preds),sort(Preds,PredsS),!,member(Name,PredsS).
 
 
@@ -322,9 +323,9 @@ withValueAdd(Ctx,Pred,Dict,Name,NonList):-( \+(is_list(NonList))),!,withValueAdd
 withValueAdd(Ctx,Pred:_Print,Dict,Name,Value):-checkDictIn(Value,ValueO),call(Pred,Ctx,Dict,Name,ValueO).
 
 nonStarDict(catefallback):-!,fail.
-neverActuallyAdd(Ctx,Pred,Dict,Name,Var):-var(Var),debugFmt(neverActuallyAdd(Ctx,Pred,Dict,Name,Var)),!.
-neverActuallyAdd(Ctx,Pred,Dict,topic,[TooGeneral]):-member(TooGeneral,[general]),debugFmt(neverActuallyAdd(Ctx,Pred,Dict,topic,TooGeneral)),!.
-neverActuallyAdd(Ctx,Pred,Dict,Name,Var):- \+(ground(var(Var))),debugFmt(maybeNeverActuallyAdd(Ctx,Pred,Dict,Name,Var)),!.
+neverActuallyAdd(Ctx,Pred,Dict,Name,Var):-var(Var),debugFmt(x(neverActuallyAdd(Ctx,Pred,Dict,Name,Var))),!.
+neverActuallyAdd(Ctx,Pred,Dict,topic,[TooGeneral]):-member(TooGeneral,[general]),debugFmt(x(neverActuallyAdd(Ctx,Pred,Dict,topic,TooGeneral))),!.
+neverActuallyAdd(Ctx,Pred,Dict,Name,Var):- \+(ground(var(Var))),debugFmt(x(maybeNeverActuallyAdd(Ctx,Pred,Dict,Name,Var))),!.
 
 
 uselessNameValue(_Dict,srcfile,_):-!.

@@ -72,7 +72,7 @@
 	 assertThrough/2,
 	 writel/1,
 	 writel/2,
-	 % atomSplit/2,
+	 % atomSplit_oldy/2,
 	 list_to_conj/2,
 	 testCYC/0,
 
@@ -888,7 +888,7 @@ toCycApiExpression(varslist(List),Vars,Chars):-!,toCycApiExpression_vars(List,Va
 toCycApiExpression(varslist(List,Vars),_,Chars):-!,toCycApiExpression_vars(List,Vars,Chars),!.
 toCycApiExpression(quote(List),Vars,Chars):-toCycApiExpression(List,Vars,Term),sformat(Chars,'\'~w',[Term]),!.
 toCycApiExpression((PROLOG:VARS),Vars,Chars):-append(Vars,VARS,NewVars),toCycApiExpression(PROLOG,NewVars,Chars),!.
-toCycApiExpression(Prolog,Vars,Chars):-compound(Prolog),Prolog=..[P|List],not(P='.'),!,toCycApiExpression([P|List],Vars,Chars),!.
+toCycApiExpression(Prolog,Vars,Chars):-compound(Prolog),Prolog=..[P|List],not(P='.'),not(P='[|]'),!,toCycApiExpression([P|List],Vars,Chars),!.
 toCycApiExpression([P,A,B],Vars,Chars):-P==(':-'),B==true,toCycApiExpression(A,Vars,Chars),!.
 toCycApiExpression([P,A,B],Vars,Chars):-P==(':-'),toCycApiExpression(A,Vars,TA),toCycApiExpression(B,Vars,TB),
                   sformat(Chars,'(#$sentenceImplies ~w ~w)',[TB,TA]),!. % ? enables-Generic ?
@@ -1236,7 +1236,7 @@ balanceBinding(string(B),string(B)):-!.
 balanceBinding(Binding,BindingP):-atom(Binding),atom_concat('#$',BindingP,Binding),!.
 balanceBinding(nart(B),nart(BA)):-balanceBinding(B,BA),!.
 balanceBinding(nart(B),(BA)):-!,balanceBinding(B,BA),!.
-balanceBinding(string(B),List):-atomSplit(List,B),!.
+balanceBinding(string(B),List):-atomSplit_oldy(List,B),!.
 balanceBinding(string(B),B):-!.
 balanceBinding(string([]),""):-!.
 balanceBinding(quote(B),BO):-!,balanceBinding(B,BO).
@@ -2140,25 +2140,25 @@ sterm_to_pterm_list([S|STERM],[P|PTERM]):-!,
 sterm_to_pterm_list(VAR,[VAR]).
 
 
-atomSplit(Atom,WordsO):- atomSplit(Atom,WordsO,[' ','\t','\n','\r',' ','!','"','#','$','%','&','\'',
+atomSplit_oldy(Atom,WordsO):- atomSplit_oldy(Atom,WordsO,[' ','\t','\n','\r',' ','!','"','#','$','%','&','\'',
      '\v','\f',
     '(',')','*','+',',','-','.','/',':',';','<','=','>','?','@','[','\\',']','^','_','`','{','|','}','~']
     ).     
 
 
-atomSplit(Atom,WordsO,List):- 
+atomSplit_oldy(Atom,WordsO,List):- 
   notrace((atom(Atom), atomic_list_concat(Words1,' ',Atom),!, 
-   atomSplit2(Words1,Words,List),!,Words=WordsO)).
-atomSplit(Atom,Words,[Space|List]):-notrace((var(Atom),ground(Words),!,atomic_list_concat(Words,Space,AtomO),!,Atom=AtomO)).
+   atomSplit_oldy2(Words1,Words,List),!,Words=WordsO)).
+atomSplit_oldy(Atom,Words,[Space|List]):-notrace((var(Atom),ground(Words),!,atomic_list_concat(Words,Space,AtomO),!,Atom=AtomO)).
 
-atomSplit2([],[],_List):-!.
-atomSplit2([Mark|S],[Mark|Words],List):- member(Mark,List),!,atomSplit2(S,Words,List),!.
-atomSplit2([W|S],[A,Mark|Words],List):- member(Mark,List),atom_concat(A,Mark,W),!,atomSplit2(S,Words,List),!.
-atomSplit2([W|S],[Mark,A|Words],List):- member(Mark,List),atom_concat(Mark,A,W),!,atomSplit2(S,Words,List),!.
-atomSplit2([Word|S],Words,List):- member(Space,List),Atoms=[_,_|_],atomic_list_concat(Atoms,Space,Word),!,
+atomSplit_oldy2([],[],_List):-!.
+atomSplit_oldy2([Mark|S],[Mark|Words],List):- member(Mark,List),!,atomSplit_oldy2(S,Words,List),!.
+atomSplit_oldy2([W|S],[A,Mark|Words],List):- member(Mark,List),atom_concat(A,Mark,W),!,atomSplit_oldy2(S,Words,List),!.
+atomSplit_oldy2([W|S],[Mark,A|Words],List):- member(Mark,List),atom_concat(Mark,A,W),!,atomSplit_oldy2(S,Words,List),!.
+atomSplit_oldy2([Word|S],Words,List):- member(Space,List),Atoms=[_,_|_],atomic_list_concat(Atoms,Space,Word),!,
                   interleave(Atoms,Space,Left),
-                  atomSplit2(S,Right,List),append(Left,Right,WordsM),!,atomSplit2(WordsM,Words,List),!.
-atomSplit2([W|S],[W|Words],List):-atomSplit2(S,Words,List),!.
+                  atomSplit_oldy2(S,Right,List),append(Left,Right,WordsM),!,atomSplit_oldy2(WordsM,Words,List),!.
+atomSplit_oldy2([W|S],[W|Words],List):-atomSplit_oldy2(S,Words,List),!.
 
 interleave([''],Space,[Space]):-!.
 interleave([Atom],_Space,[Atom]):-!.

@@ -56,7 +56,13 @@ call_with_depth_limit(C,D,M):-C.
  nth([F|R],1,F).
  nth([F|R],N,M) :- N > 1, N1 is N-1, nth(R,N1,M).
 
- is_string(S):-string(S).
+     is_string(X):-string(X),!.
+     is_string(X):-atom(X),!,atom_length(X,L),L>1,atom_concat('"',_,X),atom_concat(_,'"',X),!.
+     is_string(X):-var(X),!,fail.
+     is_string(string(_)):-!.
+     is_string("").
+     is_string(L):-is_charlist(L),!.
+     is_string(L):-is_codelist(L),!.
 
 %%:-['aimlbotFromBoth.pl'].
 
@@ -77,7 +83,7 @@ main_loop1(Atom):- current_input(In),!,
             atom_codes(Atom,Codes),!,
             alicebot(Atom),!.
 
-main_loop:-repeat,main_loop1(Atom),catch(atom_to_term(Atom,Term,Vars),_,fail),
+aiml_main_loop:-repeat,main_loop1(Atom),catch(atom_to_term(Atom,Term,Vars),_,fail),
       once(callInteractive0(Term,Vars)),fail.
 
 % callInteractive(Term,V):-

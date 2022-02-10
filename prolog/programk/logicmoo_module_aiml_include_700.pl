@@ -2,7 +2,7 @@
 :- context_module(M),hidden_away:module(hidden_away),
    module(M),hidden_away:use_module(library(debuggery/dmsg),[dmsg/1,dmsg/2]).
 
-%:- use_module(library(programk/cyc_pl/cyc),[is_string/1,isConsole/0,atom_to_number/2,balanceBinding/2,writeFmtFlushed/2,writeFmtFlushed/3,toCycApiExpression/3]).
+%:- use_module(library(programk/cyc_pl/cyc),[is_string/1,isConsole/0,atom_number/2,balanceBinding/2,writeFmtFlushed/2,writeFmtFlushed/3,toCycApiExpression/3]).
 
 :- use_module(library(debuggery/ucatch),[catchv/3]).
 :- multifile(dumpst_hook:simple_rewrite/2).
@@ -10,7 +10,7 @@
 
 dumpst_hook:simple_rewrite(I,O):- hide_complex_ctx(I,O).
 
-:-ensure_loaded(('cyc_pl/cyc.pl')).
+% :-ensure_loaded(('cyc_pl/cyc.pl')).
 
 /*
 :- if( predicate_property(cyc:debugFmt(_), defined)).
@@ -40,7 +40,19 @@ term_to_string(I,IS):- term_to_atom(I,A),string_to_atom(IS,A),!.
 cyc:debugFmt(Stuff):-once(lmdebugFmt(Stuff)).
 cyc:debugFmt(F,A):-once(lmdebugFmt(F,A)).
 
+:- if( \+ predicate_property(nop(_),defined)).
 nop(_).
+:- endif.
+
+:- if( \+ predicate_property(is_string(_),defined)).
+ is_string(X):-string(X),!.
+ is_string(X):-atom(X),!,atom_length(X,L),L>1,atom_concat('"',_,X),atom_concat(_,'"',X),!.
+ is_string(X):-var(X),!,fail.
+ is_string(string(_)):-!.
+ is_string("").
+ is_string(L):-is_charlist(L),!.
+ is_string(L):-is_codelist(L),!.
+:- endif.
 
 %:- module_transparent(setup_call_cleanup/3).
 
@@ -178,6 +190,7 @@ maybe_leash(Some):- notrace((maybe_leash->leash(Some);true)).
 :- totally_hide(maybe_leash/1).
 
 maybe_leash:- notrace((\+ current_prolog_flag(runtime_must,keep_going), \+ non_user_console)).
+
 
 non_user_console:- !,fail.
 non_user_console:- \+ stream_property(current_input, tty(true)),!.

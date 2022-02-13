@@ -77,7 +77,7 @@ foc_factoids_stream(Out,In):- tmp:existing_factoids_stream(OldThread,FFid,Out,In
 foc_factoids_stream(Out,In):-
   thread_self(Self),
   tcp_socket(Socket),
-  catch((tcp_connect(Socket, 'logicmoo.org':4096),
+  catch((tcp_connect(Socket, 'logicmoo.org':4083),
   tcp_open_socket(Socket, StreamPair)),_,fail),!,
   StreamPair = In, StreamPair = Out,
   set_stream(In,close_on_exec(false)),

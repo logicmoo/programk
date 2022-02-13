@@ -11,7 +11,7 @@ while [ 1==1 ]
 
       if (( $grep_return_code == 0 )); then
          pip install -e $python_aiml
-         python ./bot_factoids.py -port 4081
+         python ./bot_factoids.py -port 4083
       else 
          echo $0 in federated mode
          sleep 1000

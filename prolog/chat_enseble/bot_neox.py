@@ -1,12 +1,10 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 import socket
 import selectors
 import types
 #-*- coding:utf-8 -*-  
 import sys, select, socket
 import os, time
-from GPTJ.Basic_api import SimpleCompletion 
-
 
 moddate = os.stat(os.path.realpath(__file__))[8] # there are 10 attributes this call returns and you want the next to last
 originalsysargv = sys.argv
@@ -53,29 +51,62 @@ if len(sysargv) > 0 and sysargv[0]=='-cmdloop':
 else:
  if select.select([sys.stdin,],[],[],0.0)[0]:
   cmdloop = 1
-  
+
+
+#from gpt_j.Basic_api import simple_completion
+#from gpt_j.gptj_api import Completion
+#from textsynth import TextSynth
+#synth = TextSynth()
+import requests
+import json
+
+headers = {
+    "Authorization": f"Bearer 7e60a3256ed1b4af7fff42ef065bce4c"
+}
+
+data = {
+    "prompt": "A florida man was",
+    #"stream": True,
+    "temperature": 0.8,
+    "top_k": 40,
+    "stop": "\n\n",
+    "max_tokens": 200,
+    "top_p": 1,
+    "seed": 0,
+    "engine": "gptj_6B"
+}
+
+engine = "gptj_6B"
+# gptj_6B fairseq_gpt_13B
+
+
 def do_nlp_proc(text0):
+    global data
+    
+    if text0.find("{") == -1:
+        data['prompt'] = text0.strip(' \t\n\r')
+    else:
+        data = json.loads(text0)
+    
+    headers = {
+        "Authorization": f"Bearer 7e60a3256ed1b4af7fff42ef065bce4c"
+    }
+    if "engine" in data:
+      engine = data["engine"]
+      del data["engine"]
 
- #text0 = text0.strip(' \t\n\r')
+    url = "https://api.textsynth.com/v1/engines/"+engine+"/completions"
+    resp = requests.post("https://api.textsynth.com/v1/engines/fairseq_gpt_13B/completions", headers=headers, json=data).json()
+    data['engine'] = engine
+    resp['engine'] = engine
+    text0 = json.dumps(data)
+    output = 'neox('+ qt(text0)+','+ qt(json.dumps(resp)) + '").'
+    return output
 
- prompt = text0 #"seven multiplied by seven is" #enter something you want to generate in response to
-
- max_length = 60 #maximum length of the output response
-
- #randomness controls - set one to 1.0 and the other to <1.0
- temperature = 0.09 
- top_probability = 1.0
-
- #Initialise the SimpleCompletion Class
-
- query = SimpleCompletion(prompt, length=max_length, t=temperature, top=top_probability)
-
- #Run the Function
- result = query.simple_completion()
-
- output = 'neox('+ qt(text0)+','+ dqt(result)+ '").'
- return output
-
+data["engine"]="fairseq_gpt_13B"
+print(do_nlp_proc("a flora man was"))
+data["engine"]="gptj_6B"
+print(do_nlp_proc("a flora man was"))
 
 
 port=0

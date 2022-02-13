@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sleep 10
+sleep 2
 LIB=python-aiml
 
 while [ 1==1 ]
@@ -12,7 +12,7 @@ while [ 1==1 ]
       [ ! -f /opt/logicmoo_workspace/nofederation ] && grep_return_code=1
 
       if (( $grep_return_code == 0 )); then
-         python3 ./bot_factoids.py -port 4083
+         python ./bot_factoids.py -port 4083
       else 
          echo $0 in federated mode
          sleep 1000

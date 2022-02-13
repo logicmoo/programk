@@ -88,7 +88,7 @@ foc_pyaiml_stream(Out,In):-
 foc_pyaiml_stream(Out,In):- current_prolog_flag(python_local,true),
   lmconfig:space_py_dir(Dir),
   thread_self(Self),
-  sformat(S,'python3 parser_pyaiml.py -nc -cmdloop ',[]),
+  sformat(S,'python parser_pyaiml.py -nc -cmdloop ',[]),
   nop(writeln(S)),
     process_create(path(bash), ['-c', S], [ cwd(Dir),  stdin(pipe(Out)),stdout(pipe(In)), stderr(null), process(FFid)]),!,
   set_stream(In,close_on_exec(false)),
@@ -140,7 +140,7 @@ pyaiml_parse3(String, Lines) :-
 % Very slow version
 pyaiml_parse4(String, Lines) :- current_prolog_flag(python_local,true),
   lmconfig:space_py_dir(Dir),
-  sformat(S,'python3 parser_pyaiml.py -nc ~q ',[String]),
+  sformat(S,'python parser_pyaiml.py -nc ~q ',[String]),
   nop(writeln(S)),
     process_create(path(bash), ['-c', S], [ cwd(Dir), stdout(pipe(In))]),!,
   read_until_pyaiml_notice(In,"cmdloop_Ready."),!,

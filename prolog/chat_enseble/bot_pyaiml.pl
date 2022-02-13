@@ -2,7 +2,6 @@
  [
   test_pyaiml/0,
   test_pyaiml/1,
-  test_pyaiml/2,
   test_pyaiml/1,
   test_pyaiml_parse1/0,
   test_pyaiml_parse2/0,  

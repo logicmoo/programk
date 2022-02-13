@@ -5,7 +5,7 @@ grep_return_code=0
 [ ! -f /opt/logicmoo_workspace/nofederation ] && grep_return_code=1
 
 
-[ 1==0 ] && (
+ignored() {
 if (( $grep_return_code == 0 )); then
    apt install zstd
    pip install gptj
@@ -28,7 +28,7 @@ if (( $grep_return_code == 0 )); then
    pip install -e mesh-transformer-jax/
    pip install --force-reinstall numpy==1.16
 fi
-)
+}
 
 while [ 1==1 ]
    do

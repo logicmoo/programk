@@ -5,21 +5,6 @@ import types
 #-*- coding:utf-8 -*-  
 import sys, select, socket
 import os, time
-import aiml
-
-# The Kernel object is the public interface to
-# the AIML interpreter.
-k = aiml.Kernel()
-
-# Use the 'learn' method to load the contents
-# of an AIML file into the Kernel.
-k.learn("std-startup.xml")
-
-# Use the 'respond' method to compute the response
-# to a user's input string.  respond() returns
-# the interpreter's response, which in this case
-# we ignore.
-k.respond("load aiml b")
 
 
 moddate = os.stat(os.path.realpath(__file__))[8] # there are 10 attributes this call returns and you want the next to last
@@ -70,10 +55,8 @@ else:
   
 def do_nlp_proc(text0):
  text0 = text0.strip(' \t\n\r')
- output = 'pyaiml('
- output = output + '"'text0.replace('"','\\"')+'",',
- output = output + '"'+k.respond(text0).replace('"','\\"')+'"'
- output = output + '").'
+ result = k.respond(text0)
+ output = 'factoids('+ qt(text0)+','+ dqt(result)+ ').'
  return output
 
 
@@ -116,6 +99,25 @@ def accept_wrapper(sock):
     data = types.SimpleNamespace(addr=addr, inb=b'', outb=b'')
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
     sel.register(conn, events, data=data)
+
+aimldir='/opt/logicmoo_workspace/packs_xtra/python-aiml'
+sys.path.append(aimldir)
+os.chdir(aimldir)
+import aiml
+
+# The Kernel object is the public interface to
+# the AIML interpreter.
+k = aiml.Kernel()
+
+# Use the 'learn' method to load the contents
+# of an AIML file into the Kernel.
+k.learn(aimldir+"/std-startup.xml")
+
+# Use the 'respond' method to compute the response
+# to a user's input string.  respond() returns
+# the interpreter's response, which in this case
+# we ignore.
+k.respond("load aiml b")
 
 if port!=0:
     import selectors

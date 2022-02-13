@@ -101,6 +101,10 @@ def accept_wrapper(sock):
     sel.register(conn, events, data=data)
 
 aimldir='/opt/logicmoo_workspace/packs_xtra/python-aiml'
+
+if "python_aiml" in os.environ:
+    aimldir=os.environ["python_aiml"]
+  
 sys.path.append(aimldir)
 os.chdir(aimldir)
 import aiml

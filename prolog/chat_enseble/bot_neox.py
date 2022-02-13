@@ -77,26 +77,30 @@ data = {
 }
 
 engine = "gptj_6B"
-# gptj_6B fairseq_gpt_13B
-
+# engine = "fairseq_gpt_13B"
 
 def do_nlp_proc(text0):
     global data
+    global engine
     
     if text0.find("{") == -1:
         data['prompt'] = text0.strip(' \t\n\r')
     else:
         data = json.loads(text0)
-    
-    headers = {
-        "Authorization": f"Bearer 7e60a3256ed1b4af7fff42ef065bce4c"
-    }
+
     if "engine" in data:
       engine = data["engine"]
       del data["engine"]
 
     url = "https://api.textsynth.com/v1/engines/"+engine+"/completions"
-    resp = requests.post("https://api.textsynth.com/v1/engines/fairseq_gpt_13B/completions", headers=headers, json=data).json()
+    try:
+        resp = requests.post(url,headers={"Authorization": "Bearer 7e60a3256ed1b4af7fff42ef065bce4c"}, json=data).json()
+    except Exception as ex:
+        resp = data
+        resp["error"] = str(ex)
+        resp["error_type"] = f"{type(ex)=}"
+        resp["error_args"] = "{0}".format(ex.args)
+
     data['engine'] = engine
     resp['engine'] = engine
     text0 = json.dumps(data)

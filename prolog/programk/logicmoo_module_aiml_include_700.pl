@@ -1,4 +1,6 @@
 
+:- if( \+ current_predicate(cls/0)).
+
 :- context_module(M),hidden_away:module(hidden_away),
    module(M),hidden_away:use_module(library(debuggery/dmsg),[dmsg/1,dmsg/2]).
 
@@ -36,23 +38,12 @@ cls:-shell(cls).
 term_to_string(I,IS):- error_catch(string_to_atom(IS,I),_,fail),!.
 term_to_string(I,IS):- term_to_atom(I,A),string_to_atom(IS,A),!.
 :- endif.
-%alldiscontiguous:-!.
-cyc:debugFmt(Stuff):-once(lmdebugFmt(Stuff)).
-cyc:debugFmt(F,A):-once(lmdebugFmt(F,A)).
 
 :- if( \+ predicate_property(nop(_),defined)).
 nop(_).
 :- endif.
 
-:- if( \+ predicate_property(is_string(_),defined)).
- is_string(X):-string(X),!.
- is_string(X):-atom(X),!,atom_length(X,L),L>1,atom_concat('"',_,X),atom_concat(_,'"',X),!.
- is_string(X):-var(X),!,fail.
- is_string(string(_)):-!.
- is_string("").
- is_string(L):-is_charlist(L),!.
- is_string(L):-is_codelist(L),!.
-:- endif.
+
 
 %:- module_transparent(setup_call_cleanup/3).
 
@@ -277,8 +268,22 @@ reset_tracer:- ignore((t_l:tracer_reset(Reset)->Reset;true)).
 :- totally_hide(system:notrace/1).
 :- totally_hide(system:trace/0).
 
+:- endif.
+
 
 end_of_file.
+
+
+so i want to try the latest ROCCA.. ideally my goal is to see it running using the new temporal inference  .. should i use the docker compose  ?
+Short and long-term:
+```
+5) see ROCCA driving the agent doing the temporal inference
+6) having logicmoo try to watch what ROCCA is doing and try to predict it (seeing the world thru ROCCA scope 
+      (which is the voxel coordinate space and the actions that the agent does?))  to work on trying to make it make predictions about what ROCCA will do
+7) having logicmoo swap control back and forth from  ROCCA.. whenever Logicmoo gets stuck.. it relies back on the learning from zero of ROCCA
+```
+Ideally each system could learn and borrow each others steps/plans (taking turns driving the Agent) 
+
 
 /* Part of LogicMOO Base Logicmoo Debug Tools
 % ===================================================================
@@ -508,6 +513,59 @@ ftrace(Goal):- restore_trace((
 :- totally_hide('$toplevel':save_debug).
 :- totally_hide('$toplevel':no_lco).
 
+
+
+% =================================================================================
+% Utils
+% =================================================================================
+
+unify_listing(F/A):-!,functor(P,F,A),unify_listing(P).
+unify_listing(FileMatch):-unify_listing(FileMatch,_NumberFound).
+unify_listing(FileMatch,NumberFound):-unify_listing0(FileMatch),flag(printAll,NumberFound,0).
+
+unify_listing0(FileMatch):-functor(FileMatch,F,A),unify_listing(FileMatch,F,A),!.
+
+
+unify_listing_header(FileMatch):-functor(FileMatch,F,A),unify_listing_header(FileMatch,F,A),!.
+
+unify_listing_header(_FileMatch,F,A):- fresh_line,(format('~n/* Prediate:  ~q/~q ',[F,A])),fresh_line,fail.
+unify_listing_header(FileMatch,_F,_A):- forall(predicate_property(FileMatch,Print),(format('~q.~n',[Print]))),fail.
+unify_listing_header(FileMatch,_F,_A):- (format('Pattern: ~q. ~n */~n',[FileMatch])),fresh_line,fail.
+unify_listing_header(FileMatch,F,A):-predicate_property(FileMatch,dynamic),(format(':-dynamic(~q).~n',[F/A])),fresh_line,fail.
+unify_listing_header(FileMatch,F,A):-predicate_property(FileMatch,multifile),(format(':-multifile(~q).~n',[F/A])),fresh_line,fail.
+unify_listing_header(_FileMatch,_F,_A):-fresh_line.
+
+unify_listing(FileMatch,F,A):- unify_listing_header(FileMatch,F,A), printAll(FileMatch).
+
+printAll(FileMatch):-printAll(FileMatch,FileMatch).
+printAll(Call,Print):- flag(printAll,_,0), forall((Call,flag(printAll,N,N+1)),(toReadableObject(Print,Print2),(format('~q.~n',[Print2])))),fail.
+printAll(_Call,Print):- flag(printAll,PA,PA),(format('~n /* found ~q for ~q. */ ~n',[PA,Print])),!.
+
+
+
+contains_term(SearchThis,Find):-Find==SearchThis,!.
+contains_term(SearchThis,Find):-compound(SearchThis),functor(SearchThis,Func,_),(Func==Find;arg(_,SearchThis,Arg),contains_term(Arg,Find)).
+
+% =================================================================================
+% Utils
+% =================================================================================
+
+global_pathname(B,C):-absolute_file_name(B,A),!,canonical_pathname(A,C),!.
+global_pathname(B,A):-relative_pathname(B,A).
+
+relative_pathname(Path,Relative):-
+   absolute_file_name(Path,[relative_to('./')],Absolute),
+   member(Rel,['./','../','../../']),
+   absolute_file_name(Rel,Clip),
+   canonical_pathname(Absolute,AbsoluteA),
+   canonical_pathname(Clip,ClipA),
+   atom_concat_safe(ClipA,RelativeA,AbsoluteA),!,atom_concat_safe(Rel,RelativeA,Relative),!.
+relative_pathname(Path,Relative):- canonical_pathname(Path,Relative),!.
+
+canonical_pathname(Absolute,AbsoluteB):-prolog_to_os_filename(AbsoluteA,Absolute),canonical_pathname0(AbsoluteA,AbsoluteB),!.
+
+canonical_pathname0(AbsoluteA,AbsoluteB):-error_catch(expand_file_name(AbsoluteA,[AbsoluteB]),E,(debugFmt(E:AbsoluteA),fail)),!.
+canonical_pathname0(AbsoluteA,AbsoluteA).
 
 
 

@@ -80,11 +80,15 @@ oneOrListEach(IDs,ID):-member(ID,IDs).
 %%textToMatchPattern([Text],MatchPattern):-textPred(Text,Pred),!,member(MatchPattern,[Pred,*,'_']).
 textToMatchPattern([Text,_P|_Attern],MatchPattern):-textPred(Text,Pred),functor(MatchPattern,Pred,1).
 textToMatchPattern([_Text|Pattern],MatchPattern):-member(T,Pattern),textPred(T,Pred),functor(MatchPattern,Pred,2).
-textToMatchPattern(_TextPattern,'*').
+textToMatchPattern([_|_TextPattern],'*').
 textToMatchPattern(_TextPattern,'_').
+textToMatchPattern([_|_TextPattern],'^').
+textToMatchPattern(_TextPattern,'#').
 %%textToMatchPattern(_TextPattern,_).
 
-aimlPattern2CateID(Name,Text,IDO):-argNumsIndexedRepr(aimlCate,Name,N,textInput),aimlCateSig(CateSig),arg(N,CateSig,Pattern),arg(14,CateSig,ID),!,   
+aimlPattern2CateID(Name,Text,IDO):-
+   argNumsIndexedRepr(aimlCate,Name,N,textInput),
+   aimlCateSig(CateSig), arg(N,CateSig,Pattern),arg(14,CateSig,ID),!,   
    findall(ID,(textToMatchPattern(Text,Pattern),CateSig),IDs),oneOrList(IDs,IDO).
 
 aimlCate2ID(Name,Pattern,IDO):-argNumsIndexedRepr(aimlCate,Name,N,textInput),!,argNFound(aimlCate,Name,_S,Pattern),aimlCateSig(CateSig),arg(N,CateSig,Pattern),arg(14,CateSig,ID),findall(ID,CateSig,IDs),oneOrList(IDs,IDO).

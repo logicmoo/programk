@@ -37,7 +37,11 @@ hide_complex_ctx(I,'$..$'(A1)):- functor(I,F,_),F==frame,!,arg(1,I,A0),functor(A
 hide_complex_ctx(I,O):- I=..M,hide_complex_ctx(M,N),!,O=..N.
 
 :- dynamic(noConsoleDebug/0).
-noConsoleDebug:- current_prolog_flag(debug,false).
+%noConsoleDebug:- current_prolog_flag(debug,false).
+noConsoleDebug:- debugging(programk,true),!,fail.
+noConsoleDebug:- debugging(programk,false),!.
+:- nodebug(programk).
+
 
 %lmdebugFmt(Stuff):- noConsoleDebug,Stuff \= say(_),!.
 lmdebugFmt(Stuff):- once((fresh_line,debugFmtS(Stuff),fresh_line)),!.
@@ -54,6 +58,18 @@ debugFmtS([A|L]):-!,debugFmt('% ~q',[[A|L]]).
 debugFmtS(Comp):-toReadableObject(Comp,Comp2),!,debugFmt('% ~q',[Comp2]).
 debugFmtS(Stuff):-!,debugFmt('% ~q',[Stuff]).
 
+%alldiscontiguous:-!.
+cyc:debugFmt(Stuff):-once(lmdebugFmt(Stuff)).
+cyc:debugFmt(F,A):-once(lmdebugFmt(F,A)).
+:- if( \+ predicate_property(is_string(_),defined)).
+ is_string(X):-string(X),!.
+ is_string(X):-atom(X),!,atom_length(X,L),L>1,atom_concat('"',_,X),atom_concat(_,'"',X),!.
+ is_string(X):-var(X),!,fail.
+ is_string(string(_)):-!.
+ is_string("").
+ is_string(L):-is_charlist(L),!.
+ is_string(L):-is_codelist(L),!.
+:- endif.
 
 %================================================================
 :-multifile(expire1Cache/0).
@@ -334,7 +350,7 @@ prolog_extra_checks:-true.
 :-'tryHide'('$bags':findall/3).
 
 
-:-set_prolog_flag(debug,true).
+%:-set_prolog_flag(debug,true).
 :-set_prolog_flag(debug_on_error,true).
 :-set_prolog_flag(write_attributes,write).
 
@@ -593,6 +609,7 @@ deleteAll(A,[L|List],AA):-delete(A,L,AAA),deleteAll(AAA,List,AA),!.
 join_path(CurrentDir,Filename,Name):-
          atom_ensure_endswith(CurrentDir,'/',Out),atom_ensure_endswith('./',Right,Filename),
          atom_concat(Out,Right,Name),!.
+join_path(CurrentDir,Filename,Name):- directory_file_path(CurrentDir,Filename,Name).
 
 atom_ensure_endswith(A,E,A):-atom(E),atom_concat(_Left,E,A),!.
 atom_ensure_endswith(A,E,O):-atom(A),atom(E),atom_concat(A,E,O),!.
@@ -616,8 +633,7 @@ os_to_prolog_filename(OS,_PL):-prolog_must(atom(OS)),fail.
 os_to_prolog_filename(_OS,PL):-prolog_must(var(PL)),fail.
 os_to_prolog_filename(OS,PL):-exists_file_safe(OS),!,PL=OS.
 os_to_prolog_filename(OS,PL):-exists_directory_safe(OS),!,PL=OS.
-os_to_prolog_filename(OS,PL):-local_directory_search_combined(CurrentDir),join_path(CurrentDir,OS,PL),exists_file_safe(PL),!.
-os_to_prolog_filename(OS,PL):-local_directory_search_combined(CurrentDir),join_path(CurrentDir,OS,PL),exists_directory_safe(PL),!.
+os_to_prolog_filename(OS,PL):-local_directory_search_combined(CurrentDir),join_path(CurrentDir,OS,PL),(exists_file_safe(PL);exists_directory_safe(PL)),!.
 os_to_prolog_filename(OS,PL):- debugOnError(os_to_prolog_filename0(OS,PL)).
 os_to_prolog_filename0(OS,PL):-atom(OS),atomic_list_concat_aiml([X,Y|Z],'\\',OS),
   atomic_list_concat_aiml([X,Y|Z],'/',OPS),!,
@@ -828,9 +844,11 @@ printPredCount(Msg,Pred,N1):- compound(Pred), prolog_mustEach((arg(_,Pred,NG))),
 
 printPredCount(Msg,Pred,N1):-!,functor(Pred,File,A),functor(FA,File,A), predicate_property(FA,number_of_clauses(N1)),debugFmt(num_clauses(Msg,File/A,N1)),!.
 
+:- if( \+ current_predicate(fresh_line/0)).
 fresh_line:-current_output(Strm),fresh_line(Strm),!.
 fresh_line(Strm):-stream_property(Strm,position('$stream_position'(_,_,POS,_))),ifThen(POS>0,nl(Strm)),!.
 fresh_line(Strm):-atrace,nl(Strm),!.
+:- endif.
 
 % =================================================================================
 % Loader Utils
@@ -892,60 +910,6 @@ list_to_set_preserve_order([H|T],[H|TT]):-delete(T,H,M),list_to_set_preserve_ord
 % Utils
 % =================================================================================
 
-unify_listing(F/A):-!,functor(P,F,A),unify_listing(P).
-unify_listing(FileMatch):-unify_listing(FileMatch,_NumberFound).
-unify_listing(FileMatch,NumberFound):-unify_listing0(FileMatch),flag(printAll,NumberFound,0).
-
-unify_listing0(FileMatch):-functor(FileMatch,F,A),unify_listing(FileMatch,F,A),!.
-
-
-unify_listing_header(FileMatch):-functor(FileMatch,F,A),unify_listing_header(FileMatch,F,A),!.
-
-unify_listing_header(_FileMatch,F,A):- fresh_line,(format('~n/* Prediate:  ~q/~q ',[F,A])),fresh_line,fail.
-unify_listing_header(FileMatch,_F,_A):- forall(predicate_property(FileMatch,Print),(format('~q.~n',[Print]))),fail.
-unify_listing_header(FileMatch,_F,_A):- (format('Pattern: ~q. ~n */~n',[FileMatch])),fresh_line,fail.
-unify_listing_header(FileMatch,F,A):-predicate_property(FileMatch,dynamic),(format(':-dynamic(~q).~n',[F/A])),fresh_line,fail.
-unify_listing_header(FileMatch,F,A):-predicate_property(FileMatch,multifile),(format(':-multifile(~q).~n',[F/A])),fresh_line,fail.
-unify_listing_header(_FileMatch,_F,_A):-fresh_line.
-
-unify_listing(FileMatch,F,A):- unify_listing_header(FileMatch,F,A), printAll(FileMatch).
-
-printAll(FileMatch):-printAll(FileMatch,FileMatch).
-printAll(Call,Print):- flag(printAll,_,0), forall((Call,flag(printAll,N,N+1)),(toReadableObject(Print,Print2),(format('~q.~n',[Print2])))),fail.
-printAll(_Call,Print):- flag(printAll,PA,PA),(format('~n /* found ~q for ~q. */ ~n',[PA,Print])),!.
-
-
-
-contains_term(SearchThis,Find):-Find==SearchThis,!.
-contains_term(SearchThis,Find):-compound(SearchThis),functor(SearchThis,Func,_),(Func==Find;arg(_,SearchThis,Arg),contains_term(Arg,Find)).
-
-% =================================================================================
-% Utils
-% =================================================================================
-
-global_pathname(B,C):-absolute_file_name(B,A),!,canonical_pathname(A,C),!.
-global_pathname(B,A):-relative_pathname(B,A).
-
-relative_pathname(Path,Relative):-
-   absolute_file_name(Path,[relative_to('./')],Absolute),
-   member(Rel,['./','../','../../']),
-   absolute_file_name(Rel,Clip),
-   canonical_pathname(Absolute,AbsoluteA),
-   canonical_pathname(Clip,ClipA),
-   atom_concat_safe(ClipA,RelativeA,AbsoluteA),!,atom_concat_safe(Rel,RelativeA,Relative),!.
-relative_pathname(Path,Relative):- canonical_pathname(Path,Relative),!.
-
-canonical_pathname(Absolute,AbsoluteB):-prolog_to_os_filename(AbsoluteA,Absolute),canonical_pathname0(AbsoluteA,AbsoluteB),!.
-
-canonical_pathname0(AbsoluteA,AbsoluteB):-error_catch(expand_file_name(AbsoluteA,[AbsoluteB]),E,(debugFmt(E:AbsoluteA),fail)),!.
-canonical_pathname0(AbsoluteA,AbsoluteA).
-
-
-
-% =================================================================================
-% Utils
-% =================================================================================
-
 % ===============================================================================================
 % UTILS
 % ===============================================================================================
@@ -953,7 +917,7 @@ canonical_pathname0(AbsoluteA,AbsoluteA).
 callInteractive(Term,Var):-time(error_catch(callInteractive0(Term,Var),E,aiml_error(E))),!.
 
 %callInteractive0(Term,_):-atom(Term),!,Term,!,writeln(called(Term)),!.
-callInteractive0(Term,Var):- fresh_line,call(Term),writeq(Term:Var),fresh_line,fail.
+callInteractive0(Term,Var):- fresh_line,programk:call(Term), (writeq(answer(Term:Var)), fresh_line,fail).
 callInteractive0(_,_):-fresh_line,!.
 
 %getWordTokens(WORDS,TOKENS):-atomic_list_concat_aiml(TOKENS,' ',WORDS).

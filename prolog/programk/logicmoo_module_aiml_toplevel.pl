@@ -35,9 +35,9 @@ aiml_notrace(G):- quietly(G).
 asserta_if_new_hlper1(C):-catch(C,_,fail),!.
 asserta_if_new_hlper1(C):-asserta(C),!.
 
-:-dynamic(local_directory_search/1).
-:-multifile(local_directory_search/1).
-:-module_transparent(local_directory_search/1).
+:-dynamic(logicmoo_util_filesystem:local_directory_search/1).
+:-multifile(logicmoo_util_filesystem:local_directory_search/1).
+:-module_transparent(logicmoo_util_filesystem:local_directory_search/1).
 
 addPaths:- source_location(File,_Line),file_directory_name(File, Directory),
    %context_module(M),
@@ -46,7 +46,7 @@ addPaths:- source_location(File,_Line),file_directory_name(File, Directory),
    !,% writeq(M:asserta(user:library_directory(ParentDir))),nl,
    file_directory_name(ParentDir,ProgramK),
    asserta_if_new_hlper1(user:file_search_path(programk,ProgramK)),
-   asserta_if_new_hlper1(local_directory_search(ProgramK)),
+   asserta_if_new_hlper1(logicmoo_util_filesystem:local_directory_search(ProgramK)),
    absolute_file_name('aiml/',[relative_to(ProgramK),file_type(directory)],AIMLDir),
    asserta_if_new_hlper1(user:file_search_path(aiml,AIMLDir)),!.
 
@@ -63,22 +63,28 @@ addPaths:- source_location(File,_Line),file_directory_name(File, Directory),
 :-ensure_loaded(library('programk/logicmoo_module_aiml_eval.pl')).
 %%:-ensure_loaded(library('notaiml/tokenize.pl')).
 
-local_directory_search('cynd').
-local_directory_search('cynd/programk').
-local_directory_search('programk').
-local_directory_search('../aiml').
-local_directory_search('aiml').
-local_directory_search('aiml/test_suite').
-local_directory_search('special').
-local_directory_search('..').
-local_directory_search('../..').
+logicmoo_util_filesystem:local_directory_search(ProgramK):- user:file_search_path(programk,ProgramK).
+logicmoo_util_filesystem:local_directory_search('cynd').
+logicmoo_util_filesystem:local_directory_search('cynd/programk').
+logicmoo_util_filesystem:local_directory_search('programk').
+logicmoo_util_filesystem:local_directory_search('../aiml').
+logicmoo_util_filesystem:local_directory_search('aiml').
+logicmoo_util_filesystem:local_directory_search('aiml/test_suite').
+logicmoo_util_filesystem:local_directory_search('special').
+logicmoo_util_filesystem:local_directory_search('..').
+logicmoo_util_filesystem:local_directory_search('../..').
 
-local_directory_search_combined2(PL):-local_directory_search(A),local_directory_search(B),join_path(A,B,PL),exists_directory_safe(PL).
 
-local_directory_search_combined(X):-local_directory_search(X).
+local_directory_search_combined2(PL):-logicmoo_util_filesystem:local_directory_search(A),logicmoo_util_filesystem:local_directory_search(B),
+ join_path(A,B,PL),exists_directory_safe(PL).
+local_directory_search_combined2(PL):-logicmoo_util_filesystem:local_directory_search(PL),exists_directory_safe(PL).
+
+local_directory_search_combined(X):-logicmoo_util_filesystem:local_directory_search(X).
 local_directory_search_combined(X):-local_directory_search_combined2(X).
 %% for now dont do the concat 3 version
-local_directory_search_combined(PL):-local_directory_search_combined2(A),local_directory_search(B),join_path(A,B,PL),exists_directory_safe(PL).
+local_directory_search_combined(PL):-
+  local_directory_search_combined2(A),logicmoo_util_filesystem:local_directory_search(B),
+  join_path(A,B,PL),exists_directory_safe(PL).
 
 run_chat_tests:-
    test_call(alicebot('Hi')),

@@ -8,4 +8,5 @@
 programk/test_suite/*.pl
 programk/test_suite/**/*.pl
 saved_cached_queries
+.bash_history
 *.[pdf]

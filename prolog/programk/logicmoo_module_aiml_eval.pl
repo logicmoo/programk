@@ -38,12 +38,12 @@ aiml_call(Ctx,[Atomic|Rest]):- !, %%atrace,
 % ============================================
 % Test Suite  
 % ============================================
-:-dynamic(unitTestResult/2).
+:-dynamic(ju:unitTestResult/2).
 
 aiml_call(Ctx,element('testsuite',ATTRIBS,LIST)):-
      withAttributes(Ctx,ATTRIBS,maplist_safe(aiml_call(Ctx),LIST)),
-     unify_listing(unitTestResult(unit_passed,PRINTRESULT),Passed),
-     unify_listing(unitTestResult(unit_failed,PRINTRESULT),Failed),
+     unify_listing(ju:unitTestResult(unit_passed,PRINTRESULT),Passed),
+     unify_listing(ju:unitTestResult(unit_failed,PRINTRESULT),Failed),
      dmsg(testsuite_passed_failed(Passed,Failed)),!.
 
 aiml_call(Ctx,Current):- Current=element(TC,ATTRIBS,_LIST), member(TC,['testcase','TestCase']),!,
@@ -327,7 +327,7 @@ gather_aiml_graph(Ctx,XML,Graph,Filename,AIML):-
 % ============================================
 % Test Suite  (now uses aiml_call/2 instead of tag_eval/3)
 % ============================================
-:-dynamic(unitTestResult/2).
+:-dynamic(ju:unitTestResult/2).
 
 tagIsCall('testsuite').
 tagIsCall('testcase').
@@ -347,8 +347,8 @@ testIt(ATTRIBS,Input,ExpectedAnswer,ExpectedKeywords,Result,Name,Description,Ctx
     debugFmt(PRINTRESULT)))),flush_output,
     once(
      contains_term(STORERESULT,unit_failed) ->
-      (assert(unitTestResult(unit_failed,f(PRINTRESULT,PASSGOAL))), true );
-      assert(unitTestResult(unit_passed,PRINTRESULT))),!.
+      (assert(ju:unitTestResult(unit_failed,f(PRINTRESULT,PASSGOAL))), true );
+      assert(ju:unitTestResult(unit_passed,PRINTRESULT))),!.
 
 
 containsEachBinding(_-Resp,ExpectedList):-!,containsEachBinding(Resp,ExpectedList).

@@ -128,12 +128,12 @@ run2(Ctx):-
    test_call(alicebotCTX(Ctx,'what is my name?')).
 
 blackjack_test_load:-  test_call(alicebot('@load blackjack.aiml')).
-blackjack_test:-
+blackjack_test:- blackjack_test_load,
    test_call(alicebotCTX(Ctx,'blackjack')),
    test_call(alicebotCTX(Ctx,'d')),
    test_call(alicebotCTX(Ctx,'3')),!.
 
-annie:-withNamedContext(toplevel,Ctx),timeRecorded(run_chat_tests_here(Ctx)),unify_listing(unitTestResult(unit_failed,_)).
+annie:-withNamedContext(toplevel,Ctx),timeRecorded(run_chat_tests_here(Ctx)),unify_listing(ju:unitTestResult(unit_failed,_)).
 
 %%:-timeRecorded(test_suite_files).
 
@@ -149,7 +149,7 @@ annie:-withNamedContext(toplevel,Ctx),timeRecorded(run_chat_tests_here(Ctx)),uni
 
 
 
-%%:-unify_listing(unitTestResult(unit_passed,_)).
+%%:-unify_listing(ju:unitTestResult(unit_passed,_)).
 
 %%:-timeRecorded(ppfs('../aiml/chomskyAIML/*.aiml')).
 
@@ -183,12 +183,32 @@ blastAll.
 run_aiml_tests:- 
  setupTesting,
  timeRecorded(annie),
- unify_listing(unitTestResult(unit_passed,_)),
- unify_listing(unitTestResult(unit_failed,_)),
+ unify_listing(ju:unitTestResult(unit_passed,_)),
+ unify_listing(ju:unitTestResult(unit_failed,_)),
  !.
 
 
 end_of_file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 :-timeRecorded(alicebot).
 

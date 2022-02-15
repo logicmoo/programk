@@ -139,7 +139,7 @@ clear_fillin_pending0(In):- read_pending_codes(In,Codes,[]),dmsg(clear_fillin_pe
 tokenize_fillin_string([Str|Text],AtomO):- atomic(Str), is_list(Text), !, text_to_fillin_string([Str|Text],AtomO).
 tokenize_fillin_string(Atom,AtomO):- atom(Atom),!,Atom=AtomO.
 tokenize_fillin_string(JSON,AtomO):- compound(JSON),!,any_to_json_dict(JSON,Dict),atom_json_dict(AtomO,Dict,[]).
-tokenize_fillin_string(Text,AtomO):- tokenize_fillin_string(Text,AtomO).
+tokenize_fillin_string(Text,AtomO):- text_to_fillin_string(Text,AtomO).
 text_to_fillin_string(Text,StrO):- any_to_string(Text,Str),  replace_in_string('\n',' ',Str,StrO).
 /*
 tokenize_fillin_string(Text,StrO):- any_to_string(Text,Str), replace_in_string(['\\'='\\\\','\''='\\\''],Str,StrM),
@@ -303,3 +303,4 @@ The owner who smokes Blends lives next to the one who drinks water.").
 :- add_history(test_fillin).
 :- fixup_exports.
 
+    

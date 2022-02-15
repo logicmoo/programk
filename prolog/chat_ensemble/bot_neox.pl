@@ -139,7 +139,7 @@ clear_neox_pending0(In):- read_pending_codes(In,Codes,[]),dmsg(clear_neox_pendin
 tokenize_neox_string([Str|Text],AtomO):- atomic(Str), is_list(Text), !, text_to_neox_string([Str|Text],AtomO).
 tokenize_neox_string(Atom,AtomO):- atom(Atom),!,Atom=AtomO.
 tokenize_neox_string(JSON,AtomO):- compound(JSON),!,any_to_json_dict(JSON,Dict),atom_json_dict(AtomO,Dict,[]).
-tokenize_neox_string(Text,AtomO):- tokenize_neox_string(Text,AtomO).
+tokenize_neox_string(Text,AtomO):- text_to_neox_string(Text,AtomO).
 text_to_neox_string(Text,StrO):- any_to_string(Text,Str),  replace_in_string('\n',' ',Str,StrO).
 /*
 tokenize_neox_string(Text,StrO):- any_to_string(Text,Str), replace_in_string(['\\'='\\\\','\''='\\\''],Str,StrM),

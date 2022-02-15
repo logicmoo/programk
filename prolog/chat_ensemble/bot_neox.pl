@@ -14,8 +14,11 @@
 :- set_module(class(library)).
 :- set_module(base(system)).
 :- use_module(library(logicmoo_utils)).
-:- use_module(library(logicmoo_nlu/bot_penn_trees)).
-:- use_module(library(logicmoo_nlu/bot_tokenize)).
+:- use_module(library(logicmoo_nlu/parser_penn_trees)).
+:- use_module(library(logicmoo_nlu/parser_tokenize)).
+
+:- dynamic(lmconfig:bot_py_dir/1).
+:- ignore(( \+ lmconfig:bot_py_dir(Dir), prolog_load_context(directory,Dir), assert(lmconfig:bot_py_dir(Dir)))).
 
 read_neox_lines(In, Result):- neox_to_w2(In, Result),!.
 
@@ -23,13 +26,14 @@ text_to_neox_tree(Text,LExpr):-
   neox_parse(Text, String),
   nop(dmsg(neox_parse=String)),  
   neox_to_w2(String,LExpr),
-  nop(print_tree_nl(neox=LExpr)).
+  nop(print_tree_nl(neox=LExpr)),!.
 
 %neox_to_w2((Word,POS),[POS,Word]).
+neox_to_w2(Str,StrO):- var(Str),current_neox_stream(In),!,neox_to_w2(In,StrO).
 neox_to_w2(Str,StrO):- string(Str),StrO=Str.
-neox_to_w2(In, Result):- is_stream(In),!,read_term(In,Term,[]),neox_to_w2(Term, Result).
+neox_to_w2(In, Result):- is_stream(In),!,neox_stream_to_w2(In,_, Term),neox_to_w2(Term, Result).
 neox_to_w2(List,ListO):- is_list(List),!,include(compound,List,ListO).
-neox_to_w2(neox(_In,Text),Out):- !, neox_to_w2(Text,ListO).
+neox_to_w2(neox(_In,Text),Out):- !, neox_to_w2(Text,Out).
 neox_to_w2(Text,ListO):- \+ compound(Text), on_x_fail(atom_to_term(Text,Term,_)),!,neox_to_w2(Term,ListO).
 neox_to_w2(Text,_ListO):- \+ compound(Text), nl,writeq(Text),nl,!,fail.
 
@@ -58,8 +62,8 @@ merge_neox(_,I,I):-!.
 merge_neox(S,I,O):- append(I,[S],O).
 
 neox_stream_to_w2(In,_, Result):- peek_string(In,10,S),atom_contains(S,"neox("),!,read_term(In,Term,[]),neox_to_w2(Term, Result).
-neox_stream_to_w2(In,S, Result):- atom_contains(S,"neox("),!,read_term_from_atom_rest(In,S,Term),neox_to_w2(Term, Result).
-neox_stream_to_w2(In,S, Result):- at_end_of_stream(In),!,neox_to_w2(S, Result).
+neox_stream_to_w2(In,S, Result):- atomic(S),atom_contains(S,"neox("),!,read_term_from_atom_rest(In,S,Term),neox_to_w2(Term, Result).
+neox_stream_to_w2(In,S, Result):- atomic(S),at_end_of_stream(In),!,neox_to_w2(S, Result).
 neox_stream_to_w2(In,_, Result):- repeat, read_pending_codes(In,Codes,[]),
  (Codes==[]->(sleep(0.1),fail);true),sformat(S,'~s',[Codes]),
  neox_stream_to_w2(In,S, Result).
@@ -74,10 +78,11 @@ foc_neox_stream(Out,In):- tmp:existing_neox_stream(OldThread,FFid,Out,In), \+ th
   thread_self(Self),
   assert(tmp:existing_neox_stream(Self,FFid,Out,In)),!.
 */
-foc_neox_stream(Out,In):-
+foc_neox_stream(Out,In):- 
+  user:network_service_info(neox,port,P4083),
   thread_self(Self),
   tcp_socket(Socket),
-  catch((tcp_connect(Socket, 'logicmoo.org':4082),
+  catch((tcp_connect(Socket, 'logicmoo.org':P4083),
   tcp_open_socket(Socket, StreamPair)),_,fail),!,
   StreamPair = In, StreamPair = Out,
   set_stream(In,close_on_exec(false)),
@@ -86,7 +91,7 @@ foc_neox_stream(Out,In):-
   assert(tmp:existing_neox_stream(Self,_,Out,In)),!.
 
 foc_neox_stream(Out,In):- current_prolog_flag(python_local,true),
-  lmconfig:space_py_dir(Dir),
+  lmconfig:bot_py_dir(Dir),
   thread_self(Self),
   sformat(S,'python bot_neox.py -nc -cmdloop ',[]),
   nop(writeln(S)),
@@ -103,9 +108,13 @@ foc_neox_stream(Out,In):- current_prolog_flag(python_local,true),
 
 read_until_neox_notice(In,Txt):- repeat,read_line_to_string(In,Str),(Str==end_of_file;atom_contains(Str,Txt)),!.
 
-clear_neox_pending(In):- nop((read_pending_codes(In,Codes,[]),dmsg(clear_neox_pending=Codes))).
+current_neox_stream(In):- thread_self(Self),tmp:existing_neox_stream(Self,_FFid,_Out,In).
 
-:- prolog_load_context(directory,Dir), assert(lmconfig:space_py_dir(Dir)).
+clear_neox_pending:- current_neox_stream(In), clear_neox_pending0(In),!.
+clear_neox_pending(In):- nop(clear_neox_pending0(In)).
+
+clear_neox_pending0(In):- at_end_of_stream(In),!,dmsg(clear_neox_pending=at_end_of_stream).
+clear_neox_pending0(In):- read_pending_codes(In,Codes,[]),dmsg(clear_neox_pending=Codes).
 
 tokenize_neox_string(Text,StrO):- any_to_string(Text,Str),  replace_in_string('\n',' ',Str,StrO).
 /*
@@ -139,7 +148,7 @@ neox_parse3(String, Lines) :-
 
 % Very slow version
 neox_parse4(String, Lines) :- current_prolog_flag(python_local,true),
-  lmconfig:space_py_dir(Dir),
+  lmconfig:bot_py_dir(Dir),
   sformat(S,'python bot_neox.py -nc ~q ',[String]),
   nop(writeln(S)),
     process_create(path(bash), ['-c', S], [ cwd(Dir), stdout(pipe(In))]),!,
@@ -224,6 +233,7 @@ test_1neox(Text):- wdmsg(failed(test_1neox(Text))).
 test_neox(N):- number(N),!, forall(test_neox(N,X),test_1neox(X)). 
 test_neox(X):- test_neox(_,X),nop(lex_info(X)).
 
+test_neox(In,Out):- nonvar(In),var(Out),!,text_to_neox_tree(In,Out).
 test_neox(_,X):- nonvar(X), !, once(test_1neox(X)).
 
 test_neox(1,".\nThe Norwegian lives in the first house.\n.").
@@ -232,7 +242,6 @@ test_neox(1,".").
 test_neox(1,"\n").
 
 test_neox(1,"Rydell used his straw to stir the foam and ice remaining at the bottom of his tall plastic cup, as though he were hoping to find a secret prize.").
-
 
 test_neox(2,Each):- test_neox(3,Atom),atomic_list_concat(List,'\n',Atom), member(Each,List).
 

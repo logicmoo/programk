@@ -14,8 +14,11 @@
 :- set_module(class(library)).
 :- set_module(base(system)).
 :- use_module(library(logicmoo_utils)).
-:- use_module(library(logicmoo_nlu/bot_penn_trees)).
-:- use_module(library(logicmoo_nlu/bot_tokenize)).
+:- use_module(library(logicmoo_nlu/parser_penn_trees)).
+:- use_module(library(logicmoo_nlu/parser_tokenize)).
+
+:- dynamic(lmconfig:bot_py_dir/1).
+:- ignore(( \+ lmconfig:bot_py_dir(Dir), prolog_load_context(directory,Dir), assert(lmconfig:bot_py_dir(Dir)))).
 
 read_factoids_lines(In, Result):- factoids_to_w2(In, Result),!.
 
@@ -23,13 +26,14 @@ text_to_factoids_tree(Text,LExpr):-
   factoids_parse(Text, String),
   nop(dmsg(factoids_parse=String)),  
   factoids_to_w2(String,LExpr),
-  nop(print_tree_nl(factoids=LExpr)).
+  nop(print_tree_nl(factoids=LExpr)),!.
 
 %factoids_to_w2((Word,POS),[POS,Word]).
+factoids_to_w2(Str,StrO):- var(Str),current_factoids_stream(In),!,factoids_to_w2(In,StrO).
 factoids_to_w2(Str,StrO):- string(Str),StrO=Str.
-factoids_to_w2(In, Result):- is_stream(In),!,read_term(In,Term,[]),factoids_to_w2(Term, Result).
+factoids_to_w2(In, Result):- is_stream(In),!,factoids_stream_to_w2(In,_, Term),factoids_to_w2(Term, Result).
 factoids_to_w2(List,ListO):- is_list(List),!,include(compound,List,ListO).
-factoids_to_w2(factoids(_In,Text),Out):- !, factoids_to_w2(Text,ListO).
+factoids_to_w2(factoids(_In,Text),Out):- !, factoids_to_w2(Text,Out).
 factoids_to_w2(Text,ListO):- \+ compound(Text), on_x_fail(atom_to_term(Text,Term,_)),!,factoids_to_w2(Term,ListO).
 factoids_to_w2(Text,_ListO):- \+ compound(Text), nl,writeq(Text),nl,!,fail.
 
@@ -58,8 +62,8 @@ merge_factoids(_,I,I):-!.
 merge_factoids(S,I,O):- append(I,[S],O).
 
 factoids_stream_to_w2(In,_, Result):- peek_string(In,10,S),atom_contains(S,"factoids("),!,read_term(In,Term,[]),factoids_to_w2(Term, Result).
-factoids_stream_to_w2(In,S, Result):- atom_contains(S,"factoids("),!,read_term_from_atom_rest(In,S,Term),factoids_to_w2(Term, Result).
-factoids_stream_to_w2(In,S, Result):- at_end_of_stream(In),!,factoids_to_w2(S, Result).
+factoids_stream_to_w2(In,S, Result):- atomic(S),atom_contains(S,"factoids("),!,read_term_from_atom_rest(In,S,Term),factoids_to_w2(Term, Result).
+factoids_stream_to_w2(In,S, Result):- atomic(S),at_end_of_stream(In),!,factoids_to_w2(S, Result).
 factoids_stream_to_w2(In,_, Result):- repeat, read_pending_codes(In,Codes,[]),
  (Codes==[]->(sleep(0.1),fail);true),sformat(S,'~s',[Codes]),
  factoids_stream_to_w2(In,S, Result).
@@ -74,10 +78,11 @@ foc_factoids_stream(Out,In):- tmp:existing_factoids_stream(OldThread,FFid,Out,In
   thread_self(Self),
   assert(tmp:existing_factoids_stream(Self,FFid,Out,In)),!.
 */
-foc_factoids_stream(Out,In):-
+foc_factoids_stream(Out,In):- 
+  user:network_service_info(factoids,port,P4083),
   thread_self(Self),
   tcp_socket(Socket),
-  catch((tcp_connect(Socket, 'logicmoo.org':4083),
+  catch((tcp_connect(Socket, 'logicmoo.org':P4083),
   tcp_open_socket(Socket, StreamPair)),_,fail),!,
   StreamPair = In, StreamPair = Out,
   set_stream(In,close_on_exec(false)),
@@ -86,7 +91,7 @@ foc_factoids_stream(Out,In):-
   assert(tmp:existing_factoids_stream(Self,_,Out,In)),!.
 
 foc_factoids_stream(Out,In):- current_prolog_flag(python_local,true),
-  lmconfig:space_py_dir(Dir),
+  lmconfig:bot_py_dir(Dir),
   thread_self(Self),
   sformat(S,'python bot_factoids.py -nc -cmdloop ',[]),
   nop(writeln(S)),
@@ -103,9 +108,13 @@ foc_factoids_stream(Out,In):- current_prolog_flag(python_local,true),
 
 read_until_factoids_notice(In,Txt):- repeat,read_line_to_string(In,Str),(Str==end_of_file;atom_contains(Str,Txt)),!.
 
-clear_factoids_pending(In):- nop((read_pending_codes(In,Codes,[]),dmsg(clear_factoids_pending=Codes))).
+current_factoids_stream(In):- thread_self(Self),tmp:existing_factoids_stream(Self,_FFid,_Out,In).
 
-:- prolog_load_context(directory,Dir), assert(lmconfig:space_py_dir(Dir)).
+clear_factoids_pending:- current_factoids_stream(In), clear_factoids_pending0(In),!.
+clear_factoids_pending(In):- nop(clear_factoids_pending0(In)).
+
+clear_factoids_pending0(In):- at_end_of_stream(In),!,dmsg(clear_factoids_pending=at_end_of_stream).
+clear_factoids_pending0(In):- read_pending_codes(In,Codes,[]),dmsg(clear_factoids_pending=Codes).
 
 tokenize_factoids_string(Text,StrO):- any_to_string(Text,Str),  replace_in_string('\n',' ',Str,StrO).
 /*
@@ -139,7 +148,7 @@ factoids_parse3(String, Lines) :-
 
 % Very slow version
 factoids_parse4(String, Lines) :- current_prolog_flag(python_local,true),
-  lmconfig:space_py_dir(Dir),
+  lmconfig:bot_py_dir(Dir),
   sformat(S,'python bot_factoids.py -nc ~q ',[String]),
   nop(writeln(S)),
     process_create(path(bash), ['-c', S], [ cwd(Dir), stdout(pipe(In))]),!,
@@ -224,6 +233,7 @@ test_1factoids(Text):- wdmsg(failed(test_1factoids(Text))).
 test_factoids(N):- number(N),!, forall(test_factoids(N,X),test_1factoids(X)). 
 test_factoids(X):- test_factoids(_,X),nop(lex_info(X)).
 
+test_factoids(In,Out):- nonvar(In),var(Out),!,text_to_factoids_tree(In,Out).
 test_factoids(_,X):- nonvar(X), !, once(test_1factoids(X)).
 
 test_factoids(1,".\nThe Norwegian lives in the first house.\n.").
@@ -232,7 +242,6 @@ test_factoids(1,".").
 test_factoids(1,"\n").
 
 test_factoids(1,"Rydell used his straw to stir the foam and ice remaining at the bottom of his tall plastic cup, as though he were hoping to find a secret prize.").
-
 
 test_factoids(2,Each):- test_factoids(3,Atom),atomic_list_concat(List,'\n',Atom), member(Each,List).
 

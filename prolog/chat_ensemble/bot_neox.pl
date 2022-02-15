@@ -10,7 +10,8 @@
   text_to_neox_sents/2,
   text_to_neox_segs/2,
   neox_parse/2]).
-
+% test_neox('{"presence_penalty":1.4,"prompt":"How do you spell your name?"}',X).
+% test_neox('{"presence_penalty":2.0,"prompt":"A florida man was ", "max_tokens":750}',X),print(X).
 :- set_module(class(library)).
 :- set_module(base(system)).
 :- use_module(library(logicmoo_utils)).
@@ -34,9 +35,10 @@ neox_to_w2(Str,StrO):- string(Str),!,StrO=Str.
 neox_to_w2(In, Result):- is_stream(In),!,neox_stream_to_w2(In,_, Term),neox_to_w2(Term, Result).
 neox_to_w2(neox(_In,Text),Out):- !, neox_to_w2(Text,Out).
 neox_to_w2(Text,ListO):- is_dict(Text),get_dict(text,Text,M),M\=="",M\=='',M\==[],!,neox_to_w2(M,ListO).
-neox_to_w2(Text,ListO):- \+ compound(Text), on_x_fail(atom_json_dict(Text,Term,[])),!,neox_to_w2(Term,ListO).
-neox_to_w2(Text,ListO):- \+ compound(Text), on_x_fail(atom_json_term(Text,Term,[])),!,neox_to_w2(Term,ListO).
-neox_to_w2(Text,ListO):- \+ compound(Text), on_x_fail(atom_to_term(Text,Term,_)),!,neox_to_w2(Term,ListO).
+neox_to_w2(Text,TextO):- \+ atom(Text),!,Text=TextO.
+neox_to_w2(Text,ListO):- on_x_fail(atom_json_dict(Text,Term,[])),!,neox_to_w2(Term,ListO).
+neox_to_w2(Text,ListO):- on_x_fail(atom_json_term(Text,Term,[])),!,neox_to_w2(Term,ListO).
+neox_to_w2(Text,ListO):- on_x_fail(atom_to_term(Text,Term,_)),!,neox_to_w2(Term,ListO).
 neox_to_w2(Text,Text):-!.
 %neox_to_w2(Text,_ListO):- \+ compound(Text), nl,writeq(Text),nl,!,fail.
 
@@ -127,8 +129,7 @@ tokenize_neox_string(Text,StrO):- any_to_string(Text,Str), replace_in_string(['\
 
 
 neox_parse(Text, Lines) :- 
-  tokenize_neox_string(Text,String),
-  neox_parse2(String, Lines).
+  neox_parse2(Text, Lines).
 
 neox_parse2(String, Lines) :- 
   once(neox_parse3(String, Lines)

@@ -93,28 +93,25 @@ def accept_wrapper(sock):
     sel.register(conn, events, data=data)
 
 
-#from gpt_j.Basic_api import simple_completion
-#from gpt_j.gptj_api import Completion
-#from textsynth import TextSynth
-#synth = TextSynth()
 import requests
 import json
-# List Engines (Models)
-#engines = openai.Engine.list()
-# Print all engines IDs
-#for engine in engines.data: print(engine.id)
+# List Engines (Models) engines = openai.Engine.list() for engine in engines.data: print(engine.id)
+#"gpt-neo-20b","gpt-j-6b","gpt-neo-2-7b","gpt-neo-1-3b","gpt-neo-125m","fairseq-13b",
+#"fairseq-6-7b","fairseq-2-7b","fairseq-1-3b","fairseq-125m"
+engine = "fairseq-125m"
 
 data = {
     #"stop": "\n\n", #"seed": 0,
     "prompt": "A florida man was", #Note that <|endoftext|> is the document separator that the model sees during training, so if a prompt is not specified the model will generate as if from the beginning of a new document
+    "engine": engine,
     "stream": False,
     #Truncates logits to the set value.
     "top_k": 40,
     #Number between 0 and 1.0. An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
-    "top_p": 1.0, 
+    #"top_p": 1.0, 
     #We generally recommend altering top_p or temperature but not both.
     #Number between 0 and 1.0. What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.
-    "temperature": 0.8, 
+    "temperature": 0.2, 
     #Include the log probabilities on the logprobs most likely tokens, as well the chosen tokens. For example, if logprobs is 5, the API will return a list of the 5 most likely tokens. The API will always return the logprob of the sampled token, so there may be up to logprobs+1 elements in the response.
     #"logprobs": [], 
     # Number between 0 and 1.0. Selects tokens according to the expected amount of information they contribute. Ref: Typical Decoding for Natural Language Generation
@@ -126,11 +123,9 @@ data = {
     #Number between 0 and 1.0. Remove all tokens that have probability below the threshold of: limit = pow(max(probs), 2.0) * top_a
     "top_a": 1.0, 
     #Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics.
-    "presence_penalty": 0, 
-    
-    "engine": "fairseq-125m",
+    "presence_penalty": 1.0,         
     #Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim.
-    "frequency_penalty":0 ,# | number | Optional | Defaults to 0
+    "frequency_penalty":0.3 ,# | number | Optional | Defaults to 0
     #NEW Number between 0 and 8.0. HuggingFace repetition penalty implementation, uses a divisor. Ref: CTRL - A Conditional Transformer Language Model for Controllable Generation
     "repetition_penalty": 1.0, # | number | Optional | Defaults to 1.0, disabled
     #NEW Number between 0 and 1.0. Slope applied to repetition penalty: m * (x*2-1) / (1 + abs(x*2-1) * (m - 1)), x = [0, 1] Ref: Wolfram Alpha Equation
@@ -141,18 +136,27 @@ data = {
     "max_tokens": 100 
 }
 
-#"gpt-neo-20b","gpt-j-6b","gpt-neo-2-7b","gpt-neo-1-3b","gpt-neo-125m","fairseq-13b",
-#"fairseq-6-7b","fairseq-2-7b","fairseq-1-3b","fairseq-125m"
-engine = "fairseq-125m"
-
 def do_nlp_proc(text0):
+    global data
+    try:
+        return do_nlp_proc2(text0)
+    except Exception as ex:
+        resp = data.copy();
+        resp['prompt'] = text0;
+        resp["neox_error"] = str(ex)
+        resp["neox_error_type"] = f"{type(ex)=}"
+        resp["neox_error_args"] = "{0}".format(ex.args)
+        output = 'neox('+ qt(text0)+','+ qt(json.dumps(resp)) + ').'
+        return output
+
+def do_nlp_proc2(text0):
     global data
     global engine
     
     if text0.find("{") == -1:
         data['prompt'] = text0.strip(' \t\n\r')
     else:
-        data = json.loads(text0)
+        data.update(json.loads(text0))
 
     if "engine" in data:
       engine = data["engine"]
@@ -163,15 +167,14 @@ def do_nlp_proc(text0):
              headers={"Authorization": "Bearer "+ os.environ["goose_api_key"]}, json=data).json()
 
     except Exception as ex:
-        resp = data
-        resp["error"] = str(ex)
-        resp["error_type"] = f"{type(ex)=}"
-        resp["error_args"] = "{0}".format(ex.args)
+        resp = data.copy();
+        resp["neox_error"] = str(ex)
+        resp["neox_error_type"] = f"{type(ex)=}"
+        resp["neox_error_args"] = "{0}".format(ex.args)
 
     data['engine'] = engine
-    resp['engine'] = engine
-    # del resp["logprobs"] del resp["tokens"]
-    output = 'neox('+ qt(json.dumps(data))+','+ qt(json.dumps(resp)) + ').'
+    resp.update(data)
+    output = 'neox('+ qt(text0)+','+ qt(json.dumps(resp)) + ').'
     return output
 
 data["engine"]=engine

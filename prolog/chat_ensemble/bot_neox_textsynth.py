@@ -99,51 +99,25 @@ def accept_wrapper(sock):
 #synth = TextSynth()
 import requests
 import json
-# List Engines (Models)
-#engines = openai.Engine.list()
-# Print all engines IDs
-#for engine in engines.data: print(engine.id)
 
-data = {
-    #"stop": "\n\n", #"seed": 0,
-    "prompt": "A florida man was", #Note that <|endoftext|> is the document separator that the model sees during training, so if a prompt is not specified the model will generate as if from the beginning of a new document
-    "stream": False,
-    #Truncates logits to the set value.
-    "top_k": 40,
-    #Number between 0 and 1.0. An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
-    "top_p": 1.0, 
-    #We generally recommend altering top_p or temperature but not both.
-    #Number between 0 and 1.0. What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.
-    "temperature": 0.8, 
-    #Include the log probabilities on the logprobs most likely tokens, as well the chosen tokens. For example, if logprobs is 5, the API will return a list of the 5 most likely tokens. The API will always return the logprob of the sampled token, so there may be up to logprobs+1 elements in the response.
-    #"logprobs": [], 
-    # Number between 0 and 1.0. Selects tokens according to the expected amount of information they contribute. Ref: Typical Decoding for Natural Language Generation
-    "typical_p": 1.0, 
-    #Echo back the prompt in addition to the completion
-    "echo": False, 
-    #Number between 0 and 1.0. Similar to nucleus sampling, but it sets its cutoff point based on the cumulative sum of the accelerations (second derivatives) of the sorted token probabilities rather than the probabilities themselves.
-    "tfs": 1.0, 
-    #Number between 0 and 1.0. Remove all tokens that have probability below the threshold of: limit = pow(max(probs), 2.0) * top_a
-    "top_a": 1.0, 
-    #Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics.
-    "presence_penalty": 0, 
-    
-    "engine": "fairseq-125m",
-    #Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim.
-    "frequency_penalty":0 ,# | number | Optional | Defaults to 0
-    #NEW Number between 0 and 8.0. HuggingFace repetition penalty implementation, uses a divisor. Ref: CTRL - A Conditional Transformer Language Model for Controllable Generation
-    "repetition_penalty": 1.0, # | number | Optional | Defaults to 1.0, disabled
-    #NEW Number between 0 and 1.0. Slope applied to repetition penalty: m * (x*2-1) / (1 + abs(x*2-1) * (m - 1)), x = [0, 1] Ref: Wolfram Alpha Equation
-    "repetition_penalty_slope":0, #| number | Optional | Defaults to 0, disabled    
-    #NEW Number between 0 and 2048. The token range to apply the repetition_penalty and repetition_penalty_slope
-    "repetition_penalty_range":0, # | number | Optional | Defaults to 0, disabled
-    #The maximum number of tokens to generate in the completion. The token count of your prompt plus max_tokens cannot exceed the model's context length. Most models have a context length of 2048 tokens.
-    "max_tokens": 100 
+headers = {
+    "Authorization": f"Bearer 7e60a3256ed1b4af7fff42ef065bce4c"
 }
 
-#"gpt-neo-20b","gpt-j-6b","gpt-neo-2-7b","gpt-neo-1-3b","gpt-neo-125m","fairseq-13b",
-#"fairseq-6-7b","fairseq-2-7b","fairseq-1-3b","fairseq-125m"
-engine = "fairseq-125m"
+data = {
+    "prompt": "A florida man was",
+    #"stream": True,
+    "temperature": 0.8,
+    "top_k": 40,
+    "stop": "\n\n",
+    "max_tokens": 200,
+    "top_p": 1,
+    "seed": 0,
+    "engine": "gptj_6B"
+}
+
+engine = "gptj_6B"
+# engine = "fairseq_gpt_13B"
 
 def do_nlp_proc(text0):
     global data
@@ -158,10 +132,9 @@ def do_nlp_proc(text0):
       engine = data["engine"]
       del data["engine"]
 
+    url = "https://api.textsynth.com/v1/engines/"+engine+"/completions"
     try:
-        resp = requests.post("https://api.goose.ai/v1/engines/"+engine+"/completions",
-             headers={"Authorization": "Bearer "+ os.environ["goose_api_key"]}, json=data).json()
-
+        resp = requests.post(url,headers={"Authorization": "Bearer 7e60a3256ed1b4af7fff42ef065bce4c"}, json=data).json()
     except Exception as ex:
         resp = data
         resp["error"] = str(ex)
@@ -170,16 +143,14 @@ def do_nlp_proc(text0):
 
     data['engine'] = engine
     resp['engine'] = engine
-    # del resp["logprobs"] del resp["tokens"]
-    output = 'neox('+ qt(json.dumps(data))+','+ qt(json.dumps(resp)) + ').'
+    text0 = json.dumps(data)
+    output = 'neox('+ qt(text0)+','+ qt(json.dumps(resp)) + ').'
     return output
 
-data["engine"]=engine
-#print("%" + do_nlp_proc("a florida man was"))
-#data["engine"]="fairseq_gpt_13B"
-#print("%" + do_nlp_proc("a florida man was"))
-#data["engine"]="gpt-neo-20b"
-#print("%" + do_nlp_proc("a florida man was"))
+data["engine"]="gptj_6B"
+print("%" + do_nlp_proc("a florida man was"))
+data["engine"]="fairseq_gpt_13B"
+print("%" + do_nlp_proc("a florida man was"))
 
 if port!=0:
     import selectors
@@ -211,7 +182,7 @@ if cmdloop==1:
   refresh_on_file_mod()
 else:
  sentence=' '.join(sys.argv)
- if sentence=="": sentence=data["prompt"];
+ if sentence=="": sentence="George Washington went to Washington."
  print(do_nlp_proc(sentence), flush=True)
  
 

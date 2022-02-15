@@ -30,12 +30,15 @@ text_to_neox_tree(Text,LExpr):-
 
 %neox_to_w2((Word,POS),[POS,Word]).
 neox_to_w2(Str,StrO):- var(Str),current_neox_stream(In),!,neox_to_w2(In,StrO).
-neox_to_w2(Str,StrO):- string(Str),StrO=Str.
+neox_to_w2(Str,StrO):- string(Str),!,StrO=Str.
 neox_to_w2(In, Result):- is_stream(In),!,neox_stream_to_w2(In,_, Term),neox_to_w2(Term, Result).
-neox_to_w2(List,ListO):- is_list(List),!,include(compound,List,ListO).
 neox_to_w2(neox(_In,Text),Out):- !, neox_to_w2(Text,Out).
+neox_to_w2(Text,ListO):- is_dict(Text),get_dict(text,Text,M),M\=="",M\=='',M\==[],!,neox_to_w2(M,ListO).
+neox_to_w2(Text,ListO):- \+ compound(Text), on_x_fail(atom_json_dict(Text,Term,[])),!,neox_to_w2(Term,ListO).
+neox_to_w2(Text,ListO):- \+ compound(Text), on_x_fail(atom_json_term(Text,Term,[])),!,neox_to_w2(Term,ListO).
 neox_to_w2(Text,ListO):- \+ compound(Text), on_x_fail(atom_to_term(Text,Term,_)),!,neox_to_w2(Term,ListO).
-neox_to_w2(Text,_ListO):- \+ compound(Text), nl,writeq(Text),nl,!,fail.
+neox_to_w2(Text,Text):-!.
+%neox_to_w2(Text,_ListO):- \+ compound(Text), nl,writeq(Text),nl,!,fail.
 
 neox_lexical_segs(I,O):-
   old_into_lexical_segs(I,M),!,
@@ -233,7 +236,7 @@ test_1neox(Text):- wdmsg(failed(test_1neox(Text))).
 test_neox(N):- number(N),!, forall(test_neox(N,X),test_1neox(X)). 
 test_neox(X):- test_neox(_,X),nop(lex_info(X)).
 
-test_neox(In,Out):- nonvar(In),var(Out),!,text_to_neox_tree(In,Out).
+test_neox(In,Out):- nonvar(In),\+ number(In),var(Out),!,text_to_neox_tree(In,Out).
 test_neox(_,X):- nonvar(X), !, once(test_1neox(X)).
 
 test_neox(1,".\nThe Norwegian lives in the first house.\n.").

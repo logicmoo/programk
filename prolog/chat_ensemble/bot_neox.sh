@@ -5,12 +5,15 @@ grep_return_code=0
 port=4082
 [ ! -f /opt/logicmoo_workspace/nofederation ] && grep_return_code=1
 
+python -m venv .
+. bin/activate
+pip install requests # openai
 
 ignored() {
 if (( $grep_return_code == 0 )); then
 
-python -m venv .
-. bin/activate
+   python -m venv .
+   . bin/activate
 
    apt install zstd
    pip install gptj
@@ -35,11 +38,13 @@ python -m venv .
 fi
 }
 
+
 while [ 1==1 ]
    do
       [ ! -f /opt/logicmoo_workspace/nofederation ] && grep_return_code=1
 
    if (( $grep_return_code == 0 )); then
+      . ./.api_key
       python ./bot_neox.py -port $port
    else 
       echo $0 in federated mode

@@ -2,6 +2,7 @@
 sleep 1
 
 grep_return_code=0
+port=4082
 [ ! -f /opt/logicmoo_workspace/nofederation ] && grep_return_code=1
 
 
@@ -32,8 +33,10 @@ fi
 
 while [ 1==1 ]
    do
+      [ ! -f /opt/logicmoo_workspace/nofederation ] && grep_return_code=1
+
    if (( $grep_return_code == 0 )); then
-      python ./bot_neox.py -port 4082
+      python ./bot_neox.py -port $port
    else 
       echo $0 in federated mode
       sleep 1000

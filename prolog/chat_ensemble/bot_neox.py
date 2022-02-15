@@ -9,8 +9,8 @@ import os, time
 moddate = os.stat(os.path.realpath(__file__))[8] # there are 10 attributes this call returns and you want the next to last
 originalsysargv = sys.argv
 
-sysargv = sys.argv
-sysargv.pop(0)
+firstArgStr = sys.argv.pop(0)
+firstArg = 0
 
 # single quote prolog atoms
 def qt(s):
@@ -32,25 +32,65 @@ def refresh_on_file_mod():
             __file__), __file__, 'exec'))
 
 verbose = 0
-if len(sysargv) > 0 and sysargv[0]=='-v':
-  sysargv.pop(0)
+if len(sys.argv) > firstArg and sys.argv[firstArg]=='-v':
+  sys.argv.pop(firstArg)
   verbose = 1
 
 show_comment = 0
-if len(sysargv) > 0 and sysargv[0]=='-sc':
-  sysargv.pop(0)
+if len(sys.argv) > firstArg and sys.argv[firstArg]=='-sc':
+  sys.argv.pop(firstArg)
   show_comment = 1
-if len(sysargv) > 0 and sysargv[0]=='-nc':
-   sysargv.pop(0)
+if len(sys.argv) > firstArg and sys.argv[firstArg]=='-nc':
+   sys.argv.pop(firstArg)
    show_comment = 0
 
 cmdloop = 0
-if len(sysargv) > 0 and sysargv[0]=='-cmdloop':
-   sysargv.pop(0)
+if len(sys.argv) > firstArg and sys.argv[firstArg]=='-cmdloop':
+   sys.argv.pop(firstArg)
    cmdloop = 1
 else:
  if select.select([sys.stdin,],[],[],0.0)[0]:
   cmdloop = 1
+
+
+port=0
+if len(sys.argv) > firstArg and sys.argv[firstArg]=='-port':
+   sys.argv.pop(firstArg)
+   port = sys.argv.pop(firstArg)
+
+if verbose==1: print("% " + sys.argv)
+
+print("", end='',  flush=True)
+
+def service_connection(key, mask):
+    sock = key.fileobj
+    data = key.data
+    if mask & selectors.EVENT_READ:
+        recv_data = sock.recv(1024)  # Should be ready to read
+        if recv_data:
+            data.outb += recv_data            
+        else:
+            print('closing connection to', data.addr)
+            sel.unregister(sock)
+            sock.close()
+    if mask & selectors.EVENT_WRITE:
+        if data.outb:
+            print('replying to', repr(data.outb), 'to', data.addr)
+            recv = str(data.outb.decode())
+            size = len(recv)
+            print("got: ",recv,size);
+            data.outb = data.outb[size:]
+            # Should be ready to write
+            sock.send((do_nlp_proc(recv)+"\n").encode())
+            
+
+def accept_wrapper(sock):
+    conn, addr = sock.accept()  # Should be ready to read
+    print('accepted connection from', addr)
+    conn.setblocking(False)
+    data = types.SimpleNamespace(addr=addr, inb=b'', outb=b'')
+    events = selectors.EVENT_READ | selectors.EVENT_WRITE
+    sel.register(conn, events, data=data)
 
 
 #from gpt_j.Basic_api import simple_completion
@@ -108,49 +148,9 @@ def do_nlp_proc(text0):
     return output
 
 data["engine"]="fairseq_gpt_13B"
-print(do_nlp_proc("a flora man was"))
+print("%" + do_nlp_proc("a florida man was"))
 data["engine"]="gptj_6B"
-print(do_nlp_proc("a flora man was"))
-
-
-port=0
-if len(sysargv) > 0 and sysargv[0]=='-port':
-   sysargv.pop(0)
-   port = sysargv.pop(0)
-
-if verbose==1: print("% " + sysargv)
-
-print("", end='',  flush=True)
-
-def service_connection(key, mask):
-    sock = key.fileobj
-    data = key.data
-    if mask & selectors.EVENT_READ:
-        recv_data = sock.recv(1024)  # Should be ready to read
-        if recv_data:
-            data.outb += recv_data            
-        else:
-            print('closing connection to', data.addr)
-            sel.unregister(sock)
-            sock.close()
-    if mask & selectors.EVENT_WRITE:
-        if data.outb:
-            print('replying to', repr(data.outb), 'to', data.addr)
-            recv = str(data.outb.decode())
-            size = len(recv)
-            print("got: ",recv,size);
-            data.outb = data.outb[size:]
-            # Should be ready to write
-            sock.send((do_nlp_proc(recv)+"\n").encode())
-            
-
-def accept_wrapper(sock):
-    conn, addr = sock.accept()  # Should be ready to read
-    print('accepted connection from', addr)
-    conn.setblocking(False)
-    data = types.SimpleNamespace(addr=addr, inb=b'', outb=b'')
-    events = selectors.EVENT_READ | selectors.EVENT_WRITE
-    sel.register(conn, events, data=data)
+print("%" + do_nlp_proc("a florida man was"))
 
 if port!=0:
     import selectors
@@ -181,7 +181,7 @@ if cmdloop==1:
    sys.exit(0)
   refresh_on_file_mod()
 else:
- sentence=' '.join(sysargv)
+ sentence=' '.join(sys.argv)
  if sentence=="": sentence="George Washington went to Washington."
  print(do_nlp_proc(sentence), flush=True)
  

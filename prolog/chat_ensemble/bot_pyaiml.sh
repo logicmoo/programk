@@ -10,6 +10,7 @@ while [ 1==1 ]
       [ ! -f /opt/logicmoo_workspace/nofederation ] && grep_return_code=1
 
       if (( $grep_return_code == 0 )); then
+         
          pip install --force-reinstall -e $python_aiml
          python ./bot_pyaiml.py -port $port
          sleep 0.5

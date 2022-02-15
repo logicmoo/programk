@@ -8,6 +8,10 @@ port=4082
 
 ignored() {
 if (( $grep_return_code == 0 )); then
+
+python -m venv .
+. bin/activate
+
    apt install zstd
    pip install gptj
 

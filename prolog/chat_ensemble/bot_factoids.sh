@@ -5,19 +5,24 @@ port=4083
 [ ! -f /opt/logicmoo_workspace/nofederation ] && grep_return_code=1
 
 
-   rm -rf /usr/local/lib/python*/?*-packages/yaml
-   rm -rf /usr/local/lib/python*/?*-packages/PyYAML-*
-   rm -rf /usr/lib/python*/?*-packages/yaml
-   rm -rf /usr/lib/python*/?*-packages/PyYAML-*
-   
-   sudo -H pip3 install --ignore-installed PyYAML
-   
-   export programY=/opt/logicmoo_workspace/packs_xtra/program-y/src
-   export python_aiml_learn=$programY/programy/clients/embed/basicbot
-   ls -l $python_aiml_learn
+rm -rf /usr/local/lib/python*/?*-packages/yaml
+rm -rf /usr/local/lib/python*/?*-packages/PyYAML-*
+rm -rf /usr/lib/python*/?*-packages/yaml
+rm -rf /usr/lib/python*/?*-packages/PyYAML-*
 
-   #pip install -r $programY/../requirements.txt sleekxmpp==1.3.1
-   pip install -e $programY
+sudo -H pip3 install --ignore-installed PyYAML
+
+python -m venv .
+. bin/activate
+   
+export programY=/opt/logicmoo_workspace/packs_xtra/program-y/src
+export python_aiml_learn=$programY/programy/clients/embed/basicbot
+ls -l $python_aiml_learn
+
+#pip install -r $programY/../requirements.txt sleekxmpp==1.3.1
+pip install -e $programY sleekxmpp==1.3.1
+
+
 
 
 

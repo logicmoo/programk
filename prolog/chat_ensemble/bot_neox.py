@@ -117,7 +117,7 @@ data = {
     # Number between 0 and 1.0. Selects tokens according to the expected amount of information they contribute. Ref: Typical Decoding for Natural Language Generation
     "typical_p": 1.0, 
     #Echo back the prompt in addition to the completion
-    "echo": False, 
+    "echo": True, 
     #Number between 0 and 1.0. Similar to nucleus sampling, but it sets its cutoff point based on the cumulative sum of the accelerations (second derivatives) of the sorted token probabilities rather than the probabilities themselves.
     "tfs": 1.0, 
     #Number between 0 and 1.0. Remove all tokens that have probability below the threshold of: limit = pow(max(probs), 2.0) * top_a

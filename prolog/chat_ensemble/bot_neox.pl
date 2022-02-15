@@ -21,26 +21,41 @@
 :- dynamic(lmconfig:bot_py_dir/1).
 :- ignore(( \+ lmconfig:bot_py_dir(Dir), prolog_load_context(directory,Dir), assert(lmconfig:bot_py_dir(Dir)))).
 
-read_neox_lines(In, Result):- neox_to_w2(In, Result),!.
+read_neox_lines(In, Result):- neox_to_dict(In, Result),!.
 
-text_to_neox_tree(Text,LExpr):-
+neox_completion(Text,LExpr):-
   neox_parse(Text, String),
   nop(dmsg(neox_parse=String)),  
-  neox_to_w2(String,LExpr),
+  neox_to_txt(String,LExpr),
   nop(print_tree_nl(neox=LExpr)),!.
 
+neox_to_w2(Text,Result):- neox_to_dict(Text,M),dict_to_txt(M, Result).
 %neox_to_w2((Word,POS),[POS,Word]).
-neox_to_w2(Str,StrO):- var(Str),current_neox_stream(In),!,neox_to_w2(In,StrO).
-neox_to_w2(Str,StrO):- string(Str),!,StrO=Str.
-neox_to_w2(In, Result):- is_stream(In),!,neox_stream_to_w2(In,_, Term),neox_to_w2(Term, Result).
-neox_to_w2(neox(_In,Text),Out):- !, neox_to_w2(Text,Out).
-neox_to_w2(Text,ListO):- is_dict(Text),get_dict(text,Text,M),M\=="",M\=='',M\==[],!,neox_to_w2(M,ListO).
-neox_to_w2(Text,TextO):- \+ atom(Text),!,Text=TextO.
-neox_to_w2(Text,ListO):- on_x_fail(atom_json_dict(Text,Term,[])),!,neox_to_w2(Term,ListO).
-neox_to_w2(Text,ListO):- on_x_fail(atom_json_term(Text,Term,[])),!,neox_to_w2(Term,ListO).
-neox_to_w2(Text,ListO):- on_x_fail(atom_to_term(Text,Term,_)),!,neox_to_w2(Term,ListO).
-neox_to_w2(Text,Text):-!.
+%neox_to_w2(Text,Result):- neox_to_dict(Text,Result),!.
 %neox_to_w2(Text,_ListO):- \+ compound(Text), nl,writeq(Text),nl,!,fail.
+
+neox_to_dict(Text,Result):- is_dict(Text),!,Result=Text.
+neox_to_dict(In, Result):- is_stream(In),!,neox_stream_to_dict(In,_, Term),neox_to_dict(Term, Result).
+neox_to_dict(neox(_In,Text),Result):- !, neox_to_dict(Text,Result).
+neox_to_dict(Compound,Result):- \+ atomic(Compound),!, any_to_json_dict(Compound,Result),!.
+neox_to_dict(Text,Result):- notrace(on_x_fail(atom_json_dict(Text,Term,[]))),!,neox_to_dict(Term,Result).
+neox_to_dict(Text,Result):- notrace(on_x_fail(atom_json_term(Text,Term,[]))),!,neox_to_dict(Term,Result).
+neox_to_dict(Text,Result):- notrace(on_x_fail(atom_to_term(Text,Term,_))),!,neox_to_dict(Term,Result).
+
+dict_to_txt(Dict,Result):- kv_name_value(Dict,choices,E),!,neox_to_txt(E,Result).
+dict_to_txt(Dict,Result):- kv_name_value(Dict,text,Result).
+
+neox_to_txt(In, Result):-  is_stream(In),!,neox_stream_to_dict(In,_, Term),!,neox_to_txt(Term, Result).
+neox_to_txt(E,V):- is_list(E),!,member(S,E),neox_to_txt(S,V).
+neox_to_txt(Text,Result):- is_dict(Text),!,dict_to_txt(Text,Result).
+neox_to_txt(Text,Result):- compound(Text),!,kv_name_value(Text,text,Result).
+neox_to_txt(Text,Text):-!.
+
+kv_name_value(E,_,_):- \+ compound(E),!,fail.
+kv_name_value(E,K,V):- is_list(E),!,member(S,E),kv_name_value(S,K,V).
+kv_name_value(E,K,V):- compound_name_arity(E,_,2),E=..[_,N,V],atomic(N),\+ number(N),name(K,N),!.
+kv_name_value(E,K,V):- is_dict(E),get_dict(K,E,V),!.
+kv_name_value(E,K,V):- arg(_,E,S),compound(S),kv_name_value(S,K,V).
 
 neox_lexical_segs(I,O):-
   old_into_lexical_segs(I,M),!,
@@ -66,12 +81,12 @@ merge_neox(dep_tree(Type,R,Arg),O,O):-
 merge_neox(_,I,I):-!.
 merge_neox(S,I,O):- append(I,[S],O).
 
-neox_stream_to_w2(In,_, Result):- peek_string(In,10,S),atom_contains(S,"neox("),!,read_term(In,Term,[]),neox_to_w2(Term, Result).
-neox_stream_to_w2(In,S, Result):- atomic(S),atom_contains(S,"neox("),!,read_term_from_atom_rest(In,S,Term),neox_to_w2(Term, Result).
-neox_stream_to_w2(In,S, Result):- atomic(S),at_end_of_stream(In),!,neox_to_w2(S, Result).
-neox_stream_to_w2(In,_, Result):- repeat, read_pending_codes(In,Codes,[]),
+neox_stream_to_dict(In,_, Result):- peek_string(In,10,S),atom_contains(S,"neox("),!,read_term(In,Term,[]),neox_to_dict(Term, Result).
+neox_stream_to_dict(In,S, Result):- atomic(S),atom_contains(S,"neox("),!,read_term_from_atom_rest(In,S,Term),neox_to_dict(Term, Result).
+neox_stream_to_dict(In,S, Result):- atomic(S),at_end_of_stream(In),!,neox_to_dict(S, Result).
+neox_stream_to_dict(In,_, Result):- repeat, read_pending_codes(In,Codes,[]),
  (Codes==[]->(sleep(0.1),fail);true),sformat(S,'~s',[Codes]),
- neox_stream_to_w2(In,S, Result).
+ neox_stream_to_dict(In,S, Result).
 
 
 :- dynamic(tmp:existing_neox_stream/4).
@@ -121,15 +136,19 @@ clear_neox_pending(In):- nop(clear_neox_pending0(In)).
 clear_neox_pending0(In):- at_end_of_stream(In),!,dmsg(clear_neox_pending=at_end_of_stream).
 clear_neox_pending0(In):- read_pending_codes(In,Codes,[]),dmsg(clear_neox_pending=Codes).
 
-tokenize_neox_string(Text,StrO):- any_to_string(Text,Str),  replace_in_string('\n',' ',Str,StrO).
+tokenize_neox_string([Str|Text],AtomO):- atomic(Str), is_list(Text), !, text_to_neox_string([Str|Text],AtomO).
+tokenize_neox_string(Atom,AtomO):- atom(Atom),!,Atom=AtomO.
+tokenize_neox_string(JSON,AtomO):- compound(JSON),!,any_to_json_dict(JSON,Dict),atom_json_dict(AtomO,Dict,[]).
+tokenize_neox_string(Text,AtomO):- tokenize_neox_string(Text,AtomO).
+text_to_neox_string(Text,StrO):- any_to_string(Text,Str),  replace_in_string('\n',' ',Str,StrO).
 /*
 tokenize_neox_string(Text,StrO):- any_to_string(Text,Str), replace_in_string(['\\'='\\\\','\''='\\\''],Str,StrM),
   atomics_to_string(["'",StrM,"'"],StrO).
 */
 
-
 neox_parse(Text, Lines) :- 
-  neox_parse2(Text, Lines).
+  tokenize_neox_string(Text,Neox),
+  neox_parse2(Neox, Lines).
 
 neox_parse2(String, Lines) :- 
   once(neox_parse3(String, Lines)
@@ -184,7 +203,7 @@ text_to_neox_pos(Text,PosW2s):- neox_parse(Text,PosW2s),!.
 text_to_neox_pos(Text,PosW2s):- neox_pos_info(Text,PosW2s0,_Info,_LExpr),guess_pretty(PosW2s0),!,PosW2s=PosW2s0.
   
 text_to_neox_segs(Text,Segs):-
-  text_to_neox_tree(Text,LExpr),
+  neox_completion(Text,LExpr),
   tree_to_lexical_segs(LExpr,Segs).
 
 text_to_neox_sents(Text,Sent):-
@@ -229,7 +248,7 @@ test_neox:- forall(test_neox(X),test_neox(X)).
 
 test_1neox(Text):- 
   format('~N?- ~p.~n',[test_neox(Text)]),
-  text_to_neox_tree(Text,W),
+  neox_completion(Text,W),
   print_tree_nl(W),
   !.
 test_1neox(Text):- wdmsg(failed(test_1neox(Text))).
@@ -237,7 +256,7 @@ test_1neox(Text):- wdmsg(failed(test_1neox(Text))).
 test_neox(N):- number(N),!, forall(test_neox(N,X),test_1neox(X)). 
 test_neox(X):- test_neox(_,X),nop(lex_info(X)).
 
-test_neox(In,Out):- nonvar(In),\+ number(In),var(Out),!,text_to_neox_tree(In,Out).
+test_neox(In,Out):- nonvar(In),\+ number(In),var(Out),!,neox_completion(In,Out).
 test_neox(_,X):- nonvar(X), !, once(test_1neox(X)).
 
 test_neox(1,".\nThe Norwegian lives in the first house.\n.").

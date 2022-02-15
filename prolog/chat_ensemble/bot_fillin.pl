@@ -29,7 +29,7 @@ fillin_completion(Text,LExpr):-
   fillin_to_txt(String,LExpr),
   nop(print_tree_nl(fillin=LExpr)),!.
 
-fillin_to_w2(Text,Result):- fillin_to_dict(Text,M),dict_to_txt(M, Result).
+fillin_to_w2(Text,Result):- fillin_to_dict(Text,M),fillin_dict_to_txt(M, Result).
 %fillin_to_w2((Word,POS),[POS,Word]).
 %fillin_to_w2(Text,Result):- fillin_to_dict(Text,Result),!.
 %fillin_to_w2(Text,_ListO):- \+ compound(Text), nl,writeq(Text),nl,!,fail.
@@ -42,20 +42,20 @@ fillin_to_dict(Text,Result):- notrace(on_x_fail(atom_json_dict(Text,Term,[]))),!
 fillin_to_dict(Text,Result):- notrace(on_x_fail(atom_json_term(Text,Term,[]))),!,fillin_to_dict(Term,Result).
 fillin_to_dict(Text,Result):- notrace(on_x_fail(atom_to_term(Text,Term,_))),!,fillin_to_dict(Term,Result).
 
-dict_to_txt(Dict,Result):- kv_name_value(Dict,choices,E),!,fillin_to_txt(E,Result).
-dict_to_txt(Dict,Result):- kv_name_value(Dict,text,Result).
+fillin_dict_to_txt(Dict,Result):- fillin_kv_name_value(Dict,choices,E),!,fillin_to_txt(E,Result).
+fillin_dict_to_txt(Dict,Result):- fillin_kv_name_value(Dict,text,Result).
 
 fillin_to_txt(In, Result):-  is_stream(In),!,fillin_stream_to_dict(In,_, Term),!,fillin_to_txt(Term, Result).
 fillin_to_txt(E,V):- is_list(E),!,member(S,E),fillin_to_txt(S,V).
-fillin_to_txt(Text,Result):- is_dict(Text),!,dict_to_txt(Text,Result).
-fillin_to_txt(Text,Result):- compound(Text),!,kv_name_value(Text,text,Result).
+fillin_to_txt(Text,Result):- is_dict(Text),!,fillin_dict_to_txt(Text,Result).
+fillin_to_txt(Text,Result):- compound(Text),!,fillin_kv_name_value(Text,text,Result).
 fillin_to_txt(Text,Text):-!.
 
-kv_name_value(E,_,_):- \+ compound(E),!,fail.
-kv_name_value(E,K,V):- is_list(E),!,member(S,E),kv_name_value(S,K,V).
-kv_name_value(E,K,V):- compound_name_arity(E,_,2),E=..[_,N,V],atomic(N),\+ number(N),name(K,N),!.
-kv_name_value(E,K,V):- is_dict(E),get_dict(K,E,V),!.
-kv_name_value(E,K,V):- arg(_,E,S),compound(S),kv_name_value(S,K,V).
+fillin_kv_name_value(E,_,_):- \+ compound(E),!,fail.
+fillin_kv_name_value(E,K,V):- is_list(E),!,member(S,E),fillin_kv_name_value(S,K,V).
+fillin_kv_name_value(E,K,V):- compound_name_arity(E,_,2),E=..[_,N,V],atomic(N),\+ number(N),name(K,N),!.
+fillin_kv_name_value(E,K,V):- is_dict(E),get_dict(K,E,V),!.
+fillin_kv_name_value(E,K,V):- arg(_,E,S),compound(S),fillin_kv_name_value(S,K,V).
 
 fillin_lexical_segs(I,O):-
   old_into_lexical_segs(I,M),!,

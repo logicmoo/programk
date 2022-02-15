@@ -8,11 +8,15 @@
 user:network_service_info(pyaiml,port,4081).
 user:network_service_info(neox,port,4082).
 user:network_service_info(factoids,port,4083).
+user:network_service_info(fillin,port,4084).
 
 :- reexport(library(chat_ensemble/bot_factoids)).
 :- reexport(library(chat_ensemble/bot_neox)).
 :- reexport(library(chat_ensemble/bot_pyaiml)).
+:- reexport(library(chat_ensemble/bot_fillin)).
 
 :- install_converter(bot_pyaiml, pyaiml_parse(+text80, -text_response)).
 :- install_converter(bot_neox, neox_completion(+text80, -text_completion)).
 :- install_converter(bot_factoids, factoids_parse(+text80, -text_response)).
+%:- install_converter(bot_fillin, fillin_completion(+text80, -text_completion)).
+

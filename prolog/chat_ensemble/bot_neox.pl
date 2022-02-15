@@ -29,7 +29,7 @@ neox_completion(Text,LExpr):-
   neox_to_txt(String,LExpr),
   nop(print_tree_nl(neox=LExpr)),!.
 
-neox_to_w2(Text,Result):- neox_to_dict(Text,M),dict_to_txt(M, Result).
+neox_to_w2(Text,Result):- neox_to_dict(Text,M),neox_dict_to_txt(M, Result).
 %neox_to_w2((Word,POS),[POS,Word]).
 %neox_to_w2(Text,Result):- neox_to_dict(Text,Result),!.
 %neox_to_w2(Text,_ListO):- \+ compound(Text), nl,writeq(Text),nl,!,fail.
@@ -42,20 +42,20 @@ neox_to_dict(Text,Result):- notrace(on_x_fail(atom_json_dict(Text,Term,[]))),!,n
 neox_to_dict(Text,Result):- notrace(on_x_fail(atom_json_term(Text,Term,[]))),!,neox_to_dict(Term,Result).
 neox_to_dict(Text,Result):- notrace(on_x_fail(atom_to_term(Text,Term,_))),!,neox_to_dict(Term,Result).
 
-dict_to_txt(Dict,Result):- kv_name_value(Dict,choices,E),!,neox_to_txt(E,Result).
-dict_to_txt(Dict,Result):- kv_name_value(Dict,text,Result).
+neox_dict_to_txt(Dict,Result):- neox_kv_name_value(Dict,choices,E),!,neox_to_txt(E,Result).
+neox_dict_to_txt(Dict,Result):- neox_kv_name_value(Dict,text,Result).
 
 neox_to_txt(In, Result):-  is_stream(In),!,neox_stream_to_dict(In,_, Term),!,neox_to_txt(Term, Result).
 neox_to_txt(E,V):- is_list(E),!,member(S,E),neox_to_txt(S,V).
-neox_to_txt(Text,Result):- is_dict(Text),!,dict_to_txt(Text,Result).
-neox_to_txt(Text,Result):- compound(Text),!,kv_name_value(Text,text,Result).
+neox_to_txt(Text,Result):- is_dict(Text),!,neox_dict_to_txt(Text,Result).
+neox_to_txt(Text,Result):- compound(Text),!,neox_kv_name_value(Text,text,Result).
 neox_to_txt(Text,Text):-!.
 
-kv_name_value(E,_,_):- \+ compound(E),!,fail.
-kv_name_value(E,K,V):- is_list(E),!,member(S,E),kv_name_value(S,K,V).
-kv_name_value(E,K,V):- compound_name_arity(E,_,2),E=..[_,N,V],atomic(N),\+ number(N),name(K,N),!.
-kv_name_value(E,K,V):- is_dict(E),get_dict(K,E,V),!.
-kv_name_value(E,K,V):- arg(_,E,S),compound(S),kv_name_value(S,K,V).
+neox_kv_name_value(E,_,_):- \+ compound(E),!,fail.
+neox_kv_name_value(E,K,V):- is_list(E),!,member(S,E),neox_kv_name_value(S,K,V).
+neox_kv_name_value(E,K,V):- compound_name_arity(E,_,2),E=..[_,N,V],atomic(N),\+ number(N),name(K,N),!.
+neox_kv_name_value(E,K,V):- is_dict(E),get_dict(K,E,V),!.
+neox_kv_name_value(E,K,V):- arg(_,E,S),compound(S),neox_kv_name_value(S,K,V).
 
 neox_lexical_segs(I,O):-
   old_into_lexical_segs(I,M),!,

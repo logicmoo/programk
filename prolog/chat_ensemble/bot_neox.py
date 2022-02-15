@@ -144,7 +144,7 @@ def do_nlp_proc(text0):
     data['engine'] = engine
     resp['engine'] = engine
     text0 = json.dumps(data)
-    output = 'neox('+ qt(text0)+','+ qt(json.dumps(resp)) + '").'
+    output = 'neox('+ qt(text0)+','+ qt(json.dumps(resp)) + ').'
     return output
 
 data["engine"]="fairseq_gpt_13B"
